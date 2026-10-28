@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 from bartleby.qt.testing.render_sheet import Surface, compare, core_themes, is_blank, render
@@ -70,3 +72,16 @@ def test_a_surface_of_one_color_is_blank(qapp, tmp_path):
     render([Surface("empty", QWidget, (40, 40))], tmp_path)
 
     assert is_blank(tmp_path / "empty.light.png")
+
+
+def test_the_offscreen_platform_is_pointed_at_the_systems_fonts(monkeypatch, tmp_path):
+    from bartleby.qt.testing.render_sheet import use_offscreen_platform  # noqa: PLC0415
+
+    monkeypatch.delenv("QT_QPA_PLATFORM", raising=False)
+    monkeypatch.delenv("QT_QPA_FONTDIR", raising=False)
+    monkeypatch.setenv("WINDIR", str(tmp_path))
+
+    use_offscreen_platform()
+
+    assert os.environ["QT_QPA_PLATFORM"] == "offscreen"
+    assert os.environ["QT_QPA_FONTDIR"] == str(tmp_path / "Fonts")

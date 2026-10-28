@@ -19,6 +19,7 @@ widgets still read a theme of their own (BartleBot's, until it adopts core's) pa
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -54,6 +55,16 @@ class Themes:
     active: Callable[[], object]
     #: Makes an instance current, as ``set_theme_instance`` does.
     set_active: Callable[[object], None]
+
+
+def use_offscreen_platform() -> None:
+    """Draw with no window manager and no screen scaling. Call before the ``QApplication`` exists.
+
+    The offscreen platform finds no fonts on Windows unless told where they are, and draws
+    every glyph as a box, so this points it at the system's.
+    """
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    os.environ.setdefault("QT_QPA_FONTDIR", str(Path(os.environ.get("WINDIR", r"C:\Windows")) / "Fonts"))
 
 
 def core_themes() -> Themes:
