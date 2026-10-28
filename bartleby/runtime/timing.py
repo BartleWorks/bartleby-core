@@ -743,3 +743,35 @@ ZONE_READ_INTERVAL = 1.0
 
 STATS_READ_INTERVAL = 5.0
 # Seconds between a state reader's slower reads: speed multiplier, health and mana.
+
+# ---------------------------------------------------------------------------
+# Following the leader (bartleby.runtime.movement.follow)
+# ---------------------------------------------------------------------------
+
+FOLLOW_TICK = 0.05
+# Seconds between a follower's steering updates: its position read, its yaw re-aimed at the
+# next point of the trail. The walking probe's tick (BartleBot's docs/WALKING.md).
+
+FOLLOW_STALL_WINDOW = 1.5
+# Seconds of forward held with too little progress before a follower counts itself stalled,
+# as the walking probe does.
+
+FOLLOW_BACK_OFF = 0.25
+# Seconds a stalled follower holds the backward key before trying again.
+
+LEADER_SETTLE = 1.0
+# Seconds a leader must stand still before its followers take their places around it.
+
+FOLLOW_PROMPT_WAIT = 2.0
+# Seconds a follower at a jump waits for the interact prompt to show before pressing anyway.
+# The game takes 0.2 to 0.4s to show it, and a press before it does nothing.
+
+FOLLOW_LINK_WAIT = 6.0
+# Seconds a follower waits at a jump to be moved before it gives up on walking and ports.
+# The walking probe's LINK_WAIT.
+
+FOLLOW_GATE_WAIT = 8.0
+# Seconds a follower walks into the gate the leader left by before it ports instead.
+
+FOLLOW_PORT_RETRY = 15.0
+# Seconds before a follower whose port failed tries the fallback again.
