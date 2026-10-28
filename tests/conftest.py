@@ -500,3 +500,38 @@ def isolated_appdata(_appdata_root, monkeypatch):
     monkeypatch.setattr(file_types, "notify", lambda: None)
     monkeypatch.setattr(game_dpi, "LAYERS_KEY", rf"{UNGUARDED_REGISTRY_KEY}\Layers")
     monkeypatch.setattr(game_install, "_places", game_install.NoPlaces())
+
+
+# ---------------------------------------------------------------------------
+# Qt: one QApplication per worker, at the app's font (BartleBot's conftest)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def qapp_cls():
+    """Build the one QApplication with the theme's font, and the app's Qt attributes set first."""
+    from PyQt6.QtWidgets import QApplication  # noqa: PLC0415 - keeps Qt out of non-GUI runs
+
+    from bartleby.qt.native_widgets import keep_siblings_alien  # noqa: PLC0415
+    from bartleby.qt.theming.theme import THEME  # noqa: PLC0415
+
+    keep_siblings_alien()
+
+    class _AppFontApplication(QApplication):
+        def __init__(self, argv):
+            super().__init__(argv)
+            self.setFont(THEME.ui_font())
+
+    return _AppFontApplication
+
+
+@pytest.fixture(autouse=True)
+def _restore_app_stylesheet():
+    """Undo any ``QApplication.setStyleSheet`` a test leaves behind, as BartleBot's suite does."""
+    qtwidgets = sys.modules.get("PyQt6.QtWidgets")
+    app = qtwidgets.QApplication.instance() if qtwidgets else None
+    before = app.styleSheet() if app is not None else None
+    yield
+    app = qtwidgets.QApplication.instance() if qtwidgets else None
+    if app is not None and before is not None and app.styleSheet() != before:
+        app.setStyleSheet(before)
