@@ -15,6 +15,5 @@ uv sync --all-extras
 uv run pytest
 ```
 
-The rules BartleBot's CLAUDE.md sets hold here too: no real player data and no game assets,
-ever; every timing constant in `bartleby/runtime/timing.py`; and every input to a client
-through an arbiter lease (`bartleby/runtime/arbiter.py`).
+`CLAUDE.md` has the rules every product keeps, and `docs/ARCHITECTURE.md` how the family is
+put together.
