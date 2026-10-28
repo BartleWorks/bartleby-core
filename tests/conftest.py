@@ -1,10 +1,386 @@
-"""Isolation every test gets: its own %APPDATA%, and no write to the machine's registry or game."""
+"""Test doubles for a game client, and the isolation every test gets.
 
+FakeClient and its helpers came from BartleBot's tests/conftest.py with the modules they
+stand in for; isolated_appdata is the library's part of BartleBot's isolated_settings.
+"""
+
+import asyncio
+import ctypes
 import itertools
+import logging
 import os
 import sys
+from unittest.mock import DEFAULT, AsyncMock, MagicMock
 
 import pytest
+from wizwalker import XYZ
+from wizwalker.extensions.wizsprinter import SprintyClient
+
+from bartleby.runtime.clients import game_keys, sightings
+from bartleby.runtime.game.key_bindings import KeyMap
+
+# ---------------------------------------------------------------------------
+# API drift guard
+#
+# Validates that every method mocked in FakeClient still exists on the real
+# SprintyClient (which inherits from WizWalker's Client).  When the WizSprinter
+# pin in pyproject.toml is bumped, any renamed or removed method will cause an
+# immediate ImportError here rather than silently passing stale tests.
+#
+# The MagicMock attributes — body, root_window, stats, mouse_handler,
+# combat_handler — are instance attributes set in WizWalker's Client.__init__,
+# not class-level attributes, so hasattr(SprintyClient, name) cannot see them.
+# They are excluded from this check and must be verified manually when the pin
+# changes.
+# ---------------------------------------------------------------------------
+_FAKED_METHODS = frozenset(
+    {
+        "zone_name",
+        "teleport",
+        "is_loading",
+        "is_in_npc_range",
+        "is_in_dialog",
+        "send_key",
+        "find_closest_mob",
+        "find_closest_by_vague_name",
+        "find_closest_by_predicate",
+        "tp_to",
+        "in_battle",
+        "calc_health_ratio",
+        "calc_mana_ratio",
+        "has_potion",
+        "use_potion_if_needed",
+        "use_potion",
+        "get_health_wisps",
+        "get_mana_wisps",
+        "get_mobs",
+        "backpack_space",
+        "get_base_entities_with_vague_name",
+        "get_base_entities_with_predicate",
+        "get_base_entity_list",
+    }
+)
+for _method in _FAKED_METHODS:
+    if not hasattr(SprintyClient, _method):
+        raise AttributeError(
+            f"FakeClient mocks {_method!r} but SprintyClient has no such attribute. "
+            "Update FakeClient to match the current WizSprinter API."
+        )
+del _method
+
+
+#: Every FakeClient the running test has made. See FakeClient.get_base_entity_list.
+_clients_in_this_test: list = []
+
+
+async def _everyone_in_this_test() -> list:
+    return [FakeGidEntity(c.gid) for c in _clients_in_this_test]
+
+
+@pytest.fixture(autouse=True)
+def _forget_fake_clients():
+    """Start each test with no FakeClients sharing its realm. A list clear: costs nothing."""
+    _clients_in_this_test.clear()
+    yield
+    _clients_in_this_test.clear()
+
+
+class FakeClient:
+    """AsyncMock-backed stub for a WizSprinter SprintyClient.
+
+    Each method is an AsyncMock so tests can configure return values and
+    side_effect sequences, or assert call counts without any Wizard101 process.
+    """
+
+    _next_handle = 1000
+
+    def __init__(self):
+        # Distinct per instance so wizard_names' handle-keyed cache treats each FakeClient
+        # as a separate client, the way real windows behave.
+        FakeClient._next_handle += 1
+        self.window_handle = FakeClient._next_handle
+        self.combat_handler = MagicMock()
+        self.combat_handler.get_members = AsyncMock(return_value=[])
+        self.zone_name = AsyncMock(return_value="TestZone")
+        self.teleport = AsyncMock()
+        self.is_loading = AsyncMock(return_value=False)
+        self.is_in_npc_range = AsyncMock(return_value=False)
+        self.is_in_dialog = AsyncMock(return_value=False)
+        self.send_key = AsyncMock()
+        # No game behind it to read key bindings from: the shipped defaults, so X is Interact.
+        game_keys.use_map(self, KeyMap.defaults())
+        self.find_closest_mob = AsyncMock(return_value=None)
+        self.find_closest_by_vague_name = AsyncMock(return_value=None)
+        self.find_closest_by_predicate = AsyncMock(return_value=None)
+        self.tp_to = AsyncMock()
+        self.in_battle = AsyncMock(return_value=False)
+        # The center of the fight this client is in, away from FakeEntity's location so a
+        # teleport to one is never mistaken for a teleport to the other.
+        self.duel = MagicMock()
+        self.duel.position = AsyncMock(return_value=XYZ(500.0, 600.0, 0.0))
+        self.body = MagicMock()
+        self.body.position = AsyncMock(return_value=XYZ(0.0, 0.0, 0.0))
+        self.root_window = MagicMock()
+        self.root_window.children = AsyncMock(return_value=[])
+        self.calc_health_ratio = AsyncMock(return_value=1.0)
+        self.calc_mana_ratio = AsyncMock(return_value=1.0)
+        self.has_potion = AsyncMock(return_value=True)
+        self.use_potion_if_needed = AsyncMock()
+        self.use_potion = AsyncMock(return_value=True)
+        self.stats = MagicMock()
+        self.stats.potion_max = AsyncMock(return_value=10)
+        self.stats.potion_charge = AsyncMock(return_value=10)
+        # A level 180 Fire wizard, which is what Challenge Mode's stat caps read (scaled_ratios).
+        self.stats.reference_level = AsyncMock(return_value=180)
+        self.stats.school_id = AsyncMock(return_value=2343174)
+        self.get_health_wisps = AsyncMock(return_value=[])
+        self.get_mana_wisps = AsyncMock(return_value=[])
+        self.get_mobs = AsyncMock(return_value=[])
+        self.backpack_space = AsyncMock(return_value=(0, 100))  # (used, total)
+        self.mouse_handler = MagicMock()
+        self.mouse_handler.__aenter__ = AsyncMock(return_value=None)
+        self.mouse_handler.__aexit__ = AsyncMock(return_value=False)
+        self.mouse_handler.click_window = AsyncMock()
+        self.get_base_entities_with_vague_name = AsyncMock(return_value=[])
+        self.get_base_entities_with_predicate = AsyncMock(return_value=[])
+        # Distinct per instance, like window_handle, so each FakeClient looks like a
+        # different character to wizard_names' switch detection. Tests that care set
+        # read_value_from_offset.return_value directly to simulate a character switch.
+        self.client_object = MagicMock()
+        self.client_object.read_value_from_offset = AsyncMock(return_value=FakeClient._next_handle * 1000)
+        # No name behavior by default, so the memory name route answers None and callers
+        # fall through to the character-page route. Tests that want the memory route give
+        # this a behavior — see tests/game/test_wizard_names.py.
+        self.client_object.inactive_behaviors = AsyncMock(return_value=[])
+        # This character's global id, and what it has loaded. By default every FakeClient
+        # a test makes has every other loaded -- one zone, realm and instance, which is
+        # what node tests written before realm checks assume. see_each_other() splits them.
+        self.gid = FakeClient._next_handle * 1000 + 1
+        self.client_object.global_id_full = AsyncMock(return_value=self.gid)
+        self.client_object.object_name = AsyncMock(return_value=FAKE_PLAYER_TEMPLATE)
+        self.get_base_entity_list = AsyncMock(side_effect=_everyone_in_this_test)
+        _clients_in_this_test.append(self)
+
+
+class FakeEntity:
+    """Minimal stub for a WizWalker entity (mob / NPC / reagent)."""
+
+    def __init__(self, name: str = "TestEnemy/TestEnemy"):
+        self.object_name = AsyncMock(return_value=name)
+        self.location = AsyncMock(return_value=XYZ(100.0, 200.0, 0.0))
+        # Real entities expose their name through the template, not directly; predicate
+        # searches read it that way, so the two must report the same name.
+        template = MagicMock()
+        template.object_name = self.object_name
+        self.object_template = AsyncMock(return_value=template)
+
+
+#: The template every player is made from, a FakeClient's own character included. The real
+#: name is not needed: the code compares an entity's template with the client's own.
+FAKE_PLAYER_TEMPLATE = "Player Object"
+
+
+class FakeGidEntity:
+    """An entity-list entry that is only a global id: another player, as a client sees it.
+
+    *template* other than the player's makes it an NPC or a mob instead.
+    """
+
+    def __init__(self, gid: int, template: str = FAKE_PLAYER_TEMPLATE):
+        self.global_id_full = AsyncMock(return_value=gid)
+        self.object_name = AsyncMock(return_value=template)
+
+
+def prompt_at(client: "FakeClient", *points, initially: bool = False) -> None:
+    """Make *client*'s interact prompt show only while its last teleport was to one of *points*.
+
+    That is how the game behaves, so a test using this does not depend on how many times a
+    node reads the prompt, only on where it sends the client. *initially* is the prompt
+    before the first teleport: True for a client that starts beside some other object.
+    Points are XYZs or the ``{"x", "y", "z"}`` dicts node params hold, compared by
+    coordinates, since XYZ has no equality of its own.
+    """
+    wanted = [(p["x"], p["y"], p["z"]) if isinstance(p, dict) else tuple(p) for p in points]
+
+    async def _showing() -> bool:
+        if not client.teleport.call_args_list:
+            return initially
+        return tuple(client.teleport.call_args_list[-1].args[0]) in wanted
+
+    client.is_in_npc_range.side_effect = _showing
+
+
+def zone_unreadable_at_first(client: "FakeClient", zone: str = "TestZone", reads: int = 1) -> None:
+    """Make *client*'s zone read None for its next *reads* reads, then *zone*.
+
+    That is a client just off a loading screen: the zone turns readable a moment after the
+    screen is gone (#282). After that the read is ``zone_name.return_value``, so a fake that
+    moves the client by setting it still does.
+    """
+    client.zone_name = AsyncMock(
+        return_value=zone, side_effect=lambda: None if client.zone_name.await_count <= reads else DEFAULT
+    )
+
+
+def see_each_other(*clients: "FakeClient") -> None:
+    """Make *clients* have each other loaded, and nobody else: one zone, realm and instance.
+
+    By default a test's FakeClients all see each other; calling this once per group is how
+    a test splits them, e.g. ``see_each_other(a, b); see_each_other(c)``.
+    """
+    for viewer in clients:
+        viewer.get_base_entity_list.side_effect = None
+        viewer.get_base_entity_list.return_value = [FakeGidEntity(c.gid) for c in clients]
+
+
+class FakeMachine:
+    """Minimal stub for BotMachine that records logs and drops."""
+
+    def __init__(self, bot_config=None, options: dict | None = None):
+        self.bot_config = bot_config
+        self._options = options or {}
+        self.logs: list[tuple] = []
+        self.drops: list[tuple] = []
+        self.chat_baselines: dict[object, str] = {}
+        self.drop_poll: asyncio.Task | None = None
+        # Which client hwnds are currently exempt from ClientHealthMonitor, and which have
+        # been put back. A node that suspends and forgets to restore leaves a real crash
+        # unnoticed for the rest of the run, so both sides are recorded.
+        self.health_checks_suspended: set[int] = set()
+        self.health_checks_resumed: set[int] = set()
+        # Every abandon_client call, as (client, reason). ``recovers`` is what it answers:
+        # False by default, which is the node tester's run with no recovery behind it.
+        self.abandoned: list[tuple[object, str]] = []
+        self.recovers = False
+        self.is_stopped = False
+        # Mirrors BotMachine.port_map: None until something surveys who can port to whom.
+        self.port_map = None
+        # Mirrors BotMachine.node_scratch: what a node keeps for its own rerun.
+        self.node_scratch: dict[str, object] = {}
+        # The real record, retaining as it does mid-run, so node tests exercise its rules.
+        self.together = sightings.TogetherRecord()
+
+    def note_sightings(self, result) -> None:
+        self.together.note(result)
+
+    def are_together(self, clients) -> bool:
+        return self.together.are_together(clients)
+
+    def together_with(self, client, clients) -> list:
+        return self.together.together_with(client, clients)
+
+    def forget_sightings(self, client) -> None:
+        self.together.forget(client)
+
+    def log(self, msg: str, level: int = logging.INFO) -> None:
+        self.logs.append((msg, level))
+
+    def note_flee(self) -> bool:
+        self.flees = getattr(self, "flees", 0) + 1
+        return False
+
+    def note_fight_fled(self, state_id, level) -> None:
+        """Mirror BotMachine: a node's fight was fled, on *level*. Recorded as (state_id, level)."""
+        self.fights_fled = [*getattr(self, "fights_fled", []), (state_id, level)]
+
+    def on_drop(self, item: str, qty: int, client_index: int = 0) -> None:
+        self.drops.append((item, qty, client_index))
+
+    def chat_baseline(self, client) -> str | None:
+        """Mirror BotMachine: None means never seeded, "" is a real empty baseline."""
+        return self.chat_baselines.get(client)
+
+    def set_chat_baseline(self, client, text: str) -> None:
+        self.chat_baselines[client] = text
+
+    def start_drop_poll(self, task: asyncio.Task) -> None:
+        """Mirror BotMachine: a new fight's poll cancels the previous one."""
+        if self.drop_poll is not None:
+            self.drop_poll.cancel()
+        self.drop_poll = task
+
+    async def wait_for_drop_poll(self) -> None:
+        if self.drop_poll is not None and not self.drop_poll.done():
+            await asyncio.wait({self.drop_poll})
+
+    def suspend_health_checks_for(self, hwnds, *, watch_disconnects: bool = False) -> None:
+        """Record a health-check suspension. Real BotMachine flags them on its monitor."""
+        self.health_checks_suspended.update(hwnds)
+        self.watching_disconnects = watch_disconnects
+
+    def is_handed_to_recovery(self, client) -> bool:
+        """Mirror BotMachine: set ``lost`` to the hwnds a watcher has handed to recovery."""
+        return client.window_handle in getattr(self, "lost", set())
+
+    def resume_health_checks_for(self, hwnds) -> None:
+        self.health_checks_suspended.difference_update(hwnds)
+        self.health_checks_resumed.update(hwnds)
+
+    def note_logged_in(self, hwnds) -> None:
+        """Mirror BotMachine: these players are back from a login and nothing has moved them."""
+        self.fresh_logins = {*getattr(self, "fresh_logins", set()), *hwnds}
+
+    def is_freshly_logged_in(self, client) -> bool:
+        return client.window_handle in getattr(self, "fresh_logins", set())
+
+    def abandon_client(self, client, reason: str) -> bool:
+        """Record a handover to crash recovery. Real BotMachine kills the client, or stops the run."""
+        self.abandoned.append((client, reason))
+        return self.recovers
+
+    def get_option(self, name: str, default=None):
+        """Return configured option value, or a sensible test default.
+
+        Safety Delay uses 0.01s (10ms): small enough to be negligible but reliable.
+        timeout=0 and timeout=0.001 can race against asyncio.wait_for's own scheduling
+        overhead in Python 3.12+ and fire before the condition coroutine runs even once.
+        10ms gives the event loop plenty of room while still being 10× faster than the
+        original 0.1s default.
+        Tests that need a longer window (e.g. late-appearing dialog tests) should pass
+        options={"Safety Delay": <value>} to the constructor.
+        """
+        return self._options.get(name, 0.01 if name == "Safety Delay" else 0)
+
+
+# ---------------------------------------------------------------------------
+# Timer resolution
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _fine_grained_timers():
+    """Raise the Windows timer resolution for the duration of the test session.
+
+    Windows schedules waits on a ~15.6 ms tick by default, so every ``asyncio.sleep``
+    shorter than that still costs a full tick. The suite is mostly nodes polling on
+    short intervals, which means thousands of 1-10 ms sleeps each rounding up to 15.6 ms
+    — well over half the wall time, and none of it doing anything.
+
+    ``timeBeginPeriod(1)`` drops the tick to ~1 ms. It cannot make a sleep return early,
+    so nothing that asserts a lower bound on elapsed time can be affected; it only stops
+    the short ones overshooting. The app itself does not do this — its own cadences are
+    tenths of seconds, where the tick does not matter.
+
+    Session-scoped and paired with ``timeEndPeriod`` because the setting is process-wide
+    and refcounted by the OS.
+    """
+    if sys.platform != "win32":
+        yield
+        return
+    winmm = ctypes.WinDLL("winmm")
+    winmm.timeBeginPeriod(1)
+    try:
+        yield
+    finally:
+        winmm.timeEndPeriod(1)
+
+
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Isolation
+# ---------------------------------------------------------------------------
 
 #: Where the install key, the file types and the compatibility layers go in a test that does
 #: not choose a key of its own: one throwaway key per worker, never the vendor's.
