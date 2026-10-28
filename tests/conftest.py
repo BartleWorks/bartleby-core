@@ -10,7 +10,8 @@ import itertools
 import logging
 import os
 import sys
-from unittest.mock import DEFAULT, AsyncMock, MagicMock
+from contextlib import ExitStack
+from unittest.mock import DEFAULT, AsyncMock, MagicMock, patch
 
 import pytest
 from wizwalker import XYZ
@@ -340,6 +341,80 @@ class FakeMachine:
         options={"Safety Delay": <value>} to the constructor.
         """
         return self._options.get(name, 0.01 if name == "Safety Delay" else 0)
+
+
+def message_box_patches(visible_buttons=()):
+    """Patch node_helpers' UI reads to stand in for an on-screen modal message box.
+
+    `visible_buttons` is the set of MESSAGE_BOX_* paths the modal shows; clicks land only
+    on those. Which buttons are showing is the ONLY way to tell the game's modals apart —
+    they all share the MessageBoxModalWindow tree — so tests state a dialog by naming its
+    buttons, the way the nodes identify it:
+
+        (MESSAGE_BOX_CENTER, MESSAGE_BOX_RIGHT)  the dungeon exit warning (confirm + cancel)
+        (MESSAGE_BOX_RIGHT,)                     teleport_to_friend's friend-busy dialog
+        ()                                       no modal
+
+    Returns (patches, clicked_paths): apply the patches with an ExitStack or a `with`
+    tuple, and assert against clicked_paths afterwards.
+    """
+    import bartleby.runtime.actions.node_helpers as nh
+
+    visible = [list(p) for p in visible_buttons]
+    clicked: list[list[str]] = []
+
+    async def _is_visible(_client, path):
+        return list(path) in visible
+
+    async def _click(_client, path):
+        clicked.append(path)
+        return list(path) in visible
+
+    return (
+        patch.object(nh, "is_visible_by_path", new=AsyncMock(side_effect=_is_visible)),
+        patch.object(nh, "click_by_path", new=AsyncMock(side_effect=_click)),
+    ), clicked
+
+
+class ModalScreen:
+    """A stack of modals over a client, each a (caption, buttons) pair, closed by a click on one of its buttons.
+
+    Stands in for the game's modal message box: `patches()` replaces the three reads and the click
+    node_helpers makes, and `stubborn` makes a click that does nothing. `clicked` records every click.
+    """
+
+    def __init__(self, *modals, stubborn: bool = False):
+        self.modals = list(modals)
+        self.stubborn = stubborn
+        self.clicked: list[list[str]] = []
+
+    def patches(self):
+        import bartleby.runtime.actions.node_helpers as nh_mod
+        from bartleby.runtime.paths import MESSAGE_BOX_CAPTION_PATH
+
+        async def _text(_client, path):
+            return self.modals[0][0] if self.modals and list(path) == MESSAGE_BOX_CAPTION_PATH else ""
+
+        async def _visible(_client, path):
+            return bool(self.modals) and list(path) in self.modals[0][1]
+
+        async def _click(_client, path):
+            self.clicked.append(list(path))
+            if self.modals and list(path) in self.modals[0][1] and not self.stubborn:
+                self.modals.pop(0)
+
+        return (
+            patch.object(nh_mod, "get_text_by_path", new=_text),
+            patch.object(nh_mod, "is_visible_by_path", new=_visible),
+            patch.object(nh_mod, "click_by_path", new=_click),
+        )
+
+    def apply(self) -> ExitStack:
+        """Enter every patch; use as `with screen.apply():`."""
+        stack = ExitStack()
+        for patcher in self.patches():
+            stack.enter_context(patcher)
+        return stack
 
 
 # ---------------------------------------------------------------------------
