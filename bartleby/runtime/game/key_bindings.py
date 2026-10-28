@@ -78,7 +78,7 @@ KEY_CODES: dict[str, int] = {
 
 
 class GameAction(StrEnum):
-    """Every action BartleBot presses, by the game's name for it. A run needs every one."""
+    """Every action a product presses, by the game's name for it."""
 
     INTERACT = "NPCInteract"
     BACKPACK = "ToggleInventory"
@@ -88,6 +88,9 @@ class GameAction(StrEnum):
     HOUSING = "ToggleFurniture"
     FRIENDS = "DisplayNewBuddyList"
     MOVE_LEFT = "MoveLeft"
+    MOVE_FORWARD = "MoveForward"
+    MOVE_BACKWARD = "MoveBackward"
+    MOVE_RIGHT = "MoveRight"
 
 
 # What the game's key bindings page calls each action (Root.wad, Locale/en-US/InputActions.lang).
@@ -100,6 +103,9 @@ ACTION_LABELS: dict[str, str] = {
     GameAction.HOUSING: "Housing",
     GameAction.FRIENDS: "Friends",
     GameAction.MOVE_LEFT: "Move Left",
+    GameAction.MOVE_FORWARD: "Move Forward",
+    GameAction.MOVE_BACKWARD: "Move Backward",
+    GameAction.MOVE_RIGHT: "Move Right",
     "ToggleChatBoxInputEnter": "Open Chat",
     "ToggleChatBoxInputSlash": "Open Chat",
 }
@@ -115,6 +121,9 @@ DEFAULT_KEYS: dict[GameAction, str] = {
     GameAction.HOUSING: "u",
     GameAction.FRIENDS: "f",
     GameAction.MOVE_LEFT: "a",
+    GameAction.MOVE_FORWARD: "w",
+    GameAction.MOVE_BACKWARD: "s",
+    GameAction.MOVE_RIGHT: "d",
 }
 
 # Actions that open the chat line, which then takes every key pressed after it as text.

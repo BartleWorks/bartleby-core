@@ -725,3 +725,21 @@ SPEED_REAPPLY_INTERVAL = 0.3
 # Seconds between the authoring speed toggle's checks that each client still walks at the
 # boosted speed. The game rewrites the multiplier on every zone change and mount, so a
 # boost written once is gone after the first door; this is how soon it comes back.
+
+# ---------------------------------------------------------------------------
+# Input and live state (bartleby.runtime.input, bartleby.runtime.state)
+# ---------------------------------------------------------------------------
+
+HELD_KEY_REPEAT = 0.05
+# Seconds between the repeated key-downs of a held key, as a key held on a keyboard repeats.
+# The walking probe's tick; the game reads a key as held while they keep coming.
+
+POSITION_READ_INTERVAL = 0.1
+# Seconds between a state reader's position reads: several a second, which is what a
+# follower walking the leader's trail needs.
+
+ZONE_READ_INTERVAL = 1.0
+# Seconds between a state reader's zone, loading and battle reads.
+
+STATS_READ_INTERVAL = 5.0
+# Seconds between a state reader's slower reads: speed multiplier, health and mana.
