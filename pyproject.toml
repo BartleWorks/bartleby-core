@@ -1,0 +1,63 @@
+[project]
+name = "bartleby-core"
+version = "0.1.0"
+description = "What every Bartleby product shares: accounts, launch profiles, strategies, the client runtime and its widgets"
+license = "GPL-3.0-or-later"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.0",
+    "keyring>=25.0",
+    # Reads Steam's library folders to find the game (shared/game_install.py).
+    "vdf>=3.4",
+]
+
+[project.optional-dependencies]
+# The client runtime: hooking, launching, movement, the arbiter and the actions. No Qt.
+runtime = [
+    "wizwalker",
+    "wizsprinter",
+]
+# Theming and the widgets the products share.
+qt = [
+    "PyQt6>=6.9",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+    "pytest-asyncio>=1.0",
+    "pytest-xdist>=3.6",
+    "pytest-qt>=4.5.0",
+    "ruff>=0.15",
+]
+
+# Ours, pinned by exact commit, the same pins BartleBot carries (its docs/UPSTREAM.md).
+[tool.uv.sources]
+wizwalker = { git = "https://github.com/BartleWorks/wizwalker.git", rev = "e73a73635bedfc0e05f2730f277c43b49c24f113" }
+wizsprinter = { git = "https://github.com/BartleWorks/wizsprinter.git", rev = "088fc838bda285c8b06d2f235fb5671126035f59" }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+qt_api = "pyqt6"
+asyncio_default_fixture_loop_scope = "function"
+tmp_path_retention_policy = "failed"
+
+[tool.ruff]
+extend-exclude = ["*.md"]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B"]
+ignore = ["E501", "E402", "B905", "B008"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["bartleby"]
