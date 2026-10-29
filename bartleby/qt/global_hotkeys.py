@@ -29,6 +29,8 @@ from collections.abc import Callable
 
 from PyQt6.QtCore import QAbstractNativeEventFilter
 
+from bartleby.shared.product import current
+
 logger = logging.getLogger(__name__)
 
 WM_HOTKEY = 0x0312
@@ -119,7 +121,9 @@ class GlobalHotkeys(QAbstractNativeEventFilter):
             else:
                 parsed[action] = combo
         for action in invalid:
-            logger.warning("Hotkey for %s is %r, which is not a key BartleBot can bind", action, bindings[action])
+            logger.warning(
+                "Hotkey for %s is %r, which is not a key %s can bind", action, bindings[action], current().name
+            )
         self._bindings = parsed
         if self._armed:
             self._unregister_all()
@@ -155,8 +159,9 @@ class GlobalHotkeys(QAbstractNativeEventFilter):
                     action,
                     combo,
                     "The hotkey for %s is already registered elsewhere: by another application, "
-                    "or by BartleBot's other hotkey set if it is a digit speed-authoring uses",
+                    "or by %s's other hotkey set if it is a digit speed-authoring uses",
                     action,
+                    current().name,
                 )
 
     def _warn_once(self, action: str, combo: tuple[int, int], message: str, *args) -> None:

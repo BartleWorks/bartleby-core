@@ -39,9 +39,13 @@ class _Keys:
         return list(self.keys)
 
 
+#: The running product, which each call names.
+OWN = "BartleBot"
+
+
 @pytest.fixture
 def own(tmp_path) -> Path:
-    return _ship_set(tmp_path / "BartleBot", SHARED_SET_VERSION)
+    return _ship_set(tmp_path / OWN, SHARED_SET_VERSION)
 
 
 def _installed(tmp_path: Path, product: str, version: int) -> InstallKey:
@@ -51,19 +55,19 @@ def _installed(tmp_path: Path, product: str, version: int) -> InstallKey:
 
 
 def test_with_nothing_else_installed_the_own_set_is_used(own):
-    assert shipped_root(own, reg=NoRegistry()) == own
+    assert shipped_root(own, product=OWN, reg=NoRegistry()) == own
 
 
 def test_a_newer_set_from_the_other_product_is_used_whole(own, tmp_path):
     buddy = _installed(tmp_path, "BartleBuddy", SHARED_SET_VERSION + 1)
-    assert shipped_root(own, reg=_Keys(buddy)) == buddy.install_dir
+    assert shipped_root(own, product=OWN, reg=_Keys(buddy)) == buddy.install_dir
 
 
 @pytest.mark.parametrize("version", [SHARED_SET_VERSION, SHARED_SET_VERSION - 1])
 def test_an_equal_or_older_set_leaves_the_own_one_in_use(own, tmp_path, version):
     """A set's version decides, not which was installed last: reinstalling the older product changes nothing."""
     buddy = _installed(tmp_path, "BartleBuddy", version)
-    assert shipped_root(own, reg=_Keys(buddy)) == own
+    assert shipped_root(own, product=OWN, reg=_Keys(buddy)) == own
 
 
 def test_the_highest_of_several_sets_is_used(own, tmp_path):
@@ -72,27 +76,27 @@ def test_the_highest_of_several_sets_is_used(own, tmp_path):
         _installed(tmp_path, "BartleBuilder", SHARED_SET_VERSION + 3),
         _installed(tmp_path, "Other", SHARED_SET_VERSION + 2),
     )
-    assert shipped_root(own, reg=keys) == tmp_path / "BartleBuilder"
+    assert shipped_root(own, product=OWN, reg=keys) == tmp_path / "BartleBuilder"
 
 
 def test_when_the_other_product_is_uninstalled_the_own_set_comes_back(own, tmp_path):
     registry = _Keys(_installed(tmp_path, "BartleBuddy", SHARED_SET_VERSION + 1))
-    assert shipped_root(own, reg=registry) == tmp_path / "BartleBuddy"
+    assert shipped_root(own, product=OWN, reg=registry) == tmp_path / "BartleBuddy"
 
     registry.keys.clear()  # uninstall removes its key
 
-    assert shipped_root(own, reg=registry) == own
+    assert shipped_root(own, product=OWN, reg=registry) == own
 
 
 def test_a_key_whose_folder_is_gone_is_passed_over(own, tmp_path):
     stale = InstallKey("BartleBuddy", tmp_path / "removed", SHARED_SET_VERSION + 1)
-    assert shipped_root(own, reg=_Keys(stale)) == own
+    assert shipped_root(own, product=OWN, reg=_Keys(stale)) == own
 
 
 def test_the_running_products_own_key_never_redirects_it(own, tmp_path):
     """A checkout run beside an installed copy of itself reads its own files, not the install's."""
-    installed_self = _installed(tmp_path, official_set.PRODUCT, SHARED_SET_VERSION + 5)
-    assert shipped_root(own, reg=_Keys(installed_self)) == own
+    installed_self = _installed(tmp_path, OWN, SHARED_SET_VERSION + 5)
+    assert shipped_root(own, product=OWN, reg=_Keys(installed_self)) == own
 
 
 def test_the_registry_can_be_swapped_and_restored(monkeypatch):
@@ -147,7 +151,7 @@ def test_with_two_install_keys_the_higher_directory_version_is_used_whole(monkey
         InstallRecord("Gone", tmp_path / "gone", tmp_path / "gone" / "Gone.exe"),
     )
 
-    assert shipped_root(own, reg=official_set.WindowsRegistry()) == newer
+    assert shipped_root(own, product=OWN, reg=official_set.WindowsRegistry()) == newer
 
 
 @pytest.mark.parametrize("content", ["{}", '{"version": "8"}', '{"version": true}', "not json"])
@@ -167,7 +171,7 @@ def test_a_set_with_no_version_of_its_own_loses_to_any_other(tmp_path):
     bare.mkdir()
     buddy = _installed(tmp_path, "BartleBuddy", 1)
 
-    assert shipped_root(bare, reg=_Keys(buddy)) == buddy.install_dir
+    assert shipped_root(bare, product=OWN, reg=_Keys(buddy)) == buddy.install_dir
 
 
 def test_the_default_registry_is_read_once_per_session(tmp_path):
@@ -175,8 +179,8 @@ def test_the_default_registry_is_read_once_per_session(tmp_path):
     buddy = _installed(tmp_path, "BartleBuddy", SHARED_SET_VERSION + 1)
     keys = _Keys()
     official_set.set_registry(keys)
-    assert shipped_root(own) == own
+    assert shipped_root(own, product=OWN) == own
     keys.keys.append(buddy)  # installed while we run: the set in use does not change
-    assert shipped_root(own) == own
+    assert shipped_root(own, product=OWN) == own
     official_set.reset_shipped_root()
-    assert shipped_root(own) == buddy.install_dir
+    assert shipped_root(own, product=OWN) == buddy.install_dir

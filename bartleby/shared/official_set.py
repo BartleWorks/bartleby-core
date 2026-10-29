@@ -40,7 +40,6 @@ from typing import Protocol
 
 from bartleby.shared import install_key
 from bartleby.shared.strategy_library import LIBRARY_DIRNAME
-from bartleby.shared.vendor import PRODUCT
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +131,7 @@ def reset_shipped_root() -> None:
     _reported = None
 
 
-def shipped_root(own_root: Path, *, product: str = PRODUCT, reg: InstallRegistry | None = None) -> Path:
+def shipped_root(own_root: Path, *, product: str, reg: InstallRegistry | None = None) -> Path:
     """The install directory whose copy of the shared set is used: ``own_root`` unless another's is newer.
 
     Another product's key counts only while its install directory exists, so a key an

@@ -4,7 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from bartleby.runtime.testing.guards import CORE_PACKAGE, Finding, core_copies, fixed_key_presses, report
+from bartleby.runtime.testing.guards import (
+    CORE_PACKAGE,
+    Finding,
+    core_copies,
+    fixed_key_presses,
+    product_literals,
+    report,
+)
 
 PACKAGE = Path(__file__).resolve().parents[3] / "bartleby"
 
@@ -101,3 +108,49 @@ def test_an_init_or_a_module_of_imports_alone_is_never_a_copy(tmp_path):
 def test_the_copy_check_reads_core_itself_by_default():
     assert CORE_PACKAGE == PACKAGE.resolve()
     assert core_copies(PACKAGE).offenders  # core against itself: every module is its own copy
+
+
+_NAMES = ("BartleBot", "BartleBuddy")
+
+
+def test_a_product_name_in_a_string_is_found_in_any_case(tmp_path):
+    root = _package(
+        tmp_path,
+        {
+            "shown.py": 'TEXT = "Launch it from BartleBot to embed it."\n',
+            "prefix.py": 'OURS = ("bartlebuddy.", "bartleby.")\n',
+        },
+    )
+
+    result = product_literals(root, _NAMES)
+
+    assert sorted(f.key for f in result.offenders) == ["prefix.py:1", "shown.py:1"]
+
+
+def test_a_version_in_a_string_is_found_but_a_longer_dotted_number_is_not(tmp_path):
+    root = _package(tmp_path, {"m.py": 'VERSION = "0.1.0"\nHOST = "127.0.0.1"\nSCALE = "1.5"\n'})
+
+    result = product_literals(root, _NAMES)
+
+    assert [f.key for f in result.offenders] == ["m.py:1"]
+
+
+def test_docstrings_and_comments_may_name_a_product(tmp_path):
+    """They are history: where a module came from, whose bug it fixed."""
+    source = '''"""Moved from BartleBot's bartlebot/gui/ui_state.py."""
+
+# BartleBuddy's runtime runs on its own thread.
+
+
+class Tile:
+    """Says what BartleBot said."""
+
+    size: int = 0
+    """Version 0.1.0 had none."""
+
+    def show(self):
+        """As BartleBuddy draws it."""
+'''
+    root = _package(tmp_path, {"m.py": source})
+
+    assert not product_literals(root, _NAMES)

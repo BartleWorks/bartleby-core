@@ -11,6 +11,7 @@ import logging
 import os
 import sys
 from contextlib import ExitStack
+from pathlib import Path
 from unittest.mock import DEFAULT, AsyncMock, MagicMock, patch
 
 import pytest
@@ -19,6 +20,8 @@ from wizwalker.extensions.wizsprinter import SprintyClient
 
 from bartleby.runtime.clients import game_keys, sightings
 from bartleby.runtime.game.key_bindings import KeyMap
+from bartleby.shared import product
+from bartleby.shared.product import Product
 
 # ---------------------------------------------------------------------------
 # API drift guard
@@ -500,6 +503,23 @@ def isolated_appdata(_appdata_root, monkeypatch):
     monkeypatch.setattr(file_types, "notify", lambda: None)
     monkeypatch.setattr(game_dpi, "LAYERS_KEY", rf"{UNGUARDED_REGISTRY_KEY}\Layers")
     monkeypatch.setattr(game_install, "_places", game_install.NoPlaces())
+
+
+#: The product every test runs as, named for no real one, so a product's name written into core fails a test.
+SAMPLE_PRODUCT = Product(
+    name="Sample",
+    version="1.2.3",
+    accent="#3366bb",
+    accent_dark="#5b95d6",
+    logo=Path(__file__).resolve().parents[1] / "bartleby" / "qt" / "icons" / "play.svg",
+)
+
+
+@pytest.fixture(autouse=True)
+def sample_product(monkeypatch):
+    """Run every test as :data:`SAMPLE_PRODUCT`, as an app's entry point would with ``product.use``."""
+    monkeypatch.setattr(product, "_current", SAMPLE_PRODUCT)
+    return SAMPLE_PRODUCT
 
 
 # ---------------------------------------------------------------------------

@@ -39,10 +39,6 @@ from pathlib import Path
 #: The publisher, as it appears on the user's disk and in their credential store.
 VENDOR = "Bartleby"
 
-#: This product, as it appears beneath the vendor directory. A sibling product sets its
-#: own; nothing here is BartleBot-specific except this one string.
-PRODUCT = "BartleBot"
-
 
 def vendor_dir() -> Path:
     """``%APPDATA%/Bartleby`` — the root every product by this publisher writes under.
@@ -66,8 +62,12 @@ def local_vendor_dir() -> Path:
     return Path(base) / VENDOR
 
 
-def product_dir(product: str = PRODUCT) -> Path:
-    """``%APPDATA%/Bartleby/<product>`` — one product's own data directory."""
+def product_dir(product: str) -> Path:
+    """``%APPDATA%/Bartleby/<product>`` — one product's own data directory.
+
+    The product names itself (:attr:`bartleby.shared.product.Product.data_dir`): a default
+    here would be one product's name in every product's library.
+    """
     return vendor_dir() / product
 
 

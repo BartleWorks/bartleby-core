@@ -103,7 +103,7 @@ async def test_a_key_names_the_bartlebot_function_that_pressed_it(dev, tmp_path,
     client.window_handle = 1
     key = SimpleNamespace(name="P")
     # A function whose module is in bartlebot, as deck_io's deck_page_open is.
-    namespace = {"__name__": "bartlebot.combat.example", "key": key}
+    namespace = {"__name__": "sample.combat.example", "key": key}
     exec("async def open_page(client):\n    await client.send_key(key)\n", namespace)
 
     path = run_trace.start(lambda c: 3 if c is client else None, tmp_path)
@@ -132,7 +132,7 @@ async def test_through_an_extension_both_ends_of_its_part_are_named(dev, tmp_pat
     exec("async def press(client):\n    await client.send_key('P')\n", inner)
     outer = {"__name__": "wizwalker.extensions.wizsprinter.outer", "press": inner["press"]}
     exec("async def handle_round(client):\n    await press(client)\n", outer)
-    ours = {"__name__": "bartlebot.nodes.example", "handle_round": outer["handle_round"]}
+    ours = {"__name__": "sample.nodes.example", "handle_round": outer["handle_round"]}
     exec("async def fight(client):\n    await handle_round(client)\n", ours)
 
     path = run_trace.start(lambda c: 1, tmp_path)

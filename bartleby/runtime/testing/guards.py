@@ -181,3 +181,49 @@ def core_copies(package_root: Path, allow: Mapping[str, str] | None = None, core
             if code == theirs:
                 findings.append(Finding(module, module, 1, f"a copy of core's bartleby/{original}"))
     return report(findings, allow or {}, "Delete the copy and import core's module instead.")
+
+
+# ---------------------------------------------------------------------------
+# Product names and versions in shared code
+# ---------------------------------------------------------------------------
+
+#: A version written out: three dotted numbers standing alone, as ``"0.1.0"``.
+_VERSION = re.compile(r"(?<![\w.])\d+\.\d+\.\d+(?![\w.])")
+
+
+def _docstrings(tree: ast.Module) -> set[int]:
+    """The ids of every docstring's constant: a module's, a class's or a function's, and an attribute's after it."""
+    found = set()
+    for node in ast.walk(tree):
+        body = getattr(node, "body", None)
+        for statement in body if isinstance(body, list) else ():
+            if (
+                isinstance(statement, ast.Expr)
+                and isinstance(statement.value, ast.Constant)
+                and isinstance(statement.value.value, str)
+            ):
+                found.add(id(statement.value))
+    return found
+
+
+def product_literals(package_root: Path, names: Iterable[str], allow: Mapping[str, str] | None = None) -> Report:
+    """No string in shared code names a product or a version: both come from the ``Product``.
+
+    A name or a version written out in core is right in one product and wrong in every
+    other, and drifts from the one it was right in (``bartleby.shared.product``). Matched
+    in any case, so ``"bartlebot."`` is caught as well as ``"BartleBot"``. Docstrings and
+    comments are left alone: they say where a module came from and whose bug it fixed,
+    which is history, not a value. Keyed ``"<module>:<line>"``.
+    """
+    pattern = re.compile("|".join(re.escape(n) for n in names), re.IGNORECASE)
+    findings = []
+    for path in python_files(package_root):
+        module = module_name(path, package_root)
+        tree = parse(path)
+        docstrings = _docstrings(tree)
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Constant) or not isinstance(node.value, str) or id(node) in docstrings:
+                continue
+            if (match := pattern.search(node.value) or _VERSION.search(node.value)) is not None:
+                findings.append(Finding(f"{module}:{node.lineno}", module, node.lineno, f"names {match.group()!r}"))
+    return report(findings, allow or {}, "Take the name or the version from bartleby.shared.product's Product.")

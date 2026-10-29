@@ -624,7 +624,7 @@ cost is the layout flush, not the paint. The second one is free.
 Left alone it lands wherever the first offscreen render happens to be, which is a
 gesture — the first card drag of a session stalled for a fifth of a second while the
 shadow went on, and no later one did. Call `warm_offscreen_render(widget)`
-(BartleBot's `gui/offscreen_warmup.py`) a turn after the surface is shown instead; it is per window,
+(`bartleby/qt/offscreen_warmup.py`) a turn after the surface is shown instead; it is per window,
 because the flush is, so a dialog does not inherit the main window's.
 `DragReorder.watch_for_show` is the pattern, and every card list that drags gets it. It is per window *and* once: the flag means the layouts outstanding at
 that moment ran, not that the window is immune. Nothing warms the other offscreen sites
