@@ -1,11 +1,13 @@
-"""Free the top-level widgets each test built, before the next test starts.
+"""Free the top-level widgets each test built, before the next test starts, and catch one shown parentless.
 
 Moved from BartleBot's ``tests/conftest.py`` with the first widgets core holds that a test
-builds by the dozen (cards, sections, the Log tab). A product's or core's own
-``conftest.py`` imports both names, which is what registers them with pytest::
+builds by the dozen (cards, sections, the Log tab); ``parentless_shows`` followed with the
+player cards (Stage 8 of BartleBot #167), which every product's tests build. A product's
+or core's own ``conftest.py`` imports the names, which is what registers them with pytest::
 
     from bartleby.qt.testing.widget_lifetime import (  # noqa: F401 - registers them
         _free_widgets_this_test_created,
+        parentless_shows,
         pytest_runtest_call,
     )
 
@@ -111,3 +113,37 @@ def _free_widgets_this_test_created(request):
         del request.node.stash[_WIDGETS_PINNED]
     # Held until here only so an id() cannot be recycled onto a new widget.
     del before
+
+
+@pytest.fixture
+def parentless_shows(qapp):
+    """The class name of every widget shown while it had no parent, as the test goes on.
+
+    Qt gives such a widget a window of its own, maps it, and unmaps it again the moment
+    the next ``addWidget`` reparents it, so the user sees a window flash where the
+    surface is about to appear. Nothing in the finished widget tree records it, which
+    is why this watches the events instead: a filter on the ``QApplication`` sees the
+    ``Show`` delivered to every object in the process.
+
+    Ask for it in the test that builds a new dialog, card or row, build the surface, and
+    assert the list is empty. Opt-in rather than autouse: a filter on every event of
+    every test is paid thousands of times, and some tests show a top-level widget on purpose.
+    ``bartleby/qt/CLAUDE.md``, "Never show a widget before it has a parent", has the rule.
+    """
+    from PyQt6.QtCore import QEvent, QObject  # noqa: PLC0415
+    from PyQt6.QtWidgets import QWidget  # noqa: PLC0415
+
+    shown: list[str] = []
+
+    class _Spy(QObject):
+        def eventFilter(self, obj, event):  # noqa: N802 - Qt's name
+            if event.type() == QEvent.Type.Show and isinstance(obj, QWidget) and obj.parent() is None:
+                shown.append(type(obj).__name__)
+            return False
+
+    spy = _Spy()
+    qapp.installEventFilter(spy)
+    try:
+        yield shown
+    finally:
+        qapp.removeEventFilter(spy)

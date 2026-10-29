@@ -290,7 +290,7 @@ window has been shown and the game view still holds a default size. Dragging a s
 *wider* therefore costs nothing, which is correct: the window minimum pushes back at
 launch anyway.
 
-Re-judging is deliberately **not** a rebuild. `card_columns.refresh_column_fit()` calls
+Re-judging is deliberately **not** a rebuild. BartleBot's `launch_cards.refresh_column_fit()` calls
 `set_unavailable` on the cards each column already has, and that returns immediately when the
 reason has not changed — so a drag costs a few integer comparisons per card per event and
 restyles only on the frame a verdict flips. Rebuilding the cards instead would
@@ -503,7 +503,7 @@ ways out belong to the surface, because they are properties of the layout rather
 any one profile. `fit_problem` still returns the whole sentence, which is what a tooltip
 and a disabled menu entry take — those are read one at a time and have nothing to repeat.
 
-Each column carries a `_FitBanner` under its header (`gui/game_embed/card_columns.py`),
+Each column carries a `_FitBanner` under its header (core's `bartleby/qt/game_embed/card_columns.py`),
 linking to the resolution setting so advice the user has to go hunting to follow is not
 half an answer. **The two columns are worded separately, and must stay that way** — they
 refuse different things:
