@@ -38,6 +38,13 @@ def shown_bar(qapp, qtbot):
     return bar, menu_bar
 
 
+def test_building_the_bar_never_shows_a_parentless_widget(qapp, parentless_shows):
+    bar, _menu_bar = _bar()
+    bar.add_toggle(_pane_action(bar), shown_icon="panel_left_shown", hidden_icon="panel_left_hidden")
+
+    assert parentless_shows == []
+
+
 def test_the_bar_is_the_height_the_window_floor_counts(qapp):
     bar, _menu_bar = _bar()
 
@@ -171,6 +178,17 @@ def test_the_update_button_is_hidden_until_an_update_is_put_off(qapp):
     bar, _menu_bar = _bar()
 
     assert bar.update_button.isHidden()
+
+
+def test_the_update_button_names_the_version_and_hides_again_for_none(qapp, parentless_shows):
+    bar, _menu_bar = _bar()
+
+    bar.set_update_text("Update 1.2.0")
+    assert not bar.update_button.isHidden()
+    assert bar.update_button.text() == "Update 1.2.0"
+    bar.set_update_text("")
+    assert bar.update_button.isHidden()
+    assert parentless_shows == []
 
 
 def test_the_update_button_takes_its_click_and_asks_for_the_popup(shown_bar, qtbot):
