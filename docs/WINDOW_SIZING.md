@@ -427,7 +427,7 @@ questions and the two-term scale is gone.
 level combo, `Export` and `Clear`. It used to be the player card's tool row, and that row
 no longer exists — the card carries icon verbs and elided rows now — so the floor was a
 button's width standing in for a row that had been gone for a while.
-`gui/sidebar/log_panel.header_row_floor()` measures it, built from the panel's own widgets
+Core's `bartleby/qt/sidebar/log_panel.header_row_floor()` measures it, built from the panel's own widgets
 so the two cannot drift. Mostly pinned widths, so it barely moves with the font: 281px at
 the reference, 289 at 14px body text.
 

@@ -125,7 +125,7 @@ Two failure modes the guard cannot see, so check them by hand:
 
 ## Popup menus
 
-Build every `QMenu` through BartleBot's `gui/menu_utils.py` — `popup_menu(anchor)` for a
+Build every `QMenu` through `bartleby/qt/menu_utils.py` — `popup_menu(anchor)` for a
 menu built per invocation, `anchor_menu_to_window(QMenu(btn))` for a long-lived one
 handed to `QToolButton.setMenu()`.
 
@@ -244,7 +244,7 @@ decision, not silencing a check.
 ### A dialog's footer comes from `dialog_footer()`
 
 Never lay a `[Cancel] [Save]` row out by hand, and never reach for `QDialogButtonBox` —
-none is left under BartleBot's `gui/`. `dialog_footer()` (BartleBot's `widgets/layout/dialog_footer.py`) builds
+none is left under BartleBot's `gui/`. `dialog_footer()` (`bartleby/qt/widgets/layout/dialog_footer.py`) builds
 `[extras…] <stretch> [Cancel] [Commit]` and returns the buttons, so a dialog that
 disables or retitles its commit still can.
 
@@ -265,7 +265,8 @@ Two things follow:
   filling the button that dismisses a safety warning argues with its own purpose. It is
   still the default button — Enter runs. Raise it on issue #89 before changing it.
 
-BartleBot's `tests/gui/widgets/layout/test_dialog_footer.py` presses Enter and Esc on every converted dialog.
+Core's `tests/qt/widgets/layout/test_dialog_footer.py` tests the helper, and BartleBot's
+`tests/gui/widgets/layout/test_dialog_footer.py` presses Enter and Esc on every converted dialog.
 
 ### What is *not* an `ActionButton`
 
@@ -311,10 +312,10 @@ Four, and they are not interchangeable:
 
 | widget | look | for |
 |---|---|---|
-| `SidebarSection` | disclosure triangle + bold label | a region that **folds** |
+| `SidebarSection` (`bartleby/qt/sidebar/sidebar_section.py`) | disclosure triangle + bold label | a region that **folds** |
 | `OptionCard`'s band (BartleBot's `sidebar/option_card.py`) | bordered card, surface band, muted triangle + semibold title | a **group of options that folds**, inside a section |
 | `CardColumn`'s heading | centered bold label + full-width rule | a **column of cards** |
-| `RuleHeading` (BartleBot's `widgets/labels/rule_heading.py`) | left bold label + rule to the right | the regions of a **form** |
+| `RuleHeading` (`bartleby/qt/widgets/labels/rule_heading.py`) | left bold label + rule to the right | the regions of a **form** |
 
 A triangle promises a fold, so do not use `SidebarSection` for a region that does not
 have one; a centered heading over left-aligned fields reads as belonging to something
@@ -354,7 +355,7 @@ the same hue — never an identifier, and three rules keep it one:
   stale after a theme switch, with nothing in any stylesheet to grep for.
 - **Outline and tint, not a saturated fill.** Four filled pills in a row make the row
   the loudest thing on the screen when the point of the surface is a *name*. See
-  `AccountPill`.
+  `AccountPill` (`bartleby/qt/widgets/pills/pill.py`).
 - **No account known means no color, never a default one.** A color is a claim about
   which account is behind something; picking one for an unidentified client, or for an
   account that has been deleted, puts a hue on screen that matches nothing anywhere
@@ -425,11 +426,11 @@ it**, builds the surface and asserts the list is empty; reading the code for thi
 has missed it more than once.
 
 The same window opens on the way *out*. **Discard a widget with `discard_widget`
-(BartleBot's `widgets/layout/discard.py`)**, never a bare `setParent(None)` + `deleteLater()`: a widget
+(`bartleby/qt/widgets/layout/discard.py`)**, never a bare `setParent(None)` + `deleteLater()`: a widget
 shown earlier in the same event-loop turn still has that show to come, and once it is
 unparented the show maps it as a window. Import all redrew each deck card once per slot
 in one turn, and every art tile from the discarded redraws flashed in the corner (#120).
-The helper hides first, which is the whole fix. `test_discard_widget.py` guards it.
+The helper hides first, which is the whole fix. Core's `test_discard.py` guards it.
 When a flash appears that you can't place, run with `BARTLEBOT_DEV=1`:
 BartleBot's `gui/debug/window_show_trace.py` logs each stray window's class and geometry, which usually
 names it, plus the Python stack. A deferred show has no Python caller, so for one of those
@@ -560,9 +561,9 @@ install, with the bot library behind it, and Settings › General › Game art r
 a patch, with Settings open behind it. `extract_art` ends with `card_art.forget_cache()`, so
 every *later* lookup sees the new files, but a widget that looked once and drew what it
 found keeps it. So `ArtExtraction` announces **`art_changed`** once per run that wrote art
-(`bartlebot/gui/art_signal.py`, #239), and a surface that draws art follows it with
+(`bartleby/qt/art_signal.py`, BartleBot #239), and a surface that draws art follows it with
 `follow_art(self, redraw)`. A failed or stopped run announces nothing. `card_art` stays
-free of Qt; the signal is in BartleBot's `gui/`.
+free of Qt; the signal is in core's Qt tier.
 
 - **The widget that chooses between art and text is the one that follows**, and it reruns
   its own fill method. A deck card shows its `CardArtStrip` or its summary line and its
@@ -602,7 +603,7 @@ An as-needed vertical bar takes its width out of the viewport when the content
 overflows and hands it back when it shrinks, so every card in the pane narrows and
 widens by the bar's width — on a folding card, under the very click that folded it
 (#112). A scroll area of cards, or of a form with sections that fold, calls
-`reserve_scrollbar_gutter` (BartleBot's `widgets/layout/scroll_gutter.py`), the Qt stand-in for CSS
+`reserve_scrollbar_gutter` (`bartleby/qt/widgets/layout/scroll_gutter.py`), the Qt stand-in for CSS
 `scrollbar-gutter: stable`. Text editors, trees and tables keep the as-needed bar:
 re-wrapping text costs nothing, and a permanent gutter there only costs width.
 
