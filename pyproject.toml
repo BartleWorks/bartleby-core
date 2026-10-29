@@ -20,6 +20,8 @@ runtime = [
 # Theming and the widgets the products share.
 qt = [
     "PyQt6>=6.9",
+    # The player card copies a value to the clipboard (qt/sidebar/player_card.py).
+    "pyperclip>=1.8",
 ]
 
 [dependency-groups]

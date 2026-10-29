@@ -41,6 +41,7 @@ dependencies = [
 
 [package.optional-dependencies]
 qt = [
+    { name = "pyperclip" },
     { name = "pyqt6" },
 ]
 runtime = [
@@ -62,6 +63,7 @@ dev = [
 requires-dist = [
     { name = "keyring", specifier = ">=25.0" },
     { name = "pydantic", specifier = ">=2.0" },
+    { name = "pyperclip", marker = "extra == 'qt'", specifier = ">=1.8" },
     { name = "pyqt6", marker = "extra == 'qt'", specifier = ">=6.9" },
     { name = "vdf", specifier = ">=3.4" },
     { name = "wizsprinter", marker = "extra == 'runtime'", git = "https://github.com/BartleWorks/wizsprinter.git?rev=088fc838bda285c8b06d2f235fb5671126035f59" },
@@ -499,6 +501,15 @@ sdist = { url = "https://files.pythonhosted.org/packages/14/01/dc9c5304c85e115ac
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1c/b3/d993acf4cbaa8f65c066f14b74a3e06a0edcf80c2dd65edb3241274f6be7/Pymem-1.13.1-py3-none-any.whl", hash = "sha256:ea1649469d853edae1aadb73072dcb807b547a069b9a6f2c9d106d5376bdc638", size = 29435, upload-time = "2023-12-26T21:39:43.411Z" },
     { url = "https://files.pythonhosted.org/packages/b6/f2/31afcd3cedd5485c1b9a09885f1faaf5fddcef8905e501cce523421d109b/pymem-1.13.1-py3-none-any.whl", hash = "sha256:aa0d1c7ca2e6a769c81734b32c6983ff03affcccb99eb6b9b659cdf04b39fcc9", size = 28862, upload-time = "2024-01-09T01:33:24.495Z" },
+]
+
+[[package]]
+name = "pyperclip"
+version = "1.11.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/52/d87eba7cb129b81563019d1679026e7a112ef76855d6159d24754dbd2a51/pyperclip-1.11.0.tar.gz", hash = "sha256:244035963e4428530d9e3a6101a1ef97209c6825edab1567beac148ccc1db1b6", size = 12185, upload-time = "2025-09-26T14:40:37.245Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/df/80/fc9d01d5ed37ba4c42ca2b55b4339ae6e200b456be3a1aaddf4a9fa99b8c/pyperclip-1.11.0-py3-none-any.whl", hash = "sha256:299403e9ff44581cb9ba2ffeed69c7aa96a008622ad0c46cb575ca75b5b84273", size = 11063, upload-time = "2025-09-26T14:40:36.069Z" },
 ]
 
 [[package]]
