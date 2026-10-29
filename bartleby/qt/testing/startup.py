@@ -14,6 +14,7 @@ import os
 import subprocess
 import sys
 import textwrap
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -67,15 +68,18 @@ class Outcome:
         return self.returncode == 0 and STILL_RUNNING in self.stdout
 
 
-def raise_in_a_slot_and_a_thread(startup: str, *, cwd: Path | None = None, timeout: float = 60) -> Outcome:
+def raise_in_a_slot_and_a_thread(
+    startup: str, *, cwd: Path | None = None, env: Mapping[str, str] | None = None, timeout: float = 60
+) -> Outcome:
     """Run *startup* (Python source) in a new process, then raise in a Qt slot and in a worker thread.
 
     *startup* is what the app's entry point runs before its controller: it should put the
     hooks in place and send the log wherever the caller will look. It runs with ``sys``
-    imported. Qt is offscreen, so nothing is shown.
+    imported, in *cwd*, with this process's environment and *env* over it. Qt is
+    offscreen, so nothing is shown.
     """
     script = "import sys\n" + textwrap.dedent(startup) + "\n" + _AFTERWARDS
-    env = {**os.environ, "QT_QPA_PLATFORM": "offscreen"}
+    env = {**os.environ, **(env or {}), "QT_QPA_PLATFORM": "offscreen"}
     done = subprocess.run(
         [sys.executable, "-c", script], cwd=cwd, env=env, capture_output=True, text=True, timeout=timeout
     )

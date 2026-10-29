@@ -476,6 +476,18 @@ def test_the_session_header_names_the_product_its_version_and_build_and_pillow_s
     assert "DdsImagePlugin" not in text
 
 
+def test_settings_given_as_a_function_are_read_once_the_session_file_is_open(tmp_path, configured):
+    """BartleBot's settings log as they load, and those lines belong in the session."""
+
+    def load():
+        logging.getLogger("sample.settings_manager").warning("Moved settings")
+        return _Settings()
+
+    configured(load)
+
+    assert "settings_manager: Moved settings" in _session_text(tmp_path)
+
+
 def test_the_header_names_the_libraries_the_product_lists(tmp_path, configured):
     configured(libraries=("pytest",))
 

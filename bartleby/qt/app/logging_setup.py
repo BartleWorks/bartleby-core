@@ -285,11 +285,17 @@ def session_log_dir(product: Product | None = None) -> Path:
     return (product or current()).log_dir
 
 
-def configure_logging(product: Product, settings: LogSettings, *, libraries: Sequence[str] = HEADER_LIBRARIES) -> None:
+def configure_logging(
+    product: Product,
+    settings: LogSettings | Callable[[], LogSettings],
+    *,
+    libraries: Sequence[str] = HEADER_LIBRARIES,
+) -> None:
     """Call once at startup, before anything else logs: the session file, the GUI bridge and the header.
 
     The header names *product* and its version and build, then each of *libraries* with
-    its version.
+    its version. *settings* may be a function that gives them, called only once the
+    handlers exist, so settings that log as they load (BartleBot's) log into the session.
     """
     log_dir = session_log_dir(product)
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -331,6 +337,8 @@ def configure_logging(product: Product, settings: LogSettings, *, libraries: Seq
     for lib in libraries:
         logger.info("%s==%s", lib, _distribution_version(lib))
 
+    if callable(settings):
+        settings = settings()
     if set_turn_trace(settings.record_combat_decisions, dev=product.dev_mode):
         logger.info("Combat decision trace on; each turn's choices are logged at DEBUG")
 
