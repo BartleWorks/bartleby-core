@@ -30,6 +30,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import StrEnum
 
+from bartleby.shared.product import current
+
 PREFIX = "keyboard.down."
 MODIFIERS = ("alt", "ctrl", "shift")
 # The binding files are not UTF-8: an unnamed key is its raw code, one byte, such as 0xBA.
@@ -299,13 +301,13 @@ class KeyMap:
         for text in inputs:
             parsed = parse_input(text)
             if parsed is None:
-                places.append("the mouse" if text.startswith("mouse.") else "an input BartleBot can't press")
+                places.append("the mouse" if text.startswith("mouse.") else f"an input {current().name} can't press")
                 continue
             if parsed.modifiers:
                 places.append(parsed.text)
                 continue
             if parsed.code is None:
-                places.append(f"{parsed.text}, a key BartleBot doesn't recognize")
+                places.append(f"{parsed.text}, a key {current().name} doesn't recognize")
                 continue
             others = sorted({b.action for b in self.bindings if b.input == text and b.action != action})
             if any(o in CHAT_LINE_ACTIONS for o in others):

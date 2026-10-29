@@ -22,6 +22,7 @@ from bartleby.qt.widgets.labels.themed_label import ThemedTextLabel
 from bartleby.runtime.game.game_sizing import FOCUS_BORDER, LABEL_GAP, LABEL_RESERVE
 from bartleby.runtime.timing import LAUNCH_STAGE_ELAPSED_HINT
 from bartleby.shared import game_dpi
+from bartleby.shared.product import current
 
 logger = logging.getLogger(__name__)
 
@@ -570,14 +571,14 @@ class DetachedTile(_WindowlessTile):
         self.reattach_requested.emit()
 
 
-#: What a ScaledTile says, by what can still be done about it.
-SCALED_TEXT = "Windows is scaling this game, so it can't be embedded. Launch it from BartleBot to embed it."
+#: What a ScaledTile says, by what can still be done about it. ``{app}`` is the running product's name.
+SCALED_TEXT = "Windows is scaling this game, so it can't be embedded. Launch it from {app} to embed it."
 SCALED_FIXED_TEXT = "Restart this game to embed it."
 SCALED_FAILED_TEXT = "The setting couldn't be changed. The log says why."
 SCALED_BUTTON = "Turn Off Windows Scaling"
 SCALED_BUTTON_TIP = (
     "Turns on “Override high DPI scaling behavior” for this game, as its Compatibility "
-    "settings would, so it embeds however it is started. Outside BartleBot, its interface "
+    "settings would, so it embeds however it is started. Outside {app}, its interface "
     "will look smaller on a scaled display."
 )
 
@@ -609,12 +610,15 @@ class ScaledTile(DetachedTile):
         self._text.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._text)
         self._button = ActionButton("gear", SCALED_BUTTON, style=ActionStyle.SECONDARY, fill=False, parent=self)
-        self._button.setToolTip(SCALED_BUTTON_TIP)
+        self._button.setToolTip(SCALED_BUTTON_TIP.format(app=current().name))
         self._button.clicked.connect(self._turn_off_scaling)
         layout.addWidget(self._button, 0, Qt.AlignmentFlag.AlignHCenter)
         layout.addStretch(1)
         fixed = self._exe is not None and game_dpi.has_high_dpi_override(self._exe)
-        self._show_state(SCALED_FIXED_TEXT if fixed else SCALED_TEXT, offer=self._exe is not None and not fixed)
+        self._show_state(
+            SCALED_FIXED_TEXT if fixed else SCALED_TEXT.format(app=current().name),
+            offer=self._exe is not None and not fixed,
+        )
 
     def _body_text(self) -> str:
         # Said by the label instead, which wraps and sits above the button.

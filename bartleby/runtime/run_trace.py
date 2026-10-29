@@ -41,6 +41,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from bartleby.shared.product import current
+
 logger = logging.getLogger(__name__)
 
 #: How often the heartbeat wakes to measure the event loop's lag.
@@ -306,12 +308,13 @@ def caller() -> tuple[str | None, str | None]:
     """
     found = None
     extension: list[str] = []  # innermost first
+    ours = _ours()
     frame = sys._getframe(1)
     while frame is not None:
         module = frame.f_globals.get("__name__", "")
         if module == __name__:
             pass
-        elif module.startswith(_OURS):
+        elif module.startswith(ours):
             found = f"{module.split('.', 1)[1]}.{frame.f_code.co_name}:{frame.f_lineno}"
             break
         elif module.startswith("wizwalker.extensions."):
@@ -324,8 +327,12 @@ def caller() -> tuple[str | None, str | None]:
     return found, extension[0] if len(extension) == 1 else f"{extension[-1]} > {extension[0]}"
 
 
-#: The packages whose functions count as the caller of an input: the products', and this library's.
-_OURS = ("bartlebot.", "bartlebuddy.", "bartleby.")
+def _ours() -> tuple[str, ...]:
+    """The packages whose functions count as the caller of an input: the running product's, and this library's."""
+    try:
+        return (f"{current().slug}.", "bartleby.")
+    except LookupError:
+        return ("bartleby.",)
 
 
 # --- The hooks ---------------------------------------------------------------------

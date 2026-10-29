@@ -13,7 +13,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from bartleby.runtime.clients import account_identity, character_roster, credentials
-from bartleby.shared.vendor import PRODUCT, VENDOR, keyring_service, product_dir, vendor_dir
+from bartleby.shared.vendor import VENDOR, keyring_service, product_dir, vendor_dir
 
 SHARED = Path(__file__).resolve().parents[2] / "bartleby" / "shared"
 
@@ -26,7 +26,6 @@ def test_the_vendor_is_not_the_product():
     string is what this guards against.
     """
     assert VENDOR == "Bartleby"
-    assert PRODUCT == "BartleBot"
 
 
 def test_every_keyring_service_carries_the_vendor_prefix():
@@ -41,7 +40,7 @@ def test_the_product_directory_sits_under_the_vendor_one(monkeypatch, tmp_path):
     monkeypatch.setenv("APPDATA", str(tmp_path))
 
     assert vendor_dir() == tmp_path / "Bartleby"
-    assert product_dir() == tmp_path / "Bartleby" / "BartleBot"
+    assert product_dir("BartleBot") == tmp_path / "Bartleby" / "BartleBot"
     assert product_dir("BartleBuddy").parent == vendor_dir()
 
 
@@ -83,6 +82,7 @@ def test_the_shared_layer_has_no_stray_files():
         "launch_profiles.py",
         "official_set.py",
         "preferences.py",
+        "product.py",
         "share_file.py",
         "share_match.py",
         "store_files.py",
