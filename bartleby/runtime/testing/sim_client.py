@@ -126,6 +126,7 @@ class SimClient:
         self._keys = KeyMap.defaults()
         game_keys.use_map(self, self._keys)
         self._actions = {self._keys.choose(a).code: a for a in GameAction}
+        self.hooked = True
 
     # -- the scene ------------------------------------------------------------------
 
@@ -187,3 +188,57 @@ class SimClient:
 
     async def is_in_dialog(self) -> bool:
         return self.dialog
+
+    # -- what the client manager asks of a client ---------------------------------------
+
+    @property
+    def window_rectangle(self):
+        """Where the window stands on screen: all at the origin, so slot order decides."""
+        return _Rect()
+
+    @property
+    def process_id(self) -> int:
+        return 0
+
+    async def activate_hooks(self) -> None:
+        """Hooks a simulated client at once: nothing waits for a character in the world."""
+        self.hooked = True
+
+    async def close(self) -> None:
+        """Takes the hooks off, leaving the window: what an unhook does."""
+        self.hooked = False
+
+
+@dataclass(frozen=True)
+class _Rect:
+    x1: int = 0
+    y1: int = 0
+
+
+class SimHandler:
+    """A stand-in for wizwalker's handler, holding :class:`SimClient` windows.
+
+    What :class:`~bartleby.runtime.clients.client_manager.ClientManager` polls: ``clients``
+    are the open windows, each handed out once by ``get_new_clients``, and ``close_window``
+    takes one away as a crash or a quit would.
+    """
+
+    def __init__(self, clients: list[SimClient] | None = None) -> None:
+        self.clients: list[SimClient] = []
+        self._announced: set[int] = set()
+        for client in clients or []:
+            self.open_window(client)
+
+    def open_window(self, client: SimClient) -> None:
+        self.clients.append(client)
+
+    def close_window(self, client: SimClient) -> None:
+        self.clients = [c for c in self.clients if c is not client]
+
+    def remove_dead_clients(self) -> None:
+        pass
+
+    def get_new_clients(self) -> list[SimClient]:
+        new = [c for c in self.clients if c.window_handle not in self._announced]
+        self._announced.update(c.window_handle for c in new)
+        return new
