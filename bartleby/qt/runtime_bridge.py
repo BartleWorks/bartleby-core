@@ -12,7 +12,8 @@ out (a product's views, log records), as queued Qt signals the GUI thread receiv
 signal emitted on the runtime thread reaches a slot on the GUI thread through Qt's queue,
 because the :class:`RuntimeSignals` object lives on the GUI thread. Only commands cross in,
 as coroutine functions :meth:`RuntimeThread.submit` schedules on the loop. The GUI never
-touches a wizwalker object.
+touches a wizwalker object. A client manager on the runtime thread hands its tiles to a
+game view on the GUI thread through a :class:`TileCrossing`, the same way.
 
 The jitter is real, and measured (BartleBuddy's ``tools/probe_follow_jitter.py``, Stage 4
 of BartleBot #167): on one shared loop each tile resize held every follower for 1.27 s,
@@ -28,7 +29,7 @@ import threading
 from collections.abc import Awaitable, Callable
 from concurrent.futures import Future
 
-from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import QObject, Qt, pyqtSignal
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,40 @@ class RuntimeSignals(QObject):
 
     #: A record logged on the runtime thread, for the Log tab.
     log_record = pyqtSignal(object)
+
+
+class TileCrossing(QObject):
+    """A client manager's ``TileView`` on the runtime thread, drawing into a game view on the GUI thread.
+
+    The manager calls ``sync_tiles`` on every detection tick, and ``unembed_all`` as it
+    shuts down; each is sent on as a queued signal to *view*, a core ``GameView``. So is
+    each wizard name list, which the product connects from the manager's
+    ``wizard_names_changed``. Queued even when sent from the GUI thread, so the view only
+    ever hears of a change from Qt's queue, in the order it was sent. Never blocking: a
+    shutdown that waits on the runtime from the GUI thread would deadlock on it.
+
+    Made on the GUI thread, with the view.
+    """
+
+    _tiles = pyqtSignal(object)
+    _wizard_names = pyqtSignal(object)
+    _unembed = pyqtSignal()
+
+    def __init__(self, view) -> None:
+        super().__init__()
+        queued = Qt.ConnectionType.QueuedConnection
+        self._tiles.connect(view.sync_tiles, queued)
+        self._wizard_names.connect(view.set_wizard_names, queued)
+        self._unembed.connect(view.unembed_all, queued)
+
+    def sync_tiles(self, wanted) -> None:
+        self._tiles.emit(list(wanted))
+
+    def set_wizard_names(self, names) -> None:
+        self._wizard_names.emit(list(names))
+
+    def unembed_all(self) -> None:
+        self._unembed.emit()
 
 
 class RuntimeThread:

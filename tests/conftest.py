@@ -6,6 +6,7 @@ stand in for; isolated_appdata is the library's part of BartleBot's isolated_set
 
 import asyncio
 import ctypes
+import dataclasses
 import itertools
 import logging
 import os
@@ -24,6 +25,7 @@ from bartleby.qt.testing.widget_lifetime import (  # noqa: F401 - registers them
     pytest_runtest_call,
 )
 from bartleby.runtime.clients import game_keys, sightings
+from bartleby.runtime.game.game_sizing import RIGHT, RIGHT_SIDEBAR_MIN_WIDTH, Pane
 from bartleby.runtime.game.key_bindings import KeyMap
 from bartleby.shared import product
 from bartleby.shared.product import Product
@@ -527,6 +529,38 @@ def sample_product(monkeypatch):
     return SAMPLE_PRODUCT
 
 
+@dataclasses.dataclass
+class SampleSettings:
+    """A product's settings as the game view, the launch screen and the screen fit read them.
+
+    ``GameViewSettings`` and ``FitSettings`` both. *panes* is what the fit is handed as the
+    window's panes: one right sidebar at the shared floor, as a product with a Log tab has.
+    """
+
+    accounts: list = dataclasses.field(default_factory=list)
+    launch_profiles: list = dataclasses.field(default_factory=list)
+    recent_launches: list = dataclasses.field(default_factory=list)
+    game_resolution: tuple = (800, 600)
+    sizes: dict = dataclasses.field(default_factory=dict)
+    panes: list = dataclasses.field(default_factory=lambda: [Pane("sidebar", RIGHT_SIDEBAR_MIN_WIDTH, RIGHT)])
+
+    def pane_sizes(self) -> dict:
+        return dict(self.sizes)
+
+    def add_recent_launch(self, entry_type: str, identifier: str) -> None:
+        self.recent_launches.insert(0, {"type": entry_type, "id": identifier})
+
+
+@pytest.fixture(autouse=True)
+def sample_settings() -> SampleSettings:
+    """A fresh :class:`SampleSettings` per test, handed to the screen fit as a product would."""
+    from bartleby.qt import screen_fit  # noqa: PLC0415 - Qt, kept off the runtime tests' collection
+
+    settings = SampleSettings()
+    screen_fit.configure(settings, lambda: settings.panes)
+    return settings
+
+
 # ---------------------------------------------------------------------------
 # Qt: one QApplication per worker, at the app's font (BartleBot's conftest)
 # ---------------------------------------------------------------------------
@@ -560,3 +594,11 @@ def _restore_app_stylesheet():
     app = qtwidgets.QApplication.instance() if qtwidgets else None
     if app is not None and before is not None and app.styleSheet() != before:
         app.setStyleSheet(before)
+
+
+@pytest.fixture
+def streamer_mode_on(monkeypatch):
+    """Streamer Mode on for this test, as a product's setting would turn it on."""
+    from bartleby.qt import streamer_mode  # noqa: PLC0415
+
+    monkeypatch.setattr(streamer_mode, "_setting", lambda: True)

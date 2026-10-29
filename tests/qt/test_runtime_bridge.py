@@ -8,7 +8,7 @@ import threading
 
 import pytest
 
-from bartleby.qt.runtime_bridge import RuntimeSignals, RuntimeThread
+from bartleby.qt.runtime_bridge import RuntimeSignals, RuntimeThread, TileCrossing
 
 
 @pytest.fixture
@@ -93,3 +93,45 @@ def test_stopping_cancels_what_is_still_running_and_ends_the_thread():
     assert cancelled.is_set()
     assert thread.loop.is_closed()
     assert thread.name == "runtime"
+
+
+class _View:
+    """A game view's three methods, noting the thread each was called on."""
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, object, str]] = []
+
+    def sync_tiles(self, wanted) -> None:
+        self.calls.append(("tiles", wanted, threading.current_thread().name))
+
+    def set_wizard_names(self, names) -> None:
+        self.calls.append(("names", names, threading.current_thread().name))
+
+    def unembed_all(self) -> None:
+        self.calls.append(("unembed", None, threading.current_thread().name))
+
+
+def test_a_manager_on_the_runtime_thread_reaches_the_view_on_the_gui_thread_in_order(qtbot, runtime):
+    view = _View()
+    crossing = TileCrossing(view)
+
+    def from_the_runtime():
+        crossing.sync_tiles(("tile",))
+        crossing.set_wizard_names(("Wizard",))
+        crossing.unembed_all()
+
+    runtime.call(from_the_runtime)
+    qtbot.waitUntil(lambda: len(view.calls) == 3, timeout=5000)
+
+    gui = threading.current_thread().name
+    assert view.calls == [("tiles", ["tile"], gui), ("names", ["Wizard"], gui), ("unembed", None, gui)]
+
+
+def test_a_call_from_the_gui_thread_waits_for_qt_s_queue_too(qtbot):
+    view = _View()
+    crossing = TileCrossing(view)
+
+    crossing.sync_tiles([])
+
+    assert view.calls == []
+    qtbot.waitUntil(lambda: len(view.calls) == 1, timeout=5000)

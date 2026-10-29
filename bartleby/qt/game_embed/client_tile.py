@@ -201,6 +201,10 @@ class ClientTile(_PillIconHover, QWidget):
     """
 
     detach_requested = pyqtSignal()
+    # A press on the caption pill, away from its detach icon: the point under the pill,
+    # global, for a menu a product opens there. The press still gives the game focus, as
+    # any press on the tile does.
+    caption_clicked = pyqtSignal(QPoint)
 
     def __init__(self, hwnd: int, label: str, parent=None) -> None:
         super().__init__(parent)
@@ -344,6 +348,8 @@ class ClientTile(_PillIconHover, QWidget):
         else:
             if event.button() == Qt.MouseButton.LeftButton:
                 self.focus_game()
+                if self._pill_rect.contains(event.pos()):
+                    self.caption_clicked.emit(self.mapToGlobal(self._pill_rect.bottomLeft()))
             super().mousePressEvent(event)
 
     def paintEvent(self, event) -> None:
