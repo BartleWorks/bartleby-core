@@ -9,12 +9,17 @@ from __future__ import annotations
 import pytest
 
 from bartleby.runtime.game import game_sizing as gs
+from bartleby.runtime.game import tile_layouts
 from bartleby.runtime.game.game_sizing import VALID_RESOLUTIONS
+from bartleby.runtime.game.tile_layouts import FOCUS, PAIR, TileSize
 
-# The layout the worked examples in the window-scaling work were computed against: a 1080p screen and the
-# default sidebar widths and canvas height, which give a 1304x800 game budget.
+# The layout the worked examples in the window-scaling work were computed against: a 1080p screen and
+# BartleBot's default sidebar widths and canvas height, which give a 1304x800 game budget. The panes
+# are a sample product's, at floors below those sizes.
 _1080P = (1920, 1080)
-_DEFAULT_BUDGET = gs.screen_budget(_1080P, left_sidebar=300, right_sidebar=300, bottom_section=220, splitter_handle=8)
+_PANES = [gs.Pane("left", 200, gs.LEFT), gs.Pane("right", 250, gs.RIGHT), gs.Pane("below", 180, gs.BOTTOM)]
+_SIZES = {"left": 300, "right": 300, "below": 220}
+_DEFAULT_BUDGET = gs.screen_budget(_1080P, _PANES, _SIZES)
 
 
 # ---------------------------------------------------------------------------
@@ -269,7 +274,73 @@ def test_the_budget_is_the_screen_less_the_user_s_own_layout():
 
 
 def test_a_layout_larger_than_the_screen_leaves_no_budget_rather_than_a_negative_one():
-    assert gs.screen_budget((800, 600), 600, 600, 900, 8) == (0, 0)
+    assert gs.screen_budget((800, 600), _PANES, {"left": 600, "right": 600, "below": 900}) == (0, 0)
+
+
+# -- panes ------------------------------------------------------------------------------
+
+
+def test_a_pane_with_no_size_is_taken_at_its_floor():
+    assert gs.screen_budget(_1080P, _PANES, {}) == (1920 - 200 - 250 - 16, 1080 - 180 - 60)
+
+
+def test_the_layout_budget_holds_each_pane_at_its_floor():
+    """A stored width below the floor describes a layout the splitter cannot produce."""
+    assert gs.layout_budget(_1080P, _PANES, {"left": 50, "right": 300, "below": 220}) == (1920 - 200 - 300 - 16, 800)
+
+
+def test_one_sidebar_and_no_pane_below_leaves_the_game_the_rest_of_the_screen():
+    """BartleBuddy's window: a right sidebar alone, so one handle and no height taken."""
+    panes = [gs.Pane("sidebar", 300, gs.RIGHT)]
+    assert gs.screen_budget(_1080P, panes, {}) == (1920 - 300 - 8, 1080 - 60)
+
+
+def test_the_window_floor_is_the_grid_beside_every_pane_floor():
+    width, height = gs.required_window_size((800, 600), 2, _PANES)
+    game_w, game_h = gs.required_game_area((800, 600), 2)
+    assert width == game_w + 200 + 250 + 2 * gs.SPLITTER_HANDLE_PX
+    assert height == (
+        game_h + gs.GAME_PANEL_CHROME_PX + 180 + gs.SPLITTER_HANDLE_PX + gs.TITLE_BAR_PX + gs.BOTTOM_EDGE_PX
+    )
+
+
+def test_a_window_with_no_pane_below_pays_for_no_handle_there():
+    width, height = gs.required_window_size((800, 600), 1, [gs.Pane("sidebar", 300, gs.RIGHT)])
+    assert (width, height) == (812 + 300 + 8, 651 + gs.GAME_PANEL_CHROME_PX + gs.TITLE_BAR_PX + gs.BOTTOM_EDGE_PX)
+
+
+# -- tiles ------------------------------------------------------------------------------
+
+
+def test_a_count_of_tiles_is_that_many_main_tiles():
+    assert gs.tile_sizes(3) == [TileSize.MAIN] * 3
+    assert gs.required_game_area((800, 600), 3) == gs.required_game_area((800, 600), [TileSize.MAIN] * 3)
+
+
+def test_side_tiles_add_a_strip_beside_the_main_tiles():
+    main, side = TileSize.MAIN, TileSize.SIDE
+    width, height = gs.required_game_area((800, 600), [main, side, side])
+    alone = gs.required_game_area((800, 600), 1)
+    assert height >= alone[1]
+    assert width > alone[0]
+    assert gs.fit_details((800, 600), [main, side, side], (width, height)) is None
+    assert gs.fit_details((800, 600), [main, side, side], (width - 1, height)).client_count == 3
+
+
+@pytest.mark.parametrize("resolution", [(800, 600), (1280, 720), (534, 300), (1280, 1024)])
+@pytest.mark.parametrize(
+    ("layout", "played"),
+    [(FOCUS, [True, False, False, False]), (PAIR, [True, True, False, False]), (FOCUS, [True, False])],
+)
+def test_arranged_in_the_area_it_needs_every_main_tile_holds_its_game(resolution, layout, played):
+    """The fit and the placement agree: what the sizing says fits is what ``arrange`` gives."""
+    sizes = tile_layouts.sizes(layout, played)
+    area = gs.required_game_area(resolution, sizes)
+    need_w, need_h = gs.tile_size(resolution)
+    rects = tile_layouts.arrange(layout, played, area, aspect=resolution[0] / resolution[1])
+    for size, rect in zip(sizes, rects):
+        if size is TileSize.MAIN:
+            assert rect.w >= need_w - 1 and rect.h >= need_h - 1, (rect, need_w, need_h)
 
 
 @pytest.mark.parametrize(
@@ -421,54 +492,3 @@ def test_the_widescreen_form_reproduces_the_game_s_own_sixteen_by_nine_entries()
     assert gs.widescreen_form((0, 990)) == (1760, 990)
     assert gs.widescreen_form((0, 720)) == (1280, 720)
     assert gs.widescreen_form((0, 1080)) == (1920, 1080)
-
-
-# -- the canvas setup fits to the launches ---------------------------------------------
-
-
-def test_the_canvas_takes_what_the_tallest_grid_leaves():
-    """1080p less its taskbar, one client at 800x600: 1032 - 60 of chrome - a 651px tile."""
-    assert gs.canvas_height_for(1032, [((800, 600), 1)]) == 321
-
-
-def test_the_tallest_of_several_launches_decides():
-    launches = [((800, 600), 1), ((560, 420), 2), ((534, 300), 4)]
-
-    assert gs.canvas_height_for(1032, launches) == 1032 - gs.WINDOW_CHROME_ESTIMATE_PX - 2 * (300 + 51)
-
-
-def test_a_screen_too_small_for_its_launches_keeps_the_default_canvas():
-    assert gs.canvas_height_for(700, [((800, 600), 1)]) == gs.BOTCANVAS_DEFAULT_HEIGHT
-
-
-def test_no_launch_keeps_the_default_canvas():
-    assert gs.canvas_height_for(1032, []) == gs.BOTCANVAS_DEFAULT_HEIGHT
-
-
-def test_the_canvas_is_measured_in_logical_pixels():
-    """At 150%, a 1200px-tall client is an 800-point tile."""
-    assert gs.canvas_height_for(1400, [((1600, 1200), 1)], dpr=1.5) == 1400 - gs.WINDOW_CHROME_ESTIMATE_PX - 851
-
-
-def test_the_sidebars_take_what_the_widest_grid_leaves_evened_up():
-    """One 960x540 client on 1080p: 1920 - 2 handles - a 972px tile leaves 932 to share."""
-    assert gs.sidebar_widths_for(1920, 404, 300, [((960, 540), 1)]) == (466, 466)
-
-
-def test_too_little_to_even_up_goes_to_the_narrower_sidebar():
-    assert gs.sidebar_widths_for(1920, 404, 300, [((560, 420), 2)]) == (404, 300 + 1920 - 704 - 16 - 1144)
-
-
-def test_a_sidebar_that_cannot_grow_leaves_all_of_it_to_the_other():
-    assert gs.sidebar_widths_for(1920, 404, 300, [((960, 540), 1)], grow_right=False) == (404 + 228, 300)
-    assert gs.sidebar_widths_for(1920, 404, 300, [((960, 540), 1)], grow_left=False) == (404, 300 + 228)
-
-
-def test_no_spare_width_or_no_launch_leaves_the_sidebars_alone():
-    assert gs.sidebar_widths_for(1920, 404, 300, [((800, 600), 2)]) == (404, 300)
-    assert gs.sidebar_widths_for(1920, 404, 300, []) == (404, 300)
-
-
-def test_one_client_leaves_the_canvas_its_share_of_the_screen():
-    assert gs.single_client_canvas_floor(1392) == 321
-    assert gs.single_client_canvas_floor(700) == gs.BOTCANVAS_DEFAULT_HEIGHT
