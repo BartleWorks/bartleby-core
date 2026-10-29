@@ -40,14 +40,14 @@ class TestAccountMapTitleCache:
             ClientManager._refresh_account_map(harness, [client])
 
     def test_unmatched_title_is_remembered(self, harness: TitleHarness) -> None:
-        self._run(harness, "Wizard101", [{"username": "user1", "alias": "Jeff"}])
+        self._run(harness, "Wizard101", [{"username": "user1", "alias": "Main"}])
         assert harness._hwnd_account_map == {}, "an adopted window matches no account"
         assert harness._hwnd_titles == {100: "Wizard101"}
 
     def test_matched_title_is_remembered_and_mapped(self, harness: TitleHarness) -> None:
-        self._run(harness, "[Jeff] Wizard101", [{"username": "user1", "alias": "Jeff"}])
+        self._run(harness, "[Main] Wizard101", [{"username": "user1", "alias": "Main"}])
         assert harness._hwnd_account_map == {100: "user1"}
-        assert harness._hwnd_titles == {100: "[Jeff] Wizard101"}
+        assert harness._hwnd_titles == {100: "[Main] Wizard101"}
 
     def test_unreadable_title_records_nothing(self, harness: TitleHarness) -> None:
         client = MagicMock(window_handle=100)
