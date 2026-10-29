@@ -363,7 +363,7 @@ the same hue — never an identifier, and three rules keep it one:
 A **player slot** is colored but never renamed: `P1` stays `P1` on the pill and the
 combat-order chip, with the account's name in the tooltip. A `DuelConfig` stores slots,
 is authored offline and outlives whichever account is in slot 1 tonight — a pill reading
-`Malvin` would be a claim the stored data does not make, and the same card would read
+`Farmer` would be a claim the stored data does not make, and the same card would read
 differently depending on what happened to be hooked. Issue #40 is the rollout.
 
 On the Combat tab every `P#` is a `PlayerBadge` (BartleBot's `widgets/pills/player_pills.py`) — the deck
