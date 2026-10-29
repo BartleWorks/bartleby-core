@@ -63,9 +63,9 @@ are drawn from views" in ``bartleby/qt/CLAUDE.md``:
 
 - the wizard name is a ``wizard_names.cached_name`` dict lookup and never triggers
   detection; ``resolve_names()`` can open the character page and flash the game UI
-- a builder checks ``is_loading()`` first and sends a ``loading`` view, because pointers
-  are stale during a zone transition and reads are slow or produce garbage; this card
-  keeps the zone and rows it drew last
+- a builder checks ``is_loading()`` first and sends a ``loading`` view, with the rows it
+  had, because pointers are stale during a zone transition and reads are slow or produce
+  garbage; this card keeps the zone it drew last
 - each read is wrapped in ``wait_for(CLIENT_REFRESH_TIMEOUT)``
 - Streamer Mode is this card's: :func:`player_name_text` routes through
   ``streamer_mode.display_name``
@@ -539,9 +539,10 @@ class PlayerCard(CardFrame):
     def show_view(self, view: PlayerView) -> None:
         """Draw *view*: the client's place, color, name, zone, rows and badges.
 
-        A ``loading`` view keeps the zone and rows drawn last, since a client between
-        zones has nothing worth reading. Its place, color and name still land: none of them
-        is read from the game.
+        A ``loading`` view keeps the zone drawn last, since a client between zones has no
+        zone worth reading. Everything else lands: a builder that reads the game sends the
+        rows it had, and what a product knows without reading it, such as BartleBuddy's
+        holder, goes on changing while the zone loads.
         """
         self._view = view
         self.set_index(view.slot - 1)
@@ -550,13 +551,13 @@ class PlayerCard(CardFrame):
             self._pill.set_account_label(view.account_label)
         self._name.set_value(player_name_text(view.wizard_name, self._index))
         self._show_badges(view.badges)
+        for row in view.rows:
+            self._show_row(row)
         if view.loading:
             return
         zone = view.zone or PLACEHOLDER
         self._last_zone = zone
         self._zone.set_value(zone)
-        for row in view.rows:
-            self._show_row(row)
 
     def _show_row(self, row: PlayerRow) -> None:
         value = self._rows.get(row.label)

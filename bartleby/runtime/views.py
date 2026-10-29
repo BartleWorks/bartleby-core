@@ -66,8 +66,9 @@ class PlayerView:
     *wizard_name* is the cached name, never one detected for the view: detection can open the
     character page and flash the game's UI. The card applies Streamer Mode to it.
 
-    *loading* says the client is between zones. Its reads are stale or slow then, so the
-    builder skips them, and the card keeps the *zone* and *rows* it drew last.
+    *loading* says the client is between zones. Its reads are stale or slow then, so a
+    builder that reads the game skips them and sends the rows it had, and the card keeps
+    the *zone* it drew last.
 
     *verbs* are the ids of the product's own verbs this card offers, which the product
     describes to the card (``bartleby.qt.sidebar.player_card.PlayerVerb``).

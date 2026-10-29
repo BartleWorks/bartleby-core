@@ -367,7 +367,7 @@ is authored offline and outlives whichever account is in slot 1 tonight — a pi
 `Farmer` would be a claim the stored data does not make, and the same card would read
 differently depending on what happened to be hooked. Issue #40 is the rollout.
 
-On the Combat tab every `P#` is a `PlayerBadge` (BartleBot's `widgets/pills/player_pills.py`) — the deck
+On BartleBot's Combat tab every `P#` is a `PlayerBadge` (`widgets/pills/player_badge.py`) — the deck
 cards, each assignment line and the combat order — and each deck card carries the same
 left stripe as the player card for its slot. Colors are held **per slot, not per
 position**, so a `P3 → P1` order puts slot 3's hue first. The tab polls its account
@@ -376,7 +376,7 @@ identity arrives after its client and nothing announces it; a card built between
 takes the last answer at construction, since a tick with an unchanged answer repaints
 nothing.
 
-The Players tab's `P#` pill is the same `PlayerBadge`, keyed off the card's stripe. The
+A player card's `P#` pill is the same `PlayerBadge`, keyed off the card's stripe. The
 game view's tile caption is painted (`client_tile.tile_pill_colors`) in the same capsule
 shape and colors at its original size, and a focused window's border is its account's
 color, falling back to the accent. `GameView.sync_tiles` pushes the key from
@@ -750,17 +750,54 @@ Things to preserve:
   clearing them one at a time throws away the tile the previous move just wrote. That bug
   was live in the first draft of `_apply_moves` and the swap test is what caught it.
 
-## Client section refresh architecture
+## Player cards are drawn from views
 
-`ClientSection` (`bartlebot/gui/sidebar/sections/client_section.py`) is a plain `QWidget` filling `RightSidebar`'s Players tab, and runs a long-lived asyncio task (`_refresh_loop`) that polls zone/XYZ data for each connected client. It holds a `CardColumn` of `PlayerCard`s for the hooked clients and a `SidebarSection` of them for the unhooked, and it supplies the Players tab's *only* scroll area — the column's. Key design points:
+A player card (`sidebar/player_card.py`) draws a `PlayerView` (`bartleby.runtime.views`), a
+frozen value, and holds no client: `player_card.py` imports nothing from wizwalker, and a test
+fails if it does. `PlayerColumn` (`sidebar/player_column.py`) is the Players tab: a `CardColumn`
+of the hooked clients' cards, a `SidebarSection` of the unhooked, and the bulk row above both,
+and it supplies the tab's *only* scroll area, the column's. **Whoever builds the view keeps the
+refresh contract**, since that is where the client is: BartleBot's `ClientSection` refresh loop,
+on the GUI's loop, and BartleBuddy's session, from its state reader on the runtime thread.
 
-- **Refresh rate is adaptive**, decided by the pure `client_refresh_interval(bot_running, players_visible)`: `CLIENT_REFRESH_INTERVAL_IDLE` (0.1 s) while idle, `CLIENT_REFRESH_INTERVAL_RUN` (0.5 s) during a bot run, and `CLIENT_REFRESH_INTERVAL_HIDDEN` (2.0 s) whenever the Players tab is not the current tab — visibility is checked *first*, so a hidden tab during a run polls at the slowest rate. `AppController._start_bot()` calls `set_bot_running(True/False)` at the bot lifecycle boundary; `RightSidebar.currentChanged` calls `set_players_visible(True/False)`, which restarts the loop on becoming visible rather than waiting out the in-flight 2 s sleep. Polling never stops entirely, because `AppController`'s zone-dropdown getter reads each widget's cached zone via `client_zones()`. These constants live in `bartleby/runtime/timing.py`.
-- **Per-widget timeout**: each `PlayerCard.refresh()` call is wrapped in `asyncio.wait_for(timeout=CLIENT_REFRESH_TIMEOUT)` inside the gather so a single slow client read can't stall the whole cycle.
-- **Loading guard**: `PlayerCard._refresh()` checks `is_loading()` first and returns early if True, skipping the more expensive `zone_name()` and `body.position()` reads that produce stale/slow results during zone transitions.
-- **WizWalker reads are synchronous**: despite the `async def` signatures, WizWalker memory reads (`zone_name()`, `body.position()`, etc.) call `ReadProcessMemory` synchronously on the event loop thread — they are not truly non-blocking. Keep this in mind when reasoning about latency or contention.
-- **The wizard name costs nothing**: `PlayerCard._refresh()` reads it from `wizard_names.cached_name()`, a dict lookup. `ClientManager._client_loop` is what fills that cache, once per character. Do not make a sidebar label trigger detection — `resolve_names()` can open the character page, which would flash the game UI every refresh.
-- **Two things besides the values are re-derived every tick**: the account stripe, because `ClientManager.account_for` learns an identity inside the client loop and signals nothing when it does; and nothing else. Anything resolved once in a card's constructor is resolved before the client is identified.
-- **Cards are re-keyed, not rebuilt.** `set_all_clients` holds each card against its `hwnd` and re-uses it while that window is still in the same bucket, calling `set_index` rather than constructing a replacement — otherwise a drag-reorder resets the freecam toggle and blanks every row until the next tick. A client that crosses between hooked and unhooked *is* rebuilt: whether a card has a drag grip is fixed at construction.
+- **Refresh rate is the builder's.** BartleBot's is adaptive, decided by
+  `client_refresh_interval(bot_running, players_visible)`: `CLIENT_REFRESH_INTERVAL_IDLE`
+  (0.1 s) while idle, `CLIENT_REFRESH_INTERVAL_RUN` (0.5 s) during a bot run, and
+  `CLIENT_REFRESH_INTERVAL_HIDDEN` (2.0 s) whenever the Players tab is not the current tab;
+  visibility is checked *first*, so a hidden tab during a run polls at the slowest rate. It
+  never stops entirely, because the zone dropdown reads each card's cached zone through
+  `client_zones()`. These constants live in `bartleby/runtime/timing.py`. BartleBuddy's
+  session publishes a view only when it changed, at most every `PUBLISH_INTERVAL`.
+- **Per-card timeout**: each read is wrapped in `asyncio.wait_for(timeout=CLIENT_REFRESH_TIMEOUT)`
+  inside the gather, so a single slow client read can't stall the whole cycle.
+- **Loading guard**: a builder checks `is_loading()` first and sends a `loading` view, with the
+  rows it had, skipping the `zone_name()` and `body.position()` reads that produce stale or slow
+  results during zone transitions. The card keeps the zone it drew last.
+- **WizWalker reads are synchronous**: despite the `async def` signatures, WizWalker memory reads
+  (`zone_name()`, `body.position()`, etc.) call `ReadProcessMemory` synchronously on the event
+  loop thread — they are not truly non-blocking. Keep this in mind when reasoning about latency
+  or contention.
+- **The wizard name costs nothing**: a view's `wizard_name` is `wizard_names.cached_name()`, a
+  dict lookup that the client manager's loop fills once per character. Do not make a card trigger
+  detection — `resolve_names()` can open the character page, which would flash the game UI every
+  refresh. The card applies Streamer Mode itself.
+- **The account's color is in every view**, because the client manager learns an identity
+  inside its loop and signals nothing when it does. Anything resolved once in a card's
+  constructor is resolved before the client is identified.
+- **A view changes what a card says; a list change rebuilds the column.** `show_views` hands
+  each card its newest view and builds nothing; `set_players` is for a change of the client
+  list, and a product calls it only then, since a rebuild cancels a drag under way.
+- **Cards are re-keyed, not rebuilt.** `set_players` holds each card against its `hwnd` and
+  re-uses it while that window is still in the same bucket, calling `set_index` rather than
+  constructing a replacement — otherwise a drag-reorder resets what a card keeps (BartleBot's
+  freecam toggle) and blanks every row. A client that crosses between hooked and unhooked *is*
+  rebuilt, because whether a card has a drag grip is fixed at construction; so is one whose view
+  names other product verbs.
+- **What a product adds**: rows and badges in the view, its own verbs as `PlayerVerb`s that
+  answer on `verb_triggered(hwnd, id)`, and a card subclass, through `PlayerColumn`'s
+  `card_factory`, for anything more (`_header_extras`, `_build_extras`). A reorder leaves the
+  column as `order_changed`, the windows in their new order; the product turns it into the
+  permutation its client manager's `reorder_clients` takes.
 
 ## Every drag-reordered list takes the keyboard too
 

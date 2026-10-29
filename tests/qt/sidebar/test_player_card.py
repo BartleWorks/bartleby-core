@@ -158,15 +158,16 @@ def test_a_name_in_streamer_mode_is_the_character_number(qapp):
         streamer_mode.configure(lambda: False)
 
 
-def test_a_loading_view_keeps_the_zone_and_rows_drawn_last(qapp):
-    """A client between zones has nothing worth reading, so its builder sends no reads."""
+def test_a_loading_view_keeps_the_zone_drawn_last_and_draws_the_rest(qapp):
+    """A client between zones has no zone worth reading; what is not read from the game still lands."""
     card = PlayerCard(_view(zone="Colossus Boulevard", rows=(PlayerRow("Holder", "following P1"),)))
 
-    card.show_view(_view(loading=True, color_key=2))
+    card.show_view(_view(loading=True, color_key=2, rows=(PlayerRow("Holder", "porting to P1"),)))
 
     assert card.rows["Zone"].display_text == "Colossus Boulevard"
-    assert card.rows["Holder"].display_text == "following P1"
-    assert card.color_key == 2, "what is not read from the game still lands"
+    assert card.last_zone == "Colossus Boulevard"
+    assert card.rows["Holder"].display_text == "porting to P1"
+    assert card.color_key == 2
 
 
 def test_a_row_a_later_view_adds_goes_under_the_rows_already_there(qapp):
