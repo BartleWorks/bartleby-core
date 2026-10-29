@@ -11,15 +11,16 @@ stage; this file is the part of it that governs code, and grows as the stages la
 |---|---|---|
 | `bartleby.shared` | the data every product reads and writes under `%APPDATA%/Bartleby/`: accounts, launch profiles, preferences, the strategy library, the vendor's name, share files; and the running product | stdlib, pydantic, keyring |
 | `bartleby.runtime` | game clients at run time, with no Qt: launching and hooking, the state reader, the arbiter and the one input API, movement, the helpers, the game facts (key bindings, captions, names, realms, sizing), timing and the run trace | `shared`, wizwalker, wizsprinter |
-| `bartleby.qt` | theming and icons, buttons and labels, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; an app's startup (`app/`) and the runtime bridge | `shared`, `runtime`, PyQt6 |
+| `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; an app's startup (`app/`) and the runtime bridge | `shared`, `runtime`, PyQt6 |
 
 Each tier imports only from those before it, so the runtime runs without a GUI and the data
 without a game. Core imports neither product. `tests/test_layers.py` holds both rules.
 
 Each tier's `testing/` holds what a product's tests run against core: `SimClient`, a client
 with no game behind it (`runtime/testing/sim_client.py`), the guards (`runtime/testing/guards.py`
-and `qt/testing/guards.py`), the render sheet (`qt/testing/render_sheet.py`) and the startup
-check (`qt/testing/startup.py`).
+and `qt/testing/guards.py`), the render sheet (`qt/testing/render_sheet.py`), the startup
+check (`qt/testing/startup.py`), a drag on a `DragReorder` card list (`qt/testing/drag_helpers.py`),
+and the per-test widget reaping every repo's `conftest.py` imports (`qt/testing/widget_lifetime.py`).
 
 ## What stays in a product
 
@@ -75,7 +76,10 @@ facts, launching, timing, the UI paths and the run trace are core's. Its icons a
 snapshots core's runtime reads are core's too; its packaged build bundles them under
 `bartleby/`, where core's modules look for them. `nodes/node_helpers.py` stays BartleBot's,
 with the helpers that read a bot, and imports core's `bartleby.runtime.actions.node_helpers`,
-so a node reaches every helper through one module.
+so a node reaches every helper through one module. Since Stage 6, so are its cards
+(`CardFrame`, `AddCard`), `DragReorder`, the family pills (`widgets/pills/pill.py`, where its
+`tag_pill.py` keeps the bot-tag pills), `SidebarSection`, `RuleHeading`, `LogoDisc`, the layout
+helpers, `menu_utils`, `art_signal` and the Log tab.
 
 BartleBot supplies what core's copies cut away:
 
@@ -88,6 +92,8 @@ BartleBot supplies what core's copies cut away:
 | `run_trace.start(slot_of, directory)` | `app_controller.start_run_trace`, which traces only in developer mode, under `logs/trace/` |
 | `product.use(product)`, `configure_logging(product, settings)`, `SingleInstance(product)` | `bartlebot.packaging.product.product()`, built at startup, and its `SettingsManager` |
 | `GameAction`, which names the movement keys BartleBuddy holds | `run_probe.PRESSED_ACTIONS`, the actions a run needs keys for |
+| `LogPanel(settings)`, a `LogSettings` | its `SettingsManager`; it clears the panel itself as a run starts, when `clear_log_on_run` says to |
+| `LogoDisc(diameter, disc_image)` | `gui.logo.logo_disc_image`, its tree on a disc |
 
 A name patched in a BartleBot test is patched where its callers read it, and core's helpers
 read core's module: `tests/node_helper_patches.py` patches a helper on both modules at once.
@@ -133,7 +139,10 @@ its own, must each be logged at CRITICAL with its traceback while the app runs o
 | `bartleby.qt.runtime_bridge` | `RuntimeThread` and `RuntimeSignals`, for an app whose runtime runs on a thread of its own |
 
 What differs between the two is the loop. BartleBot runs one qasync loop for everything, and
-BartleBuddy runs Qt's own `exec()` with its runtime on a `RuntimeThread` (below).
+BartleBuddy runs Qt's own `exec()` with its runtime on a `RuntimeThread` (below). So the Log
+tab's records reach BartleBot's through `add_gui_callback`, and BartleBuddy's through
+`add_gui_callback(signals.log_record.emit, any_thread=True)`: with no asyncio loop on its GUI
+thread, a record logged on the runtime thread crosses by the queued signal instead.
 BartleBuddy's window comes back where it closed, from `UiState`.
 
 ## Where the runtime runs

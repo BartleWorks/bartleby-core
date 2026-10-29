@@ -18,6 +18,10 @@ import pytest
 from wizwalker import XYZ
 from wizwalker.extensions.wizsprinter import SprintyClient
 
+from bartleby.qt.testing.widget_lifetime import (  # noqa: F401 - registers them with pytest
+    _free_widgets_this_test_created,
+    pytest_runtest_call,
+)
 from bartleby.runtime.clients import game_keys, sightings
 from bartleby.runtime.game.key_bindings import KeyMap
 from bartleby.shared import product

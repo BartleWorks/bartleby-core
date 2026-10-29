@@ -422,6 +422,7 @@ class _Settings:
 
     def __init__(self, record_combat_decisions: bool = False) -> None:
         self.record_combat_decisions = record_combat_decisions
+        self.log_max_lines = 5000
 
 
 @pytest.fixture
@@ -593,3 +594,47 @@ def test_a_line_logged_on_the_gui_thread_is_delivered_at_once():
     bridge.handle(_info("from the GUI thread"))
 
     assert seen == [("from the GUI thread", True)]
+
+
+# ---------------------------------------------------------------------------
+# An app with no asyncio loop on its GUI thread: a callback that crosses itself
+# ---------------------------------------------------------------------------
+
+
+def _thread_of_each_line(bridge: _GuiBridgeHandler) -> list[tuple[str, str]]:
+    seen: list[tuple[str, str]] = []
+    bridge.add_callback(lambda entry: seen.append((entry.message, threading.current_thread().name)), any_thread=True)
+    return seen
+
+
+def test_an_any_thread_callback_gets_a_worker_s_line_on_the_worker_with_no_loop_to_cross():
+    """BartleBuddy's GUI runs Qt's loop, not asyncio's: its runtime thread's lines cross by signal."""
+    bridge = _GuiBridgeHandler()
+    seen = _thread_of_each_line(bridge)
+
+    worker = threading.Thread(target=lambda: bridge.handle(_info("from the runtime")), name="runtime")
+    worker.start()
+    worker.join()
+
+    assert seen == [("from the runtime", "runtime")]
+
+
+def test_an_any_thread_callback_gets_a_gui_thread_line_once():
+    bridge = _GuiBridgeHandler()
+    seen = _thread_of_each_line(bridge)
+
+    bridge.handle(_info("from the GUI thread"))
+
+    assert seen == [("from the GUI thread", threading.main_thread().name)]
+
+
+def test_a_removed_any_thread_callback_stops_receiving():
+    bridge = _GuiBridgeHandler()
+    seen = _thread_of_each_line(bridge)
+    callback = bridge._any_thread[0]
+
+    bridge.handle(_info("before"))
+    bridge.remove_callback(callback)
+    bridge.handle(_info("after"))
+
+    assert [message for message, _ in seen] == ["before"]

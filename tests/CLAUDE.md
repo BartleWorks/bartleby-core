@@ -93,7 +93,8 @@ rather than merely untidy: `QApplication.setStyleSheet` delivers a `StyleChange`
 live widget, so one app-wide theme broadcast cost 26 s at 27,918 live widgets and 0.001 s
 at zero. That single leak was most of an 8-minute `-n auto` run.
 
-`_free_widgets_this_test_created` in `conftest.py` handles it: at teardown it closes and
+`_free_widgets_this_test_created` (`bartleby/qt/testing/widget_lifetime.py`, which every
+repo's `conftest.py` imports with its `pytest_runtest_call`) handles it: at teardown it closes and
 destroys the *top-level* widgets that did not exist when it was set up, then flushes the
 `DeferredDelete` queue by hand. A test does not need to call `deleteLater()` for its own
 widgets — the ones already there are harmless, not load-bearing.
@@ -160,10 +161,10 @@ its windows, so a popup put up with `QMenu.popup()` has no active window behind 
 loop under load and Windows deactivates it, the menu closes itself, and every teardown
 hook — `aboutToHide`, and the parent hand-back `anchor_menu_to_window` connects to it —
 has already fired by the time the assertion looks. The hand-back test in
-`test_menu_anchoring.py` flaked exactly this way, and pumping *harder* — the
+`test_menu_utils.py` (BartleBot's `test_menu_anchoring.py` until it moved) flaked exactly this way, and pumping *harder* — the
 obvious fix, and the one the issue suggested — made it fail every time instead. Ask first whether the state arrives synchronously: `aboutToShow` is
 emitted from inside `popup()`, so that half wanted no pump at all. `_pump_until` in
-`test_menu_anchoring.py` is there for the tearing-down half, which genuinely does need one.
+`test_menu_utils.py` is there for the tearing-down half, which genuinely does need one.
 
 **`show()` does not give a widget focus; activation does, and it is the WM's answer.**
 `QWidget.hasFocus()` is false unless the widget's window is *active*, and `show()` only
