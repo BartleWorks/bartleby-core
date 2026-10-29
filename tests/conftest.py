@@ -560,5 +560,3 @@ def _restore_app_stylesheet():
     app = qtwidgets.QApplication.instance() if qtwidgets else None
     if app is not None and before is not None and app.styleSheet() != before:
         app.setStyleSheet(before)
-
-
