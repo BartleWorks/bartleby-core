@@ -82,6 +82,8 @@ class LogSettings(Protocol):
 
     #: Whether wizsprinter's turn trace goes into the log (:func:`set_turn_trace`).
     record_combat_decisions: bool
+    #: How many lines the Log tab keeps (``bartleby.qt.sidebar.log_panel``); older ones scroll away.
+    log_max_lines: int
 
 
 @dataclass(frozen=True)
@@ -206,11 +208,16 @@ class _GuiBridgeHandler(logging.Handler):
     def __init__(self) -> None:
         super().__init__()
         self._callbacks: list[Callable[[LogEntry], None]] = []
+        # The callbacks safe to call on the thread that logged. See add_gui_callback.
+        self._any_thread: list[Callable[[LogEntry], None]] = []
         # The GUI thread's loop, taken when a callback is added, for a record logged from
         # another thread. See emit.
         self._loop: asyncio.AbstractEventLoop | None = None
 
-    def add_callback(self, cb: Callable[[LogEntry], None]) -> None:
+    def add_callback(self, cb: Callable[[LogEntry], None], *, any_thread: bool = False) -> None:
+        if any_thread:
+            self._any_thread.append(cb)
+            return
         self._callbacks.append(cb)
         try:
             self._loop = asyncio.get_running_loop()
@@ -219,11 +226,13 @@ class _GuiBridgeHandler(logging.Handler):
 
     def remove_callback(self, cb: Callable[[LogEntry], None]) -> None:
         self._callbacks = [c for c in self._callbacks if c is not cb]
+        self._any_thread = [c for c in self._any_thread if c is not cb]
 
     def emit(self, record: logging.LogRecord) -> None:
         entry = self._entry(record)
+        self._deliver(entry, self._any_thread)
         if threading.current_thread() is threading.main_thread():
-            self._deliver(entry)
+            self._deliver(entry, self._callbacks)
             return
         # A worker thread -- asyncio.to_thread's: the update check, an art extraction -- must
         # never touch a widget, and the callbacks write the log panel. The line goes to the
@@ -231,7 +240,7 @@ class _GuiBridgeHandler(logging.Handler):
         loop = self._loop
         if loop is not None and not loop.is_closed():
             try:
-                loop.call_soon_threadsafe(self._deliver, entry)
+                loop.call_soon_threadsafe(self._deliver, entry, self._callbacks)
             except RuntimeError:
                 pass  # the loop closed in between
 
@@ -249,8 +258,9 @@ class _GuiBridgeHandler(logging.Handler):
             text=text,
         )
 
-    def _deliver(self, entry: LogEntry) -> None:
-        for cb in list(self._callbacks):
+    @staticmethod
+    def _deliver(entry: LogEntry, callbacks: list[Callable[[LogEntry], None]]) -> None:
+        for cb in list(callbacks):
             try:
                 cb(entry)
             except Exception:
@@ -392,9 +402,16 @@ def install_excepthook() -> None:
     threading.excepthook = _thread_hook
 
 
-def add_gui_callback(cb: Callable[[LogEntry], None]) -> None:
-    """Hand *cb* every record from now on, as a :class:`LogEntry`, on the GUI thread."""
-    _gui_bridge.add_callback(cb)
+def add_gui_callback(cb: Callable[[LogEntry], None], *, any_thread: bool = False) -> None:
+    """Hand *cb* every record from now on, as a :class:`LogEntry`, on the GUI thread.
+
+    A record logged on another thread reaches the GUI thread through its asyncio loop, so
+    an app with none there (BartleBuddy, whose GUI runs Qt's own loop) passes
+    *any_thread*: *cb* is then called on whichever thread logged, which is safe only for
+    a callback that crosses threads itself, as a queued signal's ``emit`` does
+    (``bartleby.qt.runtime_bridge.RuntimeSignals.log_record``).
+    """
+    _gui_bridge.add_callback(cb, any_thread=any_thread)
 
 
 def remove_gui_callback(cb: Callable[[LogEntry], None]) -> None:
