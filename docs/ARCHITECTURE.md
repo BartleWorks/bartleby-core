@@ -86,6 +86,38 @@ A name patched in a BartleBot test is patched where its callers read it, and cor
 read core's module: `tests/node_helper_patches.py` patches a helper on both modules at once.
 BartleBot's session log drops `bartleby.` from core's logger names, as it drops `bartlebot.`.
 
+## Where the runtime runs
+
+Anything synchronous on Qt's thread holds every coroutine on a loop that shares it. A tile
+resize waits for the game's window thread to answer a move, which BartleBot's #285 measured
+at 1.1 to 1.4 s, and an embed at up to 3.6 s. So the two products differ, by what their
+runtime does:
+
+- **BartleBuddy runs its runtime on a thread of its own**, a plain asyncio loop
+  (`bartlebuddy/runtime/bridge.py`), because a follower steers every `FOLLOW_TICK`. Only
+  snapshots cross out, as queued signals, and only commands cross in, as coroutines.
+- **BartleBot runs everything on one qasync loop.** Its nodes press, read and wait; nothing
+  of its steers on a tick, so a held loop delays a node without walking a wizard off course.
+
+The difference was measured, in Stage 4 of #167, by BartleBuddy's
+`tools/probe_follow_jitter.py`: three followers on `SimClient`s under BartleBot's GUI load,
+four embedded tiles with one resized every 10 s and each move held 1.2 s, for 5 minutes per
+model. On one loop, every resize stopped every follower for 1.27 s, and all 29 broke the
+rule that no steering gap through a resize may reach 250 ms. On the runtime thread the GUI
+was held as long, and no follower went more than 66 ms without steering. The probe's
+docstring has the full table.
+
+What follows for core:
+
+- **A runtime that drives clients on a tick runs off Qt's thread.** The GUI never holds a
+  runtime object; it gets the snapshots and view models that cross, which is what the view
+  model cut is for. Stage 5 of #167 moves `RuntimeThread` and the crossing into
+  `bartleby.qt.runtime_bridge`, product-free.
+- **Code in `bartleby.runtime` assumes no Qt and no particular thread**: it runs on whichever
+  loop calls it, BartleBot's qasync one or BartleBuddy's own.
+- **A tick is 62.5 ms on Windows, not 50.** `asyncio.sleep` wakes on the system's 15.6 ms
+  timer, on either loop, so a cadence is rounded up to a whole number of ticks.
+
 ## How the rules reach a session
 
 Instructions only help where they load. A Claude Code session loads its repo's root
