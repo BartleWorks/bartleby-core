@@ -19,7 +19,7 @@ it there is a plan of its own.
 **Speed is never written above 2.0x in total** (the field holds a mount's bonus too).
 
 **The GUI never touches a wizwalker object.** In BartleBuddy, snapshots cross out of the
-runtime and commands cross in, by `bartlebuddy/runtime/bridge.py`. A shared widget takes a
+runtime and commands cross in, by `bartleby.qt.runtime_bridge`. A shared widget takes a
 snapshot or a view model and emits a command.
 
 ## Timing
@@ -36,9 +36,10 @@ import logging
 logger = logging.getLogger(__name__)
 ```
 
-BartleBot's are configured in `bartlebot/logging_setup.py`: per-session timestamped files in
-`%APPDATA%/Bartleby/BartleBot/logs/` (the repo's `logs/` in developer mode), 10 most recent
-kept, plus a bridge handler for the in-app log widget. It moves to core in Stage 5.
+Every app configures them with `bartleby.qt.app.logging_setup.configure_logging`: per-session
+timestamped files in the product's `logs/` (`%APPDATA%/Bartleby/<product>/logs/`, or BartleBot's
+repo in developer mode), 10 most recent kept, plus a bridge handler for the in-app log widget.
+To say which client a line is about, log it with `extra={CLIENT_SLOT: slot}`.
 
 - Pass `logging.WARNING`, the int constant, not `"WARNING"`.
 - **Never log a wizard name, or its `m_nameKeys`.** Logs get pasted into bug reports,
