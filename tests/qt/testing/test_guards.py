@@ -38,6 +38,24 @@ def _package(root: Path, files: dict[str, str]) -> Path:
 # ---------------------------------------------------------------------------
 
 
+def test_a_product_widget_inherits_the_refresh_of_core_s_widget_it_subclasses(tmp_path):
+    root = _package(
+        tmp_path / "pkg",
+        {
+            "help.py": (
+                "class Help(IconButton):\n"
+                "    def __init__(self):\n"
+                "        self.setIcon(svg_icon('help'))\n"
+                "class Plain(QPushButton):\n"
+                "    def __init__(self):\n"
+                "        self.setIcon(svg_icon('help'))\n"
+            ),
+        },
+    )
+
+    assert [f.key for f in guards.theme_refresh_offenders(root).offenders] == ["help.py:Plain"]
+
+
 def test_a_widget_baking_a_theme_value_without_a_refresh_is_an_offender(tmp_path):
     root = _package(
         tmp_path / "pkg",

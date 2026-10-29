@@ -25,8 +25,7 @@ snapshot or a view model and emits a command.
 ## Timing
 
 Import all timing constants from `bartleby/runtime/timing.py`. Never define a local timeout
-or interval constant in a node or a task. BartleBot's own are in `bartlebot/nodes/timing.py`
-until it adopts core's (Stage 3).
+or interval constant in a node or a task. BartleBot's are these too, since Stage 3 of #167.
 
 ## Logging
 
@@ -314,7 +313,7 @@ exit warning and the friend-busy dialog both show a right button, so
 Captions come from `bartleby/runtime/game/data/dialog_captions.json`, all seven locales per key
 — memory holds the *resolved* text, so an English substring match fails silently on
 any other locale. To add a dialog: append to `KNOWN_KEYS`, run
-BartleBot's `uv run python tools/dump_dialog_captions.py`, and commit the regenerated JSON.
+`uv run python tools/dump_dialog_captions.py` here, and commit the regenerated JSON.
 `--verify` re-checks the snapshot for keys whose text no longer identifies them
 uniquely. An unrecognized caption returns `None`, and callers must fall back rather
 than treat it as "no dialog".

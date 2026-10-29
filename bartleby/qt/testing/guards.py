@@ -47,6 +47,9 @@ FONT_TOKEN = re.compile(r"THEME\.font_\w+")
 #: Inheriting this is accepted in place of a hand-written changeEvent.
 THEMED_MIXIN = "ThemedMixin"
 
+#: Core's Qt tier, whose widgets a product subclasses: their theme refresh is inherited.
+QT_PACKAGE = Path(__file__).resolve().parents[1]
+
 THEME_ADVICE = (
     "They bake in a THEME-derived value but never re-derive it, so they show stale colors\n"
     "until the app restarts. Inherit ThemedMixin and implement apply_theme_styles(), or\n"
@@ -118,12 +121,12 @@ def _handles_theme_change(cls: ast.ClassDef, classes: dict[str, ast.ClassDef], _
     is how a half-finished fix looks, and it would otherwise silence the check for the class
     forever.
 
-    Inheritance is followed through base classes defined in the package, because a card that
-    subclasses a themed base and overrides ``apply_theme_styles`` is already correct; blaming
-    it would push someone toward re-declaring the mixin on the subclass, and a mixin listed
-    second aborts the process on a theme switch. Bases are matched by bare name, like
-    ``_themed_helpers``: these are package-local classes, and a collision can only
-    over-report.
+    Inheritance is followed through base classes defined in the package or in core's Qt tier,
+    because a card that subclasses a themed base and overrides ``apply_theme_styles`` is
+    already correct; blaming it would push someone toward re-declaring the mixin on the
+    subclass, and a mixin listed second aborts the process on a theme switch. A product's
+    ``IconButton`` subclass inherits core's refresh. Bases are matched by bare name, like
+    ``_themed_helpers``: these are our own classes, and a collision can only over-report.
     """
     if any(name == THEMED_MIXIN for name in _base_names(cls)):
         return True
@@ -172,7 +175,10 @@ def theme_refresh_offenders(package_root: Path, allow: Mapping[str, str] | None 
     """
     trees = {p: parse(p) for p in python_files(package_root)}
     helpers = _themed_helpers(trees)
-    classes = {n.name: n for t in trees.values() for n in ast.walk(t) if isinstance(n, ast.ClassDef)}
+    classes = {
+        n.name: n for t in map(parse, python_files(QT_PACKAGE)) for n in ast.walk(t) if isinstance(n, ast.ClassDef)
+    }
+    classes |= {n.name: n for t in trees.values() for n in ast.walk(t) if isinstance(n, ast.ClassDef)}
     findings = []
     for path, tree in trees.items():
         module = module_name(path, package_root)

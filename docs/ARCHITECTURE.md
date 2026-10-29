@@ -60,6 +60,32 @@ family plan changes the three repos together: a branch in each named for the sta
 core first, then BartleBot, then BartleBuddy, each suite green against the others' merged
 trees. The stage's issue lives in BartleBot.
 
+## BartleBot on core
+
+Since Stage 3 of #167 BartleBot imports every module core holds, and holds no copy of one:
+`bartlebot/shared/`, its theming, buttons, labels, title bar, client tile and window
+embedding, global hotkeys and Streamer Mode, the clients modules core's runtime has, the game
+facts, launching, timing, the UI paths and the run trace are core's. Its icons and the three
+snapshots core's runtime reads are core's too; its packaged build bundles them under
+`bartleby/`, where core's modules look for them. `nodes/node_helpers.py` stays BartleBot's,
+with the helpers that read a bot, and imports core's `bartleby.runtime.actions.node_helpers`,
+so a node reaches every helper through one module.
+
+BartleBot supplies what core's copies cut away:
+
+| core reads | BartleBot hands it |
+|---|---|
+| `launch_profile.configure(settings)`, a `LaunchSettings` | its `SettingsManager`, whenever the singleton is made |
+| `streamer_mode.configure(setting)` | a read of `SettingsManager.streamer_mode` |
+| `TitleBar(menu_bar, logo)` | its logo |
+| `group_manager.form_group(..., safety_delay=)` | the user's Safety Delay at every call; core's default is BartleBot's 3.0 s |
+| `run_trace.start(slot_of, directory)` | `app_controller.start_run_trace`, which traces only in developer mode, under `logs/trace/` |
+| `GameAction`, which names the movement keys BartleBuddy holds | `run_probe.PRESSED_ACTIONS`, the actions a run needs keys for |
+
+A name patched in a BartleBot test is patched where its callers read it, and core's helpers
+read core's module: `tests/node_helper_patches.py` patches a helper on both modules at once.
+BartleBot's session log drops `bartleby.` from core's logger names, as it drops `bartlebot.`.
+
 ## How the rules reach a session
 
 Instructions only help where they load. A Claude Code session loads its repo's root
@@ -101,6 +127,7 @@ module: BartleBuddy lists each stand-in for a BartleBot surface that way, naming
 | `bare_buttons`, `extra_primaries`, `compound_widget_qss` | the button vocabulary, one primary per surface, no QSS that breaks a compound widget |
 | `modals_in_coroutines` | no coroutine opens a modal (the qasync rule) |
 | `fixed_key_presses` | every game action is pressed by the account's binding |
+| `core_copies` | no module of a product is a copy of one of core's: the same file name and, imports and docstrings aside, the same code |
 
 A render sheet is a product's surfaces, each built with sample data at a fixed size,
 rendered offscreen in the light and dark themes. Each product's `tools/render_sheet.py` lists

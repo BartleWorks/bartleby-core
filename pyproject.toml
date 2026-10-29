@@ -29,6 +29,8 @@ dev = [
     "pytest-xdist>=3.6",
     "pytest-qt>=4.5.0",
     "ruff>=0.15",
+    # tools/dump_realm_names.py reads Root.wad with it. Nothing in bartleby/ reads a WAD.
+    "katsuba>=0.4.0",
 ]
 
 # Ours, pinned by exact commit, the same pins BartleBot carries (its docs/UPSTREAM.md).

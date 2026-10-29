@@ -12,7 +12,7 @@ WHY A KEY, AND WHY EVERY LOCALE
     in all seven locales. They ride along in the same snapshot.
 
 WHY A SNAPSHOT
-    Nothing reads a WAD at run time (see tools/CLAUDE.md). ``tools/dump_realm_names.py``
+    Nothing reads a WAD at run time (BartleBot's tools/CLAUDE.md says why). ``tools/dump_realm_names.py``
     extracts the table into ``data/realm_names.json``; regenerate it when the game adds
     or retires a realm.
 """

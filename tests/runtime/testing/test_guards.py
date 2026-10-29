@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from bartleby.runtime.testing.guards import Finding, fixed_key_presses, report
+from bartleby.runtime.testing.guards import CORE_PACKAGE, Finding, core_copies, fixed_key_presses, report
 
 PACKAGE = Path(__file__).resolve().parents[3] / "bartleby"
 
@@ -58,3 +58,46 @@ def test_no_game_action_in_core_is_pressed_by_a_fixed_key():
     result = fixed_key_presses(PACKAGE)
 
     assert not result, result.message()
+
+
+_ORIGINAL = '''"""Core's version of the module."""
+
+from bartleby.shared import thing
+
+
+def area(width, height):
+    """Width times height."""
+    return width * height
+'''
+
+
+def test_a_module_with_core_s_name_and_code_is_a_copy_whatever_its_imports_and_docstrings(tmp_path):
+    core = _package(tmp_path / "core", {"runtime/geometry.py": _ORIGINAL, "runtime/__init__.py": ""})
+    copy = _ORIGINAL.replace("bartleby.shared", "bartlebot.shared").replace("Core's version", "BartleBot's version")
+    product = _package(tmp_path / "product", {"game/geometry.py": copy})
+
+    result = core_copies(product, core_root=core)
+
+    assert [f.key for f in result.offenders] == ["game/geometry.py"]
+    assert "bartleby/runtime/geometry.py" in result.offenders[0].detail
+
+
+def test_a_module_whose_code_differs_is_no_copy(tmp_path):
+    core = _package(tmp_path / "core", {"runtime/geometry.py": _ORIGINAL})
+    changed = _ORIGINAL.replace("return width * height", "return width * height * 2")
+    product = _package(tmp_path / "product", {"game/geometry.py": changed, "game/other.py": _ORIGINAL})
+
+    assert not core_copies(product, core_root=core)
+
+
+def test_an_init_or_a_module_of_imports_alone_is_never_a_copy(tmp_path):
+    reexport = '"""Re-exports."""\n\nfrom bartleby.shared import thing  # noqa: F401\n'
+    core = _package(tmp_path / "core", {"qt/__init__.py": "", "qt/names.py": reexport})
+    product = _package(tmp_path / "product", {"gui/__init__.py": "", "gui/names.py": reexport})
+
+    assert not core_copies(product, core_root=core)
+
+
+def test_the_copy_check_reads_core_itself_by_default():
+    assert CORE_PACKAGE == PACKAGE.resolve()
+    assert core_copies(PACKAGE).offenders  # core against itself: every module is its own copy

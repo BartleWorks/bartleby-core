@@ -13,8 +13,9 @@ call. A key names one finding (``"gui/bar_a.py:stop_button"``), or a whole modul
 that matches nothing is *stale*, and a test should fail on it too: an exemption for
 something that is gone silences the check for that name if it ever comes back.
 
-This module holds what every guard shares and the guards about the client runtime. The Qt
-guards are in ``bartleby.qt.testing.guards``.
+This module holds what every guard shares, the guards about the client runtime, and the
+copy check every product runs against core. The Qt guards are in
+``bartleby.qt.testing.guards``.
 """
 
 from __future__ import annotations
@@ -115,3 +116,68 @@ def fixed_key_presses(package_root: Path, allow: Mapping[str, str] | None = None
                 if name not in FIXED_KEYS:
                     findings.append(Finding(f"{module}:{number}", module, number, f"Keycode.{name}"))
     return report(findings, allow or {}, "Press these with game_keys.press(client, GameAction...).")
+
+
+# ---------------------------------------------------------------------------
+# Copies of core
+# ---------------------------------------------------------------------------
+
+#: Core's own package, which :func:`core_copies` compares a product against.
+CORE_PACKAGE = Path(__file__).resolve().parents[2]
+
+
+def _code(tree: ast.Module) -> str | None:
+    """*tree* with its imports and docstrings left out, as a string to compare; None if nothing is left.
+
+    A module moved into core keeps its body and changes its imports, and the paths its
+    docstrings name, so neither tells a copy from the original.
+    """
+
+    class _Strip(ast.NodeTransformer):
+        def visit_Import(self, node):  # noqa: N802 - ast's name
+            return None
+
+        visit_ImportFrom = visit_Import  # noqa: N815 - ast's name
+
+        def generic_visit(self, node):
+            body = getattr(node, "body", None)
+            if (
+                isinstance(body, list)
+                and body
+                and isinstance(body[0], ast.Expr)
+                and isinstance(body[0].value, ast.Constant)
+                and isinstance(body[0].value.value, str)
+            ):
+                node.body = body[1:] or [ast.Pass()]
+            return super().generic_visit(node)
+
+    stripped = _Strip().visit(tree)
+    if all(isinstance(n, ast.Pass) for n in stripped.body):
+        return None
+    return ast.dump(stripped, annotate_fields=False)
+
+
+def core_copies(package_root: Path, allow: Mapping[str, str] | None = None, core_root: Path = CORE_PACKAGE) -> Report:
+    """No module of a product is a copy of one of core's.
+
+    Every shared module exists once, in core, and a product imports it from there
+    (``docs/ARCHITECTURE.md``). A copy is a module with the file name of one of core's and,
+    imports and docstrings aside, the same code: what a module left behind when it moved
+    looks like, and what drifts from the original the moment either is fixed. An
+    ``__init__.py`` and a module of nothing but imports are never one. Keyed by the
+    product's module path.
+    """
+    core: dict[str, list[tuple[str, str]]] = {}
+    for path in python_files(core_root):
+        if path.name != "__init__.py" and (code := _code(parse(path))) is not None:
+            core.setdefault(path.name, []).append((module_name(path, core_root), code))
+    findings = []
+    for path in python_files(package_root):
+        if path.name not in core:
+            continue
+        code = _code(parse(path))
+        module = module_name(path, package_root)
+        for original, theirs in core[path.name]:
+            if code == theirs:
+                findings.append(Finding(module, module, 1, f"a copy of core's bartleby/{original}"))
+    return report(findings, allow or {}, "Delete the copy and import core's module instead.")

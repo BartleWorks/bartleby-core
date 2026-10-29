@@ -142,7 +142,7 @@ should name one property.
 What `stale` cannot see: the wizwalker classes with no reflected game class (the camera
 controllers, the scene manager, the duel and quest managers, `GameClient`, the deck and spell
 list entries), and BartleBot's own offsets, which are not in classes named for the game's:
-`bartlebot/game/wizard_names.py` (`ClientWizPlayerNameBehavior` and `ClientObject`) and
+`bartleby/runtime/game/wizard_names.py` (`ClientWizPlayerNameBehavior` and `ClientObject`) and
 `bartlebot/combat/deck_io.py` (the deck lists, a raw gap of `DeckListControl`). Check
 those by hand with `typedump.py at` on both dumps, and the probes `tools/README.md` lists
 under *Probes to rerun after a game patch*. wizsprinter reads no offsets of its own.
