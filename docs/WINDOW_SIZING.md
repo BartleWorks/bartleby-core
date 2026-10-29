@@ -1,7 +1,7 @@
 # Window sizing
 
 How big a Wizard101 client is launched, why that is one setting and not two, and why an
-unfittable configuration cannot be launched at all. The code is `bartlebot/game/game_sizing.py`
+unfittable configuration cannot be launched at all. The code is `bartleby/runtime/game/game_sizing.py`
 (the arithmetic, pure) and `bartlebot/gui/screen_fit.py` (the same question asked from a
 widget, with a real screen behind it). Read this before changing either, or before adding
 a resolution to `VALID_RESOLUTIONS`.
@@ -223,7 +223,7 @@ Not guessable, and the single most likely thing for a later change to get wrong:
 | `Resolution` | `preferences.xml` | also present in `config.xml`, but that copy is a mirror the game rewrites at launch |
 | `UISize` | `config.xml` | absent from `preferences.xml` entirely |
 
-Both are patched by `_patch_window_config` in `bartlebot/launcher/launch_profile.py`,
+Both are patched by `_patch_window_config` in `bartleby/runtime/launcher/launch_profile.py`,
 which is also where `WindowedX`/`WindowedY` and `QuickFriendTeleport` go.
 
 ## The UI scale is the user's, and is given back

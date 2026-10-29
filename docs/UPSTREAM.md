@@ -210,6 +210,28 @@ Current pins, both on `main`:
   `cast_time * 2`; `CombatConfigProvider.from_string`; and the generator backend's
   unawaited round. Earlier pins are in `git log` and the earlier tags.
 
+## Bumping BartleBot's pin to core
+
+bartleby-core is pinned the same way, by exact commit, in BartleBot's `[tool.uv.sources]`:
+its release build cannot build from a path. BartleBuddy takes core by local path
+(`docs/ARCHITECTURE.md`, *How a product takes core*). A stage that changes core:
+
+```bash
+# while the stage is built, BartleBot's branch takes the sibling checkout
+#   bartleby-core = { path = "../bartleby-core", editable = true }
+cd ../bartleby-core
+git switch master && git merge --no-ff <stage-branch>
+git tag bartlebot-pin-$(date +%Y%m%d) master
+git push origin master refs/tags/bartlebot-pin-$(date +%Y%m%d)
+cd ../BartleBot
+#   bartleby-core = { git = "https://github.com/BartleWorks/bartleby-core.git", rev = "<core's merge commit, in full>" }
+uv lock && uv sync && uv run pytest -n auto
+```
+
+Core has one long-lived branch, `master`, and it is never rewritten, so a pinned commit stays
+reachable; it is tagged anyway, as the forks' pins are. With the path source an edit to core
+is live in BartleBot at once, with no `--no-sync`: uv keeps an editable path install as it is.
+
 ## Remotes and identity
 
 Each checkout has the same shape:

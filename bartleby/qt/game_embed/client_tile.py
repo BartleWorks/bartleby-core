@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 # FOCUS_BORDER and LABEL_RESERVE are imported rather than defined here: how much chrome
 # a tile wraps around its game window is a term in the screen-fit arithmetic as well as
-# a drawing constant, and bartlebot/game/game_sizing.py cannot import a QWidget to find out.
+# a drawing constant, and bartleby/runtime/game/game_sizing.py cannot import a QWidget to find out.
 __all__ = [
     "FOCUS_BORDER",
     "LABEL_RESERVE",
