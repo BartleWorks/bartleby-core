@@ -9,15 +9,15 @@ stage; this file is the part of it that governs code, and grows as the stages la
 
 | tier | holds | may import |
 |---|---|---|
-| `bartleby.shared` | the data every product reads and writes under `%APPDATA%/Bartleby/`: accounts, launch profiles, preferences, the strategy library, the vendor's name, share files; and the running product | stdlib, pydantic, keyring |
-| `bartleby.runtime` | game clients at run time, with no Qt: launching and hooking, the state reader, the arbiter and the one input API, movement, the helpers, the game facts (key bindings, captions, names, realms, sizing), timing and the run trace | `shared`, wizwalker, wizsprinter |
+| `bartleby.shared` | the data every product reads and writes under `%APPDATA%/Bartleby/`: accounts, launch profiles, preferences, the strategy library, the vendor's name, share files; the running product; and two small helpers, a Qt-free signal (`listeners.Listeners`) and a drag's permutation applied (`ordering.apply_order`) | stdlib, pydantic, keyring |
+| `bartleby.runtime` | game clients at run time, with no Qt: launching, the client manager (finding, hooking, naming and ordering clients), the state reader, the arbiter and the one input API, movement, the helpers, the game facts (key bindings, captions, names, realms, sizing), timing and the run trace | `shared`, wizwalker, wizsprinter |
 | `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; an app's startup (`app/`) and the runtime bridge | `shared`, `runtime`, PyQt6 |
 
 Each tier imports only from those before it, so the runtime runs without a GUI and the data
 without a game. Core imports neither product. `tests/test_layers.py` holds both rules.
 
 Each tier's `testing/` holds what a product's tests run against core: `SimClient`, a client
-with no game behind it (`runtime/testing/sim_client.py`), the guards (`runtime/testing/guards.py`
+with no game behind it, and `SimHandler`, the windows a client manager polls (`runtime/testing/sim_client.py`), the guards (`runtime/testing/guards.py`
 and `qt/testing/guards.py`), the render sheet (`qt/testing/render_sheet.py`), the startup
 check (`qt/testing/startup.py`), a drag on a `DragReorder` card list (`qt/testing/drag_helpers.py`),
 and the per-test widget reaping every repo's `conftest.py` imports (`qt/testing/widget_lifetime.py`).
@@ -79,7 +79,8 @@ with the helpers that read a bot, and imports core's `bartleby.runtime.actions.n
 so a node reaches every helper through one module. Since Stage 6, so are its cards
 (`CardFrame`, `AddCard`), `DragReorder`, the family pills (`widgets/pills/pill.py`, where its
 `tag_pill.py` keeps the bot-tag pills), `SidebarSection`, `RuleHeading`, `LogoDisc`, the layout
-helpers, `menu_utils`, `art_signal` and the Log tab.
+helpers, `menu_utils`, `art_signal` and the Log tab. Since Stage 7, so is the client
+manager's Qt-free half, below.
 
 BartleBot supplies what core's copies cut away:
 
@@ -94,6 +95,31 @@ BartleBot supplies what core's copies cut away:
 | `GameAction`, which names the movement keys BartleBuddy holds | `run_probe.PRESSED_ACTIONS`, the actions a run needs keys for |
 | `LogPanel(settings)`, a `LogSettings` | its `SettingsManager`; it clears the panel itself as a run starts, when `clear_log_on_run` says to |
 | `LogoDisc(diameter, disc_image)` | `gui.logo.logo_disc_image`, its tree on a disc |
+| `ClientManager(handler, settings, game_view=)`, a `ClientSettings` and a `TileView` | its `SettingsManager` and its `GameView`, from its own `ClientManager`, a subclass |
+
+### The client manager, in two halves
+
+Core's `bartleby.runtime.clients.client_manager.ClientManager` finds the game windows, hooks
+each in the background, ties each to an account (by its launch title or the user id it
+reports), learns each account's characters, tracks launches, holds the slot order, and
+unhooks and rehooks. It publishes on `Listeners`, which have a Qt signal's `connect` and
+`emit`: `clients_changed`, `all_clients_changed`, `wizard_names_changed`,
+`clients_reordered` and `clients_removed`. It reads accounts through `ClientSettings` and
+hands its tiles to a `TileView`.
+
+BartleBot's `bartlebot/clients/client_manager.py` subclasses it and keeps what a running bot
+needs: Qt signals in place of the first three listeners (on a `QObject` of their own), the
+machine handed each published list, a reorder refused mid-run (`_refuse_reorder`), the drop
+tables following `clients_reordered`, and recovery and relogging. Core reports each lost
+client on `clients_removed` as a `Removal` (its window, account, slot and title), after
+emptying the slot; BartleBot's `_recover_removed` holds the slot in `_pending_recovery`,
+which core's slot code honors, and runs the recovery queue. A subclass, not a wrapper:
+recovery reads and writes the same ordering, account map and held slots at every step, and
+moving it whole kept every line and its tests as they were.
+
+BartleBuddy uses core's manager as it is, on its runtime thread: its session listens to
+`clients_changed`, so a reorder or an unhook reaches the team, and its launches go through
+`begin_launch` and `end_launch`. It has no recovery until its phase 3.
 
 A name patched in a BartleBot test is patched where its callers read it, and core's helpers
 read core's module: `tests/node_helper_patches.py` patches a helper on both modules at once.
