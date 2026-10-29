@@ -100,3 +100,16 @@ What must not be broken:
 Policy lives in `bartlebot/clients/relog.py` (`relog_due`, `gdi_relog_due`) as pure functions, so
 it is testable without a clock, a client, or Qt -- `client_refresh_interval()` is the
 precedent.
+
+## Which half does what
+
+The client manager is two halves since Stage 7 of BartleBot's #167
+(`docs/ARCHITECTURE.md`, "The client manager, in two halves"). Relogging and recovery are
+BartleBot's half, `bartlebot/clients/client_manager.py`: the relog watch and
+`relog_clients`, the recovery queue, the logout for recovery, the regroup, and the
+relaunch. Core's half, `bartleby/runtime/clients/client_manager.py`, notices the windows
+go: its `_client_loop` compares the hooked clients each pass, empties a lost client's slot,
+remembers it as vacated, and reports it on `clients_removed`. BartleBot's
+`_recover_removed` answers, telling a relog's close from a crash by `_relogging_hwnds`, and
+holds the slot in `_pending_recovery` so nothing else takes it while the client comes back.
+

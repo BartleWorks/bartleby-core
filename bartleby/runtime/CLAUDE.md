@@ -186,6 +186,32 @@ the length of the jump. `mark_location.mark_client` waits, and a recall that mis
 mark (`mark_location.forget`), since the run's record of it is the client's position too.
 Interactions need no wait: the prompt they wait for is the confirmation.
 
+## The client manager
+
+`bartleby.runtime.clients.client_manager.ClientManager` finds, hooks, names and orders the
+game clients for every product. Three rules, each the cost of a bug:
+
+- **Hooking runs in the background.** `activate_hooks()` waits for a character to be in a
+  game zone, with no timeout, so a window at login or character select never returns from
+  it. Awaited inline, it stopped the whole loop: no embedding, no crash detection, for as
+  long as one window sat at character select, which auto-select makes every launch.
+  `_start_activation` runs it as a task per window, and the window waits in
+  `_activating_hwnds` meanwhile.
+- **A failed activation is never retried.** `activate_all_hooks()` installs every hook
+  before it waits, so one abandoned mid-wait leaves jumps into wizwalker's autobot scratch
+  region, and a fresh `Client` for the same process re-runs `_prepare_autobot`, which zeroes
+  that region under them. The window goes in `_failed_hook_hwnds` until it closes, and gets
+  no tile.
+- **A failed read keeps the list as it was.** The next pass compares against it, and that
+  comparison is the only thing that reports a client that died. Emptying the list on an
+  error, as BartleBot's loop once did, lost the removal of a client whose last reads were
+  what failed, and popped every game window out of its tile (BartleBot #154).
+
+What a product adds to it goes through its listeners or a subclass, never a copy: BartleBot
+subclasses it for recovery and relogging (`docs/ARCHITECTURE.md`, "The client manager, in two
+halves"). A listener is called inside the loop's pass, so one that answers `clients_removed`
+can hold the slot before anything else takes it, and one that does slow work starts a task.
+
 ## Comparing a zone a bot names with one a client is in
 
 Always through `node_helpers.zone_matches`, never `==` or `!=`. Besides globs, it treats every
