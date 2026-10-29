@@ -50,6 +50,7 @@ runtime = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "katsuba" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-qt" },
@@ -70,6 +71,7 @@ provides-extras = ["runtime", "qt"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "katsuba", specifier = ">=0.4.0" },
     { name = "pytest", specifier = ">=9.0" },
     { name = "pytest-asyncio", specifier = ">=1.0" },
     { name = "pytest-qt", specifier = ">=4.5.0" },
@@ -277,6 +279,21 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/7b/6f/357efd7602486741aa73ffc0617fb310a29b588ed0fd69c2399acbb85b0c/jeepney-0.9.0.tar.gz", hash = "sha256:cf0e9e845622b81e4a28df94c40345400256ec608d0e55bb8a3feaa9163f5732", size = 106758, upload-time = "2025-02-27T18:51:01.684Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b2/a3/e137168c9c44d18eff0376253da9f1e9234d0239e0ee230d2fee6cea8e55/jeepney-0.9.0-py3-none-any.whl", hash = "sha256:97e5714520c16fc0a45695e5365a2e11b81ea79bba796e26f9f1d178cb182683", size = 49010, upload-time = "2025-02-27T18:51:00.104Z" },
+]
+
+[[package]]
+name = "katsuba"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a7/4f/cf57eb9a2709ea7780637cac560e2b0a4277a160ea3301fcfac0a63d4aa9/katsuba-0.6.0.tar.gz", hash = "sha256:128c5a8b1cdc5323c2ebeb5f9dd85fa1f7245c7fea74d9e7a408aa774eb8c5d5", size = 70603, upload-time = "2026-10-22T20:36:14.117Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5d/44/e0f07fe6f144b6b23f2b3da96ae2d91b0d740105d10116443bc8944f7d7d/katsuba-0.6.0-cp312-abi3-macosx_10_12_x86_64.whl", hash = "sha256:12c3d0c492266998a462b3e4c58bf047f57731d7aea2bc4bf48a228829740ce2", size = 784471, upload-time = "2026-10-22T20:36:12.811Z" },
+    { url = "https://files.pythonhosted.org/packages/53/39/badd376c9dfe8427192fbb8ad6a1d8d9303fdfa0b7687470e4652266b5b5/katsuba-0.6.0-cp312-abi3-macosx_11_0_arm64.whl", hash = "sha256:2980ae744e55ba980982585a3bcbc18cb2201dec9a46f2e62e498192d497ad61", size = 697011, upload-time = "2026-10-22T20:36:11.577Z" },
+    { url = "https://files.pythonhosted.org/packages/d1/b6/91d0f6d9254605feeef5e572b727598051c31266c259c7bba9b027e52b97/katsuba-0.6.0-cp312-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:1c31f44565f487665dd489b8876e11a1272d91886bb36b40d9486fd7c794f13f", size = 775278, upload-time = "2026-10-22T20:36:07.235Z" },
+    { url = "https://files.pythonhosted.org/packages/14/13/3d2dd633b56328cd3420e0a30b3d2dbfbf67b5e488023fd90ba96ffbcf93/katsuba-0.6.0-cp312-abi3-manylinux_2_28_i686.whl", hash = "sha256:ec67a206b1f9281e77d5b8eea14b7498cd512c35816d854152d514f3a2835e9d", size = 839897, upload-time = "2026-10-22T20:36:08.601Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/bb/930cf3de22a2c08d49ab75cd17ce8eec63521b5291f4aad78023d4223abf/katsuba-0.6.0-cp312-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:cdac04a65dfac7ce89fdc36f4e8c52403c4a4759953a94eadff45a41492af5da", size = 842504, upload-time = "2026-10-22T20:36:09.817Z" },
+    { url = "https://files.pythonhosted.org/packages/96/bb/707e17988fb3a9a520fa13f7c20f1fbc25bf3db4dd41b9cce1fab9641cc8/katsuba-0.6.0-cp312-abi3-win32.whl", hash = "sha256:3d9729a2ddd1e50f37e8129c625737ff7937f5ab3f50c504f50aef5b3d5d1e93", size = 648117, upload-time = "2026-10-22T20:36:16.478Z" },
+    { url = "https://files.pythonhosted.org/packages/ce/e4/41526a4f1f902eea4886b1d1e46810f756483a62244fd6acb029dd34f042/katsuba-0.6.0-cp312-abi3-win_amd64.whl", hash = "sha256:c33e7dfda9f703e3aab31cc3ac3dd53ff45d691d147aa97735113bb03e8716ec", size = 747889, upload-time = "2026-10-22T20:36:15.272Z" },
 ]
 
 [[package]]
