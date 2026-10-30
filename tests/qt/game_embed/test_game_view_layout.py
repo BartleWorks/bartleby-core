@@ -191,7 +191,9 @@ def test_an_editing_launch_screen_keeps_them(qapp):
     assert len(screen.findChildren(AddCard)) == 2
 
 
-def test_a_launch_screen_that_edits_nothing_still_launches(qapp):
+def test_a_launch_screen_that_edits_nothing_still_launches(qapp, monkeypatch):
+    # A screen everything fits on: a card refuses to launch on one too small for it, as CI's is.
+    monkeypatch.setattr(screen_fit, "screen_metrics", lambda _widget=None: ((3840, 2160), 1.0))
     _accounts_and_a_profile()
     screen = make_placeholder(editing=False)
     launched: list[str] = []
