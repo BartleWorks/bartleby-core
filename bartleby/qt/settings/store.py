@@ -28,6 +28,8 @@ class SettingsStore(Protocol):
     launch_profiles: list[dict]
     #: The resolution a launch uses when its profile names none.
     game_resolution: tuple[int, int]
+    #: Whether a launched client is taken past character select on its most recent character.
+    auto_select_character: bool
     #: Whether a launched client gets the game's quick friend teleport turned off.
     disable_quick_friend_teleport: bool
     #: ``system``, ``light``, ``dark`` or ``custom``.

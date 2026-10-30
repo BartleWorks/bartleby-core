@@ -10,11 +10,13 @@ again once Play is taken.
 
 import asyncio
 import time
-from contextlib import contextmanager
+from contextlib import asynccontextmanager, contextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from bartleby.runtime.arbiter import Owner, Preempted
+from bartleby.runtime.clients.client_manager import ClientManager
 from bartleby.runtime.clients.launch_tracker import LaunchStage
 from bartleby.runtime.launcher import auto_select
 from bartleby.runtime.launcher.auto_select import (
@@ -382,6 +384,67 @@ async def test_drive_survives_a_missing_client(keys, fast):
     cleanup.assert_not_awaited()
 
 
+async def test_the_hold_is_held_for_the_whole_cleanup(keys, fast, game):
+    """What presses on a hooked client does so while the product says it owns the client."""
+    events: list[str] = []
+
+    @asynccontextmanager
+    async def hold(client):
+        assert client is game
+        events.append("held")
+        yield
+        events.append("let go")
+
+    async def cleanup(_client, *, remember_realm):
+        events.append("cleanup")
+
+    with patch.object(auto_select, "clean_up_after_auto_select", cleanup):
+        reached = await drive_client_in(TITLE, HookedWhenInWorld(game), lambda: game, hold=hold)
+    assert reached is True
+    assert events == ["held", "cleanup", "let go"]
+
+
+async def test_nothing_is_held_while_the_drive_is_pressing_through_the_screens(keys, fast, game):
+    """The client has no owner yet: it joins a team only once it is hooked."""
+    screens_at_hold: list[str] = []
+
+    @asynccontextmanager
+    async def hold(client):
+        screens_at_hold.append(client.screen)
+        yield
+
+    with patch.object(auto_select, "clean_up_after_auto_select", AsyncMock()):
+        await drive_client_in(TITLE, HookedWhenInWorld(game), lambda: game, hold=hold)
+    assert screens_at_hold == ["world"]
+
+
+async def test_a_lost_hold_only_ends_the_cleanup(keys, fast, game):
+    """A fight taking the client is no reason to call the launch a failure: it is in game."""
+
+    @asynccontextmanager
+    async def hold(_client):
+        yield
+        raise Preempted(Owner.COMBAT)
+
+    with patch.object(auto_select, "clean_up_after_auto_select", AsyncMock()):
+        reached = await drive_client_in(TITLE, HookedWhenInWorld(game), lambda: game, hold=hold)
+    assert reached is True
+
+
+async def test_a_cancelled_drive_stays_cancelled_with_a_hold(keys, fast, game):
+    """Stopping the launch is not a lost hold: the cancel has to reach the launch."""
+
+    @asynccontextmanager
+    async def hold(_client):
+        yield
+
+    async def cleanup(_client, *, remember_realm):
+        raise asyncio.CancelledError
+
+    with patch.object(auto_select, "clean_up_after_auto_select", cleanup), pytest.raises(asyncio.CancelledError):
+        await drive_client_in(TITLE, HookedWhenInWorld(game), lambda: game, hold=hold)
+
+
 # ---------------------------------------------------------------------------
 # clean_up_after_auto_select
 # ---------------------------------------------------------------------------
@@ -410,8 +473,60 @@ async def test_cleanup_never_raises(keys, fast):
 
 
 # ---------------------------------------------------------------------------
-# The setting gate — ClientManager.drive_client_in is the only place it is read
+# The setting gate — ClientManager.drive_client_in decides what a drive does
 # ---------------------------------------------------------------------------
+
+
+def _manager(*, auto_select_character: bool, pending: list | None = None) -> ClientManager:
+    settings = MagicMock(accounts=[], auto_select_character=auto_select_character)
+    return ClientManager(handler=MagicMock(clients=pending or []), settings=settings)
+
+
+async def test_setting_off_drives_only_as_far_as_character_select(keys, fast):
+    """Auto-select off still clears the loading screens — it just picks no character.
+
+    False is still the answer: the client is not in-game, and recovery has to keep waiting.
+    """
+    driver = AsyncMock(return_value=True)
+    with (
+        patch.object(auto_select, "drive_to_character_select", driver),
+        patch.object(auto_select, "drive_client_in", AsyncMock(return_value=True)) as full,
+    ):
+        reached = await _manager(auto_select_character=False).drive_client_in(TITLE)
+    assert reached is False
+    driver.assert_awaited_once()
+    full.assert_not_awaited()
+
+
+async def test_setting_on_runs_the_drive(keys, fast):
+    driver = AsyncMock(return_value=True)
+    with patch.object(auto_select, "drive_client_in", driver):
+        reached = await _manager(auto_select_character=True).drive_client_in(TITLE)
+    assert reached is True
+    driver.assert_awaited_once()
+
+
+async def test_the_managers_drive_hands_on_the_hold_and_no_remember_realm(keys, fast):
+    """Remember Realm is a bot's need, so core's manager leaves it off for a subclass to turn on."""
+    driver = AsyncMock(return_value=True)
+    hold = MagicMock()
+    with patch.object(auto_select, "drive_client_in", driver):
+        await _manager(auto_select_character=True).drive_client_in(TITLE, hold=hold)
+    assert driver.await_args.kwargs == {"remember_realm": False, "hold": hold}
+
+
+async def test_driver_borrows_the_pending_client(keys, fast, monkeypatch):
+    """The client must come from the handler, hooks up or not — never a fresh one.
+
+    A second Client over the same process re-prepares WizWalker's autobot region and
+    corrupts the hooks the first one installed.
+    """
+    pending = FakeGameClient()
+    manager = _manager(auto_select_character=True, pending=[pending])
+    monkeypatch.setattr("bartleby.runtime.clients.client_manager.get_window_title", lambda _h: TITLE)
+
+    assert manager.pending_client_titled(TITLE) is pending
+    assert manager.client_titled(TITLE) is None  # not published yet
 
 
 # ---------------------------------------------------------------------------

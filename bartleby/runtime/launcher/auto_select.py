@@ -66,6 +66,7 @@ import asyncio
 import ctypes
 import logging
 from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
 
 from bartleby.runtime.actions.node_helpers import click_by_path, is_enabled_by_path, is_visible_by_path, poll_until
 from bartleby.runtime.launcher.remember_realm import turn_on_remember_realm
@@ -498,6 +499,7 @@ async def drive_client_in(
     *,
     timeout: float = AUTO_SELECT_TIMEOUT,
     remember_realm: bool = False,
+    hold: Callable[[object], AbstractAsyncContextManager] | None = None,
 ) -> bool:
     """auto_select_character followed by the cleanup pass, for the common case.
 
@@ -508,11 +510,23 @@ async def drive_client_in(
     *remember_realm* is handed to the cleanup, which turns the game's Remember Realm
     option on while it has the settings window open — passed when a favorite realm is
     set, since that is the only time the option changes anything a bot relies on.
+
+    *hold*, given the client, is held around the cleanup. The cleanup is the one part of the
+    drive that presses on a hooked client, so a product whose behaviors share clients holds
+    it through its arbiter. Losing the hold, as to a fight, only ends the cleanup early.
     """
     reached = await auto_select_character(expected_title, is_hooked, get_client, timeout=timeout)
     if not reached:
         return False
     client = get_client()
-    if client is not None:
+    if client is None:
+        return True
+    if hold is None:
         await clean_up_after_auto_select(client, remember_realm=remember_realm)
+        return True
+    try:
+        async with hold(client):
+            await clean_up_after_auto_select(client, remember_realm=remember_realm)
+    except Exception:
+        logger.warning("Auto-select: post-login cleanup was cut short", exc_info=True)
     return True

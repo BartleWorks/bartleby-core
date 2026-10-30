@@ -70,32 +70,48 @@ def test_a_delete_confirm_offers_delete_and_cancel(qapp, monkeypatch):
     assert not accounts_tab._confirm_delete(None, "Delete Account", "Delete it?")
 
 
-# -- the tab: core's launch rows, and a product's ------------------------------------
+# -- the tab: the launch rows ---------------------------------------------------------
 
 
 def _row_titles(tab: accounts_tab.AccountsTab) -> list[str]:
     return [row.title for row in tab.findChildren(SettingRow)]
 
 
-def test_the_launch_rows_are_the_resolution_and_quick_friend_teleport(qapp):
-    assert _row_titles(accounts_tab.AccountsTab()) == ["Default game resolution", "Disable quick friend teleport"]
+def _row(tab: accounts_tab.AccountsTab, title: str) -> SettingRow:
+    return next(row for row in tab.findChildren(SettingRow) if row.title == title)
 
 
-def test_a_products_launch_row_sits_between_them_and_applies_with_them(qapp, sample_store):
-    applied = []
+def test_the_launch_rows_are_the_resolution_character_selection_and_quick_friend_teleport(qapp):
+    assert _row_titles(accounts_tab.AccountsTab()) == [
+        "Default game resolution",
+        "Automatically select a character",
+        "Disable quick friend teleport",
+    ]
 
-    class ProductTab(accounts_tab.AccountsTab):
-        def product_launch_rows(self):
-            return [SettingRow("A product's option", "What it does.", QCheckBox(), default=True)]
 
-        def apply(self):
-            super().apply()
-            applied.append(True)
+def test_the_check_boxes_wait_for_ok(qapp, sample_store):
+    tab = accounts_tab.AccountsTab()
+    for title in ("Automatically select a character", "Disable quick friend teleport"):
+        _row(tab, title).findChild(QCheckBox).setChecked(False)
 
-    tab = ProductTab()
-    tab._quick_tp_cb.setChecked(False)
+    assert sample_store.auto_select_character is True
+    assert sample_store.disable_quick_friend_teleport is True
+
     tab.apply()
 
-    assert _row_titles(tab) == ["Default game resolution", "A product's option", "Disable quick friend teleport"]
+    assert sample_store.auto_select_character is False
     assert sample_store.disable_quick_friend_teleport is False
-    assert applied == [True]
+
+
+def test_character_selection_shows_what_the_settings_hold(qapp, sample_store):
+    sample_store.auto_select_character = False
+    tab = accounts_tab.AccountsTab()
+    assert _row(tab, "Automatically select a character").findChild(QCheckBox).isChecked() is False
+
+
+def test_a_product_says_what_else_reads_character_selection(qapp):
+    class ProductTab(accounts_tab.AccountsTab):
+        AUTO_SELECT_DETAILS = "Something else reads this too."
+
+    tab = ProductTab()
+    assert _row(tab, "Automatically select a character").details.text() == "Something else reads this too."

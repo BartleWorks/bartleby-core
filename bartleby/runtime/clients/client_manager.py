@@ -30,6 +30,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -54,11 +55,11 @@ logger = logging.getLogger(__name__)
 
 
 class ClientSettings(Protocol):
-    """What the client manager reads from an app's settings: the accounts it knows.
+    """What the client manager reads from an app's settings: the accounts it knows, and auto-select.
 
-    Settable, because the manager writes an account's identity fingerprint back the first
-    time it sees a window it launched (see ``_refresh_account_identity``). Both products'
-    settings objects keep the accounts in the vendor's shared store
+    The accounts are settable, because the manager writes an account's identity fingerprint
+    back the first time it sees a window it launched (see ``_refresh_account_identity``).
+    Both products' settings objects keep the accounts in the vendor's shared store
     (:mod:`bartleby.shared.account_store`), so a write lands there.
     """
 
@@ -67,6 +68,9 @@ class ClientSettings(Protocol):
 
     @accounts.setter
     def accounts(self, value: list[dict]) -> None: ...
+
+    @property
+    def auto_select_character(self) -> bool: ...
 
 
 class TileView(Protocol):
@@ -257,6 +261,42 @@ class ClientManager:
         installed, so there is deliberately no way to ask for a fresh one.
         """
         return _titled(self._handler.clients, title)
+
+    async def drive_client_in(
+        self, expected_title: str, *, hold: Callable[[object], AbstractAsyncContextManager] | None = None
+    ) -> bool:
+        """Advance a just-launched window through to in-game, then tidy up after it.
+
+        This is the callback the launcher is handed. It lives here because the completion
+        signal is has_client_titled, which only this class can answer. BartleBot's recovery
+        uses it too, so a relaunched client and a freshly launched one take exactly the same
+        path in.
+
+        The single place the auto-select setting decides a drive. With it off the loading
+        screens are still cleared, since they carry no decision, but the window is then left
+        sitting at character select for the user to pick from, and False says so: the client
+        is not in-game. A caller that needs it anyway (recovery) falls back to await_client_in.
+
+        *hold* goes to the cleanup that follows, as ``auto_select.drive_client_in`` says.
+        """
+        if not self._settings.auto_select_character:
+            await auto_select.drive_to_character_select(
+                expected_title,
+                lambda: self.has_client_titled(expected_title),
+                lambda: self.pending_client_titled(expected_title),
+            )
+            return False
+        return await auto_select.drive_client_in(
+            expected_title,
+            lambda: self.has_client_titled(expected_title),
+            lambda: self.pending_client_titled(expected_title),
+            remember_realm=self._remember_realm_on_login(),
+            hold=hold,
+        )
+
+    def _remember_realm_on_login(self) -> bool:
+        """Whether a drive turns the game's Remember Realm on. Only a product with a favorite realm wants it."""
+        return False
 
     async def await_client_in(self, expected_title: str) -> bool:
         """Wait for a window to reach in-game under its own steam, pressing nothing."""

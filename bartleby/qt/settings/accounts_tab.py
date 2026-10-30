@@ -2,9 +2,8 @@
 
 Moved from BartleBot's ``gui/settings/accounts_tab.py`` in Stage 11 of #167, so both
 products edit the vendor's accounts and launch profiles with the same editors, through the
-same card actions. A product with launch options of its own adds their rows under *On
-launch* (:meth:`AccountsTab.product_launch_rows`), as BartleBot does its character
-selection.
+same card actions. So do character selection and the other options under *On launch*, which
+are each product's own value of a setting both have.
 
 Also the home of the *card actions* — the module-level ``add_``/``edit_``/``delete_``/
 ``duplicate_`` functions below, which are what every surface that manages an account or
@@ -649,6 +648,9 @@ class AccountsTab(QWidget):
     foot of each column.
     """
 
+    #: The character selection row's longer text. A product whose other features read the setting says so here.
+    AUTO_SELECT_DETAILS = "When off, each game window waits at character select for you to pick."
+
     def __init__(self, parent=None, live_game_area: tuple[int, int] | None = None) -> None:
         super().__init__(parent)
         # Set before the resolution section is built: its own fit pass reads it.
@@ -670,6 +672,9 @@ class AccountsTab(QWidget):
             if self._res_combo.itemData(i) == current:
                 self._res_combo.setCurrentIndex(i)
                 break
+
+        self._auto_select_cb = QCheckBox()
+        self._auto_select_cb.setChecked(store().auto_select_character)
 
         self._quick_tp_cb = QCheckBox()
         self._quick_tp_cb.setChecked(store().disable_quick_friend_teleport)
@@ -696,9 +701,15 @@ class AccountsTab(QWidget):
                 ),
             )
         )
-        # Done to a client on its way up, as a product's own launch rows are.
-        for row in self.product_launch_rows():
-            launch_form.add_row(row)
+        launch_form.add_row(
+            SettingRow(
+                "Automatically select a character",
+                "Press Play on the most recently played character after login.",
+                self._auto_select_cb,
+                default=store().default_for("auto_select_character"),
+                details=self.AUTO_SELECT_DETAILS,
+            )
+        )
         launch_form.add_row(
             SettingRow(
                 "Disable quick friend teleport",
@@ -746,13 +757,6 @@ class AccountsTab(QWidget):
         columns.addWidget(self._profiles_col, 1)
 
         self._refresh()
-
-    def product_launch_rows(self) -> list[SettingRow]:
-        """A product's own rows under *On launch*, between the resolution and quick friend teleport.
-
-        None here. A subclass that adds one writes it in :meth:`apply`.
-        """
-        return []
 
     # ------------------------------------------------------------------
     # Resolution
@@ -907,4 +911,5 @@ class AccountsTab(QWidget):
         behind this one has no OK button to wait for. The check boxes are ordinary
         form rows, so they wait for OK like every other row in the dialog does.
         """
+        store().auto_select_character = self._auto_select_cb.isChecked()
         store().disable_quick_friend_teleport = self._quick_tp_cb.isChecked()
