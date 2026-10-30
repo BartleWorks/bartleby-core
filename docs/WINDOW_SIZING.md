@@ -2,9 +2,10 @@
 
 How big a Wizard101 client is launched, why that is one setting and not two, and why an
 unfittable configuration cannot be launched at all. The code is `bartleby/runtime/game/game_sizing.py`
-(the arithmetic, pure) and `bartlebot/gui/screen_fit.py` (the same question asked from a
-widget, with a real screen behind it). Read this before changing either, or before adding
-a resolution to `VALID_RESOLUTIONS`.
+(the arithmetic, pure) and `bartleby/qt/screen_fit.py` (the same question asked from a
+widget, with a real screen behind it), each reading the product's panes as a list: BartleBot's
+are its `game/pane_sizing.py` and `gui/window_panes.py`. Read this before changing any of
+them, or before adding a resolution to `VALID_RESOLUTIONS`.
 
 The problem it solves: at 800x600 — the lowest the game's own options menu offers — two
 embedded clients do not fit side by side on a 1920x1080 screen, so the whole game-embedding
@@ -256,6 +257,13 @@ that cannot be done, for the reason above.
 sets a *maximum* game size, and only resolutions at or below it may be launched:
 
 ```
+width  = screen_avail_w - sum(size of each pane beside the game) - SPLITTER_HANDLE_PX per such pane
+height = screen_avail_h - sum(size of each pane below it) - WINDOW_CHROME_ESTIMATE_PX
+```
+
+For BartleBot's window, its two sidebars and its bot canvas, that is:
+
+```
 width  = screen_avail_w - left_sidebar_width - right_sidebar_width - 2*SPLITTER_HANDLE_PX
 height = screen_avail_h - bottom_section_height - WINDOW_CHROME_ESTIMATE_PX
 ```
@@ -263,11 +271,46 @@ height = screen_avail_h - bottom_section_height - WINDOW_CHROME_ESTIMATE_PX
 Per tile: `w + 2*FOCUS_BORDER` wide, `h + LABEL_RESERVE + 2*FOCUS_BORDER` tall. A tier
 fits when `cols*tile_w <= width` and `rows*tile_h <= height`.
 
-This reads the user's **configured** layout values (`left_sidebar_width`,
-`right_sidebar_width`, `bottom_section_height`), **not** `SIDEBAR_MIN_WIDTH` and
-`BOTCANVAS_MIN_HEIGHT`. Sizing against the minimums assumes the user wants their bot
-canvas crushed to its floor, which nobody does — it would offer a resolution that only
-fits as long as they never touch a splitter.
+This reads the user's **configured** pane sizes (BartleBot's `left_sidebar_width`,
+`right_sidebar_width`, `bottom_section_height`), **not** the panes' floors. Sizing against
+the floors assumes the user wants their bot canvas crushed to its floor, which nobody does
+— it would offer a resolution that only fits as long as they never touch a splitter.
+
+### Panes and tiles are lists
+
+Two products size their windows by this arithmetic, and their windows differ: BartleBot has
+a left sidebar, a right sidebar and the bot canvas below; BartleBuddy a right sidebar alone,
+which it can hide, and no pane below. So `game_sizing` reads a list of `Pane(name, floor,
+side)`, where it read BartleBot's constants until Stage 9 of BartleBot #167:
+
+- **`name`** is the key the product keeps the pane's size under, so the configured sizes are a
+  mapping by it (`FitSettings.pane_sizes()`). A pane missing from it is at its floor.
+- **`floor`** is what the pane may be dragged down to, measured where it can be (below).
+- **`side`** is `LEFT` or `RIGHT`, costing width and a splitter handle, or `BOTTOM`, costing
+  height, its handle inside `WINDOW_CHROME_ESTIMATE_PX`.
+
+`screen_budget(screen, panes, sizes)` is the formula above; `layout_budget` is the same with
+each pane held at its floor, since a stored size below one describes a layout the splitter
+cannot produce; `required_window_size(resolution, tiles, panes, dpr)` is the window floor
+below. Core's `screen_fit.configure(settings, panes)` is handed the product's settings and a
+function listing its panes with their floors measured, asked again at each budget.
+BartleBot's are `gui/window_panes.panes()`; BartleBuddy's controller lists its sidebar while
+it shows and nothing while it is hidden.
+
+**Tiles** are a count of equal tiles, which is BartleBot's one grid and every call it makes,
+or each tile's size in slot order, `Main` or `Side` (`bartleby.runtime.game.tile_layouts`).
+Main tiles alone are the equal grid. With Side tiles, the area is the one
+`tile_layouts.arrange` places them in with the strip beside the Main tiles: the Main tiles
+in a row, each a rectangle of the game's aspect holding a whole tile, and a strip of Side
+tiles `SIDE_SHARE` of that height tall. A Side tile needs nothing of its own: until a running
+client can be resized it shows its game at the launch size, centered and cut to the tile.
+`test_arranged_in_the_area_it_needs_every_main_tile_holds_its_game` keeps the sizing and the
+placement in agreement.
+
+BartleBot's answers are the same as before the lists: its
+`tests/game/test_pane_sizing.py` holds the old formulas written out and compares every
+resolution on the ladder, at one to eight clients and four scale factors, for the window
+floor, the budget and every fit.
 
 ### ...but the live game area counts too
 
@@ -290,7 +333,7 @@ window has been shown and the game view still holds a default size. Dragging a s
 *wider* therefore costs nothing, which is correct: the window minimum pushes back at
 launch anyway.
 
-Re-judging is deliberately **not** a rebuild. BartleBot's `launch_cards.refresh_column_fit()` calls
+Re-judging is deliberately **not** a rebuild. `launch_cards.refresh_column_fit()` calls
 `set_unavailable` on the cards each column already has, and that returns immediately when the
 reason has not changed — so a drag costs a few integer comparisons per card per event and
 restyles only on the frame a verdict flips. Rebuilding the cards instead would
@@ -354,6 +397,14 @@ Qt holds the window to the larger of the claim and what the layout inside actual
 So every term in it has to be a size the corresponding pane will really go down to:
 
 ```
+width  = game_w + sum(floor of each pane beside it) + SPLITTER_HANDLE_PX per such pane
+height = game_h + GAME_PANEL_CHROME_PX + sum(floor of each pane below it)
+         + SPLITTER_HANDLE_PX per such pane + TITLE_BAR_PX + BOTTOM_EDGE_PX
+```
+
+which for BartleBot's three panes is
+
+```
 width  = left_sidebar_floor() + right_sidebar_floor() + game_w + 2*SPLITTER_HANDLE_PX
 height = game_h + GAME_PANEL_CHROME_PX + BOTCANVAS_MIN_HEIGHT + TITLE_BAR_PX
          + BOTTOM_EDGE_PX + SPLITTER_HANDLE_PX
@@ -382,7 +433,7 @@ Two of the terms are floors with nothing on the other side of them, so they carr
 constraints: `SIDEBAR_MIN_HEIGHT` must stay under the shortest tile any offered resolution
 produces, and `BOTCANVAS_MIN_WIDTH` under the narrowest window the ladder implies —
 otherwise a sidebar or the canvas, which have no height and width term respectively, become
-the floor instead of the game view. `tests/gui/test_window_minimum.py` holds all of it together,
+the floor instead of the game view. BartleBot's `tests/gui/test_window_minimum.py` holds all of it together,
 including the 4K case above as a regression.
 
 ### The sidebar floors are measured, not fixed
@@ -431,9 +482,9 @@ Core's `bartleby/qt/sidebar/log_panel.header_row_floor()` measures it, built fro
 so the two cannot drift. Mostly pinned widths, so it barely moves with the font: 281px at
 the reference, 289 at 14px body text.
 
-Everything inside the running app takes those numbers from **`gui/screen_fit.right_sidebar_floor()`**,
+Everything inside the running app takes those numbers from **`bartleby.qt.screen_fit.right_sidebar_floor()`**,
 which measures `QApplication.font()` — never a particular widget's. The width the sidebar
-enforces and the width `layout_budget` subtracts have to be the same number, and two call
+enforces and the floor its `Pane` lists have to be the same number, and two call
 sites measuring two different fonts is the same class of bug one level down. `RightSidebar`
 re-measures on `FontChange`, because the theme is applied to the application after the
 widget is built.
@@ -446,10 +497,11 @@ scrolls — which is what its old 220px constant was justified by — but the qu
 keep-list picker's filter row does not: a search field, a category `QComboBox` and a
 `Kept only` `QCheckBox` side by side, and the last two carry a `Minimum` size policy,
 which has no shrink flag. At 220px the checkbox was drawn over the dropdown. So
-`LEFT_SIDEBAR_MIN_WIDTH` is 404 — the row's 293px at the reference metrics plus the 111px of
-option gutter, option card inset, scroll content margins, scroll area frame and scrollbar
-that `LEFT_SIDEBAR_CHROME_PX` holds — and `game_sizing.left_sidebar_floor(filter_row)` adds the
-two the same way, from `gui/screen_fit.left_sidebar_floor()`. Everything else on that
+BartleBot's `LEFT_SIDEBAR_MIN_WIDTH` (`game/pane_sizing.py`) is 404 — the row's 293px at the
+reference metrics plus the 111px of option gutter, option card inset, scroll content margins,
+scroll area frame and scrollbar that `LEFT_SIDEBAR_CHROME_PX` holds — and
+`pane_sizing.left_sidebar_floor(filter_row)` adds the two the same way, from
+`gui/window_panes.left_sidebar_floor()`, which shares core's `screen_fit.measured_floor` cache. Everything else on that
 surface elides or wraps by design, so it sets no floor; that is why there is no
 text-height term.
 
@@ -466,7 +518,7 @@ only just carry it. Tightening it would re-tier the offered ladder, so it is lef
 known estimate `budget_for` already describes it as.
 
 `WINDOW_CHROME_ESTIMATE_PX` is 60 for the same reason. It was `MENU_AND_STATUS_PX`, the
-menu bar and a status bar under Windows' caption. The title bar (`gui/title_bar`) replaced
+menu bar and a status bar under Windows' caption. The title bar (`bartleby/qt/title_bar`) replaced
 all three with one `TITLE_BAR_PX` row, but the 60 stays, since lowering it re-tiers the
 ladder the other way. The window floor counts `TITLE_BAR_PX` exactly, and the live term
 picks up the room the title bar freed without any constant changing.
@@ -578,8 +630,8 @@ workaround — so nothing should push users toward "the biggest that fits".
 The exception is setup (`docs/FIRST_RUN.md`), which has to start from *some* resolution,
 and 800x600 is wrong at both ends: a two-account profile on 1080p that cannot launch, and
 a single client a quarter of a 4K screen. The Launch profile page starts its combo on
-`screen_fit.setup_resolution`, the largest that fits, as a value the user sees and can
-lower before Next. When setup closes, `screen_fit.fitted_layout` fits the global
+BartleBot's `window_panes.setup_resolution`, the largest that fits, as a value the user sees and can
+lower before Next. When setup closes, `window_panes.fitted_layout` fits the global
 resolution, while it is still the shipped one or setup's own, and the canvas and sidebars
 to the launches: the one other place the layout is derived rather than configured.
 

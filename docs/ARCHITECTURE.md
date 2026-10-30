@@ -10,8 +10,8 @@ stage; this file is the part of it that governs code, and grows as the stages la
 | tier | holds | may import |
 |---|---|---|
 | `bartleby.shared` | the data every product reads and writes under `%APPDATA%/Bartleby/`: accounts, launch profiles, preferences, the strategy library, the vendor's name, share files; the running product; and two small helpers, a Qt-free signal (`listeners.Listeners`) and a drag's permutation applied (`ordering.apply_order`) | stdlib, pydantic, keyring |
-| `bartleby.runtime` | game clients at run time, with no Qt: launching, the client manager (finding, hooking, naming and ordering clients), the state reader, the arbiter and the one input API, movement, the helpers, the game facts (key bindings, captions, names, realms, sizing), timing and the run trace; and the view models a shared widget draws (`views`) | `shared`, wizwalker, wizsprinter |
-| `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, card columns, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; the player cards and their column; an app's startup (`app/`) and the runtime bridge | `shared`, `runtime`, PyQt6 |
+| `bartleby.runtime` | game clients at run time, with no Qt: launching, the client manager (finding, hooking, naming and ordering clients), the state reader, the arbiter and the one input API, movement, the helpers, the game facts (key bindings, captions, names, realms, sizing and tile layouts), timing and the run trace; and the view models a shared widget draws (`views`) | `shared`, wizwalker, wizsprinter |
+| `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, card columns, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; the player cards and their column; the game view with its launch screen and launch cards, and the screen fit; an app's startup (`app/`) and the runtime bridge, with the crossing a client manager's tiles take | `shared`, `runtime`, PyQt6 |
 
 Each tier imports only from those before it, so the runtime runs without a GUI and the data
 without a game. Core imports neither product. `tests/test_layers.py` holds both rules.
@@ -82,7 +82,8 @@ so a node reaches every helper through one module. Since Stage 6, so are its car
 `tag_pill.py` keeps the bot-tag pills), `SidebarSection`, `RuleHeading`, `LogoDisc`, the layout
 helpers, `menu_utils`, `art_signal` and the Log tab. Since Stage 7, so is the client
 manager's Qt-free half, below. Since Stage 8, so are the player cards and their column,
-`CardColumn` and `PlayerBadge`, also below.
+`CardColumn` and `PlayerBadge`, also below. Since Stage 9, so are the game view, its launch
+screen and launch cards, and the screen fit, below too.
 
 BartleBot supplies what core's copies cut away:
 
@@ -99,6 +100,8 @@ BartleBot supplies what core's copies cut away:
 | `LogoDisc(diameter, disc_image)` | `gui.logo.logo_disc_image`, its tree on a disc |
 | `ClientManager(handler, settings, game_view=)`, a `ClientSettings` and a `TileView` | its `SettingsManager` and its `GameView`, from its own `ClientManager`, a subclass |
 | `PlayerColumn(verbs, card_factory=)`, of `PlayerView`s | its `ClientSection`, a subclass, with the Entities and UI Tree verbs and a `ClientCard` per client |
+| `GameView(settings, disc_image)`, a `GameViewSettings` | its `SettingsManager` and its logo disc, through `game_view_panel.new_game_view` |
+| `screen_fit.configure(settings, panes)`, a `FitSettings` | an adapter reading whichever `SettingsManager` is current, and `gui/window_panes.panes`: its two sidebars at their measured floors and the bot canvas |
 
 ### The client manager, in two halves
 
@@ -140,6 +143,23 @@ and the permutation its `reorder_clients` takes.
 BartleBuddy's Team tab (`bartlebuddy/gui/team_tab.py`) is a `PlayerColumn` of `TeamCard`s,
 drawn from the session's `TeamView`: Holder as a row, the leader as a badge and a menu verb,
 and a control button on the header that opens a menu of the tasks.
+
+### The game view, in two layouts
+
+Core's `GameView` (`qt/game_embed/game_view.py`) holds the game windows a client manager hands
+it as `TileSlot`s, pending tiles for the launches still opening, and, while nothing is
+embedded, the launch screen: the accounts and the launch profiles as launch cards
+(`launch_cards.py`), each judged by `screen_fit` against the game area and refused with its
+reason when it will not fit. `screen_fit` asks `game_sizing`'s arithmetic about the product's
+panes, a list of `Pane`s; `docs/WINDOW_SIZING.md`, "Panes and tiles are lists", has the rules.
+
+BartleBot hands it nothing more and gets its equal grid. BartleBuddy hands it a
+`tile_layouts.Layout` and whether the user moves each wizard (`set_layout`), so the wizards the
+user moves have Main tiles and the rest sit Side; captions per player (`set_captions`), each
+naming what holds its wizard; and listens to `caption_clicked` for the wizard's control menu.
+Its launch screen is built with `editing=False`, offering no verb, Add card or settings link
+until BartleBuddy edits accounts itself. Its client manager runs on the runtime thread, so the
+tiles cross to the view as queued signals, through `runtime_bridge.TileCrossing`.
 
 A name patched in a BartleBot test is patched where its callers read it, and core's helpers
 read core's module: `tests/node_helper_patches.py` patches a helper on both modules at once.

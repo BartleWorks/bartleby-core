@@ -53,7 +53,7 @@ def _build_header_row() -> tuple[QWidget, QComboBox, ActionButton, ActionButton]
 
     Built by a function rather than inline so that :func:`header_row_floor` measures the
     row the panel actually shows, rather than a second copy of it written out in
-    BartleBot's ``gui/screen_fit`` that a change here would silently leave behind.
+    ``bartleby/qt/screen_fit`` that a change here would silently leave behind.
     """
     combo = QComboBox()
     combo.addItems(list(_NAME_TO_LEVEL))
@@ -89,8 +89,8 @@ def header_row_floor(font: QFont) -> int:
     Only the caption and the controls' own text padding grow, which is why measuring
     beats scaling the whole panel by a text ratio -- see ``game_sizing.right_sidebar_floor``.
 
-    The probe is parentless and never shown; see the identical note in BartleBot's
-    ``gui/screen_fit.right_sidebar_floor`` for why "never shown" is load-bearing.
+    The probe is parentless and never shown; see the identical note in
+    ``bartleby.qt.screen_fit.right_sidebar_floor`` for why "never shown" is load-bearing.
     """
     header, *_ = _build_header_row()
     for widget in [header, *header.findChildren(QWidget)]:
