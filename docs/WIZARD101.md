@@ -210,3 +210,22 @@ Stated 2026-10-14 while reworking BartleBot's shipped default strategies (#212),
   DoT, and the last player detonates it.
 - **Willcast:** a pet ability that casts a second spell in the same turn, cast by the pet.
   Which spell depends on the pet's Willcast talent.
+
+## Combat math, and what the DSL does not say
+
+Neither is in our libraries, so the facts are recorded here. wizsprinter has no damage math
+that uses stats: its `spell_ranking.py` scores a card only by the damage printed on it.
+Deimos (`C:\GitHub\Deimos-Wizard101`) has a real caster-to-target calculation in
+`src/combat_math.py` (`base_damage_calculation_from_id`: stat curves, blades and traps
+counted once per stacking id of spell and enchant, prism, pierce against shields, resist,
+globals, crit against block), used by its stat viewer; `src/effect_simulation.py` is a
+fuller simulator nothing imports. Checked 2026-10-14 against wizsprinter `e0bd4b8`:
+
+- `auras`, `beneficial_auras` and `harmful_auras` work as condition attributes (0 or 1),
+  though `CONDITIONS.md` does not say so.
+- `willcast` casts the pet's card at whatever target the line names, without reading what
+  the pet's spell does, so a heal or blade Willcast aimed `@ enemy` is wasted.
+- A spell template's `m_disposition` is 0 for every spell (Feint, Attenuate, Frenzy, Tower
+  Shield...), so it cannot tell a buff from a debuff. Judge by effect type and the sign of
+  `m_effectParam` (wizsprinter `_AURA_SIGN`). Attenuate is `modify_incoming_damage` at
+  `enemy_single`, 4 rounds; a trap has 0.

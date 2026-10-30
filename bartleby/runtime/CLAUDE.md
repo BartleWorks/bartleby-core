@@ -395,3 +395,13 @@ load. Any new per-node read in that browser has the same problem.
 
 Resolve once and act on the window: re-walking the path for the visibility check and again
 for the click can land on two different rows.
+
+## A path nothing uses may be wrong
+
+A constant in `paths.py` counts as known only if code that runs in game already uses it.
+One that is declared and never referenced may never have been checked against the game:
+BartleBot reused `FRIENDS_LIST_BUTTON_PATH` (`WorldView/windowHUD/btnFriends`) as if it
+were known, and it was wrong. Opening a closed friends list failed after a 1.6 s retry, and
+group forming reported it could not find P2 in the leader's online friends. Before reusing
+a path, `git grep` it outside `paths.py`; if no live code uses it, take the path from the UI
+Tree Browser's Copy Path, as for an unknown one.
