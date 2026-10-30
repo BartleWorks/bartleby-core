@@ -386,7 +386,7 @@ minimum from a game size already chosen. Both are kept, and they ask opposite qu
 Once resolutions are capped to the screen, the minimum the second one derives is always
 satisfiable, so it stops being able to refuse to open a usable window and does its real
 job: stopping the window and the splitters being dragged to where the game gets clipped.
-The splitter half of that works only because `GameViewPanel` wraps `GameView` in a layout,
+The splitter half of that works only because `GamePanel` (BartleBot's `GameViewPanel`) wraps `GameView` in a layout,
 so the view's minimum becomes the panel's and `QSplitter` honors it —
 `test_the_game_view_s_minimum_reaches_the_panel_that_sits_in_the_splitter` is the guard.
 
