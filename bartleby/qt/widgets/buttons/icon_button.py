@@ -115,6 +115,11 @@ class IconButton(ThemedMixin, QPushButton):
         self._icon_name = icon_name
         self.refresh_theme_styles()
 
+    @property
+    def tint(self) -> IconTint:
+        """The color the glyph is drawn in, as :meth:`set_tint` last set it."""
+        return self._tint
+
     def set_tint(self, tint: IconTint) -> None:
         """Change the glyph's color — a toggle whose state lives elsewhere, spending the
         accent while it is on (the authoring bar's toggles)."""

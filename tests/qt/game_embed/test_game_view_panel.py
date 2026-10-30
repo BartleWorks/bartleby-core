@@ -131,9 +131,9 @@ def test_a_toggle_shows_what_the_product_reports_never_what_the_press_left(qtbot
 
     bar.set_state("speed", checked=True)
     assert bar.is_checked("speed")
-    assert bar.button("speed")._tint is IconTint.ACCENT
+    assert bar.button("speed").tint is IconTint.ACCENT
     bar.set_state("speed", checked=False)
-    assert bar.button("speed")._tint is IconTint.DEFAULT
+    assert bar.button("speed").tint is IconTint.DEFAULT
 
 
 def test_set_state_changes_only_what_it_is_given(qtbot):
