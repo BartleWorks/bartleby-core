@@ -331,6 +331,222 @@ app unreadable, and `ActionButton` derives everything from `THEME` — which is 
 what would break it. Leave the literal colors and the comment above them alone;
 BartleBot's `tests/gui/widgets/buttons/test_surface_button_weights.py` says so too.
 
+## Settings rows
+
+The Settings dialog, its rows and the tabs both products have (Theme and Game) are
+`bartleby/qt/settings/`, moved from BartleBot in Stage 11 of #167. A product hands the
+dialog its tabs (`SettingsTab(name, title, build)`), its settings through the store
+(`settings/store.py`: a `SettingsStore`, handed as a function that gives it, so a test's
+replacement is the one read), and its folding groups (`rows.declare_folds`). What a
+product's own tab holds, and where each of its settings is kept, is the product's rule file.
+
+- **A row explains itself on the page, not on hover — in one line.** Every
+  setting is a `rows.SettingRow` (`bartleby/qt/settings/rows.py`): the title, one line under it saying what the
+  setting does, and the control right-aligned in a fixed-width slot. The line is
+  always on screen; anything the user needs in order to choose, and doesn't get from
+  the line, goes in `details=` and folds behind the row's `?`. That means a cost, when
+  the change applies, what overrides it, or what Off costs. The *why* goes in no row at
+  all. `bartleby-core/docs/UI_TEXT.md` has the rules for all three layers. The page's *Show descriptions · Hide descriptions* open or
+  fold every row at once (BartleBot #148); a form with no `details=` to open hides them
+  (`SettingsForm.finish`). Before the description-row rework the Log, Layout
+  and Auto-save rows had no explanation at all; after it every row carried a
+  paragraph, and BartleBot's Bot tab was 1,392px tall. A tooltip still never carries the
+  whole explanation on its own.
+  BartleBot's `test_every_settings_row_explains_itself_on_the_page` checks every row has its
+  line, and that no tab still builds a `QFormLayout` row.
+- **Build a tab from `rows`, not by hand.** A form tab subclasses
+  `rows.SettingsForm` (`add_heading`, `add_row`, `add_group`, `finish`); a tab that
+  is not all form — Theme, Game — holds one with `margin=0` for its rows. The
+  dialog finds every form, so one tab's description links reach the others. A row
+  gets the sidebar's gutter through `build_gutter_row`: the override bar lights
+  when the value has left the app's default (the product's `default_for`, in the
+  control's own terms), and `RevertButton` puts the default back — as pending as
+  any other edit until OK. Each setting is its own bordered card; sections stay
+  `RuleHeading`s.
+- **Only a setting with dependents folds.** A `rows.SettingGroup` is the parent's
+  own row (a check box) with the assignment card's chevron in its last slot, and the rows
+  that only count while it is on: BartleBot's Quicksell, Auto-save and Grid. Off grays them,
+  never hides them; collapsed, a change inside lights the header's bar. Layout is
+  not a group: Maximize being *on* is what makes the window size moot. Every group
+  id is declared with `rows.declare_folds`, or the others' reads prune its fold.
+- **Folds go in `ui_state.json`, not `settings.json`.** Which groups a reader left
+  open is view state, safe to lose: core's `bartleby/qt/app/ui_state.py` keeps only departures
+  from a default, keyed by surface and group, and reads the file afresh on every
+  call so two holders cannot overwrite each other. Whether descriptions are shown
+  is a setting of its own, the store's `show_setting_descriptions`, written at once
+  whatever the dialog's OK or Cancel; BartleBot keeps it apart from its sidebar's
+  `show_option_descriptions`.
+- **A section is a `RuleHeading`, not a bold label.** A tab is long, and on a
+  long page a bold line of text is not enough to stop the eye — BartleBot's Bot tab's five sections ran together as one column of
+  rows. Core's `bartleby/qt/widgets/labels/rule_heading.py` is the same heading the detail panes use: the
+  name at the left margin the fields align to, and a hairline out to the right.
+  It carries its own space above, so a section adds the heading and nothing else.
+  BartleBot's `test_every_settings_section_is_a_rule_heading` is the guard.
+- **The dialog fits the screen; the tabs do not have to.** A visible hint under
+  every row once grew the dialog taller than a 1080p screen and put OK and Cancel
+  under the taskbar. A tab with every description and group open is still taller
+  than the dialog, so every form tab is wrapped in `rows.ScrollableTab`,
+  which caps the column at `PAGE_MAX_WIDTH_PX`, centers it, and reserves the scroll
+  bar's space so a fold does not jolt the column sideways (BartleBot #112). Wrap a new
+  form tab too. Do **not** wrap a tab that carries the layout's stretch, as the Game tab's two card columns do:
+  inside a scroll area they collapse to a couple of visible rows, and a column
+  that scrolls inside a page that scrolls is two bars for one list. `_fit_to_screen` caps the
+  dialog at `screen_fit.size_within_screen` on the way up as the last defense, and
+  a wrapper forwards `apply()` so the tab in the bar is still one `apply_all` can
+  call.
+
+### Card actions
+
+Every write to an account or a launch profile goes through one of the module-level
+functions in `bartleby/qt/settings/accounts_tab.py` — `add_`/`edit_`/`delete_account`, and
+`add_`/`edit_`/`duplicate_`/`delete_launch_profile`. **Never open `_AccountDialog` or
+`ProfileDialog` yourself, and never write `store().accounts` or `store().launch_profiles`
+from a widget.** Two surfaces manage these, and since the Game tab card rework they draw the same cards out of
+the same `CardColumn`; a second copy of the delete cascade is how they drift.
+`reorder_accounts` and `reorder_launch_profiles` are the same rule for a drag —
+both refuse a permutation that no longer describes the stored list, and both go through
+core's `bartleby.shared.ordering.apply_order`, which is where that guard lives now that
+three surfaces take a permutation from a column.
+
+The profile editor is `profile_editor.py`, not this module: it draws the same
+`AccountCard`s in the same `CardColumn` as the Game tab, in `CardMode.MEMBER`. Its two
+controls divide one job — the picker owns *which* accounts, the column owns *what order*
+— and both removal routes go through `reconcile_membership`. Do not give either control
+its own list; that is how a card whose cross removes it is left ticked in the popup.
+
+Three things every one of them does, and a new one must:
+
+- **Return whether anything was written.** That is the caller's cue to refresh. It is
+  false for a cancelled dialog, a declined confirm, and a name that was refused.
+- **Persist it.** Assigning `store().accounts` or `store().launch_profiles` writes the
+  shared store through, so no `save()` follows — but an action that changes
+  *both*, as `delete_account` does, goes through `store().account_store` with `save=False` on
+  the first so the pair reaches disk once. A card on the launch screen has no Settings
+  dialog behind it, so an action that persists nothing survives until the process exits
+  and no further — which is exactly how the Add-card work shipped.
+- **Be called from a synchronous Qt slot.** Each runs `exec()`, and Python 3.13 forbids
+  re-entering Qt's event loop from inside a running asyncio task.
+
+Deleting an account cascades: the credential, the character roster, and the username in
+every profile that launched it. That is why it is a function and not a button handler.
+
+`SettingsDialog.apply_all` iterates the tab bar rather than naming four tabs.
+A hand-written list is one line to forget when a tab is added, and forgetting it
+discards everything the user typed into the new tab with no error anywhere;
+Everything on the Game tab that a card action writes persists eagerly, so
+`AccountsTab.apply` writes only its own form rows — the launch options under
+*On launch*, which wait for OK like every other row in the dialog. Two ways to
+persist on one tab is not an oversight: a card on the launch screen has no
+Settings dialog behind it to press OK on, and a check box in this dialog that
+ignored Cancel would be the odd one out.
+
+### The Game folder row
+
+The first row on General (`game_folder_row.py`), and the one row there that is **not** a
+`settings.json` key: it writes `game.install_dir` in the vendor-wide `preferences.json`,
+because both products launch the game from the same folder. Setup's game folder page writes
+the same key through the same `shared/game_install.set_install_dir`, so the two always
+agree; core's `docs/FIRST_RUN.md` ("The game folder") has where the folder is looked for.
+
+- **Its value is the folder chosen, or None for detected.** Detected is the default, so
+  Detect and the row's reset are the same move: the key is cleared on OK, and the folder is
+  found again wherever it is. The line under the title says where the folder shown came
+  from, or that nothing was found.
+- **The apply rule holds,** as on BartleBot's Combat tab: OK writes it only when it changed since
+  the tab opened, so a folder the other product chose meanwhile stands. A folder without
+  the game is never stored; the row says so in its line, in the error color.
+- **A write is handed to wizwalker at once** (core's `runtime/clients/install_location.apply_install`), so
+  the next launch uses it without a restart.
+- **A folder found from the running game is stored on OK**, even left on detected: the
+  game is the last place looked, there only while it runs, so `apply_install` keeps what
+  it finds there. OK on an unchanged detected row runs it for that, and it never writes
+  over a folder stored, since a stored folder is looked at first.
+- It is on General rather than the Game tab because nothing about it is applied to a
+  client as it starts: it is where the game is, which every launch and every read of the
+  game's `Bin` files asks first.
+
+## Setup is a list of pages
+
+Setup's frame and the pages every product asks (the game folder, the accounts, the launch
+profile, the combat question) are `bartleby/qt/dialogs/first_run_dialog.py`, moved from
+BartleBot in Stage 11 of #167. A product hands `FirstRunDialog` its list, these and its own,
+asks `needs_asking` of the same list's types, and names itself through the product in use.
+A product none of whose pages is Custom's alone builds it with `ask_mode=False`, and walks
+Quick's pages without the question, as BartleBuddy does. A shared page reads and writes only
+the vendor's files, so an answer in one product is an answer in the other.
+
+A page writes a choice (BartleBot's epics #201 and #215; core's `docs/FIRST_RUN.md` lists the
+shared pages). A page that only explains gets skipped, so a page asks something whose
+answer is stored and can be changed again in Settings. The dialog opens on Quick or Custom
+(`ModePage`) when it asks, then walks the pages that apply. The rules for a page:
+
+- **It is a `FirstRunPage`**, with a `heading`, `answered()`, `applies(mode)` and
+  `record() -> bool`, and joins its product's page list and the types `needs_asking` is asked of. What it stores lives in a Qt-free module, as
+  core's `shared/first_run.py` does for the combat page, so the other product asks the same
+  question and writes the same keys, and it writes through the function its Settings row
+  uses.
+- **Its classmethod `asks_first_run(prefs)` answers for it before it is built**: whether it
+  is unanswered and applies under Quick, read from the stores alone, since every launch
+  asks it and building every page is slow. It must agree with `not answered() and
+  applies(SetupMode.QUICK)` on the page built; BartleBot's
+  `test_each_page_asks_a_first_run_as_its_answer_and_walk_say` checks each page across
+  several machine states, so a page that changes one changes the other.
+- **`answered()` is "the setting already exists"**, not a key of the dialog's own: an
+  account, a found install, or the page's record key. A first run passes an answered page
+  over; a rerun shows it on the current value.
+- **There is no Skip.** Next calls `record()` and moves on only when it returns true; a
+  failed write keeps the user on the page and says so. Back records nothing. Escape and
+  the close button write nothing more, so the next launch resumes at the first
+  unanswered page. A page never records on its own: only Next does.
+- **A page whose answer changes what follows emits `walk_changed`**, and the dialog
+  recounts Step N of M and Next or Finish. `ModePage` does, on a change of mode.
+- **A page that can't be answered as it stands says so with `ready()`**, and emits
+  `ready_changed` when that may have changed; the dialog disables Next until it is true.
+  The game folder page is ready only for a folder holding the client. A page that is
+  always ready, as most are, leaves the default.
+- **A page with work running says so with `busy()`**, and the dialog disables Back and Next
+  until it ends, so the user can't change an earlier answer under it: Back to the Options
+  page could turn the art off under a run installing it. Escape and the close button
+  still leave. It emits `ready_changed` when that may have changed.
+- **A page with work running stops it in `stop()`**, which the dialog calls from `done()`
+  whenever setup closes, finished or not. The Game art page stops its extraction there;
+  the extractor removes what it wrote, and the page stays unanswered. A page's work runs
+  in a task it owns, started from `enter()`, and only when a loop is running, so the tests
+  that never await build the page without starting anything (`ArtExtraction.start`).
+- **A page that draws what an earlier page wrote rereads it in `enter()`**, which the
+  dialog calls each time it turns to the page, by Next or Back. The Launch profile page
+  lists the accounts the Accounts page added there. `showEvent` is not the place: the
+  tests drive a dialog that is never shown.
+- **A page that applies only once an earlier page is answered is unanswered until its
+  own setting exists**, never "doesn't apply yet", or it is not in the walk when the
+  dialog opens and the earlier page can't bring it in. `needs_asking` keeps such a page
+  from opening setup on its own: it counts only a page that applies under Quick, so
+  neither one that applies under no mode yet nor a Custom-only page opens setup by itself.
+  The Options page's choices are the ones Quick applies, and a setup opened for it alone
+  would end on Quick or Custom with nothing asked, and open again next launch.
+- **A card that selects itself on focus needs the selected one focused on show**, or the
+  focus chain hands it to the first card and changes the answer. `_CardsPage` does it in
+  `showEvent`, and with no card selected focuses the page itself. In the constructor it
+  is lost when the page joins the dialog.
+- **A page that sets what a Settings card holds shows that card's rows**, built by the
+  same code, as the Quicksell page shows `gui/settings/quicksell_group.QuicksellSettings`.
+  Answers that bundle several settings into one card are a second way to think about the
+  same switches, and leave combinations no card names. A group shown in setup is built
+  with `foldable=False`, so every row is on the page and the user's fold is left alone.
+- **Setup shows every description, and none can be hidden.** On a first run each is part
+  of the question, so a page's `SettingsForm` is built with `always_describe=True`: no
+  Show · Hide descriptions, no `?` on a row (its slot kept, so rows line up), and the
+  Settings dialog's own preference neither read nor written. A row's text says what the
+  setting does to the app, not what the game item is for.
+- **Wrapped text is fitted by the dialog, not the page.** Qt sizes a window from its
+  layout's minimum, which guesses a wrapped label's height at a width of the label's own
+  choosing, and does not always fit the window to its height at the real width: with the
+  Windows fonts, Always keep's summary lost its second line. `FirstRunDialog._fit_height`
+  grows the dialog to the layout's `totalHeightForWidth` on show and on every
+  `LayoutRequest`, so a page turn, or a page that grows as it is used, is fitted too. It
+  grows about its center, only moves the dialog once the first show has placed it (a
+  `move()` before then stops Qt placing it), and never shrinks it.
+
 ## Section headings
 
 Four, and they are not interchangeable:

@@ -10,8 +10,8 @@ stage; this file is the part of it that governs code, and grows as the stages la
 | tier | holds | may import |
 |---|---|---|
 | `bartleby.shared` | the data every product reads and writes under `%APPDATA%/Bartleby/`: accounts, launch profiles, preferences, the strategy library, the vendor's name, share files; the running product; and two small helpers, a Qt-free signal (`listeners.Listeners`) and a drag's permutation applied (`ordering.apply_order`) | stdlib, pydantic, keyring |
-| `bartleby.runtime` | game clients at run time, with no Qt: launching, the client manager (finding, hooking, naming and ordering clients), the state reader, the arbiter and the one input API, movement, the helpers, the game facts (key bindings, captions, names, realms, sizing and tile layouts), timing and the run trace; and the view models a shared widget draws (`views`) | `shared`, wizwalker, wizsprinter |
-| `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, card columns, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; the player cards and their column; the game view with its launch screen and launch cards, Bar A's game panel and action bar, and the screen fit; an app's startup (`app/`) and the runtime bridge, with the crossing a client manager's tiles take | `shared`, `runtime`, PyQt6 |
+| `bartleby.runtime` | game clients at run time, with no Qt: launching, the client manager (finding, hooking, naming and ordering clients), the state reader, the arbiter and the one input API, movement, the helpers, where the game is installed, the game facts (key bindings, the game's own and a product's hotkeys against them, captions, names, realms, sizing and tile layouts), timing and the run trace; and the view models a shared widget draws (`views`) | `shared`, wizwalker, wizsprinter |
+| `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, card columns, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; the player cards and their column; the game view with its launch screen and launch cards, Bar A's game panel and action bar, and the screen fit; the settings rows, the Settings dialog and its Theme and Game tabs, setup's frame and shared pages, and an app's theme; an app's startup (`app/`) and the runtime bridge, with the crossing a client manager's tiles take | `shared`, `runtime`, PyQt6 |
 
 Each tier imports only from those before it, so the runtime runs without a GUI and the data
 without a game. Core imports neither product. `tests/test_layers.py` holds both rules.
@@ -83,7 +83,10 @@ so a node reaches every helper through one module. Since Stage 6, so are its car
 helpers, `menu_utils`, `art_signal` and the Log tab. Since Stage 7, so is the client
 manager's Qt-free half, below. Since Stage 8, so are the player cards and their column,
 `CardColumn` and `PlayerBadge`, also below. Since Stage 9, so are the game view, its launch
-screen and launch cards, and the screen fit, below too.
+screen and launch cards, and the screen fit, below too. Since Stage 11, so are the settings
+rows, the Settings dialog, the Theme and Game tabs with the card actions, the game folder row,
+setup's frame and its shared pages, and what they are built from: the option gutter, the
+search field, the picker popup, `StartCard` and `ArtIconView`, below as well.
 
 BartleBot supplies what core's copies cut away:
 
@@ -103,6 +106,13 @@ BartleBot supplies what core's copies cut away:
 | `GameView(settings, disc_image)`, a `GameViewSettings` | its `SettingsManager` and its logo disc, through `game_view_panel.new_game_view` |
 | `GamePanel(game_view, action_bar)`, an `ActionBar` of `BarAction` groups | its `GameViewPanel`, a subclass, with an `AuthoringBar` over `AUTHORING_GROUPS` |
 | `screen_fit.configure(settings, panes)`, a `FitSettings` | an adapter reading whichever `SettingsManager` is current, and `gui/window_panes.panes`: its two sidebars at their measured floors and the bot canvas |
+| `settings.store.configure(settings)`, a `SettingsStore` | `SettingsManager.instance`, so whichever singleton is current answers, handed as `settings_manager` is imported |
+| `rows.declare_folds(defaults)` | its three folding groups, declared as `gui/settings` is imported |
+| `SettingsDialog(tabs)`, `SettingsTab`s | its `SettingsDialog`, a subclass listing its seven tabs |
+| `AccountsTab.product_launch_rows()` | its `AccountsTab`, a subclass adding character selection |
+| `FirstRunDialog(pages)`, `needs_asking(prefs, page_types)` | `setup_pages`, the shared pages with its texts and setup area and its own four, and its `needs_asking` over their types |
+| `apply_app_theme(app, mode, custom)` | its theme setting, at startup and on Settings' OK |
+| `StartCard(pill=)` | a template's Source pill, on New Bot's and the Templates dialog's cards |
 
 ### The client manager, in two halves
 
@@ -179,6 +189,27 @@ layout as menus, and Stop all (`gui/game_panel.py`). Neither writes a button of 
 A name patched in a BartleBot test is patched where its callers read it, and core's helpers
 read core's module: `tests/node_helper_patches.py` patches a helper on both modules at once.
 A session log drops `bartleby.` from core's logger names, as it drops the product's own prefix.
+
+### Settings and setup, for both products
+
+Settings is core's `SettingsDialog` over a product's list of `SettingsTab`s
+(`qt/settings/`). Its rows, cards, folding groups and description links are core's, and so
+are the two tabs both products have: Theme, and Game, the vendor's accounts and launch
+profiles edited through the card actions every surface calls. A shared tab reads the
+product's settings through `settings.store`, a `SettingsStore` the product hands as a
+function, so a test's replacement settings are the ones read. BartleBot's tabs are its
+General, Bot, Combat, Canvas and Authoring, and BartleBuddy's its General and Hotkeys.
+
+Setup is core's `FirstRunDialog` over a product's list of pages (`qt/dialogs/`), with the
+four pages both can ask: the game folder, the accounts, the launch profile and the combat
+question. Each reads and writes only the vendor's files, so an answer in one product is an
+answer in the other; `docs/FIRST_RUN.md` has the pages. BartleBot adds its four after
+Quick or Custom; BartleBuddy asks three, with no Quick or Custom, and the combat question
+waits for its phase 2.
+
+A product applies its theme with `apply_app_theme`, at startup and when Settings closes
+with OK. BartleBuddy passes its orange as the accents; a custom theme keeps the colors the
+user chose.
 
 ## Starting an app
 
