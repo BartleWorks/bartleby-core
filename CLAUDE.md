@@ -182,6 +182,7 @@ repo.
 | `docs/KEY_BINDINGS.md` | the player's key bindings: why they are read from each client's memory and not the file, finding the list once and reading it each time, a key's name to its code and the two names to recheck, and what a press can use: a bare key only, never one the chat line shares |
 | `docs/WALKING.md` | moving now that the server resets a teleport: what it allows and what the family will not do, planning a route from a zone's own files, walking it by the account's keys around live mobs, every measurement so far, and what is not done; read it before touching movement |
 | `docs/RELOGGING.md` | why a client slows down, and the two ways to clear it |
+| `docs/FIRST_RUN.md` | setup's frame and the pages both products ask: the walk, first run and rerun, and the game folder, accounts, launch profile and combat pages, each with what it writes and when it is answered |
 | `docs/PLAYER_REALMS.md` | telling whether players share a realm by sight, the record of who does, the Player Realms option and what blocks Separate, and where each node checks and repairs |
 | `docs/UPSTREAM.md` | wizwalker/wizsprinter forks, offset fixes, bumping a pin |
 | `docs/GAME_UPDATES.md` | a game update on the Test realm: its branches and when they merge, comparing the installs, the snapshots, which hooks break, capturing a type dump, replacing a broken pattern, and the record of each update |

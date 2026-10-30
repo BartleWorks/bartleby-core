@@ -217,8 +217,24 @@ def test_no_literal_font_size_in_core():
     _assert_clean(guards.literal_font_sizes(QT, FONT_ALLOW))
 
 
+#: Bare ``QPushButton``\ s in core, and why each is not an ``ActionButton``. Moved with the
+#: Theme tab from BartleBot's allowlist in Stage 11 of #167.
+BUTTONS_ALLOW = {
+    "settings/theme_tab.py:_reset_btn": (
+        "Reset to System Default, styled with hardcoded colors on purpose — it is the "
+        "way out of a custom theme that has broken its own tokens, so it has to stay "
+        "legible exactly when THEME is what cannot be trusted. An ActionButton derives "
+        "every color it draws from THEME and so cannot promise that."
+    ),
+    "settings/theme_tab.py:btn": (
+        "A color swatch in the token editor: the background *is* the data — it shows "
+        "the value of the token the label names, and its text is that hex value."
+    ),
+}
+
+
 def test_no_bare_push_button_in_core():
-    _assert_clean(guards.bare_buttons(QT))
+    _assert_clean(guards.bare_buttons(QT, BUTTONS_ALLOW))
 
 
 def test_at_most_one_primary_per_module_in_core():
