@@ -3,7 +3,7 @@
 The library every Bartleby product is built from: BartleBot and BartleBuddy today. Python
 3.13+, PyQt6, asyncio. It holds the code both apps share and the rules learned building
 them, and both apps import both. Started 2026-10-28 from BartleBot `a0c51a71`; BartleBot's
-#167 is the plan that moves the rest of BartleBot's shared code here.
+#167 was the plan that moved the rest of BartleBot's shared code here, and is complete.
 
 ## Quick start
 
