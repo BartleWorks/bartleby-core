@@ -16,8 +16,10 @@ from bartleby.qt.global_hotkeys import (
     MOD_SHIFT,
     WM_HOTKEY,
     GlobalHotkeys,
+    binding_problems,
     parse_binding,
 )
+from bartleby.runtime.game.game_keybindings import GameBinding
 
 
 @pytest.mark.parametrize(
@@ -151,3 +153,28 @@ def test_a_handler_that_raises_does_not_escape_the_filter(qapp):
 # ---------------------------------------------------------------------------
 # The settings behind them, and Bar A
 # ---------------------------------------------------------------------------
+
+
+# -- what is wrong with a set of bindings --------------------------------------------
+
+_LABELS = {"stop": "Stop all", "skip": "Skip dialogue"}
+_PRINT = [GameBinding("PrintScreen", "F12")]
+
+
+def test_bindings_with_nothing_wrong_have_no_problem():
+    assert binding_problems({"stop": "Shift+F5", "skip": "F7"}, _LABELS, _PRINT) == []
+
+
+def test_a_key_the_game_binds_is_a_problem_named_by_the_products_label():
+    assert binding_problems({"skip": "F12"}, _LABELS, _PRINT) == [
+        "Skip dialogue: F12 is the game's key for Print Screen, which won't work in the game while this is set."
+    ]
+
+
+def test_two_actions_on_one_key_and_a_key_nothing_registers_are_problems():
+    assert binding_problems({"stop": "F7", "skip": "F7"}, _LABELS) == [
+        "Skip dialogue and Stop all both use F7. Choose another key for one of them."
+    ]
+    assert binding_problems({"stop": "Space"}, _LABELS) == [
+        "Stop all: Space can't be used. Choose F1–F24, a letter or a digit."
+    ]

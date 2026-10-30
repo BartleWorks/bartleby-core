@@ -25,10 +25,11 @@ from __future__ import annotations
 import ctypes
 import ctypes.wintypes
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, Sequence
 
 from PyQt6.QtCore import QAbstractNativeEventFilter
 
+from bartleby.runtime.game.game_keybindings import GameBinding
 from bartleby.shared.product import current
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,47 @@ def parse_binding(text: str) -> tuple[int, int] | None:
         modifiers |= flag
     vk = _virtual_key(parts[-1])
     return None if vk is None else (modifiers, vk)
+
+
+def binding_problems(
+    bindings: Mapping[str, str],
+    labels: Mapping[str, str],
+    game_bindings: Sequence[GameBinding] = (),
+) -> list[str]:
+    """What is wrong with a set of bindings, as sentences; empty when nothing is.
+
+    *bindings* and *labels* are by action id, and *labels* gives the order the actions are
+    judged in, the order a tab shows them. Pure, so the rules are testable without a
+    QApplication. A key nothing can register is one problem; two actions on one key is
+    another, since only the first would ever fire; a key the game itself binds
+    (*game_bindings*, the players' own) is a third, since while the hotkey is armed the game
+    never sees that key. Moved from BartleBot's Authoring tab in Stage 11 of #167, for
+    BartleBuddy's Hotkeys tab.
+    """
+    problems: list[str] = []
+    game: dict[tuple[int, int], GameBinding] = {}
+    for gb in game_bindings:
+        combo = parse_binding(gb.binding)
+        if combo is not None:
+            game.setdefault(combo, gb)
+    seen: dict[tuple[int, int], str] = {}
+    for action, label in labels.items():
+        text = bindings.get(action, "")
+        if not text:
+            continue
+        combo = parse_binding(text)
+        if combo is None:
+            problems.append(f"{label}: {text} can't be used. Choose F1–F24, a letter or a digit.")
+        elif combo in seen:
+            problems.append(f"{label} and {seen[combo]} both use {text}. Choose another key for one of them.")
+        else:
+            seen[combo] = label
+            if clash := game.get(combo):
+                problems.append(
+                    f"{label}: {text} is the game's key for {clash.description}, which won't work in "
+                    "the game while this is set."
+                )
+    return problems
 
 
 def _virtual_key(key: str) -> int | None:
