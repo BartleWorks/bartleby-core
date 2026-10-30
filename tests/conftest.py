@@ -28,6 +28,7 @@ from bartleby.runtime.clients import game_keys, sightings
 from bartleby.runtime.game.game_sizing import RIGHT, RIGHT_SIDEBAR_MIN_WIDTH, Pane
 from bartleby.runtime.game.key_bindings import KeyMap
 from bartleby.shared import product
+from bartleby.shared.account_store import AccountStore
 from bartleby.shared.product import Product
 
 # ---------------------------------------------------------------------------
@@ -558,6 +559,58 @@ def sample_settings() -> SampleSettings:
 
     settings = SampleSettings()
     screen_fit.configure(settings, lambda: settings.panes)
+    return settings
+
+
+class SampleStore:
+    """A product's settings as the settings surfaces read them (``bartleby.qt.settings.store``).
+
+    The accounts and launch profiles are the vendor's real store, in the test's own
+    %APPDATA%, so a card action's write lands on disk as it would in either product.
+    """
+
+    DEFAULTS: dict = {"theme": "system", "game_resolution": (800, 600), "disable_quick_friend_teleport": True}
+
+    def __init__(self) -> None:
+        self.account_store = AccountStore()
+        self.game_resolution = self.DEFAULTS["game_resolution"]
+        self.disable_quick_friend_teleport = self.DEFAULTS["disable_quick_friend_teleport"]
+        self.theme = self.DEFAULTS["theme"]
+        self.custom_theme: dict = {}
+        self.show_setting_descriptions = False
+        #: How many times :meth:`save` was called.
+        self.saves = 0
+
+    @property
+    def accounts(self) -> list[dict]:
+        return self.account_store.accounts
+
+    @accounts.setter
+    def accounts(self, value: list[dict]) -> None:
+        self.account_store.set_accounts(value)
+
+    @property
+    def launch_profiles(self) -> list[dict]:
+        return self.account_store.launch_profiles
+
+    @launch_profiles.setter
+    def launch_profiles(self, value: list[dict]) -> None:
+        self.account_store.set_launch_profiles(value)
+
+    def default_for(self, name: str):
+        return self.DEFAULTS[name]
+
+    def save(self) -> None:
+        self.saves += 1
+
+
+@pytest.fixture(autouse=True)
+def sample_store(isolated_appdata) -> SampleStore:
+    """A fresh :class:`SampleStore` per test, handed to the settings surfaces as a product would."""
+    from bartleby.qt.settings import store  # noqa: PLC0415 - kept off the runtime tests' collection
+
+    settings = SampleStore()
+    store.configure(lambda: settings)
     return settings
 
 
