@@ -44,12 +44,12 @@ its file name. What it needs from BartleBot becomes one named cut, the same thre
   `bartleby.runtime.launcher.launch_profile.LaunchSettings` does, and each product's settings
   object answers it. There is no core settings class to subclass: BartleBot's
   `SettingsManager` is 1,239 lines of bot settings BartleBuddy has no use for.
-- **The product.** Name, version, accent, logo, data folder, dev mode and build kind arrive as
+- **The product.** Name, version, accent, logo background, data folder, dev mode and build kind arrive as
   one `Product` (`bartleby.shared.product`), never as literals in shared code. Code an entry
   point calls takes it as an argument; code reached from deep in a run, such as a message
   naming the app, reads `current()`, which the entry point sets with `use()` first. It is
-  Qt-free, since the shared and runtime tiers need the name and folders too; the logo is a
-  path the Qt tier makes an icon of. `tests/test_product_literals.py` fails on a product's
+  Qt-free, since the shared and runtime tiers need the name and folders too; the tree itself
+  is the family's, in `bartleby.qt.logo`. `tests/test_product_literals.py` fails on a product's
   name or a version written as a string in core.
 
 ## How a product takes core
@@ -94,16 +94,15 @@ BartleBot supplies what core's copies cut away:
 |---|---|
 | `launch_profile.configure(settings)`, a `LaunchSettings` | its `SettingsManager`, whenever the singleton is made |
 | `streamer_mode.configure(setting)` | a read of `SettingsManager.streamer_mode` |
-| `TitleBar(menu_bar, logo)` | its logo |
+| `TitleBar(menu_bar, logo)` | `bartleby.qt.logo.logo_icon()`, the family's tree |
 | `group_manager.form_group(..., safety_delay=)` | the user's Safety Delay at every call; core's default is BartleBot's 3.0 s |
 | `run_trace.start(slot_of, directory)` | `app_controller.start_run_trace`, which traces only in developer mode, under `logs/trace/` |
 | `product.use(product)`, `configure_logging(product, settings)`, `SingleInstance(product)` | `bartlebot.packaging.product.product()`, built at startup, and its `SettingsManager` |
 | `GameAction`, which names the movement keys BartleBuddy holds | `run_probe.PRESSED_ACTIONS`, the actions a run needs keys for |
 | `LogPanel(settings)`, a `LogSettings` | its `SettingsManager`; it clears the panel itself as a run starts, when `clear_log_on_run` says to |
-| `LogoDisc(diameter, disc_image)` | `gui.logo.logo_disc_image`, its tree on a disc |
 | `ClientManager(handler, settings, game_view=)`, a `ClientSettings` and a `TileView` | its `SettingsManager` and its `GameView`, from its own `ClientManager`, a subclass |
 | `PlayerColumn(verbs, card_factory=)`, of `PlayerView`s | its `ClientSection`, a subclass, with the Entities and UI Tree verbs and a `ClientCard` per client |
-| `GameView(settings, disc_image)`, a `GameViewSettings` | its `SettingsManager` and its logo disc, through `game_view_panel.new_game_view` |
+| `GameView(settings)`, a `GameViewSettings` | its `SettingsManager`, through `game_view_panel.new_game_view` |
 | `GamePanel(game_view, action_bar)`, an `ActionBar` of `BarAction` groups | its `GameViewPanel`, a subclass, with an `AuthoringBar` over `AUTHORING_GROUPS` |
 | `screen_fit.configure(settings, panes)`, a `FitSettings` | an adapter reading whichever `SettingsManager` is current, and `gui/window_panes.panes`: its two sidebars at their measured floors and the bot canvas |
 | `settings.store.configure(settings)`, a `SettingsStore` | `SettingsManager.instance`, so whichever singleton is current answers, handed as `settings_manager` is imported |

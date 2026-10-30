@@ -2,8 +2,8 @@
 
 The ring is the theme's and the disc is the logo's, so the two things worth pinning are
 that the ring follows a theme switch and that adding it left the disc's snapped cells
-exactly as the product's own function draws them: BartleBot's ``logo_disc_image``, and
-here :func:`sample_disc`.
+exactly as the function handed in draws them: ``bartleby.qt.logo.logo_disc_image`` on the
+launch screen, and here :func:`sample_disc`.
 """
 
 import math
@@ -18,7 +18,7 @@ TRANSPARENT = QColor(0, 0, 0, 0).rgba()
 
 
 def sample_disc(diameter: int) -> QImage:
-    """A disc of 8px checkered cells, standing in for a product's logo on its disc."""
+    """A disc of 8px checkered cells, standing in for the logo on its disc."""
     image = QImage(diameter, diameter, QImage.Format.Format_ARGB32)
     image.fill(Qt.GlobalColor.transparent)
     painter = QPainter(image)

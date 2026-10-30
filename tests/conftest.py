@@ -12,7 +12,6 @@ import logging
 import os
 import sys
 from contextlib import ExitStack
-from pathlib import Path
 from unittest.mock import DEFAULT, AsyncMock, MagicMock, patch
 
 import pytest
@@ -519,7 +518,7 @@ SAMPLE_PRODUCT = Product(
     version="1.2.3",
     accent="#3366bb",
     accent_dark="#5b95d6",
-    logo=Path(__file__).resolve().parents[1] / "bartleby" / "qt" / "icons" / "play.svg",
+    logo_background="#204060",
 )
 
 

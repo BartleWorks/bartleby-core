@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from pathlib import Path
 
 import pytest
 
@@ -33,7 +32,7 @@ def test_anything_but_a_checkout_is_packaged(sample_product, kind, packaged):
 
 
 def test_use_makes_a_product_the_current_one(monkeypatch):
-    other = Product(name="Other", version="0.0.1", accent="#000000", accent_dark="#ffffff", logo=Path("other.svg"))
+    other = Product(name="Other", version="0.0.1", accent="#000000", accent_dark="#ffffff", logo_background="#808080")
     monkeypatch.setattr(product, "_current", None)
 
     product.use(other)

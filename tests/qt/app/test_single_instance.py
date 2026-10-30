@@ -28,7 +28,7 @@ from pathlib import Path
 from PyQt6.QtCore import QCoreApplication
 from bartleby.qt.app.single_instance import SingleInstance
 from bartleby.shared.product import Product
-product = Product(name="Sample", version="1.2.3", accent="#3366bb", accent_dark="#5b95d6", logo=Path("logo.svg"))
+product = Product(name="Sample", version="1.2.3", accent="#3366bb", accent_dark="#5b95d6", logo_background="#204060")
 app = QCoreApplication(sys.argv[:1])
 sys.exit(0 if SingleInstance(product, name=sys.argv[1]).claim(sys.argv[2:]) else 3)
 """

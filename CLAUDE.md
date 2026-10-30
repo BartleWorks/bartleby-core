@@ -54,7 +54,7 @@ everywhere:
   holds a wizwalker client; the product builds the view where its client is.
 - **A settings protocol.** A shared widget that reads settings takes a small `Protocol`, as
   `launch_profile.LaunchSettings` does, and each product's settings object answers it.
-- **The product.** Name, version, accent, logo, data folder, dev mode and build kind arrive
+- **The product.** Name, version, accent, logo background, data folder, dev mode and build kind arrive
   as one `Product`, never as literals in shared code.
 
 A smaller version written fresh needs a decision on the plan first, with its reason. Phase 1

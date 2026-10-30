@@ -16,7 +16,8 @@ through every caller.
 
 Qt-free, though the accent and the logo are drawn by the Qt tier: ``bartleby.shared`` and
 ``bartleby.runtime`` need the name and the folders as much as the widgets need the color,
-and the tiers import only upward. The logo is a path; the Qt tier makes the icon.
+and the tiers import only upward. The tree is the family's, in ``bartleby.qt.logo``; a
+product says only what color goes behind it.
 """
 
 from __future__ import annotations
@@ -41,8 +42,8 @@ class Product:
     #: The app's accent color in the light theme, and in the dark.
     accent: str
     accent_dark: str
-    #: The logo's SVG.
-    logo: Path
+    #: The color behind the family's tree, on the logo's square and its disc. The window icon has none.
+    logo_background: str
     #: Developer mode: the app's own switch, for whatever its developers need (BartleBot's ``BARTLEBOT_DEV``).
     dev_mode: bool = False
     #: :data:`CHECKOUT`, or the kind of packaged build, for the log header. Never a path: logs get shared.
