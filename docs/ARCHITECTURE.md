@@ -2,8 +2,8 @@
 
 How the Bartleby family is put together: one library, bartleby-core, and the products built
 from it, BartleBot and BartleBuddy today. Every surface and every lesson lives once, here,
-and both apps are built from it. BartleBot's #167 is the plan that gets there, one surface a
-stage; this file is the part of it that governs code, and grows as the stages land.
+and both apps are built from it. BartleBot's #167 was the plan that got there, one surface a
+stage, and it is complete; this file is the part of it that governs code.
 
 ## The tiers
 
@@ -321,8 +321,9 @@ A rule kept only in a document erodes, so each convention a test can read from t
 a guard: a function taking a package root and an allowlist, returning the offenders and the
 allowlist entries that match nothing. Core runs them over `bartleby/`, and each product over
 its own package. An allowlist entry carries the reason it is exempt, and may name a whole
-module: BartleBuddy lists each stand-in for a BartleBot surface that way, naming the stage of
-#167 that deletes it, so its allowlist empties as the plan lands.
+module: BartleBuddy listed each stand-in for a BartleBot surface that way, naming the stage of
+#167 that deleted it. BartleBuddy's allowlists have been empty since Stage 11, so a new
+entry there is a new exception and needs its own reason.
 
 | guard | holds |
 |---|---|
