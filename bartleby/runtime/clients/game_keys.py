@@ -13,8 +13,9 @@ which sees a rebind the moment the player saves it. An address that no longer ho
 is found again.
 
 **Never a reason not to run.** A client whose bindings cannot be read gets the game's
-defaults for the actions BartleBot presses, with a warning, until ``key_map(refresh=True)``
-tries again: the pre-run check does, before every run.
+defaults for the actions BartleBot presses, with one warning, until ``key_map(refresh=True)``
+tries again: a client's attach does. A run's start does not, since a build with no list, as
+live was at r806919, would scan every client before every run, eight seconds with four.
 
 **Pressed by action.** ``press(client, GameAction.INTERACT)`` sends whatever key that client's
 account has Interact on, never a fixed letter; ``test_game_keys_no_fixed_keys`` keeps a fixed
@@ -23,6 +24,7 @@ one out. ``docs/KEY_BINDINGS.md``.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 import struct
@@ -55,9 +57,12 @@ class _Entry:
     address: int | None = None
     unreadable: bool = False
     """Memory gave no list: defaults until a refresh, rather than a four-second scan per press."""
+    warned: bool = False
     fixed: KeyMap | None = None
     last: KeyMap | None = None
     """The bindings the last read from memory found, for a caller that cannot wait on a read."""
+    scan: asyncio.Task | None = None
+    """The scan under way, which a second caller waits on rather than starting its own."""
 
 
 _entries: dict[int, _Entry] = {}
@@ -193,43 +198,54 @@ async def read_binding_list(reader, address: int) -> list[Binding]:
     return bindings
 
 
-async def key_map(client, *, refresh: bool = False, warn: bool = True) -> KeyMap:
-    """The client's key bindings, from its memory; the game's defaults when they cannot be read.
-
-    *refresh* tries memory again for a client that failed before. *warn* False logs a failure
-    at DEBUG: the read made as a client attaches, which the pre-run check repeats. Never raises.
-    """
-    entry = _entries.setdefault(_handle(client), _Entry())
-    if entry.fixed is not None:
-        return entry.fixed
-    if refresh:
-        entry.unreadable = False
-    if entry.unreadable:
-        return KeyMap.defaults()
+async def _find(client, entry: _Entry) -> None:
+    """Find the client's list and read it, or mark *entry* unreadable. Never raises."""
     reader = getattr(client, "hook_handler", None)
     try:
-        if entry.address is not None:
-            try:
-                entry.last = KeyMap(await read_binding_list(reader, entry.address), source="memory")
-                return entry.last
-            except Exception:  # noqa: BLE001 - moved, or the process is gone; find it again
-                entry.address = None
         address = await find_binding_list(reader)
         if address is None:
             raise LookupError("no InputBindingList in the client's memory")
         bindings = await read_binding_list(reader, address)
     except Exception:
         entry.unreadable = True
-        logger.log(
-            logging.WARNING if warn else logging.DEBUG,
-            "Could not read a client's key bindings from its memory (window %s); pressing the game's default keys",
-            _handle(client),
-            exc_info=True,
-        )
-        return KeyMap.defaults()
+        logger.debug("Scan for the key bindings of window %s failed", _handle(client), exc_info=True)
+        return
     entry.address = address
     entry.last = KeyMap(bindings, source="memory")
-    return entry.last
+
+
+async def key_map(client, *, refresh: bool = False, warn: bool = True) -> KeyMap:
+    """The client's key bindings, from its memory; the game's defaults when they cannot be read.
+
+    *refresh* tries memory again for a client that failed before. *warn* False leaves a failure
+    for the next caller to warn of: the read made as a client attaches, whose failure the pre-run
+    check reports. Never raises.
+    """
+    entry = _entries.setdefault(_handle(client), _Entry())
+    if entry.fixed is not None:
+        return entry.fixed
+    if refresh:
+        entry.unreadable = entry.warned = False
+    if entry.address is not None:
+        try:
+            entry.last = KeyMap(await read_binding_list(client.hook_handler, entry.address), source="memory")
+            return entry.last
+        except Exception:  # noqa: BLE001 - moved, or the process is gone; find it again
+            entry.address = None
+    if not entry.unreadable:
+        if entry.scan is None or entry.scan.done():
+            entry.scan = asyncio.create_task(_find(client, entry))
+        # Shielded: the caller that began it may be cancelled while another waits on it.
+        await asyncio.shield(entry.scan)
+        if not entry.unreadable:
+            return entry.last
+    if warn and not entry.warned:
+        entry.warned = True
+        logger.warning(
+            "Could not read a client's key bindings from its memory (window %s); pressing the game's default keys",
+            _handle(client),
+        )
+    return KeyMap.defaults()
 
 
 def known_maps() -> list[KeyMap]:

@@ -646,8 +646,8 @@ class ClientManager:
                 # The hooks wait for a character in the world, so the account's key bindings
                 # are in memory now: find them here, a scan of a few seconds, rather than when
                 # the first run starts. A task of its own, so publishing the client never waits
-                # on it; the pre-run check reads them again, and warns if they cannot be read.
-                warm = asyncio.create_task(game_keys.key_map(client, warn=False))
+                # on it; the pre-run check takes its answer, and warns if they cannot be read.
+                warm = asyncio.create_task(game_keys.key_map(client, refresh=True, warn=False))
                 self._activation_tasks.add(warm)
                 warm.add_done_callback(self._activation_tasks.discard)
             finally:

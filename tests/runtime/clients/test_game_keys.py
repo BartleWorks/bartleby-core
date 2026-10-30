@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
 import struct
 
@@ -200,6 +201,62 @@ async def test_unreadable_memory_gives_the_defaults_and_one_warning_until_a_refr
     keys = await game_keys.key_map(client, refresh=True)
     assert keys.source == "memory"
     assert keys.choose(GameAction.INTERACT).code == ord("K")
+
+
+async def test_a_failed_attach_scan_is_warned_of_once_by_the_next_read_and_not_repeated(caplog):
+    # Live has no list: a scan at every run's start would hold each run back for seconds.
+    memory = FakeMemory()
+    client = MemoryClient(memory)
+    await game_keys.key_map(client, refresh=True, warn=False)
+    assert not [r for r in caplog.records if r.levelname == "WARNING"]
+    scans = memory.scans
+    for _ in range(2):
+        assert (await game_keys.key_map(client)).source == "defaults"
+    assert memory.scans == scans
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
+
+
+async def test_a_refresh_warns_of_a_failure_again(caplog):
+    # A reattached client's scan is a new answer, so a read after it reports its own failure.
+    client = MemoryClient(FakeMemory())
+    await game_keys.key_map(client)
+    await game_keys.key_map(client, refresh=True, warn=False)
+    await game_keys.key_map(client)
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 2
+
+
+async def test_a_read_during_a_scan_waits_on_it_rather_than_scanning_again():
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    client = MemoryClient(memory)
+    first, second = await asyncio.gather(
+        game_keys.key_map(client, refresh=True, warn=False),
+        game_keys.key_map(client),
+    )
+    assert first is second
+    assert first.choose(GameAction.INTERACT).code == ord("K")
+    alone = FakeMemory()
+    _player_set(alone, interact="k")
+    await game_keys.key_map(MemoryClient(alone))
+    assert memory.scans == alone.scans
+
+
+async def test_a_read_during_a_failing_scan_warns_for_the_quiet_caller_that_began_it(caplog):
+    memory = FakeMemory()
+    client = MemoryClient(memory)
+    await asyncio.gather(game_keys.key_map(client, refresh=True, warn=False), game_keys.key_map(client))
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
+
+
+async def test_cancelling_the_caller_that_began_a_scan_leaves_it_for_the_one_waiting():
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    client = MemoryClient(memory)
+    began = asyncio.create_task(game_keys.key_map(client, warn=False))
+    waiting = asyncio.create_task(game_keys.key_map(client))
+    await asyncio.sleep(0)
+    began.cancel()
+    assert (await waiting).choose(GameAction.INTERACT).code == ord("K")
 
 
 async def test_a_client_with_no_memory_reader_gets_the_defaults():

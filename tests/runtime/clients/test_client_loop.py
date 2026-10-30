@@ -192,11 +192,11 @@ async def test_a_client_s_key_bindings_are_read_once_its_hooks_come_up(harness, 
     arrives, quietly, rather than when the first run starts; and publishing never waits on it."""
     from bartleby.runtime.clients import game_keys  # noqa: PLC0415
 
-    reads: list[tuple[int, bool]] = []
+    reads: list[tuple[int, bool, bool]] = []
     scan = asyncio.Event()
 
     async def key_map(client, *, refresh=False, warn=True):
-        reads.append((client.window_handle, warn))
+        reads.append((client.window_handle, refresh, warn))
         await scan.wait()
 
     monkeypatch.setattr(game_keys, "key_map", key_map)
@@ -208,7 +208,7 @@ async def test_a_client_s_key_bindings_are_read_once_its_hooks_come_up(harness, 
         assert reads == []
         client.hooks_ready.set_result(None)
         await _tick(3)
-        assert reads == [(100, False)]
+        assert reads == [(100, True, False)]  # refreshed: a reattached client is tried again
         assert harness.published_hwnds == {100}  # while the scan is still going
     finally:
         scan.set()

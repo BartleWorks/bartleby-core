@@ -36,7 +36,10 @@ bindings, the player's whole set, and a ring with one is never taken for it.
 
 **A client that cannot be read gets the defaults.** `key_map()` never raises: a client whose
 list cannot be found presses the shipped default keys, with one warning, and is not scanned
-again until `key_map(refresh=True)`.
+again until `key_map(refresh=True)`, which only a client's attach asks for. A run's start must
+not: live at r806919 has no list, so rescanning there held every run back about 8 s with four
+clients. The price is that a client whose attach scan fails on a build that has a list presses
+the defaults until it reattaches.
 
 ## From a key's name to the code that presses it
 
@@ -106,8 +109,8 @@ fails on a `Keycode` anywhere in `bartlebot/` but Space and Escape.
 
 **Every action BartleBot presses is required of every player, whatever the bot**
 (`clients/run_probe.py`). The run request reads each client's bindings in the same task as
-its other memory reads, with `refresh=True` so a client that failed before is tried again,
-and refuses to start, telling rather than asking, when any player has an action in
+its other memory reads, through the kept address and never with a new scan of a client that
+failed, and refuses to start, telling rather than asking, when any player has an action in
 `GameAction` with no key a press can use. The dialog, titled Run Bot, has one line per action,
 naming the player and where the action is ("Player 2: Interact is on Ctrl+X."), then says to
 fix them in the game's Keybinding tab; its wording follows `docs/UI_TEXT.md`, and names each
@@ -121,8 +124,9 @@ before the run, since the other action happens too and the player may wonder why
 
 **The scan is begun as a client arrives.** Finding a client's list takes seconds, so
 `ClientManager` starts it, as a task of its own, once the client's hooks are up: by then a
-character is in the world, and so are its bindings. A failure there is logged at DEBUG; the
-pre-run read repeats it, and warns.
+character is in the world, and so are its bindings. A read made while that scan is under way
+waits on it rather than starting a second. A failure there is logged at DEBUG, and the pre-run
+read takes its answer and warns.
 
 ## The authoring hotkeys' clash warning
 
