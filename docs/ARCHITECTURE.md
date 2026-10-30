@@ -11,7 +11,7 @@ stage; this file is the part of it that governs code, and grows as the stages la
 |---|---|---|
 | `bartleby.shared` | the data every product reads and writes under `%APPDATA%/Bartleby/`: accounts, launch profiles, preferences, the strategy library, the vendor's name, share files; the running product; and two small helpers, a Qt-free signal (`listeners.Listeners`) and a drag's permutation applied (`ordering.apply_order`) | stdlib, pydantic, keyring |
 | `bartleby.runtime` | game clients at run time, with no Qt: launching, the client manager (finding, hooking, naming and ordering clients), the state reader, the arbiter and the one input API, movement, the helpers, the game facts (key bindings, captions, names, realms, sizing and tile layouts), timing and the run trace; and the view models a shared widget draws (`views`) | `shared`, wizwalker, wizsprinter |
-| `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, card columns, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; the player cards and their column; the game view with its launch screen and launch cards, and the screen fit; an app's startup (`app/`) and the runtime bridge, with the crossing a client manager's tiles take | `shared`, `runtime`, PyQt6 |
+| `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, card columns, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; the player cards and their column; the game view with its launch screen and launch cards, Bar A's game panel and action bar, and the screen fit; an app's startup (`app/`) and the runtime bridge, with the crossing a client manager's tiles take | `shared`, `runtime`, PyQt6 |
 
 Each tier imports only from those before it, so the runtime runs without a GUI and the data
 without a game. Core imports neither product. `tests/test_layers.py` holds both rules.
@@ -101,6 +101,7 @@ BartleBot supplies what core's copies cut away:
 | `ClientManager(handler, settings, game_view=)`, a `ClientSettings` and a `TileView` | its `SettingsManager` and its `GameView`, from its own `ClientManager`, a subclass |
 | `PlayerColumn(verbs, card_factory=)`, of `PlayerView`s | its `ClientSection`, a subclass, with the Entities and UI Tree verbs and a `ClientCard` per client |
 | `GameView(settings, disc_image)`, a `GameViewSettings` | its `SettingsManager` and its logo disc, through `game_view_panel.new_game_view` |
+| `GamePanel(game_view, action_bar)`, an `ActionBar` of `BarAction` groups | its `GameViewPanel`, a subclass, with an `AuthoringBar` over `AUTHORING_GROUPS` |
 | `screen_fit.configure(settings, panes)`, a `FitSettings` | an adapter reading whichever `SettingsManager` is current, and `gui/window_panes.panes`: its two sidebars at their measured floors and the bot canvas |
 
 ### The client manager, in two halves
@@ -160,6 +161,20 @@ naming what holds its wizard; and listens to `caption_clicked` for the wizard's 
 Its launch screen is built with `editing=False`, offering no verb, Add card or settings link
 until BartleBuddy edits accounts itself. Its client manager runs on the runtime thread, so the
 tiles cross to the view as queued signals, through `runtime_bridge.TileCrossing`.
+
+### Bar A, from a list of actions
+
+Above the view sits Bar A, core's `GamePanel` (`qt/game_embed/game_view_panel.py`): the
+clients connected on the left, what the product is doing on the right, and between them an
+`ActionBar` of the product's own buttons. A product hands groups of `BarAction(id, icon,
+tooltip, checkable, menu)` and gets 24px `IconButton`s with a divider between groups, a press
+reported by id, a toggle's state shown only as `set_state` reports it, and a menu action's
+menu filled by the builder `set_menu` was handed. The bar's height is the buttons', whatever
+the list, so every product's Bar A fits `GAME_PANEL_CHROME_PX`.
+
+BartleBot's list is its authoring utilities (`AUTHORING_GROUPS`, with `AuthoringBar` turning
+the tools' state into each button's); BartleBuddy's is the helpers, the mode and the tile
+layout as menus, and Stop all (`gui/game_panel.py`). Neither writes a button of its own.
 
 A name patched in a BartleBot test is patched where its callers read it, and core's helpers
 read core's module: `tests/node_helper_patches.py` patches a helper on both modules at once.

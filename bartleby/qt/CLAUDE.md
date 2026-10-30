@@ -293,6 +293,31 @@ Three things about them:
 - **A `LinkButton` underlines on hover, not always.** The accent alone says "clickable"
   while the pointer is elsewhere.
 
+### Bar A is an `ActionBar`, and a product only lists its buttons
+
+Bar A, the strip over the game windows, is `GamePanel` with an `ActionBar` in its middle
+(`game_embed/game_view_panel.py`). A product hands groups of `BarAction`s and writes no button
+of its own; BartleBot's list is `AUTHORING_GROUPS`, BartleBuddy's `BAR_GROUPS`. The rules:
+
+- **Icons, never labels.** Bar A's height is a term in the window-sizing arithmetic
+  (`GAME_PANEL_CHROME_PX`), and a labeled button is taller than the caption row it sits in.
+  The 24px buttons set the row's height, whatever the list, so every product's bar is as tall
+  as every other's. An icon the set lacks is drawn to its 24-unit grid with a 2-unit round
+  stroke, in `#404040`, which the tint replaces.
+- **A tooltip leads with the name, then the key, then what it does**: `Speed (on) [F3] —
+  Make every player walk faster…`, as BartleBot's `authoring_tooltip` writes it. A toggle
+  says when it is on, a menu action names its current choice (`Layout: Grid — …`), and a
+  disabled button adds `(Unavailable: …)` with the reason.
+- **A toggle shows what the product reports, never what the press left.** A `checkable`
+  action is not a Qt-checkable button: a press only reports its id, and the glyph turns the
+  accent when `set_state(id, checked=True)` says the runtime switched it on. A toggle the
+  runtime refused reads off.
+- **A choice of several is a menu action**, its menu built fresh on every press by the
+  builder handed to `set_menu`, through `popup_menu`, with the current choice checked.
+  BartleBuddy's mode and tile layout are; a combo box on Bar A is not.
+- **Groups, with a divider between them**, by what the buttons do; the divider is shorter
+  than the buttons, so it reads as a break rather than a wall.
+
 Four `QPushButton`s stay bare on purpose, and the reason is the same for all of them:
 **their background is the data they display.** Any shared class writes `background`,
 which paints over the one thing they exist to show. Those are BartleBot's color swatches in
