@@ -51,8 +51,10 @@ Nothing here is a QWidget or reads settings, so the arithmetic can be tested on 
 from __future__ import annotations
 
 import math
-from collections.abc import Iterable
+from collections.abc import Mapping, Sequence
 from typing import NamedTuple
+
+from bartleby.runtime.game.tile_layouts import GAP, SIDE_SHARE, TileSize
 
 # ---------------------------------------------------------------------------
 # Tile chrome
@@ -68,17 +70,17 @@ LABEL_RESERVE = FOCUS_BORDER + LABEL_GAP + LABEL_PILL_H + 4  # = 39; keeps the p
 
 # The title bar: the window's one strip above the panes, holding the logo, the menus, the
 # layout toggles and the window buttons. The client area reaches the top of the window
-# (gui/title_bar), so there is no native caption above it to count -- this is all of it.
+# (bartleby/qt/title_bar), so there is no native caption above it to count -- this is all of it.
 TITLE_BAR_PX = 35
 
-# The rule along the window's bottom (gui/title_bar/bottom_edge.py), as thick as the
+# The rule along the window's bottom (bartleby/qt/title_bar/bottom_edge.py), as thick as the
 # splitter handles the theme draws between panes. Shown only where Windows draws no
 # border there, but counted always: a floor a pixel too high costs nothing, and one too
 # low is a floor the window has and the arithmetic does not.
 BOTTOM_EDGE_PX = 2
 
 # What screen_budget takes off the screen's height for everything that is neither the game
-# area nor the bot canvas. An estimate rather than a sum: it was the menu bar plus a status
+# area nor a pane below it. An estimate rather than a sum: it was the menu bar plus a status
 # bar once, and the title bar that replaced both is smaller, but moving it re-tiers the
 # offered ladder. The live game area is exact, and picks up the room the title bar freed.
 WINDOW_CHROME_ESTIMATE_PX = 60
@@ -88,97 +90,77 @@ GAME_PANEL_CHROME_PX = 32
 
 
 # ---------------------------------------------------------------------------
-# The panel floors
+# The panes and their floors
 # ---------------------------------------------------------------------------
-# What each pane of the main window may be dragged down to. These are terms in the
-# arithmetic below, not suggestions: a pane whose *enforced* minimum is larger than the
-# term named here makes ``required_window_size`` understate the floor Qt will hold the
-# window to, and the window then cannot be given the size the fit was computed for --
-# which is how a 2560x1440 launch cleared the fit and then could not open on a 4K screen.
+# A product's window is the game area with panes beside and below it: BartleBot's two
+# sidebars and its bot canvas, BartleBuddy's one sidebar. Each product lists its own as
+# ``Pane``s, and the arithmetic below reads the list, never a product's constants.
+#
+# A pane's floor is what it may be dragged down to, and it is a term in the arithmetic,
+# not a suggestion: a pane whose *enforced* minimum is larger than the floor it lists makes
+# ``required_window_size`` understate the floor Qt will hold the window to, and the window
+# then cannot be given the size the fit was computed for -- which is how a 2560x1440
+# launch cleared the fit and then could not open on a 4K screen.
 #
 # Qt takes the larger of a widget's ``minimumSize`` and its layout's minimum, *except*
 # that an explicitly set ``minimumSize`` wins outright (``qSmartMinSize``). So each pane
-# sets these on itself and its content is clipped -- or scrolls, where a scroll area is
+# sets its floor on itself and its content is clipped -- or scrolls, where a scroll area is
 # already in the way -- rather than being allowed to raise the window's floor.
-# ``tests/gui/test_window_minimum.py`` is the guard.
+# BartleBot's ``tests/gui/test_window_minimum.py`` is the guard.
+#
+# Floors are *measured* where a pane's widest row is a set of controls that carry a
+# ``Minimum``/``Preferred`` size policy with no shrink flag: they run off the pane rather
+# than getting narrower, and their own width scales with the system text size and the
+# resolved style. A floor is **the forcing row plus the chrome around it**, and only the row
+# is measured. Both of BartleBot's floors used to be the whole reference width scaled by a
+# ratio, which charged the font's growth against the scroll bar, the frame and the margins
+# as well, none of which a font moves; on a 1080p screen that took away three- and
+# four-client launches outright. Measure the row, add the chrome. ``right_sidebar_floor``
+# below is the one floor both products share; BartleBot's own (``game/pane_sizing.py``)
+# hold the rest.
 
-# Minimum BotCanvas size (toolbar + enough graph space)
-BOTCANVAS_MIN_WIDTH = 320
-BOTCANVAS_MIN_HEIGHT = 180
-# The canvas height a new install opens at, before setup fits it to the launches the user
-# has (``canvas_height_for``). Also the height setup judges a new profile's resolution at,
-# so a canvas already fitted to one account cannot crowd out the profile for four.
-BOTCANVAS_DEFAULT_HEIGHT = 220
-# The share of the screen's height a single client leaves the canvas, at least, when setup
-# fits the global resolution with no launch profile deciding the layout. Without it the
-# largest resolution one client fits wins however little it leaves: 1680x1050 on a 1440p
-# screen kept a 231px canvas, where 1600x900 keeps 381. 23% rather than a round 25%
-# because 4K at 150% keeps 2560x1440 with 329px of 1400 (23.5%); at 25% it fell to
-# 1920x1200, a much smaller game for a canvas it did not need. The share is of the usable
-# height, after the taskbar, and that margin is thin: 24%, or a taller taskbar, tips 4K at
-# 150% down a rung. tests/gui/test_screen_fit.py pins both screens, so retuning this
-# means deciding what each of them should get.
-SINGLE_CLIENT_CANVAS_SHARE = 0.23
-# Sidebar minimums. Both are *measured*, not pixels: each panel's widest row is a set of
-# controls that carry a ``Minimum``/``Preferred`` size policy with no shrink flag, so they
-# run off the panel rather than getting narrower, and their own width scales with the
-# system text size and the resolved style. A floor is only worth having at a width the
-# panel is still usable at, so the arithmetic takes the two separately -- see
-# ``right_sidebar_floor`` for the right one's, and ``left_sidebar_floor`` below for the
-# left's: the quicksell keep-list picker's filter row -- a search field, a category
-# combobox and a "Kept only" checkbox side by side. Unlike the rest of the surface,
-# whose labels are ``Fixed``-width but short and whose prose wraps, that row's three
-# widgets neither wrap nor elide, so a narrow sidebar overlapped them instead of
-# squeezing or scrolling to them -- what a 220px sidebar was doing in the report.
-#
-# Both constants are the floor *at the reference metrics* (16px text under
-# ``windowsvista``), and ``left_sidebar_floor``/``right_sidebar_floor`` re-derive them
-# from what the panel measures here, never below the reference. Pinning a pixel count
-# would mean choosing between clipping a machine with larger system text and charging
-# every other one for it -- on a 1080p screen an extra 80px of sidebar costs a whole rung
-# of the ladder.
-#
-# A floor is **the forcing row plus the chrome around it**, and only the row is measured.
-# Both floors used to be the whole reference width scaled by a ratio, the larger of a
-# text-height term and the row's own -- which charged the font's growth against the
-# scroll bar, the frame, the margins and the pinned control widths as well, none of which
-# a font moves. It over-charged by roughly half: raising the body text 12px -> 14px grew
-# the left row 11% and its floor 19%, and grew the right floor 19% against content that
-# had not moved at all. That is 129px of sidebar between them, and on a 1080p screen it
-# took away three- and four-client launches outright. Measure the row, add the chrome.
-LEFT_SIDEBAR_MIN_WIDTH = 404  # a measured 392 plus the 12px of headroom 390 had over 378:
-# the filter row plus the gutter, the option card's border and padding, the
-# scroll content margins, the scroll area's frame and its vertical scrollbar. The headroom
-# is what keeps ``windows11`` and the classic ``Windows`` style, whose frames and
-# scrollbars are wider than the reference style's, inside the floor -- the classic one
-# with 2px to spare, which is why the card's 14px went onto the floor whole. It was 390 until the options moved into folding cards (#138),
-# which added the card's 1px border and 6px padding on each side.
+LEFT = "left"
+RIGHT = "right"
+BOTTOM = "bottom"
+
+
+class Pane(NamedTuple):
+    """One pane beside or below the game area: its name, its floor, and which side it is on.
+
+    *name* is the key the product keeps the pane's size under (BartleBot's
+    ``left_sidebar_width``), so the sizes the arithmetic is handed are looked up by it.
+    *floor* is in logical pixels, a width for a ``LEFT`` or ``RIGHT`` pane and a height for
+    a ``BOTTOM`` one.
+    """
+
+    name: str
+    floor: int
+    side: str
+
+    @property
+    def beside(self) -> bool:
+        """Whether the pane takes width from the game area, rather than height."""
+        return self.side in (LEFT, RIGHT)
+
+
 RIGHT_SIDEBAR_MIN_WIDTH = 300
-# Not the row's ``sizeHint``, though, and not its ``minimumSizeHint`` either: the
-# combobox and the checkbox are what must not be squeezed, so they are taken at their
-# *natural* width, while the search field beside them is the one holding the layout's
-# stretch and is taken at its own minimum -- it is designed to be the part that gives.
-# ``minimumSizeHint`` on the row would take the combobox down with it (a QComboBox elides
-# its own text and reports far less than it needs), which is the clipped state.
-# 293 is that sum at the reference metrics; see ``left_sidebar_floor``.
-REFERENCE_FILTER_ROW_PX = 293
 # The right sidebar's forcing row is the Log tab's header: the "Min level:" caption, the
-# level combo, Export and Clear. The tool row this floor was first measured from is gone
-# -- the player card carries icon verbs and elided rows now -- and a button's width was
-# standing in for a row that no longer existed. ``log_panel.header_row_floor`` measures
-# this one, and it is mostly pinned widths, so it barely moves with the font: 281px at
-# the reference, 289 at 14px body text.
+# level combo, Export and Clear. Both products' right sidebars hold the Log tab, so this
+# floor is the family's. The tool row this floor was first measured from is gone -- the
+# player card carries icon verbs and elided rows now -- and a button's width was standing
+# in for a row that no longer existed. ``log_panel.header_row_floor`` measures this one,
+# and it is mostly pinned widths, so it barely moves with the font: 281px at the
+# reference, 289 at 14px body text.
 REFERENCE_LOG_ROW_PX = 281
-# What each panel spends *around* its forcing row -- margins, frames, the scroll bar, the
+# What the sidebar spends *around* its forcing row -- margins, frames, the scroll bar, the
 # gutter. Style metrics and fixed spacings, not text, so they are added rather than
-# scaled. Each is the difference between the panel's reference floor and its reference
-# row, which keeps both floors exactly at the references above at the reference metrics.
-LEFT_SIDEBAR_CHROME_PX = LEFT_SIDEBAR_MIN_WIDTH - REFERENCE_FILTER_ROW_PX  # 111
+# scaled: the difference between the reference floor and its reference row, which keeps
+# the floor exactly at the reference at the reference metrics.
 RIGHT_SIDEBAR_CHROME_PX = RIGHT_SIDEBAR_MIN_WIDTH - REFERENCE_LOG_ROW_PX  # 19
 # Shared: the height must stay under the shortest tile any offered resolution produces,
 # or a sidebar rather than the game view becomes the top row's floor.
 SIDEBAR_MIN_HEIGHT = 240
-# Splitter handle allowance: two vertical handles in the top row, one horizontal below it
+# Splitter handle allowance: one per pane, between it and the game area
 SPLITTER_HANDLE_PX = 8
 
 
@@ -476,19 +458,48 @@ def tile_size(resolution: tuple[int, int], dpr: float = 1.0) -> tuple[int, int]:
     return int(width / dpr) + 2 * FOCUS_BORDER, int(height / dpr) + LABEL_RESERVE + 2 * FOCUS_BORDER
 
 
-def required_game_area(resolution: tuple[int, int], client_count: int, dpr: float = 1.0) -> tuple[int, int]:
-    """The logical pixels a grid of *client_count* tiles at *resolution* needs."""
-    rows, cols = grid_for(client_count)
+#: What a grid is asked about: a count of equal tiles, or each tile's size in slot order.
+#: A count is BartleBot's one equal grid; a list may hold Side tiles (``tile_layouts``).
+Tiles = int | Sequence[TileSize]
+
+
+def tile_sizes(tiles: Tiles) -> list[TileSize]:
+    """*tiles* as a size per tile: a count is that many Main tiles, an equal grid."""
+    if isinstance(tiles, int):
+        return [TileSize.MAIN] * max(0, tiles)
+    return list(tiles)
+
+
+def required_game_area(resolution: tuple[int, int], tiles: Tiles, dpr: float = 1.0) -> tuple[int, int]:
+    """The logical pixels a grid of *tiles* at *resolution* needs.
+
+    Main tiles alone are an equal grid (``grid_for``), each a whole ``tile_size``. With
+    Side tiles too, the area is the one ``tile_layouts.arrange`` places them in with the
+    strip beside the Main tiles: the Main tiles in a row, each a rectangle of the game's
+    aspect that holds a whole ``tile_size``, since ``arrange`` fits every tile to the
+    aspect; and the strip, a column of Side tiles ``SIDE_SHARE`` of that height tall. A
+    Side tile has no size of its own to need: until a running client can be resized, it
+    shows its game at the launch size, centered and cut to the tile.
+    """
+    sizes = tile_sizes(tiles)
+    mains = sizes.count(TileSize.MAIN)
     tile_w, tile_h = tile_size(resolution, dpr)
-    return cols * tile_w, rows * tile_h
+    if mains == len(sizes):
+        rows, cols = grid_for(mains)
+        return cols * tile_w, rows * tile_h
+    aspect = resolution[0] / resolution[1]
+    main_w = max(tile_w, math.ceil(tile_h * aspect))
+    main_h = math.ceil(main_w / aspect)
+    strip_w = math.ceil(main_h * SIDE_SHARE * aspect)
+    return mains * main_w + GAP * mains + strip_w, main_h
 
 
 def right_sidebar_floor(log_row_px: float | None = None) -> int:
     """How wide the right sidebar has to be for the widest row it cannot shrink.
 
     *log_row_px* is the Log tab's header row, measured at this machine's font and style
-    by ``gui/sidebar/log_panel.header_row_floor``: the caption, the level combo, Export
-    and Clear, none of which wrap or elide. ``RIGHT_SIDEBAR_CHROME_PX`` is everything
+    by ``bartleby.qt.sidebar.log_panel.header_row_floor``: the caption, the level combo,
+    Export and Clear, none of which wrap or elide. ``RIGHT_SIDEBAR_CHROME_PX`` is everything
     around it, added rather than scaled because a font does not widen a frame, a margin
     or a scroll bar.
 
@@ -502,153 +513,101 @@ def right_sidebar_floor(log_row_px: float | None = None) -> int:
     narrower, and a floor that tracked one downwards would clip the panel it protects.
 
     ``None`` means "not measured" and returns the reference, which is what the pure
-    arithmetic and its tests use. Everything inside the running app must instead go
-    through ``gui/screen_fit.right_sidebar_floor``, so that the width the widget enforces
-    and the width the fit is computed against cannot come from two different measurements.
+    arithmetic and its tests use. Everything inside a running app must instead go
+    through ``bartleby.qt.screen_fit.right_sidebar_floor``, so that the width the widget
+    enforces and the width the fit is computed against cannot come from two different
+    measurements.
     """
     if log_row_px is None:
         return RIGHT_SIDEBAR_MIN_WIDTH
     return max(RIGHT_SIDEBAR_MIN_WIDTH, round(log_row_px + RIGHT_SIDEBAR_CHROME_PX))
 
 
-def left_sidebar_floor(filter_row_px: float | None = None) -> int:
-    """How wide the left sidebar has to be for the widest row it cannot shrink.
-
-    Same shape as ``right_sidebar_floor``: the forcing content is not the whole panel, it
-    is one row that neither wraps nor elides -- the quicksell keep-list picker's search
-    field, category combobox and "Kept only" checkbox, composed as
-    ``REFERENCE_FILTER_ROW_PX`` describes and measured by
-    ``gui/screen_fit.left_sidebar_floor``. ``LEFT_SIDEBAR_CHROME_PX`` is the gutter, the
-    option card's inset, the scroll content margins, the frame and the scroll bar, added
-    rather than scaled.
-
-    Everything else on this surface elides or wraps by design, so it sets no floor. That
-    is why there is no text-height term any more: it was a proxy for content that gives
-    way, applied to chrome that does not move.
-
-    ``None`` means "not measured" and returns the reference, as on the right.
-    """
-    if filter_row_px is None:
-        return LEFT_SIDEBAR_MIN_WIDTH
-    return max(LEFT_SIDEBAR_MIN_WIDTH, round(filter_row_px + LEFT_SIDEBAR_CHROME_PX))
-
-
 def required_window_size(
     resolution: tuple[int, int],
-    client_count: int = 1,
+    tiles: Tiles,
+    panes: Sequence[Pane],
     dpr: float = 1.0,
-    right_sidebar: int | None = None,
-    left_sidebar: int | None = None,
 ) -> tuple[int, int]:
-    """The window floor a grid of *client_count* clients at *resolution* implies.
+    """The window floor a grid of *tiles* at *resolution* implies, beside *panes*.
 
     The inverse of ``screen_budget``: that one runs screen -> game size to decide what may
     be launched, this one runs game size -> window floor once a size has been chosen. It
-    is the size the window may be *dragged* to, so it is measured against the panel floors
-    above rather than the user's configured layout -- unlike ``screen_budget``, which must
-    not assume the user will crush their sidebars.
+    is the size the window may be *dragged* to, so it is measured against each pane's
+    floor rather than the user's configured layout -- unlike ``screen_budget``, which must
+    not assume the user will crush their panes.
 
-    Every term the window actually contains is here. The tile chrome and the game panel's
-    header used to be left out, which made the declared floor smaller than the one Qt
-    enforces -- and a declared floor that is not the real one is worse than none, because
-    it is the number the rest of the app reasons about.
+    Every term the window actually contains is here: each pane's floor and its splitter
+    handle, the title bar, the bottom edge and the game panel's header. The tile chrome
+    and the game panel's header used to be left out, which made the declared floor
+    smaller than the one Qt enforces -- and a declared floor that is not the real one is
+    worse than none, because it is the number the rest of the app reasons about.
     """
-    game_w, game_h = required_game_area(resolution, client_count, dpr)
-    right = right_sidebar if right_sidebar is not None else RIGHT_SIDEBAR_MIN_WIDTH
-    left = left_sidebar if left_sidebar is not None else LEFT_SIDEBAR_MIN_WIDTH
-    width = left + right + game_w + 2 * SPLITTER_HANDLE_PX
-    height = game_h + GAME_PANEL_CHROME_PX + BOTCANVAS_MIN_HEIGHT + TITLE_BAR_PX + BOTTOM_EDGE_PX + SPLITTER_HANDLE_PX
+    game_w, game_h = required_game_area(resolution, tiles, dpr)
+    beside = [pane for pane in panes if pane.beside]
+    below = [pane for pane in panes if not pane.beside]
+    width = game_w + sum(pane.floor for pane in beside) + SPLITTER_HANDLE_PX * len(beside)
+    height = (
+        game_h
+        + GAME_PANEL_CHROME_PX
+        + sum(pane.floor for pane in below)
+        + SPLITTER_HANDLE_PX * len(below)
+        + TITLE_BAR_PX
+        + BOTTOM_EDGE_PX
+    )
     return width, height
 
 
 def screen_budget(
     screen_size: tuple[int, int],
-    left_sidebar: int,
-    right_sidebar: int,
-    bottom_section: int,
-    splitter_handle: int,
+    panes: Sequence[Pane],
+    sizes: Mapping[str, int],
 ) -> tuple[int, int]:
-    """What is left of *screen_size* for the game grid once the rest of the app is placed.
+    """What is left of *screen_size* for the game grid once *panes* are placed at *sizes*.
 
-    Measured against the user's *configured* layout sizes, never the minimums those
-    panels can be dragged down to. Sizing against the minimums assumes the user wants
-    their sidebars and bot canvas crushed to the floor to make room for a bigger game
-    window, which nobody does -- it would offer a resolution that only fits as long as
-    they never touch a splitter.
+    *sizes* holds each pane's size by its name, as the user configured it; a pane missing
+    from it is taken at its floor. Measured against the configured sizes, never the floors
+    those panes can be dragged down to. Sizing against the floors assumes the user wants
+    their panes crushed to make room for a bigger game window, which nobody does -- it
+    would offer a resolution that only fits as long as they never touch a splitter.
+
+    A pane beside the game area costs its width and a splitter handle. One below costs
+    its height, and its handle is inside ``WINDOW_CHROME_ESTIMATE_PX``.
     """
     screen_w, screen_h = screen_size
-    width = screen_w - left_sidebar - right_sidebar - 2 * splitter_handle
-    height = screen_h - bottom_section - WINDOW_CHROME_ESTIMATE_PX
+    beside = [pane for pane in panes if pane.beside]
+    width = screen_w - sum(sizes.get(pane.name, pane.floor) for pane in beside) - SPLITTER_HANDLE_PX * len(beside)
+    below = sum(sizes.get(pane.name, pane.floor) for pane in panes if not pane.beside)
+    height = screen_h - below - WINDOW_CHROME_ESTIMATE_PX
     return max(0, width), max(0, height)
 
 
-def canvas_height_for(screen_h: int, launches: Iterable[tuple[tuple[int, int], int]], dpr: float = 1.0) -> int:
-    """The bot canvas height that leaves *screen_h* exactly the tallest grid of *launches*.
-
-    Each launch is ``(resolution, client_count)``. The inverse of ``screen_budget``'s
-    height: everything the tallest grid does not need goes to the canvas rather than
-    sitting empty around the tiles, which is most of a 1080p screen for the one or two
-    accounts most users have. Never below ``BOTCANVAS_DEFAULT_HEIGHT``, so a screen too
-    small for its launches keeps the layout it always had rather than losing canvas too,
-    and so does an empty *launches*, which has no grid to measure.
-    """
-    tallest = max((required_game_area(resolution, count, dpr)[1] for resolution, count in launches), default=None)
-    if tallest is None:
-        return BOTCANVAS_DEFAULT_HEIGHT
-    return max(BOTCANVAS_DEFAULT_HEIGHT, screen_h - WINDOW_CHROME_ESTIMATE_PX - tallest)
-
-
-def single_client_canvas_floor(screen_h: int) -> int:
-    """The canvas height setup leaves at least, fitting one client to *screen_h* (``SINGLE_CLIENT_CANVAS_SHARE``)."""
-    return max(BOTCANVAS_DEFAULT_HEIGHT, math.ceil(SINGLE_CLIENT_CANVAS_SHARE * screen_h))
-
-
-def sidebar_widths_for(
-    screen_w: int,
-    left: int,
-    right: int,
-    launches: Iterable[tuple[tuple[int, int], int]],
-    dpr: float = 1.0,
-    grow_left: bool = True,
-    grow_right: bool = True,
+def layout_budget(
+    screen_size: tuple[int, int],
+    panes: Sequence[Pane],
+    sizes: Mapping[str, int],
 ) -> tuple[int, int]:
-    """The sidebar widths that leave *screen_w* exactly the widest grid of *launches*.
+    """``screen_budget``, with each pane held at its floor.
 
-    The width-wise twin of ``canvas_height_for``. *left* and *right* are the widths to
-    start from, and the width the widest grid does not need goes to the sides allowed to
-    grow. With both, it evens them up first, the narrower taking it until they match, and
-    shares what is left equally: two sidebars of one width look finished where a wide and
-    a narrow one look accidental. A screen with nothing to spare, or an empty *launches*,
-    leaves both as they are.
+    The cap that decides which resolutions may be launched. A stored size below a pane's
+    floor describes a layout the app cannot produce, so budgeting against it hands the
+    game area space the splitter will not give it. The clamp is on the read rather than
+    the stored value, which stays the user's.
     """
-    widest = max((required_game_area(resolution, count, dpr)[0] for resolution, count in launches), default=None)
-    if widest is None:
-        return left, right
-    spare = screen_w - left - right - 2 * SPLITTER_HANDLE_PX - widest
-    if spare <= 0:
-        return left, right
-    if grow_left and grow_right:
-        total = left + right + spare
-        if total // 2 >= max(left, right):
-            return total // 2, total - total // 2
-        return (left + spare, right) if left < right else (left, right + spare)
-    if grow_left:
-        return left + spare, right
-    if grow_right:
-        return left, right + spare
-    return left, right
+    held = {pane.name: max(sizes.get(pane.name, pane.floor), pane.floor) for pane in panes}
+    return screen_budget(screen_size, panes, held)
 
 
-def fits(resolution: tuple[int, int], client_count: int, budget: tuple[int, int], dpr: float = 1.0) -> bool:
-    """Whether *client_count* clients at *resolution* fit inside *budget*."""
-    need_w, need_h = required_game_area(resolution, client_count, dpr)
+def fits(resolution: tuple[int, int], tiles: Tiles, budget: tuple[int, int], dpr: float = 1.0) -> bool:
+    """Whether *tiles* at *resolution* fit inside *budget*."""
+    need_w, need_h = required_game_area(resolution, tiles, dpr)
     budget_w, budget_h = budget
     return need_w <= budget_w and need_h <= budget_h
 
 
 def largest_fitting(
     resolutions: list[tuple[int, int]],
-    client_count: int,
+    tiles: Tiles,
     budget: tuple[int, int],
     dpr: float = 1.0,
 ) -> tuple[int, int] | None:
@@ -657,7 +616,7 @@ def largest_fitting(
     "Biggest" is by area, so a wide 16:9 tier and a tall 4:3 one are ranked by how much
     game they actually show rather than by whichever axis is listed first.
     """
-    fitting = [r for r in resolutions if fits(r, client_count, budget, dpr)]
+    fitting = [r for r in resolutions if fits(r, tiles, budget, dpr)]
     if not fitting:
         return None
     return max(fitting, key=lambda r: (r[0] * r[1], r))
@@ -703,7 +662,7 @@ class FitProblem(NamedTuple):
         """The advice, which is the same for every entry that does not fit.
 
         Three ways out, and the third is not a screen-space one: the budget is the larger
-        of the configured layout and the live game area (see gui/screen_fit.budget_for),
+        of the configured layout and the live game area (see ``bartleby.qt.screen_fit.budget_for``),
         so dragging a sidebar narrower widens it there and then.
         """
         return "Lower the resolution, launch fewer clients, or make the game area larger."
@@ -721,19 +680,19 @@ class FitProblem(NamedTuple):
 
 def fit_details(
     resolution: tuple[int, int],
-    client_count: int,
+    tiles: Tiles,
     budget: tuple[int, int],
     dpr: float = 1.0,
 ) -> FitProblem | None:
-    """Why *client_count* clients at *resolution* will not fit, or None if they will.
+    """Why *tiles* at *resolution* will not fit, or None if they will.
 
     An entry that cannot launch is shown disabled carrying this rather than hidden: a
     profile that has vanished leaves the user hunting for it with no indication of why,
     which is worse than a grayed row that says what would bring it back.
     """
-    if fits(resolution, client_count, budget, dpr):
+    if fits(resolution, tiles, budget, dpr):
         return None
-    need_w, need_h = required_game_area(resolution, client_count, dpr)
+    need_w, need_h = required_game_area(resolution, tiles, dpr)
     budget_w, budget_h = budget
     # Both numbers are logical pixels, and the resolution beside them is physical ones, so
     # on a scaled display the sentence would otherwise read as a client needing *less*
@@ -743,7 +702,7 @@ def fit_details(
     scale = dpr or 1.0
     return FitProblem(
         resolution=resolution,
-        client_count=client_count,
+        client_count=len(tile_sizes(tiles)),
         need=(round(need_w * scale), round(need_h * scale)),
         available=(round(budget_w * scale), round(budget_h * scale)),
     )
@@ -751,10 +710,10 @@ def fit_details(
 
 def fit_problem(
     resolution: tuple[int, int],
-    client_count: int,
+    tiles: Tiles,
     budget: tuple[int, int],
     dpr: float = 1.0,
 ) -> str | None:
     """``fit_details`` as one sentence, for tooltips and disabled menu entries."""
-    problem = fit_details(resolution, client_count, budget, dpr)
+    problem = fit_details(resolution, tiles, budget, dpr)
     return None if problem is None else problem.sentence

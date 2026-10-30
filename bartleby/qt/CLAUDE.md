@@ -686,7 +686,7 @@ undo by accident:
   re-read from `config.xml`, which after one session holds our clamp rather than their
   preference.
 - **A configuration that will not fit cannot be launched**, and the entry that cannot
-  launch is **disabled with the reason, never hidden**. `bartlebot/gui/screen_fit.py` is
+  launch is **disabled with the reason, never hidden**. `bartleby/qt/screen_fit.py` is
   the one place that asks; the surfaces that must agree are `ProfileCard`/`AccountCard`,
   the Launch menu, `LauncherPopup`, and both resolution combos (`accounts_tab.py` and
   `profile_editor.py`). Disabled where it would *launch*, though (the Quick Launch
