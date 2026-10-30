@@ -109,7 +109,7 @@ BartleBot supplies what core's copies cut away:
 | `settings.store.configure(settings)`, a `SettingsStore` | `SettingsManager.instance`, so whichever singleton is current answers, handed as `settings_manager` is imported |
 | `rows.declare_folds(defaults)` | its three folding groups, declared as `gui/settings` is imported |
 | `SettingsDialog(tabs)`, `SettingsTab`s | its `SettingsDialog`, a subclass listing its seven tabs |
-| `AccountsTab.product_launch_rows()` | its `AccountsTab`, a subclass adding character selection |
+| `AccountsTab.AUTO_SELECT_DETAILS` | its `AccountsTab`, a subclass adding that crash recovery reads the setting too |
 | `FirstRunDialog(pages)`, `needs_asking(prefs, page_types)` | `setup_pages`, the shared pages with its texts and setup area and its own four, and its `needs_asking` over their types |
 | `apply_app_theme(app, mode, custom)` | its theme setting, at startup and on Settings' OK |
 | `StartCard(pill=)` | a template's Source pill, on New Bot's and the Templates dialog's cards |
@@ -136,7 +136,8 @@ moving it whole kept every line and its tests as they were.
 
 BartleBuddy uses core's manager as it is, on its runtime thread: its session listens to
 `clients_changed`, so a reorder or an unhook reaches the team, and its launches go through
-`begin_launch` and `end_launch`. It has no recovery until its phase 3.
+`begin_launch` and `end_launch`, with the session's `drive_client_in` as each launch's drive. It
+has no recovery until its phase 3.
 
 ### Player cards, drawn from views
 

@@ -569,11 +569,17 @@ class SampleStore:
     %APPDATA%, so a card action's write lands on disk as it would in either product.
     """
 
-    DEFAULTS: dict = {"theme": "system", "game_resolution": (800, 600), "disable_quick_friend_teleport": True}
+    DEFAULTS: dict = {
+        "theme": "system",
+        "game_resolution": (800, 600),
+        "auto_select_character": True,
+        "disable_quick_friend_teleport": True,
+    }
 
     def __init__(self) -> None:
         self.account_store = AccountStore()
         self.game_resolution = self.DEFAULTS["game_resolution"]
+        self.auto_select_character = self.DEFAULTS["auto_select_character"]
         self.disable_quick_friend_teleport = self.DEFAULTS["disable_quick_friend_teleport"]
         self.theme = self.DEFAULTS["theme"]
         self.custom_theme: dict = {}

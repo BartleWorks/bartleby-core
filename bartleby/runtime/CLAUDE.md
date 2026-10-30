@@ -16,6 +16,11 @@ clicks or writes memory on a client without owning it at that moment. A Player c
 never pressed except on the user's command. BartleBot's FSM is not on the arbiter yet; moving
 it there is a plan of its own.
 
+A launch's drive (`launcher/auto_select.py`) presses through the loading screens and character
+select with no lease: launching is the user's command, and until it is hooked the client is on
+no team for anything else to own. Its cleanup presses on a hooked client, so BartleBuddy holds
+a lease around it, by `drive_client_in`'s `hold`.
+
 **Speed is never written above 2.0x in total** (the field holds a mount's bonus too).
 
 **The GUI never touches a wizwalker object.** In BartleBuddy, snapshots cross out of the
