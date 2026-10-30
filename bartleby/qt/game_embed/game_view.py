@@ -2,8 +2,8 @@
 
 Moved from BartleBot's ``gui/game_embed/game_view.py`` (Stage 9 of BartleBot #167). What it
 read of BartleBot is handed in: a ``GameViewSettings`` for the accounts, the launch profiles,
-the recent launches and the resolution; the product's logo disc as the function that
-draws it; and the product's name and version, from the ``Product`` in use.
+the recent launches and the resolution; and the product's name and version, and the color
+of its logo disc, from the ``Product`` in use.
 
 Its tiles are BartleBot's equal grid unless a product hands it a ``tile_layouts.Layout``
 (:meth:`GameView.set_layout`), as BartleBuddy does: then the Main tiles go to the wizards
@@ -15,11 +15,11 @@ from __future__ import annotations
 import contextlib
 import ctypes
 import logging
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from typing import Protocol
 
 from PyQt6.QtCore import QEvent, QPoint, Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import QImage, QKeySequence, QShortcut
+from PyQt6.QtGui import QKeySequence, QShortcut
 from PyQt6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -38,6 +38,7 @@ from bartleby.qt.game_embed.card_columns import (
 )
 from bartleby.qt.game_embed.client_tile import ClientTile, DetachedTile, PendingTile, ScaledTile
 from bartleby.qt.game_embed.launch_cards import AccountCard, ProfileCard, launch_note_for, refresh_column_fit
+from bartleby.qt.logo import logo_disc_image
 from bartleby.qt.theming.account_accent import account_color_keys
 from bartleby.qt.theming.icon_utils import svg_icon
 from bartleby.qt.theming.theme import THEME
@@ -142,7 +143,6 @@ class _GamePlaceholder(QWidget):
     def __init__(
         self,
         settings: GameViewSettings,
-        disc_image: Callable[[int], QImage],
         parent=None,
         *,
         editing: bool = True,
@@ -155,7 +155,6 @@ class _GamePlaceholder(QWidget):
         """
         super().__init__(parent)
         self._settings = settings
-        self._disc_image = disc_image
         self._editing = editing
         self._empty_accounts_hint = empty_accounts_hint
         # Set before _build_ui: the constructor's own refresh() reads it.
@@ -223,7 +222,7 @@ class _GamePlaceholder(QWidget):
         center.addWidget(version, alignment=Qt.AlignmentFlag.AlignHCenter)
         center.addSpacing(8)
 
-        logo = LogoDisc(_LOGO_SIZE, self._disc_image)
+        logo = LogoDisc(_LOGO_SIZE, logo_disc_image)
         logo_wrapper = QHBoxLayout()
         logo_wrapper.setContentsMargins(0, 0, 0, 0)
         logo_wrapper.addStretch()
@@ -529,8 +528,8 @@ class GameView(ThemedMixin, QWidget):
     geometry precisely on resize without Qt interfering with the Win32-embedded
     child windows.
 
-    *settings*, *disc_image*, *editing* and *empty_accounts_hint* are the launch
-    screen's; see ``_GamePlaceholder``.
+    *settings*, *editing* and *empty_accounts_hint* are the launch screen's; see
+    ``_GamePlaceholder``.
     """
 
     embed_state_changed = pyqtSignal(bool)  # True = ≥1 client embedded
@@ -561,7 +560,6 @@ class GameView(ThemedMixin, QWidget):
     def __init__(
         self,
         settings: GameViewSettings,
-        disc_image: Callable[[int], QImage],
         parent=None,
         *,
         editing: bool = True,
@@ -601,9 +599,7 @@ class GameView(ThemedMixin, QWidget):
         self._captions: list[str | None] = []
 
         # Placeholder shown when no clients are embedded or detached
-        self._placeholder = _GamePlaceholder(
-            settings, disc_image, self, editing=editing, empty_accounts_hint=empty_accounts_hint
-        )
+        self._placeholder = _GamePlaceholder(settings, self, editing=editing, empty_accounts_hint=empty_accounts_hint)
         self._placeholder.launch_account_requested.connect(self.launch_account_requested)
         self._placeholder.launch_profile_requested.connect(self.launch_profile_requested)
         self._placeholder.edit_account_requested.connect(self.edit_account_requested)

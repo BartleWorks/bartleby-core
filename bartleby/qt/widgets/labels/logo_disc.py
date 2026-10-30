@@ -1,8 +1,8 @@
 """The logo on its disc, ringed in the accent, as the launch screen shows it (BartleBot #26).
 
-Moved from BartleBot's ``gui/widgets/labels/logo_disc.py``. The disc is the product's own
-logo, so it is handed in: a function that draws it *n* pixels across, as BartleBot's
-``gui.logo.logo_disc_image`` does. The ring and its sizing are the family's.
+Moved from BartleBot's ``gui/widgets/labels/logo_disc.py``. The disc is handed in as a
+function that draws it *n* pixels across, which on the launch screen is
+:func:`bartleby.qt.logo.logo_disc_image`. The ring and its sizing are here.
 """
 
 from __future__ import annotations

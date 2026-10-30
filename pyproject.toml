@@ -33,6 +33,8 @@ dev = [
     "ruff>=0.15",
     # tools/dump_realm_names.py reads Root.wad with it. Nothing in bartleby/ reads a WAD.
     "katsuba>=0.4.0",
+    # qt/logo/export.py writes the .ico with it, for a product tool. The app never imports that module.
+    "pillow>=11.0",
 ]
 
 # Ours, pinned by exact commit, the same pins BartleBot carries (its docs/UPSTREAM.md).

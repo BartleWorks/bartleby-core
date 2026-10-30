@@ -69,10 +69,9 @@ def test_a_real_process_ends_with_the_code_and_its_output_flushed():
     """TerminateProcess skips the CRT's own flush, so what was printed must already be out."""
     script = (
         "import atexit, sys\n"
-        "from pathlib import Path\n"
         "from bartleby.qt.app.app_exit import exit_skipping_teardown\n"
         "from bartleby.shared import product\n"
-        "product.use(product.Product('Sample', '1.2.3', '#3366bb', '#5b95d6', Path('logo.svg')))\n"
+        "product.use(product.Product('Sample', '1.2.3', '#3366bb', '#5b95d6', '#204060'))\n"
         "atexit.register(lambda: print('atexit ran'))\n"
         "print('before', end='')\n"
         "exit_skipping_teardown(7)\n"
