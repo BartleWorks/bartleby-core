@@ -5,8 +5,9 @@ import math
 
 import pytest
 
-from bartleby.runtime.arbiter import Arbiter, Owner
+from bartleby.runtime.arbiter import Arbiter, Lease, Owner
 from bartleby.runtime.game.key_bindings import GameAction
+from bartleby.runtime.input import ClientInput
 from bartleby.runtime.movement import follow
 from bartleby.runtime.movement.follow import Follower, StepKind, spacing_for
 from bartleby.runtime.movement.geometry import flat_distance
@@ -199,6 +200,59 @@ async def test_a_follower_runs_at_2x_to_catch_up_and_never_above(quick):
     await asyncio.gather(task, return_exceptions=True)
     speeds = [r.detail for r in client.inputs if r.kind == "speed"]
     assert 100 in speeds and max(speeds) == 100
+
+
+def _speed_follower(client: SimClient) -> tuple[Follower, Lease]:
+    arbiter, leader_reader, me = Arbiter(), StateReader(SimClient()), StateReader(client)
+    follower = Follower(client, me, leader_reader, Trail(), arbiter, spacing=spacing_for(0))
+    return follower, Lease(client, Owner.MOVEMENT, ClientInput(client))
+
+
+async def test_a_follower_waits_for_a_steady_character_before_writing_speed():
+    client = SimClient(speed=0)
+    follower, lease = _speed_follower(client)
+    await follower._set_speed(lease, fast=True)
+    assert client.speed == 0
+    await follower._set_speed(lease, fast=True)
+    assert client.speed == 100
+    assert follower.own_speed == 0
+
+
+async def test_a_follower_never_writes_speed_to_a_logged_out_characters_freed_object():
+    client = SimClient(speed=0)
+    follower, lease = _speed_follower(client)
+    await follower._set_speed(lease, fast=True)
+    await follower._set_speed(lease, fast=True)
+    writes = len(client.inputs)
+
+    client.log_out()
+    for _ in range(3):
+        await follower._set_speed(lease, fast=True)
+    await follower.restore_speed(lease)
+    assert len(client.inputs) == writes
+    assert client.speed == 0x1234
+
+
+async def test_a_follower_gives_speed_back_only_to_the_character_it_was_read_from():
+    client = SimClient(speed=10)
+    follower, lease = _speed_follower(client)
+    await follower._set_speed(lease, fast=True)
+    await follower._set_speed(lease, fast=True)
+    assert client.speed == 100
+
+    # Another character, whose field happens to hold our value.
+    client.character = 777
+    await follower.restore_speed(lease)
+    assert client.speed == 100
+
+
+async def test_a_follower_gives_its_own_speed_back():
+    client = SimClient(speed=10)
+    follower, lease = _speed_follower(client)
+    await follower._set_speed(lease, fast=True)
+    await follower._set_speed(lease, fast=True)
+    await follower.restore_speed(lease)
+    assert client.speed == 10
 
 
 async def test_a_hotkey_preempts_a_walking_follower_which_then_resumes(quick):

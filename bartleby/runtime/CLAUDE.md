@@ -21,7 +21,13 @@ select with no lease: launching is the user's command, and until it is hooked th
 no team for anything else to own. Its cleanup presses on a hooked client, so BartleBuddy holds
 a lease around it, by `drive_client_in`'s `hold`.
 
-**Speed is never written above 2.0x in total** (the field holds a mount's bonus too).
+**Speed is never written above 2.0x in total** (the field holds a mount's bonus too), and
+there is one Speed toggle, `actions/helpers.py`'s `SpeedBoost`: BartleBot's authoring tools
+hold one too, on an arbiter of their own, since a run switches them off first.
+
+**A client object is written to only once `actions/live_character.py` says so.** The hook
+keeps a logged-out character's freed address until the next one loads, so a read is garbage
+and a write corrupts the game's heap. Speed's every 0.3 s crashed three clients.
 
 **The GUI never touches a wizwalker object.** In BartleBuddy, snapshots cross out of the
 runtime and commands cross in, by `bartleby.qt.runtime_bridge`. A shared widget takes a

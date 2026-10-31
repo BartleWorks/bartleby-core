@@ -2,7 +2,7 @@
 
 The arbiter, following, spacing and the quester are where most bugs will be, and none of
 them should need the game to test. A :class:`SimClient` answers the reads they make
-(position, yaw, zone, loading, battle, the speed field, the interact prompt), takes the
+(position, yaw, zone, loading, battle, the speed field, the character, the interact prompt), takes the
 input they send (keys pressed and held, yaw and speed written), logs every input with the
 time it came, and walks while its forward key is held, at the speed its speed field says.
 
@@ -72,6 +72,12 @@ class _Body:
 class _ClientObject:
     sim: SimClient
 
+    async def maybe_read_type_name(self) -> str:
+        return self.sim.type_name
+
+    async def read_value_from_offset(self, offset: int, primitive) -> int:
+        return self.sim.character
+
     async def speed_multiplier(self) -> int:
         return self.sim.speed
 
@@ -108,6 +114,9 @@ class SimClient:
     loading: bool = False
     battle: bool = False
     speed: int = 0
+    #: The character id and type name its client object reads as; ``log_out`` stages a freed one.
+    character: int = 1
+    type_name: str = "WizClientObject"
     npc_range: bool = False
     dialog: bool = False
     clock: Callable[[], float] = time.monotonic
@@ -160,6 +169,12 @@ class SimClient:
         self.position = position
         if zone is not None:
             self.zone = zone
+
+    def log_out(self) -> None:
+        """Free the client object, as a logout does: the hook still points at the memory."""
+        self.type_name = ""
+        self.character = 0xFFFFFFFFFFFFFFFF
+        self.speed = 0x1234
 
     def presses(self, action: GameAction) -> int:
         code = self._keys.choose(action).code

@@ -36,8 +36,10 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from enum import StrEnum
 
+from bartleby.runtime.actions.live_character import CharacterWatch, live_character_id
 from bartleby.runtime.arbiter import Arbiter, Lease, Owner, Preempted, Revoked
 from bartleby.runtime.game.key_bindings import GameAction
+from bartleby.runtime.game.wizard_names import NO_CHARACTER
 from bartleby.runtime.input import SPEED_VALUE_MAX
 from bartleby.runtime.movement.geometry import Point, flat_distance, heading_to, offset_from
 from bartleby.runtime.movement.trail import Mark, Trail, TrailPoint
@@ -151,6 +153,8 @@ class Follower:
         self._stalls = 0
         self._stall_from: tuple[Point, float] | None = None
         self._written_speed: int | None = None
+        self._written_character = NO_CHARACTER
+        self._speed_watch = CharacterWatch()
         self.own_speed: int | None = None
         self.last_step = Step(StepKind.WAIT)
 
@@ -368,20 +372,31 @@ class Follower:
             current = await self.client.client_object.speed_multiplier()
         except Exception:
             return
-        if current != self._written_speed:
+        if current == want:
+            # Nothing to write, so no walk of the UI tree on this tick.
+            self._speed_watch.forget(self.client)
+            return
+        # The field of a logged-out character is freed memory (actions/live_character.py).
+        character = await self._speed_watch.steady_character(self.client)
+        if character == NO_CHARACTER:
+            return
+        if current != self._written_speed or character != self._written_character:
             # Anything but our own value was written by the game -- a zone change, a mount --
             # and is the one to give back.
             self.own_speed = current
-        if current != want:
-            await lease.input.write_speed(want)
-            self._written_speed = min(want, SPEED_VALUE_MAX)
+        await lease.input.write_speed(want)
+        self._written_speed = min(want, SPEED_VALUE_MAX)
+        self._written_character = character
 
     async def restore_speed(self, lease: Lease) -> None:
         """Give the follower its own speed back, if we changed it and the game has not since."""
         if self.own_speed is None or self._written_speed is None:
             return
         try:
-            if await self.client.client_object.speed_multiplier() == self._written_speed:
+            if (
+                await live_character_id(self.client) == self._written_character
+                and await self.client.client_object.speed_multiplier() == self._written_speed
+            ):
                 await lease.input.write_speed(self.own_speed)
         except Exception:
             logger.debug("Could not restore %s's speed", self.label)
