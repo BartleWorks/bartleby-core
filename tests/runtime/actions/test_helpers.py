@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from bartleby.runtime.actions import helpers
+from bartleby.runtime.actions import helpers, live_character
 from bartleby.runtime.actions.helpers import AutoDialogue, Member, SpeedBoost
 from bartleby.runtime.arbiter import Arbiter, Owner
 from bartleby.runtime.clients.group_manager import GroupResult
@@ -112,6 +112,119 @@ async def test_speed_never_goes_above_2x_and_is_given_back(arbiter, monkeypatch)
     assert client.speed == 100
     await boost.set(False)
     assert client.speed == 55, "switching off gives back the game's latest value"
+
+
+@pytest.fixture
+def speed_on(arbiter, monkeypatch):
+    """A running boost at 2.0x over *client*, ticking fast, switched off at the end of the test."""
+    monkeypatch.setattr(helpers, "SPEED_REAPPLY_INTERVAL", 0.001)
+    boosts = []
+
+    async def start(client):
+        boost = SpeedBoost(arbiter, lambda: team(client), multiplier=lambda: 2.0)
+        boosts.append(boost)
+        await boost.set(True)
+        return boost
+
+    return start
+
+
+async def _until(predicate, ticks: int = 500) -> None:
+    for _ in range(ticks):
+        if predicate():
+            return
+        await asyncio.sleep(0.001)
+    raise AssertionError("condition never became true")
+
+
+def _speed_writes(client) -> int:
+    return sum(1 for r in client.inputs if r.kind == "speed")
+
+
+async def test_speed_off_leaves_a_value_the_game_wrote_since(speed_on):
+    client = SimClient(speed=0)
+    boost = await speed_on(client)
+    await _until(lambda: client.speed == 100)
+    # Freeze the loop, so the game's write below is not overwritten.
+    boost._task.cancel()
+    await asyncio.sleep(0.005)
+    client.speed = 25
+    await boost.set(False)
+    assert client.speed == 25
+
+
+async def test_speed_skips_a_client_on_a_loading_screen(speed_on):
+    client = SimClient(speed=0, loading=True)
+    boost = await speed_on(client)
+    await asyncio.sleep(0.01)
+    await boost.set(False)
+    assert _speed_writes(client) == 0
+
+
+async def test_a_restored_client_gets_its_speed_back_while_the_boost_stays_on(speed_on):
+    client = SimClient(speed=10)
+    boost = await speed_on(client)
+    await _until(lambda: client.speed == 100)
+    await boost.restore(client)
+    assert client.speed == 10
+    await boost.set(False)
+
+
+async def test_speed_never_writes_to_a_logged_out_characters_freed_object(speed_on):
+    client = SimClient(speed=0)
+    boost = await speed_on(client)
+    await _until(lambda: client.speed == 100)
+    writes = _speed_writes(client)
+
+    client.log_out()
+    await asyncio.sleep(0.02)
+    await boost.set(False)
+    assert _speed_writes(client) == writes
+    assert client.speed == 0x1234
+
+
+async def test_speed_never_writes_at_character_select(speed_on, monkeypatch):
+    monkeypatch.setattr(live_character, "at_character_select", AsyncMock(return_value=True))
+    client = SimClient(speed=0)
+    boost = await speed_on(client)
+    await asyncio.sleep(0.02)
+    await boost.set(False)
+    assert _speed_writes(client) == 0
+
+
+async def test_speed_never_writes_while_the_character_id_keeps_changing(speed_on):
+    client = SimClient(speed=0)
+    ids = iter(range(1, 100_000))
+    client.client_object.read_value_from_offset = AsyncMock(side_effect=lambda *_: next(ids))
+    boost = await speed_on(client)
+    await asyncio.sleep(0.02)
+    await boost.set(False)
+    assert _speed_writes(client) == 0
+
+
+async def test_speed_boosts_a_new_character_and_gives_back_only_its_own_speed(speed_on):
+    client = SimClient(speed=10)
+    boost = await speed_on(client)
+    await _until(lambda: client.speed == 100)
+
+    # The next character loads: the hook hands over its object, at its own speed.
+    client.character = 777
+    client.speed = 0
+    await _until(lambda: client.speed == 100)
+
+    await boost.set(False)
+    assert client.speed == 0
+
+
+async def test_speed_off_gives_nothing_back_to_a_different_character(speed_on):
+    client = SimClient(speed=10)
+    boost = await speed_on(client)
+    await _until(lambda: client.speed == 100)
+
+    # Another character, whose field happens to hold our value.
+    client.character = 777
+    await boost.set(False)
+    assert client.speed == 100
 
 
 async def test_gather_ports_everyone_but_the_source_under_their_leases(arbiter):

@@ -9,7 +9,8 @@ that each product builds its own buttons from the list (:data:`HELPERS`):
   (:func:`~bartleby.runtime.actions.node_helpers.advance_dialog_once`); :class:`AutoDialogue`
   does it as dialogue opens.
 * **Speed** keeps each client's speed field at a multiplier, never above 2.0x in total, and
-  gives each its own back when switched off (:class:`SpeedBoost`).
+  gives each its own back when switched off (:class:`SpeedBoost`). BartleBot's authoring
+  Speed is this class too.
 * **Gather** ports every other client to the source through the friends list.
 * **Group** forms one in-game group around the source (``clients/group_manager.py``).
 
@@ -33,6 +34,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from bartleby.runtime.actions import node_helpers
+from bartleby.runtime.actions.live_character import CharacterWatch, live_character_id
 from bartleby.runtime.arbiter import Arbiter, Busy, LeaseLost, Owner
 from bartleby.runtime.clients import group_manager
 from bartleby.runtime.game import wizard_names
@@ -209,14 +211,18 @@ class SpeedBoost(_Toggle):
 
     The game rewrites the field on every zone change and mount, so it is checked every
     :data:`~bartleby.runtime.timing.SPEED_REAPPLY_INTERVAL` and written again; whatever the
-    game wrote is the member's own, and is what switching off restores.
+    game wrote is the member's own, and is what switching off restores, only to the
+    character it was read from. A write waits for :class:`CharacterWatch`: the field of a
+    logged-out character is freed memory (:mod:`bartleby.runtime.actions.live_character`).
     """
 
     def __init__(self, arbiter, members, multiplier: Callable[[], float], on_change=None) -> None:
         super().__init__(arbiter, members, on_change)
         self._multiplier = multiplier
         self._value = 0
-        self._originals: dict[int, tuple[object, int]] = {}
+        # The game's own value per window: the client, the character it was read from, the value.
+        self._originals: dict[int, tuple[object, int, int]] = {}
+        self._watch = CharacterWatch()
 
     async def _loop(self) -> None:
         self._value = speed_value(self._multiplier())
@@ -229,12 +235,13 @@ class SpeedBoost(_Toggle):
 
     async def _boost(self, member: Member) -> None:
         client = member.client
-        if await client.is_loading():
+        character = await self._watch.steady_character(client)
+        if character == wizard_names.NO_CHARACTER:
             return
         current = await client.client_object.speed_multiplier()
         if current == self._value:
             return
-        self._originals[client.window_handle] = (client, current)
+        self._originals[client.window_handle] = (client, character, current)
         try:
             async with self._arbiter.acquire(client, Owner.HOTKEY, wait=False, detail="speed") as lease:
                 await lease.input.write_speed(self._value)
@@ -243,18 +250,24 @@ class SpeedBoost(_Toggle):
 
     async def _after_off(self) -> None:
         originals, self._originals = self._originals, {}
-        for client, original in originals.values():
-            await self.restore(client, original)
+        self._watch.clear()
+        for client, character, original in originals.values():
+            await self._give_back(client, character, original)
         logger.info("Speed off: every player walks at their own speed")
 
-    async def restore(self, client, original: int | None = None) -> None:
+    async def restore(self, client) -> None:
         """Give *client* its own speed back, if the field still holds ours."""
-        if original is None:
-            entry = self._originals.pop(client.window_handle, None)
-            if entry is None:
-                return
-            original = entry[1]
+        self._watch.forget(client)
+        entry = self._originals.pop(client.window_handle, None)
+        if entry is not None:
+            await self._give_back(*entry)
+
+    async def _give_back(self, client, character: int, original: int) -> None:
         try:
+            # Only to the character it was read from, and only over our own value: one the
+            # game has written since is already its own.
+            if await live_character_id(client) != character:
+                return
             if await client.client_object.speed_multiplier() == self._value:
                 async with self._arbiter.acquire(client, Owner.HOTKEY, detail="speed") as lease:
                     await lease.input.write_speed(original)
