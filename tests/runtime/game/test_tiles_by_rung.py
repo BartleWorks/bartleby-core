@@ -326,6 +326,34 @@ def test_a_one_account_session_never_asks_for_a_resize_whatever_the_area():
         assert targets == [(640, 360)]
 
 
+# -- a client the launch fit never judged -------------------------------------------------------
+
+
+def test_beside_another_a_game_too_large_for_its_tile_takes_the_largest_smaller_rung_that_fits():
+    """Clients left from an earlier session, one since set to 1280x720, on 1080p with the sidebar shown."""
+    tile = (806, 971)
+
+    assert tile_targets([WIDE, (560, 420)], [tile, tile], 2) == [(746, 420), (560, 420)]
+
+
+def test_it_goes_back_up_to_its_launch_size_as_room_comes_and_no_further():
+    roomy = tile_size((2560, 1440))
+
+    assert tile_targets([WIDE, (560, 420)], [roomy, roomy], 2) == [WIDE, (560, 420)]
+
+
+def test_with_no_rung_that_fits_it_takes_the_family_s_smallest():
+    assert tile_targets([WIDE, WIDE], [(100, 100), (100, 100)], 2) == [(534, 300), (534, 300)]
+
+
+def test_a_lone_client_keeps_its_launch_size_however_small_its_tile():
+    assert tile_targets([WIDE], [(100, 100)], 1) == [WIDE]
+
+
+def test_a_too_large_client_with_no_ladder_still_has_no_target():
+    assert tile_targets([(1280, 1024), WIDE], [(100, 100), (100, 100)], 2) == [None, (534, 300)]
+
+
 # -- a client with no ladder, and mixed sessions -------------------------------------------------
 
 
@@ -340,7 +368,7 @@ def test_a_client_with_no_ladder_has_no_target():
 
 
 def test_a_client_of_unknown_launch_has_no_target():
-    assert tile_targets([None, WIDE], [(622, 971), (622, 971)], 2) == [None, WIDE]
+    assert tile_targets([None, WIDE], [tile_size(WIDE), tile_size(WIDE)], 2) == [None, WIDE]
 
 
 def test_a_client_of_the_other_family_takes_its_own_family_s_rung():

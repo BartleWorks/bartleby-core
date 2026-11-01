@@ -233,6 +233,8 @@ def by_rung(qapp, monkeypatch):
     monkeypatch.setattr(client_tile, "EmbeddedWindow", _Sized)
     monkeypatch.setattr(game_dpi, "window_is_scaled", lambda hwnd: False)
     monkeypatch.setattr(GameView, "devicePixelRatio", lambda self: 1.0)
+    # A screen everything here fits on, since CI's is small; a test of a small one says so.
+    monkeypatch.setattr(screen_fit, "screen_metrics", lambda _widget=None: ((3840, 2160), 1.0))
     views, hosts = [], []
 
     def build(area: tuple[int, int], launches: list[tuple[int, int]]) -> GameView:
@@ -653,6 +655,70 @@ def test_the_floor_with_rungs_off_follows_the_size_given_back(asking):
 
     game.game_resized(100, (746, 420))
     assert (game.minimumWidth(), game.minimumHeight()) == required_game_area((746, 420), sizes)
+
+
+# -- a game the launch fit never judged ------------------------------------------------------
+
+
+@pytest.fixture
+def on_1080p(monkeypatch):
+    """A 1080p screen at 100%, once the view has been built."""
+    return lambda: monkeypatch.setattr(screen_fit, "screen_metrics", lambda _widget=None: ((1920, 1040), 1.0))
+
+
+LEFT_RUNNING = ((1280, 720), (560, 420))
+
+
+def test_the_floor_never_passes_the_screen_when_a_game_can_follow_its_tile_down(asking, on_1080p):
+    """Clients left from an earlier session, one since set to 1280x720: their grid is 2,584 wide."""
+    game, _timer, _asked = asking(launches=LEFT_RUNNING, area=(1612, 971))
+    on_1080p()
+
+    game.set_layout(GRID, [True, True], by_rung=True)
+
+    budget, _dpr = screen_fit.budget_for(game)
+    assert game.minimumWidth() <= budget[0]
+    assert game.minimumHeight() <= budget[1]
+    assert game.minimumWidth() < required_game_area(LEFT_RUNNING[0], 2)[0]
+
+
+def test_in_a_grid_a_game_too_large_for_its_tile_is_asked_down_and_back_up(asking, on_1080p):
+    game, timer, asked = asking(launches=LEFT_RUNNING, area=(1612, 971))
+    on_1080p()
+    game.set_layout(GRID, [True, True], by_rung=True)
+
+    game.setMinimumSize(0, 0)
+    game.resize(1612, 971)
+    game._recompute_geometry()
+    timer.fire()
+    assert asked == [(100, (746, 420))], "the one that fits is left alone"
+    game.game_resized(100, (746, 420))
+    asked.clear()
+
+    game.resize(3000, 971)
+    game._recompute_geometry()
+    timer.fire()
+    assert asked == [(100, (1280, 720))]
+
+
+def test_a_launch_that_fits_keeps_the_floor_it_had(asking, on_1080p):
+    game, _timer, _asked = asking()
+    on_1080p()
+
+    game.set_layout(GRID, [True, True], by_rung=True)
+
+    assert (game.minimumWidth(), game.minimumHeight()) == required_game_area((746, 420), 2)
+
+
+def test_a_lone_client_keeps_its_floor_whatever_the_screen(asking, on_1080p):
+    game, timer, asked = asking(launches=[(2560, 1440)], area=(1612, 971))
+    on_1080p()
+
+    game.set_layout(GRID, [True], by_rung=True)
+    timer.fire()
+
+    assert (game.minimumWidth(), game.minimumHeight()) == required_game_area((2560, 1440), 1)
+    assert asked == []
 
 
 # -- the ring, while a game is out of its tile -------------------------------------------------

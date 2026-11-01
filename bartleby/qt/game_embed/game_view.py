@@ -31,6 +31,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from bartleby.qt import screen_fit
 from bartleby.qt.game_embed.card_columns import (
     ACCOUNTS_TITLE,
     ADD_ACCOUNT,
@@ -51,7 +52,15 @@ from bartleby.qt.widgets.labels.logo_disc import LogoDisc
 from bartleby.qt.widgets.labels.themed_label import ThemedTextLabel
 from bartleby.runtime.clients.tile_slots import TileKey, TileSlot, plan_tile_changes
 from bartleby.runtime.game import tile_layouts
-from bartleby.runtime.game.game_sizing import Tiles, aspect_family, required_game_area, rung_tiles, tile_targets
+from bartleby.runtime.game.game_sizing import (
+    Tiles,
+    aspect_family,
+    fits,
+    largest_fitting,
+    required_game_area,
+    rung_tiles,
+    tile_targets,
+)
 from bartleby.runtime.game.tile_layouts import Layout, TileSize
 from bartleby.runtime.timing import RESIZE_SETTLE
 from bartleby.shared import game_dpi, product
@@ -1340,20 +1349,17 @@ class GameView(ThemedMixin, QWidget):
         understated the minimum whenever they differed, and the biggest client was the one
         that got clipped.
 
-        Tiles by rung are measured as the equal grid at the launch sizes, which the launch fit
-        allowed, and never at the sizes the games have now. A floor taken from a Main grown by
-        maximizing would stop the window being restored, and its game would follow a smaller
-        tile down anyway.
+        Tiles by rung are measured as the equal grid at the launch sizes, and never at the sizes
+        the games have now. A floor taken from a Main grown by maximizing would stop the window
+        being restored, and its game would follow a smaller tile down anyway.
         """
         slots = self._occupied_slots()
         if not slots:
             self.setMinimumSize(0, 0)
             return
-        if self._rung_family_in_use() is not None:
-            launches = [size for size in map(self._launch_size_at, slots) if size is not None]
-            launches = launches or [self._settings.game_resolution]
-            largest = max(size[0] for size in launches), max(size[1] for size in launches)
-            self.setMinimumSize(*required_game_area(largest, len(slots), self.devicePixelRatio() or 1.0))
+        family = self._rung_family_in_use()
+        if family is not None:
+            self.setMinimumSize(*self._rung_floor(slots, family))
             return
         # A launching window is measured at the resolution its launch opens it at: a
         # profile's own, which the global one need not be anywhere near. Everything
@@ -1361,6 +1367,24 @@ class GameView(ThemedMixin, QWidget):
         # what those windows were launched at, and what a re-attach brings back.
         largest = self._largest_size() or self._settings.game_resolution
         self.setMinimumSize(*required_game_area(largest, self._tile_sizes(slots), self.devicePixelRatio() or 1.0))
+
+    def _rung_floor(self, slots: list[int], family: Sequence[tuple[int, int]]) -> tuple[int, int]:
+        """The equal grid at the launch sizes, or at the largest rung the screen holds if it doesn't.
+
+        The launch fit allowed that grid, for a launch it judged. It never judged a client
+        started outside the app, or a launch made with the sidebar hidden that then shows, and a
+        floor past the screen pushes tiles off the window. Beside another, a game can follow its
+        tile down instead. A lone client keeps its floor, as it never resizes.
+        """
+        launches = [size for size in map(self._launch_size_at, slots) if size is not None]
+        launches = launches or [self._settings.game_resolution]
+        largest = max(size[0] for size in launches), max(size[1] for size in launches)
+        count, dpr = len(slots), self.devicePixelRatio() or 1.0
+        if count > 1:
+            budget, _dpr = screen_fit.budget_for(self)
+            if not fits(largest, count, budget, dpr):
+                largest = largest_fitting(list(family), count, budget, dpr) or family[0]
+        return required_game_area(largest, count, dpr)
 
     def _pending_resolutions(self) -> list[tuple[int, int]]:
         """The resolution each launching window will open at, where its launch said."""

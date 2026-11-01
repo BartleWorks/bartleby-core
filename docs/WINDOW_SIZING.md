@@ -323,21 +323,25 @@ no resize behind it only costs room.
   The largest game with a ladder picks the family the tiles are placed by, and a client of the
   other family takes its own family's largest rung that fits, which a tile reserved for the
   first can still cut.
-- **With no Side tile, nothing resizes.** Each target is the launch size: one account, two
-  both played, and the equal grid. `tile_targets` is the one rule, and with a Side tile it
-  answers the largest of the client's family that fits (`fitting_rung`), and for a Side tile
-  always a rung below every Main tile's.
+- **With no Side tile, nothing resizes, if it fits.** Each target is the launch size: one
+  account, two both played, and the equal grid. `tile_targets` is the one rule, and with a Side
+  tile it answers the largest of the client's family that fits (`fitting_rung`), and for a Side
+  tile always a rung below every Main tile's.
+- **A game too large for its tile follows it down, beside another.** The launch fit never judged a
+  client started outside the app, or one left from an earlier session and since set larger. With
+  no Side tile it takes the largest rung below its launch size that fits, and goes back up as room
+  comes. A lone client never does, however small its tile, since it gains nothing.
 - **The equal grid is the fallback.** No strip fits where the reservation does not, as with
   three followers on 1080p with the sidebar shown. Nor does one where Main would come out at
   the smallest rung, since a Side tile then has no rung below it, or smaller than the equal
   grid makes it, which only two or more Main tiles reach. That last rule is what lets a launch
   be judged as the equal grid and always fit a Main tile.
 - **The window floor is that same grid, at the launch sizes**, never the sizes the games have now.
-  A floor taken from a Main grown by maximizing would stop the window being restored. So a client
-  launched at 854x480 beside another holds the game area at the two tiles' width even with a strip
-  that would fit in less: a launch made with the sidebar hidden can't then show it on 1080p, as
-  with the equal grid. The launch size is what was judged, and it is the one size every layout
-  is sure to hold.
+  A floor taken from a Main grown by maximizing would stop the window being restored. Where that
+  grid passes the screen, the floor is the grid at the largest rung the screen holds, with the panes
+  as they are. Two launches at 1280x720 ask for 2,584 wide, which pushed a tile under the sidebar on
+  1080p, and two at 854x480 launched with the sidebar hidden could not show it. Beside another, a
+  game can follow its tile down. A lone client keeps its floor.
 
 What it gives, at 100% display scale with a 40-pixel taskbar, where 1612 wide is the sidebar
 shown and 1920 hidden; `test_tiles_by_rung.py` holds these rows:

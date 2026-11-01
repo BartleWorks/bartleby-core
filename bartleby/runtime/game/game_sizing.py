@@ -530,6 +530,16 @@ def fits_tile(resolution: tuple[int, int], area: tuple[int, int], dpr: float = 1
     return tile_w <= area[0] and tile_h <= area[1]
 
 
+def _at_most_launch(
+    launch: tuple[int, int], area: tuple[int, int], family: Sequence[tuple[int, int]], dpr: float
+) -> tuple[int, int]:
+    """*launch* if a tile of *area* holds it, else the largest smaller rung of *family* that fits."""
+    if fits_tile(launch, area, dpr):
+        return launch
+    smaller = [rung for rung in family if rung[0] * rung[1] < launch[0] * launch[1]]
+    return fitting_rung(area, smaller or family[:1], dpr)
+
+
 def tile_targets(
     launches: Sequence[tuple[int, int] | None],
     areas: Sequence[tuple[int, int]],
@@ -543,7 +553,10 @@ def tile_targets(
     size or a count for the equal grid.
 
     With no Side tile, each target is the launch size, so a session that never has one
-    never asks for a resize. The launch fit judged that same grid, so the tile holds it.
+    never asks for a resize. The launch fit judged that same grid, so the tile holds it. A
+    client it never judged can still be too large, as one started outside the app is: beside
+    another, it takes the largest rung below its launch size that fits, and goes back up as
+    room comes. A lone client keeps its launch size whatever the tile, as it gains nothing.
 
     With a Side tile, one rule answers: the largest of the client's own family that fits
     its tile, and for a Side tile always a rung below every Main tile's, since a follower
@@ -552,7 +565,12 @@ def tile_targets(
     sizes = tile_sizes(tiles)
     families = [None if launch is None else aspect_family(launch) for launch in launches]
     if TileSize.SIDE not in sizes:
-        return [launch if family else None for launch, family in zip(launches, families)]
+        if len(sizes) < 2:
+            return [launch if family else None for launch, family in zip(launches, families)]
+        return [
+            _at_most_launch(launch, area, family, dpr) if family else None
+            for launch, area, family in zip(launches, areas, families)
+        ]
     targets: list[tuple[int, int] | None] = [
         fitting_rung(area, family, dpr) if family and size is TileSize.MAIN else None
         for area, family, size in zip(areas, families, sizes)
