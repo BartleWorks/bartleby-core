@@ -5,8 +5,9 @@ wizwalker's ``client.video_manager`` holds the apply, and this holds everything 
 when one may happen:
 
 **Latest target only.** :meth:`ClientResizer.resize` only says what size a client should be. One
-worker per client waits out loading, a fight and any lease it can't preempt, and reads the
-target at the last moment, so targets sent during a wait run only the last.
+worker per client waits out loading and any lease it can't preempt, and reads the target at
+the last moment, so targets sent during a wait run only the last. A fight is not waited out:
+the tiles have already changed shape, so a wait would leave a game cut off for the whole fight.
 
 **A lease, below hotkeys.** It writes memory, so it holds ``Owner.DISPLAY``: movement and the
 quester are preempted and resume from their own state, and a hotkey, combat or recovery goes
@@ -185,8 +186,8 @@ class ClientResizer:
     async def give_back(self, client) -> None:
         """Put *client* back at its launch size and UI size, on a short timeout, as it leaves its tile.
 
-        A client never resized, or one given up on, has nothing to give back. One still in a
-        fight or loading when the time is up is left as it is, with a warning.
+        A client never resized, or one given up on, has nothing to give back. One still loading
+        when the time is up, or held by a higher lease, is left as it is, with a warning.
         """
         entry = self._entries.get(client_key(client))
         if entry is None or entry.failed or entry.launch is None:
@@ -267,7 +268,7 @@ class ClientResizer:
 
     @staticmethod
     async def _in_the_way(client) -> bool:
-        return await client.is_loading() or await client.in_battle()
+        return await client.is_loading()
 
     async def _under_lease(self, client, entry: _Entry, timeout: float) -> None:
         try:

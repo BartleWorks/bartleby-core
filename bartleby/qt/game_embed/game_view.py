@@ -7,7 +7,9 @@ of its logo disc, from the ``Product`` in use.
 
 Its tiles are BartleBot's equal grid unless a product hands it a ``tile_layouts.Layout``
 (:meth:`GameView.set_layout`), as BartleBuddy does: then the Main tiles go to the wizards
-the user moves and the rest sit Side in a strip.
+the user moves and the rest sit Side in a strip. Placed by rung, each game can follow its
+tile's size: this says what each should be (:attr:`GameView.game_size_wanted`) and embeds
+it again when told how that went (:meth:`GameView.game_resized`).
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ from __future__ import annotations
 import contextlib
 import ctypes
 import logging
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from typing import Protocol
 
 from PyQt6.QtCore import QEvent, QPoint, Qt, QTimer, pyqtSignal
@@ -29,6 +31,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from bartleby.qt import screen_fit
 from bartleby.qt.game_embed.card_columns import (
     ACCOUNTS_TITLE,
     ADD_ACCOUNT,
@@ -49,8 +52,17 @@ from bartleby.qt.widgets.labels.logo_disc import LogoDisc
 from bartleby.qt.widgets.labels.themed_label import ThemedTextLabel
 from bartleby.runtime.clients.tile_slots import TileKey, TileSlot, plan_tile_changes
 from bartleby.runtime.game import tile_layouts
-from bartleby.runtime.game.game_sizing import Tiles, aspect_family, required_game_area, rung_tiles, tile_targets
+from bartleby.runtime.game.game_sizing import (
+    Tiles,
+    aspect_family,
+    fits,
+    largest_fitting,
+    required_game_area,
+    rung_tiles,
+    tile_targets,
+)
 from bartleby.runtime.game.tile_layouts import Layout, TileSize
+from bartleby.runtime.timing import RESIZE_SETTLE
 from bartleby.shared import game_dpi, product
 
 logger = logging.getLogger(__name__)
@@ -556,6 +568,11 @@ class GameView(ThemedMixin, QWidget):
     # A tile's caption was clicked: the player index it is captioned from, and the point
     # under the caption, global, for a menu to open at. Nothing here acts on it.
     caption_clicked = pyqtSignal(int, QPoint)
+    # A window should run at another size (an hwnd, and a (width, height)), and that has held
+    # for RESIZE_SETTLE. Answered through game_resized, whenever the runtime has done it.
+    game_size_wanted = pyqtSignal(object, object)
+    # A window has just left its tile for the desktop (an hwnd): its launch size is due back.
+    window_detached = pyqtSignal(object)
 
     def __init__(
         self,
@@ -600,6 +617,16 @@ class GameView(ThemedMixin, QWidget):
         # knows the size it was built over, and a window that has been resized is not at
         # its launch size when a re-attach builds a new tile over it.
         self._launch_sizes: dict[int, tuple[int, int]] = {}
+        # See set_resizable: the windows a size may be asked for, by hwnd.
+        self._resizable: frozenset[int] = frozenset()
+        # What has been asked for and not reached, by hwnd, so it is asked for once.
+        self._asked: dict[int, tuple[int, int]] = {}
+        # The area and the targets the settle timer is running for: see _note_targets.
+        self._settling: tuple = ()
+        self._settle_timer = QTimer(self)
+        self._settle_timer.setSingleShot(True)
+        self._settle_timer.setInterval(round(RESIZE_SETTLE * 1000))
+        self._settle_timer.timeout.connect(self._ask_for_targets)
         # See set_captions: a product's caption per player index, over the manager's label.
         self._captions: list[str | None] = []
 
@@ -777,6 +804,7 @@ class GameView(ThemedMixin, QWidget):
         if tile is None:
             return
         self._launch_sizes.pop(tile.hwnd, None)
+        self._asked.pop(tile.hwnd, None)
         tile.unembed()
         tile.hide()
         tile.setParent(None)  # type: ignore[arg-type]
@@ -867,10 +895,12 @@ class GameView(ThemedMixin, QWidget):
         # Unembed the game windows without touching _detached_tiles
         for idx in list(self._tiles.keys()):
             tile = self._tiles.pop(idx)
+            self._asked.pop(tile.hwnd, None)
             tile.unembed()
             tile.hide()
             tile.setParent(None)  # type: ignore[arg-type]
             tile.deleteLater()
+            self.window_detached.emit(tile.hwnd)
         self._placeholder.setVisible(False)
         self._recompute_geometry()
         self._update_minimum_size()
@@ -1018,8 +1048,35 @@ class GameView(ThemedMixin, QWidget):
         self._layout = layout
         self._played = list(played)
         self._by_rung = by_rung
+        if not by_rung:
+            self._asked.clear()
         self._recompute_geometry()
         self._update_minimum_size()
+
+    def set_resizable(self, hwnds: Iterable[int]) -> None:
+        """Say which windows a size may be asked for: those with a runtime to do it, so the hooked.
+
+        A window that joins is asked for afresh, since nothing was going to answer it before.
+        """
+        self._resizable = frozenset(hwnds)
+        self._asked = {hwnd: size for hwnd, size in self._asked.items() if hwnd in self._resizable}
+        self._note_targets()
+
+    def game_resized(self, hwnd: int, size: tuple[int, int]) -> None:
+        """A window now runs at *size*, as the runtime measured it: its tile embeds it there.
+
+        Nothing if it has no tile any more, as a window detached mid-apply does not.
+        """
+        tile = next((tile for tile in self._tiles.values() if tile.hwnd == hwnd), None)
+        if tile is None:
+            return
+        tile.refit(*size)
+        if self._asked.get(hwnd) == tuple(size):
+            del self._asked[hwnd]
+        self._update_minimum_size()
+        # A size nobody asked for, as giving back reports, may not be the one wanted now.
+        if not self._settle_timer.isActive():
+            self._settle_timer.start()
 
     def game_targets(self) -> dict[int, tuple[int, int]]:
         """The size each embedded window should run at, by hwnd, as things stand.
@@ -1043,6 +1100,30 @@ class GameView(ThemedMixin, QWidget):
             for slot, target in zip(slots, targets)
             if slot in self._tiles and target is not None
         }
+
+    def _targets_to_ask_for(self) -> dict[int, tuple[int, int]]:
+        return {hwnd: size for hwnd, size in self.game_targets().items() if hwnd in self._resizable}
+
+    def _note_targets(self) -> None:
+        """Start the settle timer again if the area or a target moved.
+
+        Not on every call: a team view places the tiles again several times a second with
+        nothing changed, and restarting on those would put a resize off for as long as a
+        follower walks. The area counts as well as the targets, so a drag that stays within
+        a rung for a moment still has not stopped.
+        """
+        settling = ((self.width(), self.height()), self._targets_to_ask_for())
+        if settling != self._settling:
+            self._settling = settling
+            self._settle_timer.start()
+
+    def _ask_for_targets(self) -> None:
+        """Ask for each target that has settled and differs from what the window has or was asked for."""
+        tiles = {tile.hwnd: tile for tile in self._tiles.values()}
+        for hwnd, target in self._targets_to_ask_for().items():
+            if target != self._asked.get(hwnd, tiles[hwnd].game_size):
+                self._asked[hwnd] = target
+                self.game_size_wanted.emit(hwnd, target)
 
     def _launch_size_at(self, slot: int) -> tuple[int, int] | None:
         """What the window in *slot* launched at, or its launch's word for it, or None."""
@@ -1223,12 +1304,12 @@ class GameView(ThemedMixin, QWidget):
         tiles = self._tile_sizes(all_slots)
         if not isinstance(tiles, int):
             self._arrange(all_slots, tiles)
-            return
-
-        for idx, rect in zip(all_slots, tile_layouts.equal_grid(n, self.width(), self.height())):
-            widget = self._widget_at(idx)
-            if widget is not None:
-                widget.setGeometry(rect.x, rect.y, rect.w, rect.h)
+        else:
+            for idx, rect in zip(all_slots, tile_layouts.equal_grid(n, self.width(), self.height())):
+                widget = self._widget_at(idx)
+                if widget is not None:
+                    widget.setGeometry(rect.x, rect.y, rect.w, rect.h)
+        self._note_targets()
 
     def _arrange(self, slots: list[int], sizes: list[TileSize]) -> None:
         """Place Main and Side tiles by the layout (``tile_layouts.arrange``), at the game's aspect."""
@@ -1267,10 +1348,18 @@ class GameView(ThemedMixin, QWidget):
         batch per resolution — so reading whichever tile the dict happened to yield first
         understated the minimum whenever they differed, and the biggest client was the one
         that got clipped.
+
+        Tiles by rung are measured as the equal grid at the launch sizes, and never at the sizes
+        the games have now. A floor taken from a Main grown by maximizing would stop the window
+        being restored, and its game would follow a smaller tile down anyway.
         """
         slots = self._occupied_slots()
         if not slots:
             self.setMinimumSize(0, 0)
+            return
+        family = self._rung_family_in_use()
+        if family is not None:
+            self.setMinimumSize(*self._rung_floor(slots, family))
             return
         # A launching window is measured at the resolution its launch opens it at: a
         # profile's own, which the global one need not be anywhere near. Everything
@@ -1278,6 +1367,24 @@ class GameView(ThemedMixin, QWidget):
         # what those windows were launched at, and what a re-attach brings back.
         largest = self._largest_size() or self._settings.game_resolution
         self.setMinimumSize(*required_game_area(largest, self._tile_sizes(slots), self.devicePixelRatio() or 1.0))
+
+    def _rung_floor(self, slots: list[int], family: Sequence[tuple[int, int]]) -> tuple[int, int]:
+        """The equal grid at the launch sizes, or at the largest rung the screen holds if it doesn't.
+
+        The launch fit allowed that grid, for a launch it judged. It never judged a client
+        started outside the app, or a launch made with the sidebar hidden that then shows, and a
+        floor past the screen pushes tiles off the window. Beside another, a game can follow its
+        tile down instead. A lone client keeps its floor, as it never resizes.
+        """
+        launches = [size for size in map(self._launch_size_at, slots) if size is not None]
+        launches = launches or [self._settings.game_resolution]
+        largest = max(size[0] for size in launches), max(size[1] for size in launches)
+        count, dpr = len(slots), self.devicePixelRatio() or 1.0
+        if count > 1:
+            budget, _dpr = screen_fit.budget_for(self)
+            if not fits(largest, count, budget, dpr):
+                largest = largest_fitting(list(family), count, budget, dpr) or family[0]
+        return required_game_area(largest, count, dpr)
 
     def _pending_resolutions(self) -> list[tuple[int, int]]:
         """The resolution each launching window will open at, where its launch said."""
@@ -1296,10 +1403,12 @@ class GameView(ThemedMixin, QWidget):
         self._detached_tiles[idx].set_color_key(self._tiles[idx].color_key)
         # Unembed the ClientTile without clearing the DetachedTile
         tile = self._tiles.pop(idx)
+        self._asked.pop(hwnd, None)
         tile.unembed()
         tile.hide()
         tile.setParent(None)  # type: ignore[arg-type]
         tile.deleteLater()
+        self.window_detached.emit(hwnd)
         self._recompute_geometry()
         self._update_minimum_size()
         self._set_embed_state(bool(self._tiles))
@@ -1365,6 +1474,7 @@ class GameView(ThemedMixin, QWidget):
         # over a tile (#93).
         focused = None
         for tile in self._tiles.values():
+            tile.watch_game()
             has_focus = tile.is_game_focused()
             tile.set_focused(has_focus)
             if has_focus:

@@ -79,8 +79,14 @@ class TestRestoredStyle:
         corrupt = child_style(OVERLAPPED)
         style = restored_style(corrupt)
         assert style & WS_CHILD == 0
-        assert style & WS_THICKFRAME
         assert style & WS_CAPTION == WS_CAPTION
+        assert style & WS_SYSMENU
+
+    def test_gives_the_game_no_grip_it_did_not_have(self) -> None:
+        """The game has no thick frame, and a grip would resize its window with no apply behind it."""
+        game = OVERLAPPED & ~WS_THICKFRAME
+
+        assert restored_style(game) & WS_THICKFRAME == 0
 
 
 class TestRestoredParent:
@@ -119,6 +125,7 @@ class FakeUser32:
         self.calls: list[tuple] = []
         self._parent = parent
         self._styles = {GWL_STYLE: style, GWL_EXSTYLE: ex_style}
+        self.client_size = CLIENT_SIZE
 
     def _record(self, name: str, *args) -> None:
         self.calls.append((name,) + args)
@@ -148,7 +155,7 @@ class FakeUser32:
     def GetClientRect(self, hwnd, out):
         rect = out._obj
         rect.left, rect.top = 0, 0
-        rect.right, rect.bottom = CLIENT_SIZE
+        rect.right, rect.bottom = self.client_size
         return True
 
     def GetWindowThreadProcessId(self, hwnd, out):
@@ -313,6 +320,65 @@ class TestRestore:
     def test_does_nothing_if_never_embedded(self, window: EmbeddedWindow, user32: FakeUser32) -> None:
         window.restore()
         assert user32.calls == []
+
+
+class TestReembed:
+    def test_parents_styles_and_sizes_it_again_with_no_second_attach(
+        self, window: EmbeddedWindow, user32: FakeUser32
+    ) -> None:
+        window.embed(TILE_HWND)
+        user32.calls.clear()
+
+        window.reembed(TILE_HWND, 534, 300)
+
+        assert user32.call("SetParent")[1:] == (GAME_HWND, TILE_HWND)
+        assert user32.call("SetWindowLongW")[1:] == (GAME_HWND, GWL_STYLE, child_style(OVERLAPPED))
+        _, hwnd, _after, _x, _y, cx, cy, flags = user32.call("SetWindowPos")
+        assert (hwnd, cx, cy) == (GAME_HWND, 534, 300)
+        assert flags & SWP_FRAMECHANGED
+        assert "AttachThreadInput" not in user32.names
+        assert window.game_size == (534, 300)
+
+    def test_the_input_queues_are_still_detached_once(self, window: EmbeddedWindow, user32: FakeUser32) -> None:
+        window.embed(TILE_HWND)
+        window.reembed(TILE_HWND, 534, 300)
+        window.restore()
+
+        assert [c[3] for c in user32.calls if c[0] == "AttachThreadInput"] == [True, False]
+
+    def test_knows_whether_the_window_is_still_its_child(self, window: EmbeddedWindow, user32: FakeUser32) -> None:
+        window.embed(TILE_HWND)
+        user32._parent = TILE_HWND
+        assert window.is_home()
+
+        user32._parent = 0  # What an apply does to it.
+        assert not window.is_home()
+
+        user32._parent = OWNER_HWND  # GetParent answers the owner for a top-level window.
+        assert not window.is_home()
+
+        window.reembed(TILE_HWND, 534, 300)
+        user32._parent = TILE_HWND
+        assert window.is_home()
+
+
+class TestRestoreAfterAResize:
+    def test_the_frame_matches_the_game_at_the_size_it_has_now(
+        self, window: EmbeddedWindow, user32: FakeUser32
+    ) -> None:
+        """The frame it was found with would no longer match the backbuffer, which shifts every click."""
+        window.embed(TILE_HWND)
+        window.reembed(TILE_HWND, 534, 300)
+        user32.client_size = (534, 300)
+        user32.calls.clear()
+
+        window.restore()
+
+        frame_w = ORIG_RECT[2] - ORIG_RECT[0] - CLIENT_SIZE[0]
+        frame_h = ORIG_RECT[3] - ORIG_RECT[1] - CLIENT_SIZE[1]
+        _, _hwnd, _after, x, y, cx, cy, _flags = user32.call("SetWindowPos")
+        assert (cx, cy) == (534 + frame_w, 300 + frame_h)
+        assert (x, y) == (ORIG_RECT[0], ORIG_RECT[1]), "the place it was found at stands"
 
 
 class TestRestoreWithoutQt:
