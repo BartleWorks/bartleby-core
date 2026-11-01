@@ -69,9 +69,10 @@ decides the arrangement, so the two cannot contradict each other. Two values
 Every node that moves players declares the one shared `player_realms.SPEC`, so it shows once in
 Options. The author sets the default; the user may overrule it.
 
-**A node that merges players by nature** declares `NodeSpec.merges_players` -- `teleport_to_friend`
-is the one -- and a bot holding one cannot be Separate. `separate_blocked_by` is the rule, and three
-places enforce it, as with restricted zones:
+**A node that merges players by nature, or needs them merged,** declares `NodeSpec.merges_players`
+-- `teleport_to_friend` ports them onto one realm, and BartleBot's `open_skeleton_key_door` spends
+one key, which opens the door for one instance -- and a bot holding one cannot be Separate.
+`separate_blocked_by` is the rule, and three places enforce it, as with restricted zones:
 
 1. the Option Values and Options rows gray out Separate, naming the nodes;
 2. the canvas marks the node an error while the bot's file declares Separate;
