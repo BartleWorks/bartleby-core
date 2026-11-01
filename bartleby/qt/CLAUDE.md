@@ -990,6 +990,14 @@ Things to preserve:
 - **Vacate every moving slot before filling any.** A player swap moves two tiles at once;
   clearing them one at a time throws away the tile the previous move just wrote. That bug
   was live in the first draft of `_apply_moves` and the swap test is what caught it.
+- **A resize is asked for and answered, never waited on.** A product that places tiles by rung
+  hears `game_size_wanted` once a target has settled, and calls `game_resized` when the runtime has
+  an answer, and `refit` embeds the game again then, since an apply takes it out of its tile.
+  `docs/WINDOW_SIZING.md`, "Resizing a running client", has the rest. `ClientTile` never moves a
+  game that is out of its tile: it is a top-level window until `refit`.
+- **Whether a game is away is read from the window**, by `watch_game` on the focus poll, and not
+  kept from who asked for what. A resize can wait out a fight, or end with nobody told, and a
+  ring drawn from a flag would outlast its reason.
 
 ## Player cards are drawn from views
 

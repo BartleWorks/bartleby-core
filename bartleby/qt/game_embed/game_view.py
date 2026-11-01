@@ -7,7 +7,9 @@ of its logo disc, from the ``Product`` in use.
 
 Its tiles are BartleBot's equal grid unless a product hands it a ``tile_layouts.Layout``
 (:meth:`GameView.set_layout`), as BartleBuddy does: then the Main tiles go to the wizards
-the user moves and the rest sit Side in a strip.
+the user moves and the rest sit Side in a strip. Placed by rung, each game can follow its
+tile's size: this says what each should be (:attr:`GameView.game_size_wanted`) and embeds
+it again when told how that went (:meth:`GameView.game_resized`).
 """
 
 from __future__ import annotations

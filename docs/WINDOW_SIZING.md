@@ -310,7 +310,8 @@ placement in agreement.
 
 **Tiles by rung** are for a product whose clients can be resized, and turn that budget round,
 because a client's size then follows its tile. `GameView.set_layout(..., by_rung=True)` asks
-for them; nothing does yet, since a smaller Main with no resize behind it only costs room.
+for them, as BartleBuddy does while its row is on. BartleBot does not, since a smaller Main with
+no resize behind it only costs room.
 
 - **Every Side tile holds its whole game, and Main takes what is left.** The strip reserves
   the `tile_size` of the family's smallest rung for each Side client, 546x351 at 16:9, in a
@@ -331,6 +332,12 @@ for them; nothing does yet, since a smaller Main with no resize behind it only c
   the smallest rung, since a Side tile then has no rung below it, or smaller than the equal
   grid makes it, which only two or more Main tiles reach. That last rule is what lets a launch
   be judged as the equal grid and always fit a Main tile.
+- **The window floor is that same grid, at the launch sizes**, never the sizes the games have now.
+  A floor taken from a Main grown by maximizing would stop the window being restored. So a client
+  launched at 854x480 beside another holds the game area at the two tiles' width even with a strip
+  that would fit in less: a launch made with the sidebar hidden can't then show it on 1080p, as
+  with the equal grid. The launch size is what was judged, and it is the one size every layout
+  is sure to hold.
 
 What it gives, at 100% display scale with a 40-pixel taskbar, where 1612 wide is the sidebar
 shown and 1920 hidden; `test_tiles_by_rung.py` holds these rows:
@@ -573,11 +580,12 @@ Both surfaces check the *resulting* client count:
   a fitting pair is refused when the 2x2 grid it forces would not fit at the running
   resolution.
 
-Resolution is fixed at launch and a running client cannot be resized without relaunching
-it, so the client arriving is the one that has to be refused. This is what removes the
-need for the overflow behaviors considered earlier — warn-and-proceed, auto-detach,
-relaunch-everything-smaller. Nothing has to degrade gracefully into a state that cannot
-be reached.
+A launch is judged at the size it opens at, and a client arriving is the one that has to
+be refused. A running client can be resized (below), but only by a product that places its
+tiles by rung, and only once it is in the world, which is long after this answer was needed.
+So this is what still removes the need for the overflow behaviors considered earlier —
+warn-and-proceed, auto-detach, relaunch-everything-smaller. Nothing has to degrade
+gracefully into a state that cannot be reached.
 
 **An entry that cannot launch is disabled with the reason, never hidden.** A profile that
 silently vanishes leaves the user hunting for it with nothing on screen saying why, which
@@ -737,9 +745,9 @@ Measured on the live realm's build (2026-11-01) by BartleBot's `tools/probe_runt
 whose RESULTS have every offset and how each question was answered. wizwalker's
 `client.video_manager` holds the apply, and `bartleby/runtime/clients/client_resizer.py` the
 rest of the runtime's half: when a client may be resized, its lease, its config nodes and giving
-it back. Nothing calls it yet: the window's half and the wiring are the last stage of BartleBuddy
-#3's plan, which BartleBuddy needs first, to swap which client gets the large tile when the user
-changes who they play. It is in the shared library so BartleBot can follow.
+it back. `GameView` and `ClientTile` hold the window's half. BartleBuddy uses it, to swap which
+client gets the large tile when the user changes who they play. It is in the shared library so
+BartleBot can follow.
 
 The two parts of Deimos' resize were each rejected for a reason, and the reasons are about
 those parts, not about resizing at runtime:
@@ -802,6 +810,28 @@ still equals the client size after every resize, so the 1:1 contract holds.
 - **Any failure** is one warning, and no more is asked of that client until `forget(client)` and
   it is hooked again.
 - **`stop_all()`** ends every resize still waiting. An apply under way finishes and reports first.
+
+The window's half is the product's two crossings around that:
+
+- **Asking.** `GameView.game_targets()` is worked out on every geometry change, and
+  `game_size_wanted(hwnd, size)` goes out once the area and the targets have held for
+  `RESIZE_SETTLE`, for a window that differs from what it has or was last asked for. So a splitter
+  dragged across several rungs asks once. A team view placing the tiles again with nothing changed
+  does not put it off. Only windows named by `set_resizable` are asked for, the hooked, and with
+  no Side tile the target is the launch size, so a session that never has one never asks and never
+  scans. The first ask `prepare`s every client, so a later swap doesn't wait on a scan.
+- **Answering.** `GameView.game_resized(hwnd, size)` hands the tile the size measured, and
+  `ClientTile.refit` embeds the window again there (`EmbeddedWindow.reembed`), with no second
+  `AttachThreadInput`. A size it has already, with the game still its child, moves nothing. While
+  the window is out of its tile, read from the window on the focus poll, the tile draws
+  `PendingTile`'s ring with no words, and leaves the window alone: it is top-level, and a tile's
+  coordinates would throw it across the screen.
+- **Leaving.** `window_detached(hwnd)` says a window has gone to the desktop, and the product gives
+  it back. `EmbeddedWindow.restore` sizes the frame from the client area it has at that moment and
+  the frame it was found with, since a frame of its old size no longer matches the backbuffer.
+  It gives the game no `WS_THICKFRAME`, which the game has none of: a grip would resize its window
+  with no apply behind it. A top-level window follows an apply by itself, so its frame is right
+  from then on.
 
 Measured and worth knowing:
 
