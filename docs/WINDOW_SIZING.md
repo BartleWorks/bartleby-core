@@ -735,9 +735,11 @@ and the next section is what a probe found it takes.
 
 Measured on the live realm's build (2026-11-01) by BartleBot's `tools/probe_runtime_resize.py`,
 whose RESULTS have every offset and how each question was answered. wizwalker's
-`client.video_manager` holds the writes; the rest is not built yet: BartleBuddy needs it first,
-to swap which client gets the large tile when the user changes who they play, and it belongs in
-the shared library so BartleBot can follow. The plan is BartleBuddy #3's page.
+`client.video_manager` holds the apply, and `bartleby/runtime/clients/client_resizer.py` the
+rest of the runtime's half: when a client may be resized, its lease, its config nodes and giving
+it back. Nothing calls it yet: the window's half and the wiring are the last stage of BartleBuddy
+#3's plan, which BartleBuddy needs first, to swap which client gets the large tile when the user
+changes who they play. It is in the shared library so BartleBot can follow.
 
 The two parts of Deimos' resize were each rejected for a reason, and the reasons are about
 those parts, not about resizing at runtime:
@@ -752,8 +754,10 @@ milliseconds, and up to about 600 ms when two clients apply at once:
 
 1. **The two nodes**: write the live `Resolution` node's string and the live `UISize` node's
    int32, in the game's config. The writes alone change nothing on screen. The nodes are among
-   ~130,000 generic key/value objects, found once per client by a scan for their names of
-   about 2 s each, as the key bindings are (`docs/KEY_BINDINGS.md`). Each name has several
+   ~130,000 generic key/value objects, found once per client by a scan for their names, as the
+   key bindings are (`docs/KEY_BINDINGS.md`). Both names take about 2.5 s, off the event loop, and
+   its longest gap stays near 69 ms against 64 ms with nothing running: BartleBuddy's
+   `tools/probe_resize_scan.py` has the numbers. Each name has several
    nodes: the live `UISize` is the one marked at `+0x45` with a pointer at `+0x18`, and the
    live `Resolution` the one with that pointer under the same parent. The string is an MSVC
    `std::string`, so its size field changes with its text.
@@ -770,6 +774,34 @@ milliseconds, and up to about 600 ms when two clients apply at once:
 The hook-based version Deimos uses, overriding set-mode's width and height, works too, but
 leaves the game believing the old size: the HUD stays at the old scale. And the backbuffer
 still equals the client size after every resize, so the 1:1 contract holds.
+
+`ClientResizer` is the policy around those steps, all of it tested on `SimClient`:
+
+- **`prepare(clients)`** finds the manager and the nodes ahead of the first swap, once there are
+  two clients. With one it does nothing, so a one-account session never scans. The caller decides
+  when a session may need a resize; a session with no Side tile should not ask.
+- **`resize(client, size)`** only sets a target. One worker per client waits out loading, a fight
+  and any lease above `Owner.DISPLAY`, then reads the target, so targets sent during a wait run
+  only the last. A size it is already at writes nothing.
+- **The UI size** is `ui_size_for` of the user's own, captured by
+  `launch_profile.capture_game_settings` before the first write, for a client no launch captured.
+  A game with no UI scale in its file is not resized, since a resolution with the wrong UI size is
+  the pairing the ladder exists to prevent.
+- **The apply** checks the manager first, so a bad offset costs nothing, then writes the UI size,
+  the resolution and the byte, and waits for the clear. It runs as a task of its own that no
+  cancel reaches. `on_resized(client, size)` always hears the size it measures once an apply has
+  begun, since the game has taken an embedded window out of its tile by then.
+- **The 1:1 contract** is checked after the byte clears, with `read_device_size`.
+- **A byte that never clears** is taken back after `RESIZE_APPLY_TIMEOUT`, and the nodes put back.
+  Left set, the game would apply it whenever it next could, with nobody watching for a window it
+  takes out of its tile.
+- **`give_back(client)`** returns the size read from the device before the first resize and the
+  UI size read from the node, within `RESIZE_GIVE_BACK_TIMEOUT`, waits included. One still in a
+  fight or loading then is left as it is, with a warning. The files are `restore_ui_size` and
+  `restore_game_prefs`, on quit and at the next start, so they run after the last apply.
+- **Any failure** is one warning, and no more is asked of that client until `forget(client)` and
+  it is hooked again.
+- **`stop_all()`** ends every resize still waiting. An apply under way finishes and reports first.
 
 Measured and worth knowing:
 

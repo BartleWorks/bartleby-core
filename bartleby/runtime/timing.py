@@ -796,3 +796,20 @@ FOLLOW_GATE_WAIT = 8.0
 
 FOLLOW_PORT_RETRY = 15.0
 # Seconds before a follower whose port failed tries the fallback again.
+
+# ---------------------------------------------------------------------------
+# Resizing a running client (bartleby.runtime.clients.client_resizer)
+# ---------------------------------------------------------------------------
+
+RESIZE_APPLY_POLL = 0.01
+# Seconds between reads of the pending byte while the game applies a size. It clears in 18 to
+# 41 ms alone, and up to about 600 ms with two clients at once (docs/WINDOW_SIZING.md).
+
+RESIZE_APPLY_TIMEOUT = 10.0
+# Seconds a resize waits for the pending byte to clear before calling the apply off. A failed
+# attempt leaves it set and retries on the next frame, so this is for a byte that never clears,
+# ten times the longest seen.
+
+RESIZE_GIVE_BACK_TIMEOUT = 3.0
+# Seconds a client gets to go back to its launch size, waits included, as it leaves its tile.
+# Someone is leaving, and the app's shutdown waits on it.

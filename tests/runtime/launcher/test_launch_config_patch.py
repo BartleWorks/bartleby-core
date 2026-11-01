@@ -225,6 +225,22 @@ def test_the_capture_is_taken_once_and_never_from_our_own_clamp(ui_config):
     assert launch_profile._ui_size_update(1280, 720) == {"UISize": str(_HUGE)}
 
 
+def test_a_live_resize_captures_the_ui_scale_before_changing_anything(ui_config):
+    assert launch_profile.capture_game_settings() == _HUGE
+    assert SettingsManager.instance().original_ui_size == _HUGE
+
+
+def test_a_live_resize_finds_a_launch_s_capture_and_never_our_own_clamp(ui_config):
+    launch_profile._ui_size_update(534, 300)
+    ui_config.write_text(ui_config.read_text("utf-8").replace(f">{_HUGE}<", f">{_MICRO}<"), "utf-8")
+    assert launch_profile.capture_game_settings() == _HUGE
+
+
+def test_a_live_resize_with_no_ui_scale_in_the_file_has_no_answer(install):
+    assert launch_profile.capture_game_settings() is None
+    assert SettingsManager.instance().original_ui_size is None
+
+
 def test_nothing_is_written_when_the_game_has_no_ui_scale_to_clamp(install):
     assert launch_profile._ui_size_update(534, 300) == {}
     assert SettingsManager.instance().original_ui_size is None
@@ -332,6 +348,14 @@ def test_a_launch_forces_windowed_mode_alongside_the_resolution(prefs):
 
 def test_a_launch_captures_the_user_s_resolution_and_window_mode(prefs):
     launch_profile._prefs_update(800, 600)
+    settings = SettingsManager.instance()
+    assert settings.original_resolution == _USER_RESOLUTION
+    assert settings.original_fullscreen == 1
+
+
+def test_a_live_resize_captures_the_user_s_resolution_and_window_mode_too(prefs):
+    """A client started outside the app has had no launch to capture them, and a temporary size can reach the file."""
+    launch_profile.capture_game_settings()
     settings = SettingsManager.instance()
     assert settings.original_resolution == _USER_RESOLUTION
     assert settings.original_fullscreen == 1

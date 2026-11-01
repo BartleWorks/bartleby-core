@@ -104,6 +104,12 @@ base constructor they call holds the store, the only write to the slot but the d
 clear. BartleBot's `tools/probe_runtime_resize.py slot <w> <h>`, on one client of the build in
 the world, compares the answer with what a hook captures and resizes there and back.
 
+**The config nodes** a resize writes are found by name, not by a pattern, so no scan here reports
+them. `client_resizer.find_config_nodes` checks the object around each name at fixed offsets. If
+those move, it finds no single live pair, and each client gets one warning and keeps its size.
+`tools/probe_resize_scan.py`, in BartleBuddy, on a client of the build in the world, says what it
+finds, and BartleBot's `tools/probe_runtime_resize.py nodes --dump` shows the bytes.
+
 ## 4. The type dump
 
 ```bash
