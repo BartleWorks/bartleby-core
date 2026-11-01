@@ -723,6 +723,7 @@ class AccountsTab(QWidget):
                 ),
             )
         )
+        self._add_product_rows(launch_form)
         launch_form.finish(stretch=False)
         layout.addWidget(launch_form)
 
@@ -902,6 +903,9 @@ class AccountsTab(QWidget):
     def _on_profile_delete(self, name: str) -> None:
         if name and delete_launch_profile(name, self):
             self._refresh()
+
+    def _add_product_rows(self, form: SettingsForm) -> None:
+        """Any rows of a product's own, under the launch options. They wait for OK with them, in its ``apply``."""
 
     def apply(self) -> None:
         """Write the launch options. Everything else here saved itself already.

@@ -225,6 +225,14 @@ class ClientTile(_PillIconHover, QWidget):
         self._window = EmbeddedWindow(hwnd)
         self._game_w, self._game_h = self._window.game_size
 
+        # The ring over the place the game left, while an apply has it (watch_game).
+        self._game_away = False
+        self._ring_start = 0.0
+        self._ring_timer = QTimer(self)
+        self._ring_timer.setInterval(_SPINNER_TICK_MS)
+        self._ring_timer.setTimerType(Qt.TimerType.PreciseTimer)
+        self._ring_timer.timeout.connect(lambda: self.update(self._ring_rect()))
+
         self._window.embed(int(self.winId()))
         # winId() made this tile and every ancestor native, each with a cursor of its own
         # to keep, or the pointer shows whichever one a parent window last held (#258).
@@ -248,7 +256,7 @@ class ClientTile(_PillIconHover, QWidget):
 
     @property
     def game_size(self) -> tuple[int, int]:
-        """Native game resolution in physical pixels, measured before embedding."""
+        """Native game resolution in physical pixels, measured before embedding, or as last refit."""
         return self._game_w, self._game_h
 
     # ------------------------------------------------------------------
@@ -287,6 +295,42 @@ class ClientTile(_PillIconHover, QWidget):
         """Restore the game window to a normal, movable top-level window."""
         self._window.restore()
 
+    def refit(self, width: int, height: int) -> None:
+        """The game now runs at this size: embed it again there, as an apply has taken it out.
+
+        Nothing moves if it is at this size already and still here, since a resize that had
+        nothing to do reports too.
+        """
+        if not self._window.is_embedded or ((width, height) == self.game_size and self._window.is_home()):
+            return
+        self._window.reembed(int(self.winId()), width, height)
+        self._game_w, self._game_h = width, height
+        self.watch_game()
+        self._reposition()
+        self.update()
+
+    def watch_game(self) -> None:
+        """Show the ring while the game is out of this tile, for as long as that really is.
+
+        Read from the window, not from who asked for what: a resize can wait out a fight, and
+        can end with nobody told, and the ring must not outlast its reason.
+        """
+        away = self._window.is_embedded and not self._window.is_home()
+        if away == self._game_away:
+            return
+        self._game_away = away
+        if away:
+            self._ring_start = time.monotonic()
+            self._ring_timer.start()
+        else:
+            self._ring_timer.stop()
+        self.update()
+
+    @property
+    def game_away(self) -> bool:
+        """Whether the tile is drawing the ring because its game has been taken out."""
+        return self._game_away
+
     def focus_game(self) -> None:
         """Give the embedded game window keyboard focus."""
         self._window.focus()
@@ -307,9 +351,10 @@ class ClientTile(_PillIconHover, QWidget):
 
         No-op once the window has been restored: a resizeEvent can still arrive
         between unembed() and the tile being deleted, and moving the window then
-        would drag the popped-out game window back to tile coordinates.
+        would drag the popped-out game window back to tile coordinates. The same
+        while an apply has it: it is a top-level window until refit() takes it in.
         """
-        if not self._window.is_embedded:
+        if not self._window.is_embedded or not self._window.is_home():
             return
         dpr = self.devicePixelRatio()
         tile_w = int(self.width() * dpr)
@@ -353,21 +398,37 @@ class ClientTile(_PillIconHover, QWidget):
                     self.caption_clicked.emit(self.mapToGlobal(self._pill_rect.bottomLeft()))
             super().mousePressEvent(event)
 
-    def paintEvent(self, event) -> None:
-        super().paintEvent(event)
-        painter = QPainter(self)
-
-        # Compute game window position in logical pixels (QPainter coordinate space).
+    def _game_rect(self) -> QRect:
+        """Where the game window sits, in logical pixels (QPainter coordinate space)."""
         dpr = self.devicePixelRatio()
         gw = round(self._game_w / dpr)
         gh = round(self._game_h / dpr)
         gx = max(0, (self.width() - gw) // 2)
         gy = LABEL_RESERVE + max(0, (self.height() - LABEL_RESERVE - gh) // 2)
+        return QRect(gx, gy, gw, gh)
+
+    def _ring_rect(self) -> QRect:
+        """The square the ring is drawn in, padded by the pen width it is stroked with."""
+        side = 2 * (_SPINNER_RADIUS + _SPINNER_THICKNESS)
+        rect = QRect(0, 0, side, side)
+        rect.moveCenter(self._game_rect().intersected(self.rect()).center())
+        return rect
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+        painter = QPainter(self)
+
+        game = self._game_rect()
+        gx, gy, gw, gh = game.x(), game.y(), game.width(), game.height()
 
         # Focus highlight — filled rectangle behind the game window, in the account's
         # color (the accent when none is known). The Win32 child covers the game area,
         # leaving only the surrounding _FOCUS_BORDER-wide strip visible as the highlight.
-        if self._focused:
+        # With the game away there is nothing to cover it, and the ring takes its place.
+        if self._game_away:
+            center = self._ring_rect().center()
+            _paint_ring(painter, center.x(), center.y(), _ring_angle(self._ring_start))
+        elif self._focused:
             painter.setBrush(tile_focus_color(self._color_key))
             painter.setPen(Qt.PenStyle.NoPen)
             painter.drawRect(
@@ -687,6 +748,39 @@ _SPINNER_TICK_MS = 16
 _SPINNER_CAPTION_GAP = 14
 
 
+def _ring_angle(start: float) -> float:
+    """Where the arc has got to, in degrees, read from the clock rather than counted.
+
+    See the note on _SPINNER_TICK_MS: at 60fps a frame the event loop misses has to
+    cost a frame, not a step, or the launch's own stalls come back out as stutter.
+    """
+    return (time.monotonic() - start) * 1000 / _SPINNER_PERIOD_MS * 360 % 360
+
+
+def _paint_ring(painter: QPainter, cx: int, cy: int, angle: float) -> None:
+    """Draw the busy ring centered on (cx, cy): a faint full circle under a bright arc."""
+    painter.save()
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.setBrush(Qt.BrushStyle.NoBrush)
+    box = QRect(cx - _SPINNER_RADIUS, cy - _SPINNER_RADIUS, 2 * _SPINNER_RADIUS, 2 * _SPINNER_RADIUS)
+
+    track = QColor(THEME.qcolor("text_muted"))
+    track.setAlpha(60)
+    pen = painter.pen()
+    pen.setWidth(_SPINNER_THICKNESS)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    pen.setColor(track)
+    painter.setPen(pen)
+    painter.drawEllipse(box)
+
+    pen.setColor(THEME.qcolor("accent"))
+    painter.setPen(pen)
+    # Qt angles are in 1/16 degree units and run anticlockwise, so the negated angle is
+    # what makes the arc sweep the way every other spinner on the platform does.
+    painter.drawArc(box, -round(angle * 16), -_SPINNER_ARC_DEGREES * 16)
+    painter.restore()
+
+
 class PendingTile(_WindowlessTile):
     """Placeholder shown in a reserved slot while that account's launch is still running.
 
@@ -728,6 +822,11 @@ class PendingTile(_WindowlessTile):
         return self._resolution
 
     @property
+    def _angle(self) -> float:
+        """Where the arc has got to now."""
+        return _ring_angle(self._spin_start)
+
+    @property
     def _pill_icon(self) -> str:
         """No icon while a launch is running — there is nothing to do about it yet.
 
@@ -736,15 +835,6 @@ class PendingTile(_WindowlessTile):
         the user acknowledging it is what gives the slot back.
         """
         return "dismiss" if self._failed else ""
-
-    @property
-    def _angle(self) -> float:
-        """Where the arc has got to, in degrees, read from the clock rather than counted.
-
-        See the note on _SPINNER_TICK_MS: at 60fps a frame the event loop misses has to
-        cost a frame, not a step, or the launch's own stalls come back out as stutter.
-        """
-        return (time.monotonic() - self._spin_start) * 1000 / _SPINNER_PERIOD_MS * 360 % 360
 
     def _spinner_rect(self) -> QRect:
         """The square the ring is drawn in, padded by the pen width it is stroked with."""
@@ -843,7 +933,7 @@ class PendingTile(_WindowlessTile):
         top = body_top + max(0, (body_h - block_h) // 2)
 
         if not self._failed:
-            self._paint_spinner(painter, self.width() // 2, top + _SPINNER_RADIUS)
+            _paint_ring(painter, self.width() // 2, top + _SPINNER_RADIUS, self._angle)
 
         painter.setPen(THEME.qcolor("text_muted"))
         self._painted_text = self._body_text()
@@ -862,26 +952,3 @@ class PendingTile(_WindowlessTile):
                 Qt.AlignmentFlag.AlignCenter,
                 "Dismiss to free the slot, then try again",
             )
-
-    def _paint_spinner(self, painter: QPainter, cx: int, cy: int) -> None:
-        """Draw the busy ring centered on (cx, cy): a faint full circle under a bright arc."""
-        painter.save()
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        box = QRect(cx - _SPINNER_RADIUS, cy - _SPINNER_RADIUS, 2 * _SPINNER_RADIUS, 2 * _SPINNER_RADIUS)
-
-        track = QColor(THEME.qcolor("text_muted"))
-        track.setAlpha(60)
-        pen = painter.pen()
-        pen.setWidth(_SPINNER_THICKNESS)
-        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-        pen.setColor(track)
-        painter.setPen(pen)
-        painter.drawEllipse(box)
-
-        pen.setColor(THEME.qcolor("accent"))
-        painter.setPen(pen)
-        # Qt angles are in 1/16 degree units and run anticlockwise, so the negated angle is
-        # what makes the arc sweep the way every other spinner on the platform does.
-        painter.drawArc(box, -round(self._angle * 16), -_SPINNER_ARC_DEGREES * 16)
-        painter.restore()

@@ -810,6 +810,10 @@ RESIZE_APPLY_TIMEOUT = 10.0
 # attempt leaves it set and retries on the next frame, so this is for a byte that never clears,
 # ten times the longest seen.
 
+RESIZE_SETTLE = 0.5
+# Seconds a tile's target has to hold before it is asked for, so a splitter dragged across several
+# rungs asks once, when it stops. An apply costs a game its frame, however quick it is.
+
 RESIZE_GIVE_BACK_TIMEOUT = 3.0
 # Seconds a client gets to go back to its launch size, waits included, as it leaves its tile.
 # Someone is leaving, and the app's shutdown waits on it.

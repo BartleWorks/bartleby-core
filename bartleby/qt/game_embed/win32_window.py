@@ -39,7 +39,7 @@ WS_CAPTION = WS_BORDER | WS_DLGFRAME
 WS_EX_APPWINDOW = 0x00040000
 
 # Everything that draws a frame or offers a way to move/resize the window. All of
-# it has to go while the window is a child, and all of it has to come back after.
+# it has to go while the window is a child. What comes back is restored_style's.
 FRAME_STYLES = WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX  # 0x00CF0000
 
 SWP_NOSIZE = 0x0001
@@ -94,8 +94,12 @@ def restored_style(orig_style: int) -> int:
     a re-embed after a failed restore looks like — trusting it would hand back a
     window with no caption and no way to move it. Forcing costs nothing for a
     window that was ordinary to begin with, since it already had these bits.
+
+    All but ``WS_THICKFRAME``, which comes back only if it was there. The game has none,
+    and a grip on its edge resizes its window with no apply behind it, which shifts every
+    click: the backbuffer has to equal the client area.
     """
-    return ((orig_style & ~WS_CHILD) | FRAME_STYLES | WS_VISIBLE) & _STYLE_MASK
+    return ((orig_style & ~WS_CHILD) | (FRAME_STYLES & ~WS_THICKFRAME) | WS_VISIBLE) & _STYLE_MASK
 
 
 def restored_parent(orig_parent: int, orig_style: int) -> int:
@@ -254,6 +258,10 @@ class EmbeddedWindow:
         self._orig_rect: tuple[int, int, int, int] = self._window_rect()
 
         self._game_w, self._game_h = self.client_size()
+        # What the frame adds to the client area. Kept rather than the frame's size, as an
+        # apply can change the client area while the window is embedded.
+        self._frame_w = self._orig_rect[2] - self._orig_rect[0] - self._game_w
+        self._frame_h = self._orig_rect[3] - self._orig_rect[1] - self._game_h
 
         pid = _DWORD(0)
         self._game_thread_id: int = self._user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
@@ -261,6 +269,7 @@ class EmbeddedWindow:
 
         self._attached = False
         self._embedded = False
+        self._parent_hwnd = 0
 
     # ------------------------------------------------------------------
     # Properties
@@ -272,12 +281,16 @@ class EmbeddedWindow:
 
     @property
     def game_size(self) -> tuple[int, int]:
-        """Native client-area size in physical pixels, measured before embedding."""
+        """Native client-area size in physical pixels, measured before embedding, or as last embedded again."""
         return self._game_w, self._game_h
 
     @property
     def is_embedded(self) -> bool:
         return self._embedded
+
+    def is_home(self) -> bool:
+        """Whether the window is still a child of what it was embedded in; an apply takes it out."""
+        return (self._user32.GetParent(self._hwnd) or 0) == self._parent_hwnd
 
     # ------------------------------------------------------------------
     # Win32 reads
@@ -314,8 +327,7 @@ class EmbeddedWindow:
 
     def embed(self, parent_hwnd: int) -> None:
         """Reparent the window into *parent_hwnd* as a borderless child."""
-        self._user32.SetParent(self._hwnd, parent_hwnd)
-        self._user32.SetWindowLongW(self._hwnd, GWL_STYLE, _as_long(child_style(self._orig_style)))
+        self._take_in(parent_hwnd)
         self._user32.SetWindowPos(
             self._hwnd,
             0,
@@ -334,6 +346,21 @@ class EmbeddedWindow:
 
         self._embedded = True
 
+    def reembed(self, parent_hwnd: int, width: int, height: int) -> None:
+        """Embed the window again at a new size, after an apply has made it a hidden top-level window.
+
+        Parent, style and size again. The input queues are the thread's, and stay attached.
+        Moving it to its place in the tile is the caller's, as after :meth:`embed`.
+        """
+        self._take_in(parent_hwnd)
+        self._game_w, self._game_h = width, height
+        self._user32.SetWindowPos(self._hwnd, 0, 0, 0, width, height, SWP_NOZORDER | SWP_FRAMECHANGED)
+
+    def _take_in(self, parent_hwnd: int) -> None:
+        self._user32.SetParent(self._hwnd, parent_hwnd)
+        self._user32.SetWindowLongW(self._hwnd, GWL_STYLE, _as_long(child_style(self._orig_style)))
+        self._parent_hwnd = parent_hwnd
+
     def move(self, x: int, y: int, width: int, height: int) -> None:
         """Position the embedded window within its parent (physical pixels)."""
         self._user32.MoveWindow(self._hwnd, x, y, width, height, True)
@@ -341,12 +368,17 @@ class EmbeddedWindow:
     def restore(self) -> None:
         """Put the window back the way it was found: top-level, framed, and movable.
 
+        Where it was found, but sized from the client area it has now, which a resize may
+        have changed since: a frame of its old size would no longer match the backbuffer,
+        and a mismatch shifts every click.
+
         Idempotent — detaching the input queues twice would unbalance the
         AttachThreadInput refcount, and restore is reachable from several paths.
         """
         if not self._embedded:
             return
         self._embedded = False
+        client_w, client_h = self.client_size()
 
         if self._attached:
             self._user32.AttachThreadInput(self._my_thread_id, self._game_thread_id, False)
@@ -360,15 +392,13 @@ class EmbeddedWindow:
         self._user32.SetParent(self._hwnd, restored_parent(self._orig_parent, self._orig_style))
 
         x, y = visible_position(self._orig_rect, _monitor_rects())
-        width = self._orig_rect[2] - self._orig_rect[0]
-        height = self._orig_rect[3] - self._orig_rect[1]
         self._user32.SetWindowPos(
             self._hwnd,
             0,
             x,
             y,
-            width,
-            height,
+            client_w + self._frame_w,
+            client_h + self._frame_h,
             SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED,
         )
         self._user32.ShowWindow(self._hwnd, SW_SHOW)
