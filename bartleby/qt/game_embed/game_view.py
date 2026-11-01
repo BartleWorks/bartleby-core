@@ -49,7 +49,7 @@ from bartleby.qt.widgets.labels.logo_disc import LogoDisc
 from bartleby.qt.widgets.labels.themed_label import ThemedTextLabel
 from bartleby.runtime.clients.tile_slots import TileKey, TileSlot, plan_tile_changes
 from bartleby.runtime.game import tile_layouts
-from bartleby.runtime.game.game_sizing import Tiles, grid_for, required_game_area
+from bartleby.runtime.game.game_sizing import Tiles, aspect_family, required_game_area, rung_tiles, tile_targets
 from bartleby.runtime.game.tile_layouts import Layout, TileSize
 from bartleby.shared import game_dpi, product
 
@@ -595,6 +595,11 @@ class GameView(ThemedMixin, QWidget):
         # See set_layout: None is the equal grid, and the rest is by player index.
         self._layout: Layout | None = None
         self._played: list[bool] = []
+        self._by_rung = False
+        # The size each window was first seen at, by hwnd. Kept because a ClientTile only
+        # knows the size it was built over, and a window that has been resized is not at
+        # its launch size when a re-attach builds a new tile over it.
+        self._launch_sizes: dict[int, tuple[int, int]] = {}
         # See set_captions: a product's caption per player index, over the manager's label.
         self._captions: list[str | None] = []
 
@@ -716,6 +721,7 @@ class GameView(ThemedMixin, QWidget):
         tile = ClientTile(spec.hwnd, self._caption_for(spec.player) or spec.label, parent=self)
         tile.set_wizard_name(self._wizard_name_for(spec.player))
         self._tiles[spec.slot] = tile
+        self._launch_sizes.setdefault(spec.hwnd, tile.game_size)
         tile.detach_requested.connect(lambda slot=spec.slot: self._detach_client(slot))
         tile.caption_clicked.connect(lambda point, slot=spec.slot: self._on_caption_clicked(slot, point))
         tile.show()
@@ -764,12 +770,13 @@ class GameView(ThemedMixin, QWidget):
 
     def _destroy_tile(self, slot: int) -> None:
         """Tear down whatever occupies *slot*, embedded, detached or pending."""
-        self._detached_hwnds.pop(slot, None)
+        self._launch_sizes.pop(self._detached_hwnds.pop(slot, None), None)
         self._remove_detached_tile(slot)
         self._remove_pending_tile(slot)
         tile = self._tiles.pop(slot, None)
         if tile is None:
             return
+        self._launch_sizes.pop(tile.hwnd, None)
         tile.unembed()
         tile.hide()
         tile.setParent(None)  # type: ignore[arg-type]
@@ -994,7 +1001,7 @@ class GameView(ThemedMixin, QWidget):
             if tile is not None:
                 tile.set_wizard_name(self._wizard_name_for(player))
 
-    def set_layout(self, layout: Layout | None, played: Sequence[bool] = ()) -> None:
+    def set_layout(self, layout: Layout | None, played: Sequence[bool] = (), *, by_rung: bool = False) -> None:
         """Place the tiles by *layout*, or as the equal grid for None.
 
         *played* says, per **player** index, whether the user moves that wizard, as
@@ -1002,11 +1009,65 @@ class GameView(ThemedMixin, QWidget):
         rest sit Side (``tile_layouts.sizes``). A layout that leaves no Side tile is the
         equal grid all the same, BartleBot's layout, since ``Layout.grid`` means every
         tile equal.
+
+        *by_rung* is for a product whose clients can be resized: each Side tile holds its
+        whole game and each Main tile is exactly a rung (``tile_layouts.arrange``), and
+        ``game_targets`` says what size each client should be. A smaller Main with no
+        resize behind it only costs the user room, so it stays off until one can follow.
         """
         self._layout = layout
         self._played = list(played)
+        self._by_rung = by_rung
         self._recompute_geometry()
         self._update_minimum_size()
+
+    def game_targets(self) -> dict[int, tuple[int, int]]:
+        """The size each embedded window should run at, by hwnd, as things stand.
+
+        Its launch size with no Side tile, the largest rung of its aspect that fits with
+        one, and left out if it has no ladder (``game_sizing.tile_targets``). Empty unless
+        the tiles are placed by rung.
+        """
+        slots = self._occupied_slots()
+        if not self._rung_family_in_use() or not slots:
+            return {}
+        areas = [self._widget_at(slot).size() for slot in slots]
+        targets = tile_targets(
+            [self._launch_size_at(slot) for slot in slots],
+            [(area.width(), area.height()) for area in areas],
+            self._tile_sizes(slots),
+            self.devicePixelRatio() or 1.0,
+        )
+        return {
+            self._tiles[slot].hwnd: target
+            for slot, target in zip(slots, targets)
+            if slot in self._tiles and target is not None
+        }
+
+    def _launch_size_at(self, slot: int) -> tuple[int, int] | None:
+        """What the window in *slot* launched at, or its launch's word for it, or None."""
+        pending = self._pending_tiles.get(slot)
+        if pending is not None:
+            return pending.resolution
+        tile = self._tiles.get(slot)
+        hwnd = tile.hwnd if tile is not None else self._detached_hwnds.get(slot)
+        return self._launch_sizes.get(hwnd)
+
+    def _rung_family_in_use(self) -> tuple[tuple[int, int], ...] | None:
+        """The family the tiles are placed by: the one of the largest game with a ladder.
+
+        A client of another family keeps its own in ``tile_targets``, and may be cut by a
+        tile reserved for this one. None with no layout, with rungs off, or with no ladder.
+        """
+        if self._layout is None or not self._by_rung:
+            return None
+        launches = [self._launch_size_at(slot) for slot in self._occupied_slots()]
+        known = [size for size in launches if size is not None] or [self._settings.game_resolution]
+        for size in sorted(known, key=lambda s: s[0] * s[1], reverse=True):
+            family = aspect_family(size)
+            if family is not None:
+                return family
+        return None
 
     def set_captions(self, captions: Sequence[str | None]) -> None:
         """Caption each tile by **player** index, over the label the client manager gives it.
@@ -1035,10 +1096,22 @@ class GameView(ThemedMixin, QWidget):
         """Each occupied slot's tile size, or a plain count for the equal grid."""
         if self._layout is None:
             return len(slots)
-        players = [self._player_for(slot) for slot in slots]
-        played = [p is not None and 0 <= p < len(self._played) and self._played[p] for p in players]
+        played = self._played_at(slots)
         sizes = tile_layouts.sizes(self._layout, played)
-        return sizes if TileSize.SIDE in sizes else len(slots)
+        if TileSize.SIDE not in sizes:
+            return len(slots)
+        family = self._rung_family_in_use()
+        if family is None:
+            return sizes
+        tiles = rung_tiles(family, self.devicePixelRatio() or 1.0)
+        return (
+            sizes if tile_layouts.strip_fits(self._layout, played, (self.width(), self.height()), tiles) else len(slots)
+        )
+
+    def _played_at(self, slots: list[int]) -> list[bool]:
+        """Whether the user moves the wizard in each of *slots*; a slot with no player is not moved."""
+        players = [self._player_for(slot) for slot in slots]
+        return [p is not None and 0 <= p < len(self._played) and self._played[p] for p in players]
 
     def refresh_launch_lists(self) -> None:
         """Rebuild the Quick Launch account and profile lists from settings.
@@ -1152,24 +1225,22 @@ class GameView(ThemedMixin, QWidget):
             self._arrange(all_slots, tiles)
             return
 
-        rows, cols = grid_for(n)
-        tile_w = self.width() // cols
-        tile_h = self.height() // rows
-
-        for pos, idx in enumerate(all_slots):
-            row = pos // cols
-            col = pos % cols
-            geo = (col * tile_w, row * tile_h, tile_w, tile_h)
+        for idx, rect in zip(all_slots, tile_layouts.equal_grid(n, self.width(), self.height())):
             widget = self._widget_at(idx)
             if widget is not None:
-                widget.setGeometry(*geo)
+                widget.setGeometry(rect.x, rect.y, rect.w, rect.h)
 
     def _arrange(self, slots: list[int], sizes: list[TileSize]) -> None:
         """Place Main and Side tiles by the layout (``tile_layouts.arrange``), at the game's aspect."""
-        players = [self._player_for(slot) for slot in slots]
-        played = [p is not None and 0 <= p < len(self._played) and self._played[p] for p in players]
         width, height = self._largest_size() or self._settings.game_resolution
-        rects = tile_layouts.arrange(self._layout, played, (self.width(), self.height()), aspect=width / height)
+        family = self._rung_family_in_use()
+        rects = tile_layouts.arrange(
+            self._layout,
+            self._played_at(slots),
+            (self.width(), self.height()),
+            aspect=width / height,
+            rung_tiles=rung_tiles(family, self.devicePixelRatio() or 1.0) if family else (),
+        )
         for slot, rect in zip(slots, rects):
             widget = self._widget_at(slot)
             if widget is not None:
