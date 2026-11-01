@@ -165,7 +165,13 @@ keeps a pin reachable once the feature branch it was made on is deleted.
 
 Current pins, both on `main`:
 
-- **wizwalker `e73a736`** (`bartlebot-pin-20261024`): every click and key sent from a
+- **wizwalker `20c7ba4`** (`bartlebot-pin-20261101`): `client.video_manager`, which changes a
+  running client's resolution with no hook. It writes the live `Resolution` node and sets the
+  pending byte, the manager coming from the static slot its base constructor stores `this` in,
+  and every field offset from the code of the function that applies a pending change
+  (`memory/memory_objects/video_manager.py`). Nothing is installed, so it adds nothing to
+  `_active_hooks` or the autobot. Nothing calls it yet: it is for BartleBuddy #3's resizer. On
+  top of `e73a736` (`bartlebot-pin-20261024`): every click and key sent from a
   worker thread of the window's own (`window_messages.send_message`), not the event
   loop. `SendMessageW` waits for the game to handle the message, and one client that
   took 6 s to answer a friend teleport's Go To Friend click held every other client and

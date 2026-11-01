@@ -91,6 +91,19 @@ the bytecode, look at the code around the match on both builds.
 `AUTOBOT_PATTERN` (`memory/handler.py`) is the one to look at first: it finds the code cave
 every `SimpleHook` is written into, so when it breaks, every such hook does too.
 
+**`VideoManager`'s two patterns** (`memory/memory_objects/video_manager.py`) find no hook site,
+so a broken one costs resizing and nothing else: it raises before anything is written, and the
+client keeps its size. `_SLOT_PATTERN` is the base constructor's store of `this` in the
+manager's static slot. `_FRAME_PATTERN` is the function that applies a pending mode change, and
+its code is read at fixed distances from the match for the pending byte (twice, which must
+agree), the device pointer and the device's size. The pattern can hold while one of those
+moves, which raises `VideoManagerError`. To replace them, the manager's class overrides the
+frame function and calls it directly: the frame function's one direct caller loads `this` from
+`r15`, the entry of that override leads to the class's vtable and so its constructors, and the
+base constructor they call holds the store, the only write to the slot but the destructor's
+clear. BartleBot's `tools/probe_runtime_resize.py slot <w> <h>`, on one client of the build in
+the world, compares the answer with what a hook captures and resizes there and back.
+
 ## 4. The type dump
 
 ```bash

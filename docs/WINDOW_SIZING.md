@@ -694,9 +694,10 @@ and the next section is what a probe found it takes.
 ## Resizing a running client
 
 Measured on the live realm's build (2026-11-01) by BartleBot's `tools/probe_runtime_resize.py`,
-whose RESULTS have every offset and how each question was answered. Not built yet: BartleBuddy
-needs it first, to swap which client gets the large tile when the user changes who they play, and
-it belongs in the shared library so BartleBot can follow. The plan is BartleBuddy #3's page.
+whose RESULTS have every offset and how each question was answered. wizwalker's
+`client.video_manager` holds the writes; the rest is not built yet: BartleBuddy needs it first,
+to swap which client gets the large tile when the user changes who they play, and it belongs in
+the shared library so BartleBot can follow. The plan is BartleBuddy #3's page.
 
 The two parts of Deimos' resize were each rejected for a reason, and the reasons are about
 those parts, not about resizing at runtime:
@@ -718,9 +719,10 @@ milliseconds, and up to about 600 ms when two clients apply at once:
    `std::string`, so its size field changes with its text.
 2. **The pending byte**: set it on the video manager, and the engine runs its own apply on its
    next frame. It moves the device, the window and the camera to the new size, and draws the
-   HUD as it would have chosen itself, with no set-mode hook and no camera write. Read the
-   byte's offset from the code: it moves between builds. The byte clears when the apply is
-   done, and a failed attempt leaves it set and retries.
+   HUD as it would have chosen itself, with no set-mode hook and no camera write. The manager
+   comes from a static slot, so no game code is patched, and the byte's offset from the code,
+   since it moves between builds. The byte clears when the apply is done, and a failed attempt
+   leaves it set and retries.
 3. **The window**: a top-level window follows by itself. An embedded one is taken out of its
    tile, as a hidden top-level window, by the time the byte clears. Embedding it again at the
    new size holds, and keyboard focus and a held key come through it.
