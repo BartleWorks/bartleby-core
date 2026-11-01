@@ -845,6 +845,11 @@ Measured and worth knowing:
   and its process goes on with no window, so it needs ending and a relaunch.
 - **`PrintWindow` returns all white** once a client's device has been reset, while the game
   draws normally. Read the screen instead.
+- **Under VS Code's debugger a launched game dies with the app.** debugpy's launcher runs the app
+  in a job with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, and a game started by `start_instance` inherits
+  it. The windows were measured handed back whole and at their launch size half a second before
+  the app exited, then destroyed in the same instant, with exit code 0 and no crash report. It looks
+  like a crash on quit, and is not one: from a terminal they stay open.
 
 Open: a resize across 4:3 and 16:9 corrects the selected camera too, read in the world only, so
 combat's is unchecked; a resize during a round's animation, or through a device loss, was not
