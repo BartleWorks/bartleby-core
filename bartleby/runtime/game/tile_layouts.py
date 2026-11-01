@@ -19,10 +19,17 @@ brings is an editor of this, and the sizing arithmetic (``game_sizing``) reads t
 never a layout by name. Focus, Pair and Grid are its first
 presets. :func:`arrange` budgets the Main tiles first, then the Side strip, and puts the
 strip beside or below, whichever leaves the larger Main tile.
+
+That is for a client that keeps its launch size, whose game a Side tile cuts. A product
+whose clients can be resized hands :func:`arrange` the tile of each rung, and the budget
+turns round: every Side tile holds its whole game at the smallest rung, and each Main tile
+is exactly the largest rung that fits what is left. Where no such strip fits, or it would
+leave a Main tile smaller than the equal grid does, the tiles are the equal grid.
 """
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
@@ -127,20 +134,118 @@ def _grid(count: int, w: int, h: int, aspect: float) -> list[Rect]:
     return best
 
 
-def arrange(layout: Layout, played: Sequence[bool], area: tuple[int, int], aspect: float = 4 / 3) -> list[Rect]:
+def grid_for(client_count: int) -> tuple[int, int]:
+    """(rows, cols) for *client_count* tiles: 1x1, 1x2, then square-ish.
+
+    Squarest-that-fits rather than a lookup table, so a fifth client gets a grid rather
+    than sharing a cell with the fourth. It agrees with the table it replaced for every
+    count that table had an entry for.
+    """
+    if client_count <= 0:
+        return 0, 0
+    cols = math.ceil(math.sqrt(client_count))
+    rows = math.ceil(client_count / cols)
+    return rows, cols
+
+
+def equal_grid(count: int, w: int, h: int) -> list[Rect]:
+    """*count* equal tiles filling w by h, with no gaps: the grid a launch is judged against."""
+    rows, cols = grid_for(count)
+    if not rows:
+        return []
+    tile_w, tile_h = w // cols, h // rows
+    return [Rect((i % cols) * tile_w, (i // cols) * tile_h, tile_w, tile_h) for i in range(count)]
+
+
+def _largest_tile(w: float, h: float, rung_tiles: Sequence[tuple[int, int]]) -> tuple[int, int] | None:
+    """The largest of *rung_tiles*, smallest first, inside w by h, or None if none is."""
+    return next((tile for tile in reversed(rung_tiles) if tile[0] <= w and tile[1] <= h), None)
+
+
+def _whole_strip(
+    mains: int, sides: int, w: int, h: int, rung_tiles: Sequence[tuple[int, int]]
+) -> tuple[list[Rect], list[Rect]] | None:
+    """The Main and Side tiles of a strip that holds its games whole, or None if there is none.
+
+    The strip reserves the smallest rung's tile for each Side client, beside the Main tiles
+    or below them, whichever leaves the larger Main tile, and beside on a tie. Each Main tile
+    is exactly its rung's tile, and the Side tiles share everything else.
+
+    There is none if the reservation does not fit, if a Main tile comes out at the smallest
+    rung, which leaves a Side tile no rung below it, or if it comes out smaller than the
+    equal grid would make it. That last one is what a launch's fit relies on: it judges the
+    equal grid, so a launch it allows always fits a Main tile.
+    """
+    side_w, side_h = rung_tiles[0]
+    beside = below = None
+    if sides * side_h + GAP * (sides - 1) <= h:
+        beside = _largest_tile((w - side_w - GAP * mains) / mains, h, rung_tiles)
+    if sides * side_w + GAP * (sides - 1) <= w:
+        below = _largest_tile((w - GAP * (mains - 1)) / mains, h - side_h - GAP, rung_tiles)
+    rank = {tile: i for i, tile in enumerate(rung_tiles)}
+    main = max((tile for tile in (beside, below) if tile is not None), key=rank.__getitem__, default=None)
+    if main is None or rank[main] == 0:
+        return None
+    rows, cols = grid_for(mains + sides)
+    in_a_grid = _largest_tile(w // cols, h // rows, rung_tiles)
+    if in_a_grid is not None and rank[main] < rank[in_a_grid]:
+        return None
+    main_w, main_h = main
+    if main == beside:
+        y = (h - main_h) // 2
+        main_rects = [Rect(i * (main_w + GAP), y, main_w, main_h) for i in range(mains)]
+        strip_x = mains * (main_w + GAP)
+        share = (h - GAP * (sides - 1)) // sides
+        return main_rects, [Rect(strip_x, i * (share + GAP), w - strip_x, share) for i in range(sides)]
+    x = (w - (mains * main_w + GAP * (mains - 1))) // 2
+    main_rects = [Rect(x + i * (main_w + GAP), 0, main_w, main_h) for i in range(mains)]
+    strip_y = main_h + GAP
+    share = (w - GAP * (sides - 1)) // sides
+    return main_rects, [Rect(i * (share + GAP), strip_y, share, h - strip_y) for i in range(sides)]
+
+
+def strip_fits(
+    layout: Layout, played: Sequence[bool], area: tuple[int, int], rung_tiles: Sequence[tuple[int, int]]
+) -> bool:
+    """Whether *layout* has Side tiles here, by rung, rather than falling back to the equal grid."""
+    tile_sizes = sizes(layout, played)
+    if layout.grid or TileSize.SIDE not in tile_sizes:
+        return False
+    mains, sides = tile_sizes.count(TileSize.MAIN), tile_sizes.count(TileSize.SIDE)
+    return _whole_strip(mains, sides, *area, rung_tiles) is not None
+
+
+def arrange(
+    layout: Layout,
+    played: Sequence[bool],
+    area: tuple[int, int],
+    aspect: float = 4 / 3,
+    rung_tiles: Sequence[tuple[int, int]] = (),
+) -> list[Rect]:
     """Each client's tile, in slot order, inside an *area* of (width, height) pixels.
 
     Main tiles share what the strip leaves; the strip goes beside or below the Main tiles,
     whichever leaves the larger Main tile.
+
+    *rung_tiles* is what a product whose clients can be resized hands in: the tile of each
+    rung of the clients' family, smallest first (``game_sizing.rung_tiles``), which is
+    what lets this module stay below ``game_sizing``. Then the module docstring's other
+    budget applies, and *aspect* is not used.
     """
     w, h = area
     tile_sizes = sizes(layout, played)
     if not tile_sizes:
         return []
-    if layout.grid or TileSize.SIDE not in tile_sizes:
-        return _grid(len(tile_sizes), w, h, aspect)
     mains = tile_sizes.count(TileSize.MAIN)
     sides = tile_sizes.count(TileSize.SIDE)
+    if rung_tiles:
+        strip = None if layout.grid or not sides else _whole_strip(mains, sides, w, h, rung_tiles)
+        if strip is None:
+            return equal_grid(len(tile_sizes), w, h)
+        mains_iter, sides_iter = iter(strip[0]), iter(strip[1])
+        return [next(mains_iter) if s is TileSize.MAIN else next(sides_iter) for s in tile_sizes]
+    if layout.grid or TileSize.SIDE not in tile_sizes:
+        return _grid(len(tile_sizes), w, h, aspect)
     options = []
     for strip in ("beside", "below"):
         if strip == "beside":

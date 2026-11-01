@@ -190,7 +190,8 @@ class ClientTile(_PillIconHover, QWidget):
 
     The game window is reparented via Win32 SetParent (WS_CHILD) and displayed
     at its native resolution, centered with the system default background
-    showing as letterbox bars if the tile is larger than the game.
+    showing as letterbox bars if the tile is larger than the game. A game larger
+    than the tile is cut from its top-left, not centered.
 
     AttachThreadInput is used so that the Qt thread can call SetFocus on the
     game window (cross-thread SetFocus requires shared input queues).
@@ -295,7 +296,7 @@ class ClientTile(_PillIconHover, QWidget):
         return self._window.is_focused()
 
     def _reposition(self) -> None:
-        """Center the game window at its native resolution within the tile.
+        """Center the game window at its native resolution within the tile, or pin it top-left if larger.
 
         self.width()/height() are Qt logical pixels; MoveWindow uses Win32
         physical pixels.  Multiplying by devicePixelRatio() converts them so
