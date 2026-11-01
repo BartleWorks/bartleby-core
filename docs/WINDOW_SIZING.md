@@ -788,9 +788,10 @@ still equals the client size after every resize, so the 1:1 contract holds.
 - **`prepare(clients)`** finds the manager and the nodes ahead of the first swap, once there are
   two clients. With one it does nothing, so a one-account session never scans. The caller decides
   when a session may need a resize; a session with no Side tile should not ask.
-- **`resize(client, size)`** only sets a target. One worker per client waits out loading, a fight
-  and any lease above `Owner.DISPLAY`, then reads the target, so targets sent during a wait run
-  only the last. A size it is already at writes nothing.
+- **`resize(client, size)`** only sets a target. One worker per client waits out loading and any
+  lease above `Owner.DISPLAY`, then reads the target, so targets sent during a wait run only the
+  last. A size it is already at writes nothing. A fight is not waited out: the tiles change shape
+  at once, so a wait left a game at its old size, cut off by its new tile, until the fight ended.
 - **The UI size** is `ui_size_for` of the user's own, captured by
   `launch_profile.capture_game_settings` before the first write, for a client no launch captured.
   A game with no UI scale in its file is not resized, since a resolution with the wrong UI size is
@@ -805,7 +806,7 @@ still equals the client size after every resize, so the 1:1 contract holds.
   takes out of its tile.
 - **`give_back(client)`** returns the size read from the device before the first resize and the
   UI size read from the node, within `RESIZE_GIVE_BACK_TIMEOUT`, waits included. One still in a
-  fight or loading then is left as it is, with a warning. The files are `restore_ui_size` and
+  loading or under a higher lease then is left as it is, with a warning. The files are `restore_ui_size` and
   `restore_game_prefs`, on quit and at the next start, so they run after the last apply.
 - **Any failure** is one warning, and no more is asked of that client until `forget(client)` and
   it is hooked again.

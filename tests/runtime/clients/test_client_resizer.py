@@ -169,17 +169,15 @@ async def test_it_waits_while_the_client_loads(resizer):
     assert client.game_size == _SMALL_SIZE
 
 
-async def test_it_waits_while_the_client_is_in_a_fight(resizer):
+async def test_a_fight_does_not_hold_it_off(resizer):
+    """The tile has changed shape already, so waiting would leave the game cut off for the whole fight."""
     client = SimClient(battle=True)
     resizer.resize(client, _SMALL_SIZE)
-    await asyncio.sleep(0.03)
-    assert _writes(client) == []
-    client.battle = False
     await _settled(resizer, client)
     assert client.game_size == _SMALL_SIZE
 
 
-async def test_a_fight_that_starts_while_it_waits_for_the_lease_holds_it_off(resizer, arbiter):
+async def test_a_load_that_starts_while_it_waits_for_the_lease_holds_it_off(resizer, arbiter):
     client = SimClient()
     release = asyncio.Event()
 
@@ -191,12 +189,12 @@ async def test_a_fight_that_starts_while_it_waits_for_the_lease_holds_it_off(res
     await asyncio.sleep(0)
     resizer.resize(client, _SMALL_SIZE)
     await asyncio.sleep(0.02)
-    client.battle = True
+    client.loading = True
     release.set()
     await holder
     await asyncio.sleep(0.03)
     assert _writes(client) == []
-    client.battle = False
+    client.loading = False
     await _settled(resizer, client)
     assert client.game_size == _SMALL_SIZE
 
@@ -267,15 +265,15 @@ async def test_a_higher_owner_arriving_before_the_apply_leaves_the_target_standi
     client = SimClient()
     # Held at the check under the lease, so the higher owner lands before the apply.
     gate = asyncio.Event()
-    in_battle, calls = client.in_battle, []
+    is_loading, calls = client.is_loading, []
 
-    async def slow_battle():
+    async def slow_check():
         calls.append(1)
         if len(calls) == 2:
             await gate.wait()
-        return await in_battle()
+        return await is_loading()
 
-    client.in_battle = slow_battle
+    client.is_loading = slow_check
     resizer.resize(client, _SMALL_SIZE)
     await _until(lambda: len(calls) == 2)
 
@@ -395,15 +393,15 @@ async def test_the_arbiter_s_stop_all_alone_ends_a_resize_waiting_on_its_lease(r
     """A revoke lands on the lease in the moment before the apply starts: the target goes too."""
     client = SimClient()
     gate = asyncio.Event()
-    in_battle, calls = client.in_battle, []
+    is_loading, calls = client.is_loading, []
 
-    async def slow_battle():
+    async def slow_check():
         calls.append(1)
         if len(calls) == 2:
             await gate.wait()
-        return await in_battle()
+        return await is_loading()
 
-    client.in_battle = slow_battle
+    client.is_loading = slow_check
     resizer.resize(client, _SMALL_SIZE)
     await _until(lambda: len(calls) == 2)
     await arbiter.revoke_all()
@@ -765,20 +763,29 @@ async def test_giving_back_runs_instead_of_any_target_still_waiting(resizer):
     client = SimClient()
     resizer.resize(client, _SMALL_SIZE)
     await _settled(resizer, client)
-    client.battle = True
+    client.loading = True
     resizer.resize(client, _LARGE_SIZE)
-    client.battle = False
+    client.loading = False
     await resizer.give_back(client)
     assert client.game_size == (800, 600)
     assert "1280x720" not in [d for k, d in _writes(client) if k == "resolution"]
 
 
-async def test_giving_back_leaves_a_client_in_a_fight_with_a_warning_on_a_short_timeout(resizer, monkeypatch, warnings):
-    monkeypatch.setattr(client_resizer, "RESIZE_GIVE_BACK_TIMEOUT", 0.03)
+async def test_giving_back_reaches_a_client_in_a_fight(resizer):
     client = SimClient()
     resizer.resize(client, _SMALL_SIZE)
     await _settled(resizer, client)
     client.battle = True
+    await resizer.give_back(client)
+    assert client.game_size == (800, 600)
+
+
+async def test_giving_back_leaves_a_client_loading_with_a_warning_on_a_short_timeout(resizer, monkeypatch, warnings):
+    monkeypatch.setattr(client_resizer, "RESIZE_GIVE_BACK_TIMEOUT", 0.03)
+    client = SimClient()
+    resizer.resize(client, _SMALL_SIZE)
+    await _settled(resizer, client)
+    client.loading = True
     await resizer.give_back(client)
     assert client.game_size == _SMALL_SIZE
     assert len(warnings()) == 1
