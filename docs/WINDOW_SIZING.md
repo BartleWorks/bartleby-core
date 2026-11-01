@@ -762,7 +762,9 @@ those parts, not about resizing at runtime:
   takes a new UI size through the same apply as a new resolution, Micro included.
 
 A resize is three steps, in this order, and the game does the rest. An apply takes tens of
-milliseconds, and up to about 600 ms when two clients apply at once:
+milliseconds, and up to about 600 ms when two clients apply at once. From asking to the answer,
+embedded in a tile, it was 242 to 265 ms, so a swap is about 0.75 s with `RESIZE_SETTLE`, and about
+3.5 s the first time, with the scans:
 
 1. **The two nodes**: write the live `Resolution` node's string and the live `UISize` node's
    int32, in the game's config. The writes alone change nothing on screen. The nodes are among
@@ -855,8 +857,11 @@ Measured and worth knowing:
   the app exited, then destroyed in the same instant, with exit code 0 and no crash report. It looks
   like a crash on quit, and is not one: from a terminal they stay open.
 
+Swaps in a fight ran with no issues in game, with two accounts, as did zone changes, so a fight is
+not waited out.
+
 Open: a resize across 4:3 and 16:9 corrects the selected camera too, read in the world only, so
-combat's is unchecked; a resize during a round's animation, or through a device loss, was not
+combat's is unchecked; a resize through a device loss, and with it taking the byte back, was not
 tried; and the Test realm's offset was read from its exe, and never run.
 
 ## Still open
