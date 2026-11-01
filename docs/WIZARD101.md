@@ -113,6 +113,21 @@ Stated 2026-10-03 and corrected 2026-10-05.
 - Many dungeons have no walk-out exit: players teleport to the hub, or use a teleporter that
   appears only after the final boss.
 
+## Skeleton key doors
+
+Stated 2026-10-31 for BartleBot #284. The carry-in was seen at Castle Darkmoor's Stone
+Skeleton Key room; its 7 s has not been timed at other doors.
+
+- Only a player holding the right key gets the door's interact prompt, so a missing prompt
+  means no key, or a door already open.
+- One press spends one key and opens the door for everyone in the instance. A player on
+  another realm has their own instance and their own locked door.
+- The door's zone-change trigger works once it is open. Anyone can walk into it.
+- The player who used the key can walk in like anyone else. **If they have not within about
+  7 s of the press, the game carries them in by itself**, even from outside the trigger. A
+  teleport into the trigger just as that fires is applied once they land, which puts them back
+  out.
+
 ## Dungeon sigils and relogging
 
 Stated 2026-10-20 for BartleBot #279.

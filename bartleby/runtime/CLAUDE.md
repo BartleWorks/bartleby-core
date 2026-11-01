@@ -140,7 +140,8 @@ transition) — otherwise the helper aims a teleport at a client already on a lo
 and a zone name cannot tell them apart. Where a node needs its players together, check it by
 sight -- `read_sightings`, and `ensure_together` to repair -- and let the `Player Realms` option
 decide whether they should be (`docs/PLAYER_REALMS.md`). A node that moves players declares
-`player_realms.SPEC`; one that puts them all on one realm by nature declares `merges_players`.
+`player_realms.SPEC`; one that puts them all on one realm by nature, or needs them there, declares
+`merges_players`.
 A zone-entry node calls `note_realm_peers` just before its transition, so straggler recovery in
 a Separate bot knows who shares whose realm.
 

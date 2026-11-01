@@ -79,6 +79,27 @@ TRIGGER_TIMEOUT = 10.0
 # Seconds to wait for a UI event to fire after an input (loading screen start,
 # button becoming enabled, dialog appearing).
 
+KEY_DOOR_PROMPT_SETTLE = 1.0
+# Seconds a skeleton key door waits, once any player has its prompt, for the lowest-numbered
+# player's to show. Prompts come up a poll or two apart, so choosing at the first one picks
+# whoever's happened to render first, not who should spend a key.
+
+KEY_DOOR_RETRY_INTERVAL = 1.5
+# Seconds between tries at a skeleton key door: a press whose prompt stayed, and a teleport
+# into the trigger that started no load. Longer than a press takes to clear the prompt
+# (about 0.15 s) and a teleport takes to show a loading screen (about 1 s), since repeating
+# either of those too early costs a key or lands on a client already on its way (#70).
+
+KEY_DOOR_TELEPORT_CUTOFF = 5.0
+# Seconds after the press at a skeleton key door that its unlocker may still be teleported
+# into the trigger. The game carries an unlocker in by itself about 7 s after the press, and
+# a teleport that crosses that is applied once they land, which puts them back out (#284).
+# It also bounds what Record trusts as walking in, since nothing before this is the carry.
+
+KEY_DOOR_ENTRY_TIMEOUT = 15.0
+# Seconds after the press at a skeleton key door by which the game's carry-in has either
+# started or is not coming, so a teleport can no longer collide with it.
+
 RIDE_TIMEOUT = 180.0
 # Ceiling on waiting out a ride -- a boat, an airship, a dragon -- for a player whose skip
 # never landed. Skipping normally ends a ride within seconds of the prompt appearing, and a
