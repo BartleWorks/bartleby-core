@@ -52,11 +52,6 @@ included, so 100 is 2.0x in total and never 2.0x on top of a mount. If a wizard 
 reset more often than on a mount, the value comes down; it is never raised above 100 to find
 where the server's limit is.
 
-**Two things this project does not do, and the reasons stand:** it does not work out the
-server's tolerance for a teleport (sub-threshold teleports), and it does not forge or replay
-movement. Both are beating a measure the developer added on purpose, a public repository doing
-either invites a takedown, and the tolerance is the developer's to tighten whenever it likes.
-
 ## Planning a route from a zone's files
 
 `probe_walk_route.build_planner(zone)` builds everything from the zone's wad
