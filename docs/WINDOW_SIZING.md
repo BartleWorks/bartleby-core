@@ -693,10 +693,10 @@ and the next section is what a probe found it takes.
 
 ## Resizing a running client
 
-Proven on live r806919 (2026-10-28) by `tools/probe_runtime_resize.py`, whose docstring has
-every offset, the config node's layout and what each step looked like. Not built yet:
-BartleBuddy needs it first, to swap which client gets the large tile when the user changes
-who they play, and it belongs in the shared library so BartleBot can follow.
+Measured on the live realm's build (2026-11-01) by BartleBot's `tools/probe_runtime_resize.py`,
+whose RESULTS have every offset and how each question was answered. Not built yet: BartleBuddy
+needs it first, to swap which client gets the large tile when the user changes who they play, and
+it belongs in the shared library so BartleBot can follow. The plan is BartleBuddy #3's page.
 
 The two parts of Deimos' resize were each rejected for a reason, and the reasons are about
 those parts, not about resizing at runtime:
@@ -706,36 +706,44 @@ those parts, not about resizing at runtime:
 - **The missing `UISize`** is why their small windows had a broken HUD. A running client
   takes a new UI size through the same apply as a new resolution, Micro included.
 
-A resize is four steps, in this order, and takes about two seconds:
+A resize is three steps, in this order, and the game does the rest. An apply takes tens of
+milliseconds, and up to about 600 ms when two clients apply at once:
 
-1. **UI size**: write the int32 value of the live `UISize` node in the game's config. The
-   write alone changes nothing on screen; the apply in step 2 redraws the HUD. The node is
-   one of ~130,000 generic key/value objects sharing one vtable, found once per client by a
-   scan of about 3 s, as the key bindings are (`docs/KEY_BINDINGS.md`).
-2. **Resolution**: Deimos' two hooks. One overrides the width and height the engine's
-   set-mode is called with; the other captures the video manager, whose pending byte
-   (`+0x2229B`) starts the engine's own apply on its next frame. Hold them only for the
-   apply, and disarm the override after.
-3. **Window**: the apply leaves the window at its old size, so the frame is stretched until
-   it is resized. An embedded window is also taken out of its tile: the apply resets it to
-   a hidden top-level window. Embedding it again at the new size holds.
-4. **Camera**: the apply keeps the old frustum, so a 4:3 / 16:9 change stretches the 3D
-   view. Write the horizontal extent from the vertical one and the new aspect. Computing it
-   from the live vertical extent each time, never from a stored "native" value, is what
-   keeps the creep in the lesson above from happening.
+1. **The two nodes**: write the live `Resolution` node's string and the live `UISize` node's
+   int32, in the game's config. The writes alone change nothing on screen. The nodes are among
+   ~130,000 generic key/value objects, found once per client by a scan for their names of
+   about 2 s each, as the key bindings are (`docs/KEY_BINDINGS.md`). Each name has several
+   nodes: the live `UISize` is the one marked at `+0x45` with a pointer at `+0x18`, and the
+   live `Resolution` the one with that pointer under the same parent. The string is an MSVC
+   `std::string`, so its size field changes with its text.
+2. **The pending byte**: set it on the video manager, and the engine runs its own apply on its
+   next frame. It moves the device, the window and the camera to the new size, and draws the
+   HUD as it would have chosen itself, with no set-mode hook and no camera write. Read the
+   byte's offset from the code: it moves between builds. The byte clears when the apply is
+   done, and a failed attempt leaves it set and retries.
+3. **The window**: a top-level window follows by itself. An embedded one is taken out of its
+   tile, as a hidden top-level window, by the time the byte clears. Embedding it again at the
+   new size holds, and keyboard focus and a held key come through it.
 
-What stays true from the review above: the hooks patch game code that wizwalker's hook
-handler does not track, so they must be removed before a client is unhooked or closed, or
-it crashes on its next frame; their patterns need upkeep after a patch; one forcer per
-client. And the backbuffer still equals the client size after every resize, so the 1:1
-contract holds.
+The hook-based version Deimos uses, overriding set-mode's width and height, works too, but
+leaves the game believing the old size: the HUD stays at the old scale. And the backbuffer
+still equals the client size after every resize, so the 1:1 contract holds.
 
-Open: only the selected camera was corrected, while combat and the others keep their own
-frustums and a zone change may rebuild them; frames during an apply can be white or half
-laid out, so the tile should cover the swap; the game may save the written UI size to
-`config.xml` on exit, so the user's own is captured and given back as for launches; and
-`Resolution` is a string node too, so writing it with the pending byte might resize with no
-set-mode hook at all.
+Measured and worth knowing:
+
+- **A temporary size reaches the disk.** While a window was embedded, `preferences.xml` was
+  rewritten during the session with the `Resolution` of the moment, and clients share that file.
+  On exit `config.xml` is rewritten with the file's own `UISize`, and `preferences.xml` is left
+  alone. The user's own settings have to be captured before a first resize and given back
+  after the last.
+- **An embedded game dies with its host.** If the app is killed, the game's window is destroyed
+  and its process goes on with no window, so it needs ending and a relaunch.
+- **`PrintWindow` returns all white** once a client's device has been reset, while the game
+  draws normally. Read the screen instead.
+
+Open: a resize across 4:3 and 16:9 corrects the selected camera too, read in the world only, so
+combat's is unchecked; a resize during a round's animation, or through a device loss, was not
+tried; and the Test realm's offset was read from its exe, and never run.
 
 ## Still open
 
