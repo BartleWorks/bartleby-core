@@ -39,7 +39,7 @@ dev = [
 
 # Ours, pinned by exact commit, the same pins BartleBot carries (its docs/UPSTREAM.md).
 [tool.uv.sources]
-wizwalker = { git = "https://github.com/BartleWorks/wizwalker.git", rev = "e73a73635bedfc0e05f2730f277c43b49c24f113" }
+wizwalker = { git = "https://github.com/BartleWorks/wizwalker.git", rev = "20c7ba417f6febbdd7f6bdb38b2a4c1b17e74d99" }
 wizsprinter = { git = "https://github.com/BartleWorks/wizsprinter.git", rev = "088fc838bda285c8b06d2f235fb5671126035f59" }
 
 [tool.pytest.ini_options]
