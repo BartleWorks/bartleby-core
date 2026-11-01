@@ -302,10 +302,50 @@ or each tile's size in slot order, `Main` or `Side` (`bartleby.runtime.game.tile
 Main tiles alone are the equal grid. With Side tiles, the area is the one
 `tile_layouts.arrange` places them in with the strip beside the Main tiles: the Main tiles
 in a row, each a rectangle of the game's aspect holding a whole tile, and a strip of Side
-tiles `SIDE_SHARE` of that height tall. A Side tile needs nothing of its own: until a running
-client can be resized it shows its game at the launch size, centered and cut to the tile.
+tiles `SIDE_SHARE` of that height tall. A Side tile needs nothing of its own: a client that is
+not resized shows its game at the launch size, cut to the tile from its top-left, since
+`ClientTile._reposition` centers a game only when the tile is larger than it.
 `test_arranged_in_the_area_it_needs_every_main_tile_holds_its_game` keeps the sizing and the
 placement in agreement.
+
+**Tiles by rung** are for a product whose clients can be resized, and turn that budget round,
+because a client's size then follows its tile. `GameView.set_layout(..., by_rung=True)` asks
+for them; nothing does yet, since a smaller Main with no resize behind it only costs room.
+
+- **Every Side tile holds its whole game, and Main takes what is left.** The strip reserves
+  the `tile_size` of the family's smallest rung for each Side client, 546x351 at 16:9, in a
+  column beside the Main tiles or a row below, whichever leaves the larger Main, and beside on
+  a tie. Each Main tile is exactly the `tile_size` of the largest rung that fits the rest, and
+  the Side tiles share everything else.
+- **A resize keeps the launch's aspect**, so no camera is written. `aspect_family` gives a
+  client's rungs: 16:9's or 4:3's, and None for any other aspect, whose client has no target.
+  The largest game with a ladder picks the family the tiles are placed by, and a client of the
+  other family takes its own family's largest rung that fits, which a tile reserved for the
+  first can still cut.
+- **With no Side tile, nothing resizes.** Each target is the launch size: one account, two
+  both played, and the equal grid. `tile_targets` is the one rule, and with a Side tile it
+  answers the largest of the client's family that fits (`fitting_rung`), and for a Side tile
+  always a rung below every Main tile's.
+- **The equal grid is the fallback.** No strip fits where the reservation does not, as with
+  three followers on 1080p with the sidebar shown. Nor does one where Main would come out at
+  the smallest rung, since a Side tile then has no rung below it, or smaller than the equal
+  grid makes it, which only two or more Main tiles reach. That last rule is what lets a launch
+  be judged as the equal grid and always fit a Main tile.
+
+What it gives, at 100% display scale with a 40-pixel taskbar, where 1612 wide is the sidebar
+shown and 1920 hidden; `test_tiles_by_rung.py` holds these rows:
+
+| launch | game area | clients | Main | Side |
+|---|---|---|---|---|
+| 16:9 | 1920x971 | 1 Main, 1 or 2 Side | 1280x720 | 534x300 |
+| 16:9 | 1612x971 | 1 Main, 1 or 2 Side | 960x540 | 534x300 |
+| 4:3 | 1920x971 | 1 Main, 1 Side | 1024x768 | 800x600 |
+| 4:3 | 1612x971 | 1 Main, 1 Side | 1024x768 | 480x360 |
+| 16:9 | 1920x971 | 1 Main, 3 Side | 960x540 | 534x300, strip below |
+| 16:9 | 1612x971 | 1 Main, 3 Side | equal grid, at the launch size, 746x420 at most | |
+| 16:9 | 1920x971 | 2 Main, 1 Side | 854x480 | 640x360 |
+| 16:9 | 2252x1331 | 1 Main, 1 to 3 Side | 1600x900 | 534x300 |
+| 16:9 | 3532x2051 | 1 Main, 1 to 3 Side | 2560x1440 | 854x480 |
 
 BartleBot's answers are the same as before the lists: its
 `tests/game/test_pane_sizing.py` holds the old formulas written out and compares every
