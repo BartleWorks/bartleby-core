@@ -249,8 +249,16 @@ def _prefs_update(width: int, height: int) -> dict[str, str]:
     when it is not fullscreen, so patching one without the other produces a window at
     the wrong size and a tile that cannot hold it, with nothing saying why.
 
-    Captures the user's own values here, once, before either is overwritten -- and from
-    *settings* when a capture already exists rather than from the file, because one
+    Captures the user's own values first, by :func:`_capture_prefs`.
+    """
+    _capture_prefs()
+    return {_RESOLUTION_TAG: f"{width}x{height}", _FULLSCREEN_TAG: "0"}
+
+
+def _capture_prefs() -> None:
+    """Keep the user's own resolution and fullscreen mode, once, before either is overwritten.
+
+    From *settings* when a capture already exists rather than from the file, because one
     patched session leaves our values sitting in preferences.xml and re-reading would
     adopt them as the user's preference, losing theirs for good. Same trap as
     :func:`_ui_size_update`.
@@ -270,7 +278,6 @@ def _prefs_update(width: int, height: int) -> dict[str, str]:
         if captured_fullscreen is not None:
             settings.original_fullscreen = captured_fullscreen
             settings.save()
-    return {_RESOLUTION_TAG: f"{width}x{height}", _FULLSCREEN_TAG: "0"}
 
 
 def restore_game_prefs() -> None:
@@ -339,6 +346,12 @@ def _ui_size_update(width: int, height: int) -> dict[str, str]:
     clamped session leaves our value sitting in config.xml, so re-reading it would adopt
     our own clamp as the user's preference and lose theirs for good.
     """
+    target = ui_size_for(_captured_ui_size(), (width, height))
+    return {} if target is None else {_UI_SIZE_TAG: str(target)}
+
+
+def _captured_ui_size() -> int | None:
+    """The user's own UI scale: the capture, or the file's, which then becomes the capture."""
     settings = SettingsManager.instance()
     preferred = settings.original_ui_size
     if preferred is None:
@@ -346,8 +359,19 @@ def _ui_size_update(width: int, height: int) -> dict[str, str]:
         if preferred is not None:
             settings.original_ui_size = preferred
             settings.save()
-    target = ui_size_for(preferred, (width, height))
-    return {} if target is None else {_UI_SIZE_TAG: str(target)}
+    return preferred
+
+
+def capture_game_settings() -> int | None:
+    """Keep the user's own game settings before a running client's size changes, and say their UI scale.
+
+    A client started outside the app reaches a live resize with nothing captured, and a
+    temporary size can reach preferences.xml during a session (docs/WINDOW_SIZING.md), so this
+    has to come before the first write. :func:`restore_ui_size` and :func:`restore_game_prefs`
+    give them back, as for a launch. None when the game never wrote a UI scale.
+    """
+    _capture_prefs()
+    return _captured_ui_size()
 
 
 def restore_ui_size() -> None:

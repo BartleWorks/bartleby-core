@@ -43,6 +43,7 @@ class Owner(IntEnum):
 
     QUESTER = 10
     MOVEMENT = 20
+    DISPLAY = 25
     HOTKEY = 30
     COMBAT = 40
     RECOVERY = 50
@@ -55,6 +56,7 @@ class Owner(IntEnum):
 _LABELS = {
     Owner.QUESTER: "questing",
     Owner.MOVEMENT: "moving",
+    Owner.DISPLAY: "resizing",
     Owner.HOTKEY: "hotkey",
     Owner.COMBAT: "in combat",
     Owner.RECOVERY: "recovering",
