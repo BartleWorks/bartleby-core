@@ -556,8 +556,8 @@ async def test_the_scan_holds_no_lease_and_a_follower_ticks_through_it(resizer, 
     """The steering path: a resize finds its nodes before its lease, so a follower walks through the scan.
 
     No tick goes past probe_follow_jitter's 250 ms, against two scans of 300 ms spent off the loop,
-    as wizwalker's are. What a real scan does to the loop is measured on a live client:
-    the page's As built has the number.
+    as wizwalker's are. What a real scan does to the loop is measured on a live client, by
+    BartleBuddy's tools/probe_resize_scan.py.
     """
     monkeypatch.setattr(follow, "FOLLOW_TICK", 0.01)
     monkeypatch.setattr("bartleby.runtime.input.HELD_KEY_REPEAT", 0.01)
