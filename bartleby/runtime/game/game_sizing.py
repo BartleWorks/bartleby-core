@@ -54,7 +54,7 @@ import math
 from collections.abc import Mapping, Sequence
 from typing import NamedTuple
 
-from bartleby.runtime.game.tile_layouts import GAP, SIDE_SHARE, TileSize
+from bartleby.runtime.game.tile_layouts import GAP, SIDE_SHARE, TileSize, grid_for
 
 # ---------------------------------------------------------------------------
 # Tile chrome
@@ -432,20 +432,6 @@ def ui_size_for(preferred_value: int | None, resolution: tuple[int, int]) -> int
 # ---------------------------------------------------------------------------
 
 
-def grid_for(client_count: int) -> tuple[int, int]:
-    """(rows, cols) for *client_count* tiles: 1x1, 1x2, then square-ish.
-
-    Squarest-that-fits rather than a lookup table, so a fifth client gets a grid rather
-    than sharing a cell with the fourth. It agrees with the table it replaced for every
-    count that table had an entry for.
-    """
-    if client_count <= 0:
-        return 0, 0
-    cols = math.ceil(math.sqrt(client_count))
-    rows = math.ceil(client_count / cols)
-    return rows, cols
-
-
 def tile_size(resolution: tuple[int, int], dpr: float = 1.0) -> tuple[int, int]:
     """The logical pixels one tile occupies: the game window plus its chrome.
 
@@ -478,8 +464,12 @@ def required_game_area(resolution: tuple[int, int], tiles: Tiles, dpr: float = 1
     strip beside the Main tiles: the Main tiles in a row, each a rectangle of the game's
     aspect that holds a whole ``tile_size``, since ``arrange`` fits every tile to the
     aspect; and the strip, a column of Side tiles ``SIDE_SHARE`` of that height tall. A
-    Side tile has no size of its own to need: until a running client can be resized, it
-    shows its game at the launch size, centered and cut to the tile.
+    Side tile has no size of its own to need: a client that is not resized shows its game
+    at the launch size, cut to the tile from its top-left, as ``ClientTile._reposition``
+    places a game larger than its tile.
+
+    A launch is still judged as a count, the equal grid, whether its clients can be resized
+    or not. ``tile_layouts.arrange`` never makes a Main tile smaller than that grid's.
     """
     sizes = tile_sizes(tiles)
     mains = sizes.count(TileSize.MAIN)
@@ -492,6 +482,87 @@ def required_game_area(resolution: tuple[int, int], tiles: Tiles, dpr: float = 1
     main_h = math.ceil(main_w / aspect)
     strip_w = math.ceil(main_h * SIDE_SHARE * aspect)
     return mains * main_w + GAP * mains + strip_w, main_h
+
+
+# ---------------------------------------------------------------------------
+# Rungs: the sizes a running client may move among
+# ---------------------------------------------------------------------------
+# A resize keeps the launch's aspect, so no camera is written, and each aspect has its own
+# rungs. Only these two have a ladder: 5:4 has one size, and 16:10 has two, both far too
+# large for a Side tile. ``widescreen_form`` is the test for 16:9 rather than a ratio,
+# because its even-pixel rounding lands some rungs just off 16:9 (see ASPECT_BAND_STEPS).
+_WIDESCREEN_RUNGS = tuple(r for r in VALID_RESOLUTIONS if widescreen_form(r) == r)
+_FOUR_THREE_RUNGS = tuple(r for r in VALID_RESOLUTIONS if r[0] * 3 == r[1] * 4)
+
+
+def aspect_family(resolution: tuple[int, int]) -> tuple[tuple[int, int], ...] | None:
+    """The rungs a client at *resolution* may move among, smallest first, or None with no ladder.
+
+    Decided by the aspect alone, so a client started outside the app at a size the game's
+    own dropdown offers and ``VALID_RESOLUTIONS`` leaves out still has a family.
+    """
+    resolution = tuple(resolution)
+    if widescreen_form(resolution) == resolution:
+        return _WIDESCREEN_RUNGS
+    if resolution[0] * 3 == resolution[1] * 4:
+        return _FOUR_THREE_RUNGS
+    return None
+
+
+def rung_tiles(family: Sequence[tuple[int, int]], dpr: float = 1.0) -> list[tuple[int, int]]:
+    """The tile of each rung of *family*, smallest first, as ``tile_layouts.arrange`` takes them."""
+    return [tile_size(rung, dpr) for rung in family]
+
+
+def fitting_rung(area: tuple[int, int], family: Sequence[tuple[int, int]], dpr: float = 1.0) -> tuple[int, int]:
+    """The largest of *family* whose whole tile fits *area*, or the family's smallest.
+
+    The smallest even when it does not fit, since a client has to be some size and that
+    one shows the most of its game.
+    """
+    fitting = [rung for rung in family if fits_tile(rung, area, dpr)]
+    return fitting[-1] if fitting else family[0]
+
+
+def fits_tile(resolution: tuple[int, int], area: tuple[int, int], dpr: float = 1.0) -> bool:
+    """Whether a tile of *area* logical pixels holds a game at *resolution*, whole."""
+    tile_w, tile_h = tile_size(resolution, dpr)
+    return tile_w <= area[0] and tile_h <= area[1]
+
+
+def tile_targets(
+    launches: Sequence[tuple[int, int] | None],
+    areas: Sequence[tuple[int, int]],
+    tiles: Tiles,
+    dpr: float = 1.0,
+) -> list[tuple[int, int] | None]:
+    """The size each client should run at, in slot order, or None for one with no target.
+
+    *launches* holds each client's launch size, None if it is not known; *areas* each
+    tile's logical size; *tiles* what ``game_sizing`` asks about everywhere, each tile's
+    size or a count for the equal grid.
+
+    With no Side tile, each target is the launch size, so a session that never has one
+    never asks for a resize. The launch fit judged that same grid, so the tile holds it.
+
+    With a Side tile, one rule answers: the largest of the client's own family that fits
+    its tile, and for a Side tile always a rung below every Main tile's, since a follower
+    has no use for more. A client with no ladder has no target either way.
+    """
+    sizes = tile_sizes(tiles)
+    families = [None if launch is None else aspect_family(launch) for launch in launches]
+    if TileSize.SIDE not in sizes:
+        return [launch if family else None for launch, family in zip(launches, families)]
+    targets: list[tuple[int, int] | None] = [
+        fitting_rung(area, family, dpr) if family and size is TileSize.MAIN else None
+        for area, family, size in zip(areas, families, sizes)
+    ]
+    main_pixels = [target[0] * target[1] for target in targets if target is not None]
+    for i, (area, family, size) in enumerate(zip(areas, families, sizes)):
+        if family and size is TileSize.SIDE:
+            below = [r for r in family if not main_pixels or r[0] * r[1] < min(main_pixels)]
+            targets[i] = fitting_rung(area, below or family[:1], dpr)
+    return targets
 
 
 def right_sidebar_floor(log_row_px: float | None = None) -> int:
