@@ -21,6 +21,15 @@ select with no lease: launching is the user's command, and until it is hooked th
 no team for anything else to own. Its cleanup presses on a hooked client, so BartleBuddy holds
 a lease around it, by `drive_client_in`'s `hold`.
 
+**A resize holds `Owner.DISPLAY`**, labeled "resizing" (`clients/client_resizer.py`): it writes
+memory, though it presses nothing, and a click sent during an apply would land on a window on its
+way somewhere else. So it preempts the quester and movement, which resume from their own state,
+and it waits for a hotkey, combat and recovery, for `is_loading` to end and for the client to
+leave a fight. Finding its config nodes takes seconds and is reads alone, so it comes before the
+lease, and a follower walks through it. Once the writes begin they run out of any cancel's reach,
+since the game can't be asked to stop: a higher owner or Stop all waits the length of an apply,
+and whoever embeds the window always hears how it ended.
+
 **Speed is never written above 2.0x in total** (the field holds a mount's bonus too), and
 there is one Speed toggle, `actions/helpers.py`'s `SpeedBoost`: BartleBot's authoring tools
 hold one too, on an arbiter of their own, since a run switches them off first.
