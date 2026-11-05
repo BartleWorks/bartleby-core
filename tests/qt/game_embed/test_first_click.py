@@ -377,3 +377,15 @@ def test_a_drag_still_moves_each_game_as_its_tile_changes(asking):
     game.resize(1700, 971)
 
     assert window.moves, "nothing is asked for at once, so the game follows its tile"
+
+
+def test_saying_swap_first_again_places_nothing(by_rung, monkeypatch):
+    """BartleBuddy says it on every placing, several times a second while a team moves."""
+    game = by_rung((3532, 2051), [(1280, 720)] * 2)
+    game.set_swap_first(True)
+    placed: list[bool] = []
+    monkeypatch.setattr(game, "_recompute_geometry", lambda: placed.append(True))
+
+    game.set_swap_first(True)
+
+    assert placed == []

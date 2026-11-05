@@ -1118,8 +1118,10 @@ class GameView(ThemedMixin, QWidget):
         On, each Side tile swallows clicks (``ClientTile.swallow_clicks``): a press on its
         body is ``body_clicked`` and nothing lands in its game. A Main tile and every tile of
         an equal grid let clicks through, as every tile does with it off. BartleBot never
-        calls this.
+        calls this. Saying it again changes nothing, so a product may say it on every placing.
         """
+        if on == self._swap_first:
+            return
         self._swap_first = on
         self._recompute_geometry()
 
