@@ -909,7 +909,9 @@ The window's half is the product's two crossings around that:
   reads `IsWindowEnabled` first, since an `EnableWindow` after every refit, needed or not, was 35
   to 97 ms of the GUI thread a swap. `focus_game` lets the input
   through first, since a disabled window takes no keys, and `restore` does before anything
-  else, so a game is never left disabled on the desktop.
+  else, so a game is never left disabled on the desktop. Measured on four clients on 4K
+  (Stage 5.2 of BartleBuddy #14), a swap under it took 612 ms against 533 ms with every game
+  enabled, the difference all in the reembeds on the workers; why is open, for Stage 5.3.
 - **Leaving.** `window_detached(hwnd)` says a window has gone to the desktop, and the product gives
   it back. `EmbeddedWindow.restore` sizes the frame from the client area it has at that moment and
   the frame it was found with, since a frame of its old size no longer matches the backbuffer.
