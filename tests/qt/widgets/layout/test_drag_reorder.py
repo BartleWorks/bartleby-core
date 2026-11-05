@@ -10,6 +10,7 @@ route to a move, and the two hooks a tree is drawn with (carry and accepts).
 
 from __future__ import annotations
 
+import pytest
 from PyQt6.QtCore import QEvent, Qt
 from PyQt6.QtTest import QTest
 from PyQt6.QtWidgets import QApplication, QLabel, QScrollArea, QVBoxLayout, QWidget
@@ -46,6 +47,9 @@ def _layout_texts(layout) -> list[str]:
     return [w.text if isinstance(w, _Card) else "header" for w in widgets if w is not None]
 
 
+# A known flake (BartleWorks/BartleBuddy#13): fails under -n auto load, and passes alone.
+# See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 def test_a_row_before_the_cards_is_never_part_of_the_order(qapp):
     host, layout, drag, cards = _host()
     show(qapp, host)

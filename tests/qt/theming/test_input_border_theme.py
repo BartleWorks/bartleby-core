@@ -148,6 +148,9 @@ def test_a_text_field_and_a_dropdown_draw_the_same_border(themed_app):
     assert _left_edge(combo) == themed_app.border
 
 
+# A known flake (BartleWorks/BartleBuddy#13): fails under -n auto load in the dark theme, and passes alone.
+# See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 def test_a_focused_field_is_still_marked_out(themed_app):
     """The frame is ours now, so Fusion's focus outline is ours to redraw.
 

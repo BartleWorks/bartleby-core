@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from PyQt6.QtTest import QTest
 from PyQt6.QtWidgets import QLabel
 
@@ -31,6 +32,9 @@ def test_a_highlighted_card_wears_the_accent_border(qapp):
     assert _border(card) == THEME.accent
 
 
+# A known flake (BartleWorks/BartleBuddy#13): fails under -n auto load, and passes alone.
+# See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 def test_the_highlight_goes_by_itself(qapp, monkeypatch):
     monkeypatch.setattr(card_frame, "CARD_HIGHLIGHT_DURATION", 0.001)
     card = _Card()

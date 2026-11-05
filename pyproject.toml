@@ -35,6 +35,7 @@ dev = [
     "katsuba>=0.4.0",
     # qt/logo/export.py writes the .ico with it, for a product tool. The app never imports that module.
     "pillow>=11.0",
+    "pytest-rerunfailures>=16.7",
 ]
 
 # Ours, pinned by exact commit, the same pins BartleBot carries (its docs/UPSTREAM.md).
