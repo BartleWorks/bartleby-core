@@ -165,7 +165,8 @@ class Follower:
         While *hold* answers True it stands, joining only the leader's fights. With
         *port_when_far*, it ports when it starts, or is let go, beyond :data:`RESYNC` of the
         leader. *walking_speed* is the speed field's value to walk at when not catching up,
-        or None for the leader's own. *speed_ledger* is shared with any other writer of the
+        or None for the leader's own; a follower given one stands at its own speed when it
+        says None, since nothing else then holds the field. *speed_ledger* is shared with any other writer of the
         field (:mod:`bartleby.runtime.actions.speed_ledger`).
         """
         self.client = client
@@ -395,6 +396,9 @@ class Follower:
             await asyncio.sleep(FOLLOW_TICK)
             step = await self._next_step()
         await keys.release_all()
+        if self._walking_speed is not None and self._walking_speed() is None:
+            # Standing, with no toggle to hold its field: its own speed back, not the walk's.
+            await self.restore_speed(lease)
 
     async def _walk(self, lease: Lease, step: Step) -> None:
         keys = lease.input

@@ -475,3 +475,24 @@ async def test_a_follower_is_walking_only_while_it_holds_the_movement_lease(quic
     await asyncio.gather(task, return_exceptions=True)
     assert any(seen)
     assert not f.walking
+
+
+async def test_a_follower_with_no_walking_speed_stands_at_its_own_speed(quick):
+    """With the Speed toggle off, a field left at the catch-up's 2.0x would be nobody's to give back."""
+    arbiter = Arbiter()
+    leader, client = SimClient(), SimClient(speed=10)
+    leader_reader, me = StateReader(leader), StateReader(client)
+    me.publish(position=client.position, zone=client.zone, loading=False, speed=10)
+    trail = Trail()
+    leader_reader.subscribe(trail.note)
+    f = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0), walking_speed=lambda: None)
+    task = asyncio.create_task(f.run())
+    await _drive_leader(leader, leader_reader, [(0, 0), (1500, 0)], speed=1500)
+    for _ in range(300):
+        if not f.walking and 100 in [r.detail for r in client.inputs if r.kind == "speed"]:
+            break
+        await asyncio.sleep(0.01)
+    task.cancel()
+    await asyncio.gather(task, return_exceptions=True)
+    assert 100 in [r.detail for r in client.inputs if r.kind == "speed"], "it caught up at 2.0x"
+    assert client.speed == 10
