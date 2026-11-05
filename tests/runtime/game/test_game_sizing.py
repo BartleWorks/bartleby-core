@@ -11,7 +11,10 @@ import pytest
 from bartleby.runtime.game import game_sizing as gs
 from bartleby.runtime.game import tile_layouts
 from bartleby.runtime.game.game_sizing import VALID_RESOLUTIONS
-from bartleby.runtime.game.tile_layouts import FOCUS, PAIR, TileSize
+from bartleby.runtime.game.tile_layouts import ONE_LARGE, Layout, TileSize
+
+#: Two Main tiles: no view uses it, but the fit takes any count of them.
+TWO_LARGE = Layout("Two large", mains=2)
 
 # The layout the worked examples in the window-scaling work were computed against: a 1080p screen and
 # BartleBot's default sidebar widths and canvas height, which give a 1304x800 game budget. The panes
@@ -330,7 +333,7 @@ def test_side_tiles_add_a_strip_beside_the_main_tiles():
 @pytest.mark.parametrize("resolution", [(800, 600), (1280, 720), (534, 300), (1280, 1024)])
 @pytest.mark.parametrize(
     ("layout", "played"),
-    [(FOCUS, [True, False, False, False]), (PAIR, [True, True, False, False]), (FOCUS, [True, False])],
+    [(ONE_LARGE, [True, False, False, False]), (TWO_LARGE, [True, True, False, False]), (ONE_LARGE, [True, False])],
 )
 def test_arranged_in_the_area_it_needs_every_main_tile_holds_its_game(resolution, layout, played):
     """The fit and the placement agree: what the sizing says fits is what ``arrange`` gives."""

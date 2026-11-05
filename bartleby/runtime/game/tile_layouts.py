@@ -5,20 +5,27 @@ Moved from BartleBuddy's ``layouts.py`` (Stage 9 of BartleBot #167), which core'
 hands none gets BartleBot's equal grid, laid out by ``GameView`` itself.
 
 A client the user plays in needs a window big enough to play; a client the user only
-watches does not. So tiles come in two sizes, placed by who moves each wizard (in
-BartleBuddy, its ``control``):
+watches does not. So tiles come in two sizes, placed by which wizard the user plays (in
+BartleBuddy, the Active wizard):
 
 | tile | holds                                     | size                                              |
 |------|-------------------------------------------|---------------------------------------------------|
-| Main | a wizard the user moves                   | as large as fits, drawn 1:1, since the user clicks |
-| Side | a wizard BartleBuddy moves                | small, in a strip beside or below the Main tiles  |
+| Main | the wizard the user plays                 | as large as fits, drawn 1:1, since the user clicks |
+| Side | every other wizard                        | small, in a strip beside or below the Main tile   |
+
+Main and Side are this module's words. A player sees the large tile and the small tiles,
+and two views (BartleBuddy #14): :data:`ONE_LARGE`, one Main tile and a strip, and
+:data:`ALL_EQUAL`, every tile the same size.
 
 A layout is stored as data from the start -- its tiles, their sizes, and that the
-wizards the user moves fill its Main tiles -- so the layout editor BartleBuddy's phase 4
+wizards the user plays fill its Main tiles -- so the layout editor BartleBuddy's phase 4
 brings is an editor of this, and the sizing arithmetic (``game_sizing``) reads the data,
-never a layout by name. Focus, Pair and Grid are its first
-presets. :func:`arrange` budgets the Main tiles first, then the Side strip, and puts the
-strip beside or below, whichever leaves the larger Main tile.
+never a layout by name. :func:`arrange` budgets the Main tiles first, then the Side strip,
+and puts the strip beside or below, whichever leaves the larger Main tile.
+
+The strip's places are handed out in a placement order the caller keeps, so that a new
+wizard taking the Main tile trades places with the one leaving it, and the rest of the
+strip stays where the eye left it (:func:`trade_places`).
 
 That is for a client that keeps its launch size, whose game a Side tile cuts. A product
 whose clients can be resized hands :func:`arrange` the tile of each rung, and the budget
@@ -42,10 +49,9 @@ class TileSize(StrEnum):
 
 @dataclass(frozen=True)
 class Layout:
-    """A layout: how many Main tiles, filled by the wizards the user moves; every other client goes Side.
+    """A layout: how many Main tiles, filled by the wizards the user plays; every other client goes Side.
 
-    ``grid`` lays every tile out equal instead, BartleBot's layout, for Manual on every
-    client and for Autopilot.
+    ``grid`` lays every tile out equal instead, BartleBot's layout.
     """
 
     name: str
@@ -53,23 +59,14 @@ class Layout:
     grid: bool = False
 
 
-FOCUS = Layout("Focus", mains=1)
-PAIR = Layout("Pair", mains=2)
-GRID = Layout("Grid", mains=0, grid=True)
-
-PRESETS: tuple[Layout, ...] = (FOCUS, PAIR, GRID)
-
-
-def layout_for(played: Sequence[bool]) -> Layout:
-    """The preset for *played*, each wizard's "the user moves it": one is Focus, two Pair, otherwise Grid."""
-    players = sum(1 for p in played if p)
-    if players == len(played) or players == 0:
-        return GRID
-    return FOCUS if players == 1 else PAIR
+#: One large tile for the wizard the user plays, and the rest small.
+ONE_LARGE = Layout("One large", mains=1)
+#: Every tile the same size.
+ALL_EQUAL = Layout("All equal", mains=0, grid=True)
 
 
 def sizes(layout: Layout, played: Sequence[bool]) -> list[TileSize]:
-    """Each client's tile size under *layout*, in slot order, given whether the user moves each."""
+    """Each client's tile size under *layout*, in slot order, given whether the user plays each."""
     if layout.grid:
         return [TileSize.MAIN] * len(played)
     sized, mains = [], 0
@@ -80,9 +77,24 @@ def sizes(layout: Layout, played: Sequence[bool]) -> list[TileSize]:
         else:
             sized.append(TileSize.SIDE)
     if mains == 0 and played:
-        # Nobody fills a Main tile (the user moves no wizard): the first client takes it.
+        # Nobody fills a Main tile (the user plays no wizard): the first client takes it.
         sized[0] = TileSize.MAIN
     return sized
+
+
+def trade_places[K](order: Sequence[K], old_main: K | None, new_main: K | None) -> list[K]:
+    """*order* with the wizard leaving the Main tile put where the one taking it was.
+
+    So when the Main tile changes hands only those two tiles move, and every other Side tile
+    keeps its place, as ISBoxer's home regions and xmonad's DwmPromote do it. Nothing changes
+    while either is missing from *order*, or when they're the same.
+    """
+    placed = list(order)
+    if old_main == new_main or old_main not in placed or new_main not in placed:
+        return placed
+    i, j = placed.index(old_main), placed.index(new_main)
+    placed[i], placed[j] = placed[j], placed[i]
+    return placed
 
 
 @dataclass(frozen=True)
@@ -168,8 +180,9 @@ def _whole_strip(
     """The Main and Side tiles of a strip that holds its games whole, or None if there is none.
 
     The strip reserves the smallest rung's tile for each Side client, beside the Main tiles
-    or below them, whichever leaves the larger Main tile, and beside on a tie. Each Main tile
-    is exactly its rung's tile, and the Side tiles share everything else.
+    or below them, whichever leaves the larger Main tile. On a tie it's whichever gives the
+    larger Side tiles, since the Main tile is the same either way, and beside if those tie
+    too. Each Main tile is exactly its rung's tile, and the Side tiles share everything else.
 
     There is none if the reservation does not fit, if a Main tile comes out at the smallest
     rung, which leaves a Side tile no rung below it, or if it comes out smaller than the
@@ -177,26 +190,47 @@ def _whole_strip(
     equal grid, so a launch it allows always fits a Main tile.
     """
     side_w, side_h = rung_tiles[0]
-    beside = below = None
-    if sides * side_h + GAP * (sides - 1) <= h:
-        beside = _largest_tile((w - side_w - GAP * mains) / mains, h, rung_tiles)
-    if sides * side_w + GAP * (sides - 1) <= w:
-        below = _largest_tile((w - GAP * (mains - 1)) / mains, h - side_h - GAP, rung_tiles)
     rank = {tile: i for i, tile in enumerate(rung_tiles)}
-    main = max((tile for tile in (beside, below) if tile is not None), key=rank.__getitem__, default=None)
-    if main is None or rank[main] == 0:
+    strips = []
+    if sides * side_h + GAP * (sides - 1) <= h:
+        main = _largest_tile((w - side_w - GAP * mains) / mains, h, rung_tiles)
+        if main is not None:
+            strips.append(_strip_beside(main, mains, sides, w, h))
+    if sides * side_w + GAP * (sides - 1) <= w:
+        main = _largest_tile((w - GAP * (mains - 1)) / mains, h - side_h - GAP, rung_tiles)
+        if main is not None:
+            strips.append(_strip_below(main, mains, sides, w, h))
+    if not strips:
+        return None
+
+    def ranked(strip: tuple[list[Rect], list[Rect]]) -> tuple[int, int]:
+        main_rect, side_rect = strip[0][0], strip[1][0]
+        side = _largest_tile(side_rect.w, side_rect.h, rung_tiles)
+        return rank[(main_rect.w, main_rect.h)], -1 if side is None else rank[side]
+
+    # max keeps the first of equals, and beside is first.
+    best = max(strips, key=ranked)
+    main_rank = ranked(best)[0]
+    if main_rank == 0:
         return None
     rows, cols = grid_for(mains + sides)
     in_a_grid = _largest_tile(w // cols, h // rows, rung_tiles)
-    if in_a_grid is not None and rank[main] < rank[in_a_grid]:
+    if in_a_grid is not None and main_rank < rank[in_a_grid]:
         return None
+    return best
+
+
+def _strip_beside(main: tuple[int, int], mains: int, sides: int, w: int, h: int) -> tuple[list[Rect], list[Rect]]:
     main_w, main_h = main
-    if main == beside:
-        y = (h - main_h) // 2
-        main_rects = [Rect(i * (main_w + GAP), y, main_w, main_h) for i in range(mains)]
-        strip_x = mains * (main_w + GAP)
-        share = (h - GAP * (sides - 1)) // sides
-        return main_rects, [Rect(strip_x, i * (share + GAP), w - strip_x, share) for i in range(sides)]
+    y = (h - main_h) // 2
+    main_rects = [Rect(i * (main_w + GAP), y, main_w, main_h) for i in range(mains)]
+    strip_x = mains * (main_w + GAP)
+    share = (h - GAP * (sides - 1)) // sides
+    return main_rects, [Rect(strip_x, i * (share + GAP), w - strip_x, share) for i in range(sides)]
+
+
+def _strip_below(main: tuple[int, int], mains: int, sides: int, w: int, h: int) -> tuple[list[Rect], list[Rect]]:
+    main_w, main_h = main
     x = (w - (mains * main_w + GAP * (mains - 1))) // 2
     main_rects = [Rect(x + i * (main_w + GAP), 0, main_w, main_h) for i in range(mains)]
     strip_y = main_h + GAP
@@ -221,6 +255,7 @@ def arrange(
     area: tuple[int, int],
     aspect: float = 4 / 3,
     rung_tiles: Sequence[tuple[int, int]] = (),
+    order: Sequence[int] | None = None,
 ) -> list[Rect]:
     """Each client's tile, in slot order, inside an *area* of (width, height) pixels.
 
@@ -231,6 +266,10 @@ def arrange(
     rung of the clients' family, smallest first (``game_sizing.rung_tiles``), which is
     what lets this module stay below ``game_sizing``. Then the module docstring's other
     budget applies, and *aspect* is not used.
+
+    *order* is the placement order: each client's index in slot order, in the order the
+    strip's places are handed out, which :func:`trade_places` keeps. None is slot order. The
+    equal grid is always in slot order.
     """
     w, h = area
     tile_sizes = sizes(layout, played)
@@ -242,8 +281,7 @@ def arrange(
         strip = None if layout.grid or not sides else _whole_strip(mains, sides, w, h, rung_tiles)
         if strip is None:
             return equal_grid(len(tile_sizes), w, h)
-        mains_iter, sides_iter = iter(strip[0]), iter(strip[1])
-        return [next(mains_iter) if s is TileSize.MAIN else next(sides_iter) for s in tile_sizes]
+        return _hand_out(tile_sizes, strip[0], strip[1], order)
     if layout.grid or TileSize.SIDE not in tile_sizes:
         return _grid(len(tile_sizes), w, h, aspect)
     options = []
@@ -258,5 +296,18 @@ def arrange(
             side_rects = _row(sides, 0, h - strip_h, w, strip_h, aspect, vertical=False)
         options.append((main_rects[0].w if main_rects else 0, main_rects, side_rects))
     _, main_rects, side_rects = max(options, key=lambda o: o[0])
+    return _hand_out(tile_sizes, main_rects, side_rects, order)
+
+
+def _hand_out(
+    tile_sizes: Sequence[TileSize], main_rects: list[Rect], side_rects: list[Rect], order: Sequence[int] | None
+) -> list[Rect]:
+    """Each client's rect in slot order, the Main and Side places handed out in *order*."""
+    placing = range(len(tile_sizes)) if order is None else order
+    if sorted(placing) != list(range(len(tile_sizes))):
+        raise ValueError(f"{list(placing)} is not an order of {len(tile_sizes)} tiles")
     mains_iter, sides_iter = iter(main_rects), iter(side_rects)
-    return [next(mains_iter) if s is TileSize.MAIN else next(sides_iter) for s in tile_sizes]
+    rects: list[Rect | None] = [None] * len(tile_sizes)
+    for index in placing:
+        rects[index] = next(mains_iter) if tile_sizes[index] is TileSize.MAIN else next(sides_iter)
+    return rects

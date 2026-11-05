@@ -311,37 +311,54 @@ placement in agreement.
 **Tiles by rung** are for a product whose clients can be resized, and turn that budget round,
 because a client's size then follows its tile. `GameView.set_layout(..., by_rung=True)` asks
 for them, as BartleBuddy does while its row is on. BartleBot does not, since a smaller Main with
-no resize behind it only costs room.
+no resize behind it only costs room. BartleBuddy hands it one of two layouts (#14): `ONE_LARGE`,
+one Main tile for the Active wizard and the rest Side, and `ALL_EQUAL`, the equal grid. A player
+sees them as One large and All equal, and the large and small tiles. Main and Side stay this
+module's words.
 
 - **Every Side tile holds its whole game, and Main takes what is left.** The strip reserves
   the `tile_size` of the family's smallest rung for each Side client, 546x351 at 16:9, in a
-  column beside the Main tiles or a row below, whichever leaves the larger Main, and beside on
-  a tie. Each Main tile is exactly the `tile_size` of the largest rung that fits the rest, and
+  column beside the Main tiles or a row below, whichever leaves the larger Main. On a tie it is
+  whichever gives the larger Side tiles, and beside if those tie too: at 4K at 125% with a 480
+  sidebar and four clients, both give 2560x1440, beside gives 534x300 Side tiles and below
+  746x420. Each Main tile is exactly the `tile_size` of the largest rung that fits the rest, and
   the Side tiles share everything else.
+- **A new Main trades places with the old one.** `GameView` keeps a placement order by slot, and
+  `arrange` hands the strip's places out in it. When the Main tile changes hands,
+  `tile_layouts.trade_places` puts the old Main where the new one was, so only those two tiles
+  move, as ISBoxer's home regions and xmonad's DwmPromote do it. The equal grid is always in slot
+  order, and the strip comes back in the order it had, with a swap made meanwhile trading places
+  with the last Main.
 - **A resize keeps the launch's aspect**, so no camera is written. `aspect_family` gives a
   client's rungs: 16:9's or 4:3's, and None for any other aspect, whose client has no target.
   The largest game with a ladder picks the family the tiles are placed by, and a client of the
   other family takes its own family's largest rung that fits, which a tile reserved for the
   first can still cut.
-- **With no Side tile, nothing resizes, if it fits.** Each target is the launch size: one
-  account, two both played, and the equal grid. `tile_targets` is the one rule, and with a Side
-  tile it answers the largest of the client's family that fits (`fitting_rung`), and for a Side
-  tile always a rung below every Main tile's.
-- **A game too large for its tile follows it down, beside another.** The launch fit never judged a
-  client started outside the app, or one left from an earlier session and since set larger. With
-  no Side tile it takes the largest rung below its launch size that fits, and goes back up as room
-  comes. A lone client never does, however small its tile, since it gains nothing.
+- **The equal grid grows, up to a cap.** `tile_targets(..., grow=True, cap=)`, which `GameView`
+  passes by rung: with no Side tile, each client takes the largest rung of its family that fits
+  its tile, with no more pixels than the cap, BartleBuddy's All equal size cap. By pixels, so one
+  cap serves 16:9 and 4:3: a 1280x720 cap gives a 4:3 client 1024x768. The cap never touches a
+  Main tile. Without `grow`, as BartleBot calls it, each target is the launch size, so a session
+  that never has a Side tile never asks for a resize. With a Side tile, it answers the largest of
+  the client's family that fits (`fitting_rung`), and for a Side tile always a rung below every
+  Main tile's.
+- **A game too large for its tile follows it down, beside another**, grown or not. The launch fit
+  never judged a client started outside the app, or one left from an earlier session and since
+  set larger. Without `grow` it takes the largest rung below its launch size that fits, and goes
+  back up as room comes, no further. A lone client never resizes, however small its tile or large
+  its room, since it gains nothing.
 - **The equal grid is the fallback.** No strip fits where the reservation does not, as with
   three followers on 1080p with the sidebar shown. Nor does one where Main would come out at
   the smallest rung, since a Side tile then has no rung below it, or smaller than the equal
   grid makes it, which only two or more Main tiles reach. That last rule is what lets a launch
   be judged as the equal grid and always fit a Main tile.
-- **The window floor is that same grid, at the launch sizes**, never the sizes the games have now.
-  A floor taken from a Main grown by maximizing would stop the window being restored. Where that
-  grid passes the screen, the floor is the grid at the largest rung the screen holds, with the panes
-  as they are. Two launches at 1280x720 ask for 2,584 wide, which pushed a tile under the sidebar on
-  1080p, and two at 854x480 launched with the sidebar hidden could not show it. Beside another, a
-  game can follow its tile down. A lone client keeps its floor.
+- **The window floor is that same grid, at the smallest rung**, with two or more clients, never the
+  sizes the games have now. Beside another, every game can follow its tile down to the smallest
+  rung, so that is all the window needs, and a sidebar can widen as far as the games can shrink. A
+  floor at the launch sizes, as it was, stopped the sidebar at 480 with four clients at 1600x900 on
+  4K at 125%, and a floor taken from a Main grown by maximizing would stop the window being
+  restored. A launch is still judged as the equal grid at its launch size. A lone client keeps its
+  launch size as its floor, since it never resizes.
 
 What it gives, at 100% display scale with a 40-pixel taskbar, where 1612 wide is the sidebar
 shown and 1920 hidden; `test_tiles_by_rung.py` holds these rows:
@@ -353,10 +370,25 @@ shown and 1920 hidden; `test_tiles_by_rung.py` holds these rows:
 | 4:3 | 1920x971 | 1 Main, 1 Side | 1024x768 | 800x600 |
 | 4:3 | 1612x971 | 1 Main, 1 Side | 1024x768 | 480x360 |
 | 16:9 | 1920x971 | 1 Main, 3 Side | 960x540 | 534x300, strip below |
-| 16:9 | 1612x971 | 1 Main, 3 Side | equal grid, at the launch size, 746x420 at most | |
+| 16:9 | 1612x971 | 1 Main, 3 Side | equal grid, 746x420 at most | |
 | 16:9 | 1920x971 | 2 Main, 1 Side | 854x480 | 640x360 |
 | 16:9 | 2252x1331 | 1 Main, 1 to 3 Side | 1600x900 | 534x300 |
 | 16:9 | 3532x2051 | 1 Main, 1 to 3 Side | 2560x1440 | 854x480 |
+
+And #14's table, One large and All equal grown with no cap, at 4K at 125% (3072x1728 logical, a
+48-pixel taskbar) as well; `test_each_row_of_the_sizes_table` holds each row:
+
+| screen, clients, launch | sidebar | One large | All equal |
+|---|---|---|---|
+| 1080p, 2, 16:9 | hidden | 1280x720 + 534x300 | 854x480 |
+| 1080p, 2, 16:9 | 300 | 960x540 + 534x300 | 746x420 |
+| 1080p, 2, 4:3 | hidden | 1024x768 + 800x600 | 800x600 |
+| 1080p, 2, 4:3 | 300 | 1024x768 + 480x360 | 720x540 |
+| 4K at 125%, 4, 1600x900 | hidden | 2560x1440 + 960x540 each | 1600x900 |
+| 4K at 125%, 4, 1600x900 | 300 | 2560x1440 + 854x480 each | 1600x900 |
+| 4K at 125%, 4, 1600x900 | 480 | 2560x1440 + 746x420 each, below | 1600x900 |
+| 4K at 125%, 4, 1600x900 | 600 | 2560x1440 + 746x420 each, below | 1366x768 |
+| 1080p, 4, 16:9 | 300 | no strip: 746x420 each | 746x420 |
 
 BartleBot's answers are the same as before the lists: its
 `tests/game/test_pane_sizing.py` holds the old formulas written out and compares every
