@@ -50,6 +50,36 @@ stretches the wall-clock tests until they break, and a CI run is worth more reli
 fast. Locally `-n auto` is still the quick gate; a failure that appears only there is a
 load flake to fix in the test.
 
+## Known flakes are marked
+
+A session has no memory of which tests flake, and finding out again cost far more than the
+flake did: twenty full runs of a suite to settle one failure. So a flake that is known and not
+yet fixed says so where the next session will look, on the test:
+
+```python
+# A known flake (BartleWorks/BartleBuddy#13): fails under -n auto load, and passes alone.
+# See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
+def test_the_highlight_goes_by_itself(qapp, monkeypatch):
+```
+
+`flaky` is pytest-rerunfailures', in the repo's `dev` group (core has it; a product adds it
+with its first mark). The gate reruns a marked test up to twice, so a known flake no longer
+fails it, and a marked test that fails three times running is a real failure. The comment
+names the issue that tracks it and how it fails. The mark is a bookmark for a bug in the test,
+never a fix: the issue stays open until the test is.
+
+When the gate fails:
+
+- **Read the failure from the gate's own output**, saved to a file, never a rerun to find out
+  what failed. Cutting the output to its last line loses the name and the traceback.
+- **A test the change touched is never marked.** Read it and fix it, and confirm the fix by
+  running that file, in a loop if it was intermittent, not the suite.
+- **A test the change didn't touch is run alone, once.** Failing alone, it is real. Passing
+  alone, it is a flake: mark it as above, naming an issue (an existing flake issue, or a new
+  one), say so in the merge message, and move on.
+- **Two full runs per merge at most**: the gate, and one after a fix.
+
 ## Not every CI-only failure is a timing one
 
 The section above is about load, so it is the first thing reached for when CI fails and a
