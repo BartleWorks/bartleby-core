@@ -23,7 +23,7 @@ from bartleby.runtime.game import tile_layouts
 from bartleby.runtime.game.game_sizing import required_game_area, tile_size
 from bartleby.runtime.game.tile_layouts import ALL_EQUAL, ONE_LARGE, TileSize
 from bartleby.shared import game_dpi
-from tests.qt.game_embed.views import make_game_view, make_placeholder
+from tests.qt.game_embed.views import HeldPool, make_game_view, make_placeholder
 
 GAME = (400, 300)
 
@@ -54,7 +54,7 @@ class _Window:
     def is_home(self) -> bool:
         return True
 
-    def reembed(self, parent: int, width: int, height: int) -> None:
+    def reembed(self, parent: int, x: int, y: int, width: int, height: int) -> None:
         self.game_size = (width, height)
 
 
@@ -67,14 +67,24 @@ class _Sized(_Window):
         self.game_size = self.sizes[hwnd]
         self.home = True
         self.reembeds: list[tuple[int, int]] = []
+        self.places: list[tuple[int, int]] = []
+        self.moves: list[tuple[int, int, int, int]] = []
+        self.focused = 0
 
     def is_home(self) -> bool:
         return self.home
 
-    def reembed(self, parent: int, width: int, height: int) -> None:
+    def move(self, x: int, y: int, width: int, height: int) -> None:
+        self.moves.append((x, y, width, height))
+
+    def focus(self) -> None:
+        self.focused += 1
+
+    def reembed(self, parent: int, x: int, y: int, width: int, height: int) -> None:
         self.game_size = (width, height)
         self.home = True
         self.reembeds.append((width, height))
+        self.places.append((x, y))
 
 
 class _Timer:
@@ -87,6 +97,9 @@ class _Timer:
     def start(self) -> None:
         self.starts += 1
 
+    def stop(self) -> None:
+        pass
+
     def isActive(self) -> bool:  # noqa: N802 - QTimer's
         return False
 
@@ -95,6 +108,7 @@ class _Timer:
 def view(qapp, monkeypatch):
     """A game view of four stand-in tiles, with its app-wide hooks disarmed."""
     monkeypatch.setattr(client_tile, "EmbeddedWindow", _Window)
+    monkeypatch.setattr(client_tile, "_refit_pool", HeldPool())
     monkeypatch.setattr(game_dpi, "window_is_scaled", lambda hwnd: False)
     game = make_game_view()
     game._focus_timer.stop()
@@ -322,6 +336,7 @@ def test_with_no_layout_there_are_no_targets_even_by_rung(view):
 def by_rung(qapp, monkeypatch):
     """A game view at a 100% display whose windows launched at the sizes it is built with."""
     monkeypatch.setattr(client_tile, "EmbeddedWindow", _Sized)
+    monkeypatch.setattr(client_tile, "_refit_pool", HeldPool())
     monkeypatch.setattr(game_dpi, "window_is_scaled", lambda hwnd: False)
     monkeypatch.setattr(GameView, "devicePixelRatio", lambda self: 1.0)
     # A screen everything here fits on, since CI's is small; a test of a small one says so.

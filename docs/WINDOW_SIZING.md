@@ -860,13 +860,39 @@ The window's half is the product's two crossings around that:
   dragged across several rungs asks once. A team view placing the tiles again with nothing changed
   does not put it off. Only windows named by `set_resizable` are asked for, the hooked, and with
   no Side tile the target is the launch size, so a session that never has one never asks and never
-  scans. The first ask `prepare`s every client, so a later swap doesn't wait on a scan.
+  scans. The first ask `prepare`s every client, so a later swap doesn't wait on a scan. A change
+  the player makes in one press, a swap or a change of view, asks at once instead
+  (`set_layout(..., at_once=True)`): the settle is for a drag, and on a swap it only adds half a
+  second.
 - **Answering.** `GameView.game_resized(hwnd, size)` hands the tile the size measured, and
   `ClientTile.refit` embeds the window again there (`EmbeddedWindow.reembed`), with no second
   `AttachThreadInput`. A size it has already, with the game still its child, moves nothing. While
   the window is out of its tile, read from the window on the focus poll, the tile draws
   `PendingTile`'s ring with no words, and leaves the window alone: it is top-level, and a tile's
   coordinates would throw it across the screen.
+- **The refit runs on a worker.** `reembed` is `SetParent`, the child style, and one
+  `SetWindowPos` that places and sizes the window together. `SetParent` waits on every game whose
+  input queue the GUI thread is joined to, which is all of them: `embed`'s `AttachThreadInput`,
+  plus the joining Windows does for a parent and child on different threads. On the GUI thread
+  each refit held the app for 313 to 474 ms, and a swap, two refits in turn, took about 1.4 s.
+  So the tile works out the parent and the place on the GUI thread, runs `reembed` on a shared
+  `ThreadPoolExecutor` (`client_tile._refit_pool`), and finishes back on the GUI thread through a
+  queued signal: the new `game_size`, the ring, a move only if the tile changed size meanwhile,
+  then `refitted`. One refit runs per tile, and a size asked for meanwhile waits, the latest
+  replacing any other. The tile isn't moved while one is under way, since a move between the
+  worker's `SetParent` and its finish would be at the old size. `unembed` waits for one under way
+  and drops the one waiting, so a detach or a quit never races it. The view runs what reads
+  `game_size` (its minimum size, the settle) on `refitted`, and a settle meanwhile compares
+  against `ClientTile.coming_size`, so nothing is asked for twice. BartleBuddy's
+  `tools/probe_multibox.py` measured it (Stage 5 of BartleBuddy #14): with both refits on workers
+  `SetParent` took 138 to 206 ms, a swap 660 to 1,001 ms, and the next key press 3 to 6 ms, where
+  it had waited about 300 ms. The queues stay joined: unjoined, or joined only to give focus, the
+  swap was no faster and the keys went to the wrong game or none.
+- **The keyboard after a refit** is left on whichever game was embedded last. A product names
+  the game it should be on with `GameView.set_keyboard_target(hwnd)`, and the view gives it focus
+  once nothing is asked for, no refit is under way and every game is at its target, or at once
+  when nothing is moving. BartleBuddy names the Active wizard. BartleBot names none, and its
+  keyboard is never moved.
 - **Leaving.** `window_detached(hwnd)` says a window has gone to the desktop, and the product gives
   it back. `EmbeddedWindow.restore` sizes the frame from the client area it has at that moment and
   the frame it was found with, since a frame of its old size no longer matches the backbuffer.

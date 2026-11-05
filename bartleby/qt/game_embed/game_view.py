@@ -633,6 +633,10 @@ class GameView(ThemedMixin, QWidget):
         self._settle_timer.setSingleShot(True)
         self._settle_timer.setInterval(round(RESIZE_SETTLE * 1000))
         self._settle_timer.timeout.connect(self._ask_for_targets)
+        # See set_keyboard_target: the game the keyboard goes to once the tiles settle, and
+        # whether it is still owed one since the target changed or a refit took it away.
+        self._keyboard_target: int | None = None
+        self._keyboard_owed = False
         # See set_captions: a product's caption per player index, over the manager's label.
         self._captions: list[str | None] = []
         # See set_pill_roles and set_active_player, by player index as the captions are.
@@ -762,6 +766,8 @@ class GameView(ThemedMixin, QWidget):
         tile.detach_requested.connect(lambda slot=spec.slot: self._detach_client(slot))
         tile.caption_clicked.connect(lambda point, slot=spec.slot: self._on_caption_clicked(slot, point))
         tile.role_clicked.connect(lambda point, slot=spec.slot: self._on_role_clicked(slot, point))
+        # By the tile, not the slot: a refit's finish belongs to its window wherever it moved.
+        tile.refitted.connect(lambda tile=tile: self._after_refit(tile))
         self._mark_pill(spec.slot, spec.player)
         tile.show()
         self._remove_detached_tile(spec.slot)
@@ -1053,6 +1059,7 @@ class GameView(ThemedMixin, QWidget):
         *,
         by_rung: bool = False,
         cap: tuple[int, int] | None = None,
+        at_once: bool = False,
     ) -> None:
         """Place the tiles by *layout*, or as the equal grid for None.
 
@@ -1070,6 +1077,10 @@ class GameView(ThemedMixin, QWidget):
         *cap*, and ``game_targets`` says what size each client should be. A smaller Main
         with no resize behind it only costs the user room, so it stays off until one can
         follow.
+
+        *at_once* asks for the targets now instead of after ``RESIZE_SETTLE``: for a change
+        the player made in one press, a swap or a change of view, where the settle only adds
+        half a second. A drag still waits, since its targets change all the way through.
         """
         self._layout = layout
         self._played = list(played)
@@ -1079,6 +1090,9 @@ class GameView(ThemedMixin, QWidget):
             self._asked.clear()
         self._recompute_geometry()
         self._update_minimum_size()
+        if at_once:
+            self._settle_timer.stop()
+            self._ask_for_targets()
 
     def set_resizable(self, hwnds: Iterable[int]) -> None:
         """Say which windows a size may be asked for: those with a runtime to do it, so the hooked.
@@ -1097,13 +1111,56 @@ class GameView(ThemedMixin, QWidget):
         tile = next((tile for tile in self._tiles.values() if tile.hwnd == hwnd), None)
         if tile is None:
             return
-        tile.refit(*size)
+        # Struck at once: the tile's coming_size stands for it until the refit is in.
         if self._asked.get(hwnd) == tuple(size):
             del self._asked[hwnd]
+        if not tile.refit(*size):
+            self._after_refit(tile, moved=False)
+
+    def _after_refit(self, tile: ClientTile, *, moved: bool = True) -> None:
+        """A tile has its game at the size reported: what reads ``game_size`` runs now.
+
+        *moved* is whether the game was embedded again, which is what takes the keyboard
+        from where it was (``set_keyboard_target``).
+        """
+        if tile not in self._tiles.values():
+            return
         self._update_minimum_size()
         # A size nobody asked for, as giving back reports, may not be the one wanted now.
         if not self._settle_timer.isActive():
             self._settle_timer.start()
+        if moved:
+            self._keyboard_owed = True
+        self._give_keyboard()
+
+    def set_keyboard_target(self, hwnd: int | None) -> None:
+        """Say which game the keyboard goes to once the tiles have settled, or None for none.
+
+        A refit embeds a game again, and the keyboard is left on whichever game was embedded
+        last. Once every refit is in, with nothing asked for and every game at its target,
+        the target's game is given the keyboard. A new target is given it on the same terms,
+        at once if nothing is moving. BartleBuddy's window names the Active wizard;
+        BartleBot never calls this, and nothing here moves its keyboard.
+        """
+        if hwnd == self._keyboard_target:
+            return
+        self._keyboard_target = hwnd
+        self._keyboard_owed = hwnd is not None
+        self._give_keyboard()
+
+    def _give_keyboard(self) -> None:
+        if not self._keyboard_owed or self._keyboard_target is None or self._asked:
+            return
+        tiles = {tile.hwnd: tile for tile in self._tiles.values()}
+        if any(tile.refitting for tile in tiles.values()):
+            return
+        if any(tiles[hwnd].game_size != target for hwnd, target in self._targets_to_ask_for().items()):
+            return
+        tile = tiles.get(self._keyboard_target)
+        if tile is None:
+            return
+        self._keyboard_owed = False
+        tile.focus_game()
 
     def game_targets(self) -> dict[int, tuple[int, int]]:
         """The size each embedded window should run at, by hwnd, as things stand.
@@ -1150,7 +1207,7 @@ class GameView(ThemedMixin, QWidget):
         """Ask for each target that has settled and differs from what the window has or was asked for."""
         tiles = {tile.hwnd: tile for tile in self._tiles.values()}
         for hwnd, target in self._targets_to_ask_for().items():
-            if target != self._asked.get(hwnd, tiles[hwnd].game_size):
+            if target != self._asked.get(hwnd, tiles[hwnd].coming_size):
                 self._asked[hwnd] = target
                 self.game_size_wanted.emit(hwnd, target)
 
