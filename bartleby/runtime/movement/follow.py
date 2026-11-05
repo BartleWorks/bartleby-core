@@ -8,7 +8,10 @@ reading the position back every tick, and a stall backed off from.
 
 * **No route planning.** The trail is ground the leader just crossed.
 * **Speed closes the gap.** A follower further back than :data:`CATCH_UP` runs at 2.0x, the
-  most the engine allows; nearer, it matches the leader's own speed field.
+  most the engine allows; nearer, it walks at ``walking_speed``, or the leader's own speed
+  field without one. A follower that shares its speed field with another writer, as with
+  BartleBuddy's Speed toggle, shares a :class:`~bartleby.runtime.actions.speed_ledger.SpeedLedger`
+  with it, so neither gives back the other's value as the wizard's own.
 * **Shortcuts follow the trail.** At a jump it presses Interact; a trail ending at a gate
   takes it through after the leader.
 * **Ports are the fallback**, for a follower too far behind, a jump or gate that did not
@@ -22,6 +25,12 @@ reading the position back every tick, and a stall backed off from.
   new leader for the player, as BartleBuddy's swap does, uses it so that looking at a
   wizard doesn't send the team running, nor a follower that logged in elsewhere straight
   into a port.
+* **Held**, while ``hold`` says so: it stands where it is, unless the leader is in a fight,
+  which it still joins, and stays where the fight leaves it. Let go, it stops waiting for the
+  leader to move, since the player just asked for the team back.
+* **Far means port**, when asked to (``port_when_far``): a follower beyond :data:`RESYNC` of
+  its leader when it starts, once any wait is over, or when it's let go, ports rather than
+  walking at the leader through whatever is between them.
 
 :meth:`Follower.plan` decides the next step from the snapshots alone, and is where the
 rules above live; :meth:`Follower.run` carries steps out under a movement lease, holding it
@@ -42,6 +51,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from bartleby.runtime.actions.live_character import CharacterWatch, live_character_id
+from bartleby.runtime.actions.speed_ledger import SpeedLedger
 from bartleby.runtime.arbiter import Arbiter, Lease, Owner, Preempted, Revoked
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.game.wizard_names import NO_CHARACTER
@@ -87,6 +97,8 @@ PLACE_DIRECT = 600.0
 
 #: Why a follower made with ``wait_for_move`` stands, until its leader has moved.
 AWAITING_MOVE = "waiting for the leader to move"
+#: Why a held follower stands.
+HELD = "held where it is"
 
 
 class StepKind(StrEnum):
@@ -143,8 +155,19 @@ class Follower:
         label: str = "",
         clock: Callable[[], float] = time.monotonic,
         wait_for_move: bool = False,
+        hold: Callable[[], bool] = lambda: False,
+        port_when_far: bool = False,
+        walking_speed: Callable[[], int | None] | None = None,
+        speed_ledger: SpeedLedger | None = None,
     ) -> None:
-        """With *wait_for_move*, it stands until the leader has moved from where it first reads it."""
+        """With *wait_for_move*, it stands until the leader has moved from where it first reads it.
+
+        While *hold* answers True it stands, joining only the leader's fights. With
+        *port_when_far*, it ports when it starts, or is let go, beyond :data:`RESYNC` of the
+        leader. *walking_speed* is the speed field's value to walk at when not catching up,
+        or None for the leader's own. *speed_ledger* is shared with any other writer of the
+        field (:mod:`bartleby.runtime.actions.speed_ledger`).
+        """
         self.client = client
         self.me = me
         self.leader = leader
@@ -162,13 +185,17 @@ class Follower:
         self._port_after = 0.0
         self._stalls = 0
         self._stall_from: tuple[Point, float] | None = None
-        self._written_speed: int | None = None
-        self._written_character = NO_CHARACTER
         self._speed_watch = CharacterWatch()
-        self.own_speed: int | None = None
+        self._ledger = speed_ledger if speed_ledger is not None else SpeedLedger()
+        self._walking_speed = walking_speed
         self.last_step = Step(StepKind.WAIT)
         self._awaiting_move = wait_for_move
         self._leader_from: Snapshot | None = None
+        self._hold = hold
+        self._held = False
+        self._port_when_far = port_when_far
+        self._far_check = port_when_far
+        self._walking = False
 
     # -- deciding -----------------------------------------------------------------------
 
@@ -178,8 +205,15 @@ class Follower:
             return Step(StepKind.WAIT, reason="not readable")
         if me.in_battle:
             return Step(StepKind.WAIT, reason="in a fight")
+        held = self._hold()
+        if held:
+            self._held = True
+        elif self._held:
+            self._let_go()
         if self._awaiting_move and not self._leader_has_moved(leader):
             return Step(StepKind.WAIT, reason=AWAITING_MOVE)
+        if held and not leader.in_battle:
+            return Step(StepKind.STOP, reason=HELD)
         if now < self._port_after:
             return Step(StepKind.WAIT, reason="waiting to port again")
         self._note_leader(leader, now)
@@ -201,6 +235,10 @@ class Follower:
         self._gate_since = None
 
         distance = flat_distance(position, leader.position)
+        if self._far_check:
+            if distance > RESYNC:
+                return Step(StepKind.PORT, reason="far from the leader")
+            self._far_check = False
         if leader.in_battle:
             return Step(StepKind.WALK, leader.position, fast=True, reason="joining the fight")
 
@@ -259,6 +297,27 @@ class Follower:
             self._stall_from = None
         self.cursor = seq
 
+    def _let_go(self) -> None:
+        """No longer held: back to the leader at once, by port if it's far."""
+        self._held = False
+        self._awaiting_move = False
+        self._far_check = self._port_when_far
+
+    @property
+    def held(self) -> bool:
+        """Whether it stands because it's held, as far as its last step knows."""
+        return self._held
+
+    @property
+    def walking(self) -> bool:
+        """Whether it holds the movement lease and is moving: the speed field is its own just now."""
+        return self._walking
+
+    @property
+    def own_speed(self) -> int | None:
+        """The speed field's value before it was written, the game's own, or None if never written."""
+        return self._ledger.own_speed(self.client)
+
     @property
     def awaiting_move(self) -> bool:
         """Whether it still stands because the leader hasn't moved since it began."""
@@ -300,7 +359,11 @@ class Follower:
                 continue
             try:
                 async with self.arbiter.acquire(self.client, Owner.MOVEMENT, detail=self.label) as lease:
-                    await self._drive(lease, step)
+                    self._walking = True
+                    try:
+                        await self._drive(lease, step)
+                    finally:
+                        self._walking = False
             except Preempted:
                 await self.arbiter.wait_free(self.client)
             except Revoked:
@@ -394,6 +457,7 @@ class Follower:
             logger.exception("%s could not port to its leader", self.label)
         if ok:
             self.cursor = None
+            self._far_check = False
             self._stalls = 0
             self._jump_failed = None
             self._gate_since = None
@@ -401,10 +465,15 @@ class Follower:
             self._port_after = self._clock() + FOLLOW_PORT_RETRY
 
     async def _set_speed(self, lease: Lease, *, fast: bool) -> None:
-        """2.0x to catch up, else the leader's own speed field. Never above 2.0x."""
-        want = SPEED_VALUE_MAX if fast else self.leader.latest.speed
+        """2.0x to catch up, else the walking speed it's given, or the leader's own. Never above 2.0x."""
+        want = SPEED_VALUE_MAX if fast else None
+        if want is None and self._walking_speed is not None:
+            want = self._walking_speed()
+        if want is None:
+            want = self.leader.latest.speed
         if want is None:
             return
+        want = min(want, SPEED_VALUE_MAX)
         try:
             current = await self.client.client_object.speed_multiplier()
         except Exception:
@@ -417,24 +486,21 @@ class Follower:
         character = await self._speed_watch.steady_character(self.client)
         if character == NO_CHARACTER:
             return
-        if current != self._written_speed or character != self._written_character:
-            # Anything but our own value was written by the game -- a zone change, a mount --
-            # and is the one to give back.
-            self.own_speed = current
+        # Anything but a value one of us wrote -- a zone change, a mount -- is the game's own.
+        self._ledger.observe(self.client, character, current)
         await lease.input.write_speed(want)
-        self._written_speed = min(want, SPEED_VALUE_MAX)
-        self._written_character = character
+        self._ledger.wrote(self.client, character, want)
 
     async def restore_speed(self, lease: Lease) -> None:
         """Give the follower its own speed back, if we changed it and the game has not since."""
-        if self.own_speed is None or self._written_speed is None:
-            return
         try:
-            if (
-                await live_character_id(self.client) == self._written_character
-                and await self.client.client_object.speed_multiplier() == self._written_speed
-            ):
-                await lease.input.write_speed(self.own_speed)
+            character = await live_character_id(self.client)
+            if not self._ledger.wrote_to(self.client, character):
+                self._ledger.forget(self.client)
+                return
+            current = await self.client.client_object.speed_multiplier()
+            value = self._ledger.to_give_back(self.client, character, current)
+            if value is not None:
+                await lease.input.write_speed(value)
         except Exception:
             logger.debug("Could not restore %s's speed", self.label)
-        self._written_speed = None
