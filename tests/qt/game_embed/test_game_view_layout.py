@@ -21,7 +21,7 @@ from bartleby.qt.widgets.cards.add_card import AddCard
 from bartleby.runtime.clients.tile_slots import TileSlot
 from bartleby.runtime.game import tile_layouts
 from bartleby.runtime.game.game_sizing import required_game_area, tile_size
-from bartleby.runtime.game.tile_layouts import FOCUS, GRID, TileSize
+from bartleby.runtime.game.tile_layouts import ALL_EQUAL, ONE_LARGE, TileSize
 from bartleby.shared import game_dpi
 from tests.qt.game_embed.views import make_game_view, make_placeholder
 
@@ -126,9 +126,9 @@ def test_with_no_layout_the_tiles_are_the_equal_grid(view):
 
 def test_a_layout_places_main_and_side_tiles_as_tile_layouts_arranges_them(view):
     played = [False, True, False, False]
-    view.set_layout(FOCUS, played)
+    view.set_layout(ONE_LARGE, played)
 
-    expected = tile_layouts.arrange(FOCUS, played, (view.width(), view.height()), aspect=GAME[0] / GAME[1])
+    expected = tile_layouts.arrange(ONE_LARGE, played, (view.width(), view.height()), aspect=GAME[0] / GAME[1])
     assert _rects(view) == [(r.x, r.y, r.w, r.h) for r in expected]
     # The wizard the user moves has the Main tile, the largest by far.
     assert _rects(view)[1][2] > 2 * _rects(view)[0][2]
@@ -136,22 +136,22 @@ def test_a_layout_places_main_and_side_tiles_as_tile_layouts_arranges_them(view)
 
 def test_the_minimum_is_the_area_the_main_and_side_tiles_need(view):
     played = [True, False, False, False]
-    view.set_layout(FOCUS, played)
+    view.set_layout(ONE_LARGE, played)
 
-    sizes = tile_layouts.sizes(FOCUS, played)
+    sizes = tile_layouts.sizes(ONE_LARGE, played)
     assert TileSize.SIDE in sizes
     need = required_game_area(GAME, sizes, view.devicePixelRatio() or 1.0)
     assert (view.minimumWidth(), view.minimumHeight()) == need
 
 
 def test_a_layout_that_leaves_no_side_tile_is_the_equal_grid(view):
-    view.set_layout(GRID, [True] * 4)
+    view.set_layout(ALL_EQUAL, [True] * 4)
 
     assert _rects(view) == _grid(view)
 
 
 def test_back_to_no_layout_is_back_to_the_grid(view):
-    view.set_layout(FOCUS, [True, False, False, False])
+    view.set_layout(ONE_LARGE, [True, False, False, False])
     view.set_layout(None)
 
     assert _rects(view) == _grid(view)
@@ -304,10 +304,10 @@ def test_the_role_s_tooltip_is_the_one_its_product_gave(view):
 
 def test_by_default_there_are_no_targets_and_the_tiles_are_the_fixed_strip(view):
     played = [True, False, False, False]
-    view.set_layout(FOCUS, played)
+    view.set_layout(ONE_LARGE, played)
 
     assert view.game_targets() == {}
-    expected = tile_layouts.arrange(FOCUS, played, (view.width(), view.height()), aspect=GAME[0] / GAME[1])
+    expected = tile_layouts.arrange(ONE_LARGE, played, (view.width(), view.height()), aspect=GAME[0] / GAME[1])
     assert _rects(view) == [(r.x, r.y, r.w, r.h) for r in expected]
 
 
@@ -353,7 +353,7 @@ def test_by_rung_each_tile_has_its_target_and_holds_it_whole(by_rung):
     """The core case: two accounts on 1080p, the sidebar hidden, launched as an equal grid."""
     game = by_rung((1920, 971), [(854, 480), (854, 480)])
 
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
 
     assert game.game_targets() == {100: (1280, 720), 101: (534, 300)}
     assert (game.tile_geometry(0).width(), game.tile_geometry(0).height()) == tile_size((1280, 720))
@@ -364,7 +364,7 @@ def test_by_rung_each_tile_has_its_target_and_holds_it_whole(by_rung):
 def test_by_rung_with_no_side_tile_every_target_is_the_launch_size(by_rung):
     game = by_rung((1920, 971), [(854, 480), (854, 480)])
 
-    game.set_layout(GRID, [True, True], by_rung=True)
+    game.set_layout(ALL_EQUAL, [True, True], by_rung=True)
 
     assert game.game_targets() == {100: (854, 480), 101: (854, 480)}
     assert _rects_of(game, 2) == [(0, 0, 960, 971), (960, 0, 960, 971)]
@@ -373,7 +373,7 @@ def test_by_rung_with_no_side_tile_every_target_is_the_launch_size(by_rung):
 def test_by_rung_one_account_asks_for_nothing_new(by_rung):
     game = by_rung((1612, 971), [(1280, 720)])
 
-    game.set_layout(FOCUS, [True], by_rung=True)
+    game.set_layout(ONE_LARGE, [True], by_rung=True)
 
     assert game.game_targets() == {100: (1280, 720)}
 
@@ -382,7 +382,7 @@ def test_by_rung_where_no_strip_fits_the_tiles_are_the_view_s_equal_grid(by_rung
     """Three followers on 1080p with the sidebar shown: the same grid BartleBot's tiles take."""
     game = by_rung((1612, 971), [(746, 420)] * 4)
 
-    game.set_layout(FOCUS, [True, False, False, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False, False, False], by_rung=True)
 
     assert game.game_targets() == {100 + i: (746, 420) for i in range(4)}
     assert _rects(game) == _grid(game)
@@ -391,7 +391,7 @@ def test_by_rung_where_no_strip_fits_the_tiles_are_the_view_s_equal_grid(by_rung
 def test_by_rung_a_client_with_no_ladder_has_no_target(by_rung):
     game = by_rung((3532, 2051), [(854, 480), (1280, 1024)])
 
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
 
     assert game.game_targets() == {100: (2560, 1440)}
 
@@ -399,17 +399,17 @@ def test_by_rung_a_client_with_no_ladder_has_no_target(by_rung):
 def test_by_rung_with_no_ladder_at_all_the_tiles_are_the_fixed_strip(by_rung):
     game = by_rung((3532, 2051), [(1280, 1024), (1280, 1024)])
 
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
 
     assert game.game_targets() == {}
-    expected = tile_layouts.arrange(FOCUS, [True, False], (3532, 2051), aspect=1280 / 1024)
+    expected = tile_layouts.arrange(ONE_LARGE, [True, False], (3532, 2051), aspect=1280 / 1024)
     assert _rects_of(game, 2) == [(r.x, r.y, r.w, r.h) for r in expected]
 
 
 def test_by_rung_the_largest_game_with_a_ladder_picks_the_family_the_tiles_are_placed_by(by_rung):
     game = by_rung((1920, 971), [(854, 480), (640, 480)])
 
-    game.set_layout(FOCUS, [False, True], by_rung=True)
+    game.set_layout(ONE_LARGE, [False, True], by_rung=True)
 
     # 854x480 has the most pixels, so the tiles are 16:9's, and the 4:3 client in Main takes
     # the largest of its own family that its 1292x771 tile holds.
@@ -419,7 +419,7 @@ def test_by_rung_the_largest_game_with_a_ladder_picks_the_family_the_tiles_are_p
 
 def test_by_rung_a_new_area_is_a_new_target(by_rung):
     game = by_rung((1920, 971), [(746, 420), (746, 420)])
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
 
     game.resize(1612, 971)
     # A hidden widget's resize event waits for its show.
@@ -431,7 +431,7 @@ def test_by_rung_a_new_area_is_a_new_target(by_rung):
 def test_by_rung_the_launch_size_survives_a_window_coming_back_at_another_size(by_rung):
     """Detached and re-attached, a tile is built over the window at whatever size it is now."""
     game = by_rung((1920, 971), [(854, 480), (854, 480)])
-    game.set_layout(GRID, [True, True], by_rung=True)
+    game.set_layout(ALL_EQUAL, [True, True], by_rung=True)
 
     game._detach_client(1)
     _Sized.sizes[101] = (534, 300)
@@ -441,20 +441,94 @@ def test_by_rung_the_launch_size_survives_a_window_coming_back_at_another_size(b
 
 
 def test_by_rung_a_slot_that_empties_forgets_its_window(by_rung):
-    """A window handle can be reused, and the next window to have it launched at its own size."""
+    """A window handle can be reused, and the next window to have it launched at its own size, here 4:3."""
     game = by_rung((1920, 971), [(854, 480), (854, 480)])
-    game.set_layout(GRID, [True, True], by_rung=True)
+    game.set_layout(ALL_EQUAL, [True, True], by_rung=True)
 
     game.sync_tiles([TileSlot(slot=0, hwnd=100, label="P1", player=0)])
-    _Sized.sizes[101] = (640, 360)
+    _Sized.sizes[101] = (640, 480)
     game.sync_tiles([TileSlot(slot=i, hwnd=100 + i, label=f"P{i + 1}", player=i) for i in range(2)])
 
-    assert game.game_targets()[101] == (640, 360)
+    # The largest of its own family that its 960x971 tile holds.
+    assert game.game_targets()[101] == (800, 600)
+
+
+def _four_on_4k(by_rung):
+    return by_rung((3532, 2051), [(1280, 720)] * 4)
+
+
+def test_when_main_changes_hands_only_those_two_tiles_move(by_rung):
+    game = _four_on_4k(by_rung)
+    game.set_layout(ONE_LARGE, [True, False, False, False], by_rung=True)
+    before = _rects_of(game, 4)
+
+    game.set_layout(ONE_LARGE, [False, False, True, False], by_rung=True)
+    after = _rects_of(game, 4)
+
+    assert after[2] == before[0] and after[0] == before[2]
+    assert after[1] == before[1] and after[3] == before[3]
+
+
+def test_all_equal_is_in_slot_order_and_one_large_comes_back_in_the_order_it_had(by_rung):
+    game = _four_on_4k(by_rung)
+    game.set_layout(ONE_LARGE, [True, False, False, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [False, False, True, False], by_rung=True)
+    traded = _rects_of(game, 4)
+
+    game.set_layout(ALL_EQUAL, [False, False, True, False], by_rung=True)
+    assert _rects(game) == _grid(game)
+
+    game.set_layout(ONE_LARGE, [False, False, True, False], by_rung=True)
+    assert _rects_of(game, 4) == traded
+
+
+def test_a_swap_made_in_all_equal_trades_places_with_the_last_large_tile(by_rung):
+    """A swap during a fight's All equal: back in One large, the new large tile and the old one trade."""
+    game = _four_on_4k(by_rung)
+    game.set_layout(ONE_LARGE, [True, False, False, False], by_rung=True)
+    before = _rects_of(game, 4)
+
+    game.set_layout(ALL_EQUAL, [True, False, False, False], by_rung=True)
+    game.set_layout(ALL_EQUAL, [False, True, False, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [False, True, False, False], by_rung=True)
+    after = _rects_of(game, 4)
+
+    assert after[1] == before[0] and after[0] == before[1]
+    assert after[2:] == before[2:]
+
+
+def test_by_rung_all_equal_grows_each_game_to_what_its_tile_holds_at_most_the_cap(by_rung):
+    game = by_rung((1920, 971), [(640, 360), (640, 360)])
+
+    game.set_layout(ALL_EQUAL, [True, False], by_rung=True)
+    assert game.game_targets() == {100: (854, 480), 101: (854, 480)}
+
+    game.set_layout(ALL_EQUAL, [True, False], by_rung=True, cap=(746, 420))
+    assert game.game_targets() == {100: (746, 420), 101: (746, 420)}
+
+
+def test_by_rung_the_cap_never_touches_the_large_tile(by_rung):
+    game = by_rung((1920, 971), [(640, 360), (640, 360)])
+
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True, cap=(746, 420))
+
+    assert game.game_targets() == {100: (1280, 720), 101: (534, 300)}
+
+
+def test_a_sidebar_can_widen_to_600_beside_four_clients_launched_at_1600x900_on_4k_at_125(by_rung, monkeypatch):
+    """The floor is the equal grid at the smallest rung, so the window's floor leaves room for it (#14)."""
+    monkeypatch.setattr(GameView, "devicePixelRatio", lambda self: 1.25)
+    game = by_rung((3072 - 308, 1611), [(1600, 900)] * 4)
+
+    game.set_layout(ONE_LARGE, [True, False, False, False], by_rung=True)
+
+    assert game.minimumWidth() <= 3072 - 600 - 8
+    assert (game.minimumWidth(), game.minimumHeight()) == required_game_area((534, 300), 4, 1.25)
 
 
 def test_by_rung_a_detached_window_has_no_target_and_keeps_its_tile(by_rung):
     game = by_rung((1920, 971), [(854, 480), (854, 480)])
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
 
     game._detach_client(1)
 
@@ -464,12 +538,12 @@ def test_by_rung_a_detached_window_has_no_target_and_keeps_its_tile(by_rung):
 
 def test_turning_rungs_off_goes_back_to_the_fixed_strip(by_rung):
     game = by_rung((1920, 971), [(854, 480), (854, 480)])
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
 
-    game.set_layout(FOCUS, [True, False])
+    game.set_layout(ONE_LARGE, [True, False])
 
     assert game.game_targets() == {}
-    expected = tile_layouts.arrange(FOCUS, [True, False], (game.width(), game.height()), aspect=854 / 480)
+    expected = tile_layouts.arrange(ONE_LARGE, [True, False], (game.width(), game.height()), aspect=854 / 480)
     assert _rects_of(game, 2) == [(r.x, r.y, r.w, r.h) for r in expected]
 
 
@@ -494,7 +568,7 @@ def asking(by_rung):
 def test_a_target_is_asked_for_once_after_it_settles(asking):
     game, timer, asked = asking()
 
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     assert asked == [], "nothing until it has held"
 
     timer.fire()
@@ -506,7 +580,7 @@ def test_a_target_is_asked_for_once_after_it_settles(asking):
 
 def test_dragging_a_splitter_asks_for_nothing_until_it_stops(asking):
     game, timer, asked = asking()
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     timer.fire()
     for hwnd, size in list(asked):
         game.game_resized(hwnd, size)
@@ -527,11 +601,11 @@ def test_dragging_a_splitter_asks_for_nothing_until_it_stops(asking):
 def test_a_team_view_that_changes_nothing_does_not_put_a_resize_off(asking):
     """A team view comes several times a second while a follower walks, and places the tiles each time."""
     game, timer, _asked = asking()
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     starts = timer.starts
 
     for _ in range(5):
-        game.set_layout(FOCUS, [True, False], by_rung=True)
+        game.set_layout(ONE_LARGE, [True, False], by_rung=True)
         game.set_resizable([100, 101])
 
     assert timer.starts == starts
@@ -544,12 +618,12 @@ def test_the_settle_timer_really_runs_for_the_settling_time(by_rung, qtbot):
     assert game._settle_timer.interval() == 500, "the real one, from timing.py"
     game._settle_timer.setInterval(10)
     with qtbot.waitSignal(game.game_size_wanted, timeout=2000):
-        game.set_layout(FOCUS, [True, False], by_rung=True)
+        game.set_layout(ONE_LARGE, [True, False], by_rung=True)
 
 
 def test_a_result_reaches_the_tile_of_that_window_and_no_other(asking):
     game, timer, _asked = asking()
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     timer.fire()
 
     game.game_resized(101, (534, 300))
@@ -593,7 +667,7 @@ def test_a_result_for_a_window_with_no_tile_is_ignored(asking):
 def test_a_failed_resize_is_not_asked_for_again(asking):
     """It reports the size it stayed at, and the target stands: asking again would only be refused."""
     game, timer, asked = asking()
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     timer.fire()
     asked.clear()
 
@@ -605,12 +679,12 @@ def test_a_failed_resize_is_not_asked_for_again(asking):
 
 def test_a_new_target_while_the_last_is_under_way_is_asked_for(asking):
     game, timer, asked = asking()
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     timer.fire()
     asked.clear()
 
     # Main changes hands before the first answer.
-    game.set_layout(FOCUS, [False, True], by_rung=True)
+    game.set_layout(ONE_LARGE, [False, True], by_rung=True)
     timer.fire()
 
     assert asked == [(100, (534, 300)), (101, (1280, 720))]
@@ -619,25 +693,25 @@ def test_a_new_target_while_the_last_is_under_way_is_asked_for(asking):
 def test_going_back_while_the_first_is_under_way_asks_for_the_size_it_still_has(asking):
     """The resizer runs the latest target, so the first one has to be replaced."""
     game, timer, asked = asking()
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     timer.fire()
     asked.clear()
 
-    game.set_layout(GRID, [True, True], by_rung=True)
+    game.set_layout(ALL_EQUAL, [True, True], by_rung=True)
     timer.fire()
 
-    assert asked == [(100, (746, 420)), (101, (746, 420))]
+    assert asked == [(100, (854, 480)), (101, (854, 480))]
 
 
-def test_with_no_side_tile_nothing_is_asked_for(asking):
-    """One account, and two both played: the core case's other half, with no scan and no write."""
-    game, timer, asked = asking()
-    game.set_layout(GRID, [True, True], by_rung=True)
+def test_with_no_side_tile_and_every_game_at_the_size_its_tile_holds_nothing_is_asked_for(asking):
+    """One account, and two in All equal already at the largest that fits: no scan and no write."""
+    game, timer, asked = asking(launches=[(854, 480), (854, 480)])
+    game.set_layout(ALL_EQUAL, [True, True], by_rung=True)
     timer.fire()
     assert asked == []
 
     alone, timer, asked = asking(launches=[(1280, 720)], area=(1612, 971))
-    alone.set_layout(GRID, [True], by_rung=True)
+    alone.set_layout(ALL_EQUAL, [True], by_rung=True)
     timer.fire()
     assert asked == []
 
@@ -646,7 +720,7 @@ def test_nothing_is_asked_for_a_window_with_no_runtime_behind_it(asking):
     game, timer, asked = asking()
     game.set_resizable([100])
 
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     timer.fire()
 
     assert asked == [(100, (1280, 720))]
@@ -654,7 +728,7 @@ def test_nothing_is_asked_for_a_window_with_no_runtime_behind_it(asking):
 
 def test_a_window_hooked_again_is_asked_for_afresh(asking):
     game, timer, asked = asking()
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     timer.fire()
     asked.clear()
 
@@ -667,11 +741,11 @@ def test_a_window_hooked_again_is_asked_for_afresh(asking):
 
 def test_with_rungs_off_nothing_is_asked_for_and_what_was_is_dropped(asking):
     game, timer, asked = asking()
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     timer.fire()
     asked.clear()
 
-    game.set_layout(FOCUS, [True, False])
+    game.set_layout(ONE_LARGE, [True, False])
     timer.fire()
 
     assert asked == [] and game._asked == {}
@@ -681,7 +755,7 @@ def test_a_detached_window_says_so_and_is_not_asked_for(asking):
     game, timer, asked = asking()
     left: list[int] = []
     game.window_detached.connect(left.append)
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
 
     game._detach_client(1)
     timer.fire()
@@ -702,7 +776,7 @@ def test_detaching_them_all_says_so_for_each(asking):
 
 def test_a_window_attached_again_is_asked_for_its_tile_s_size(asking):
     game, timer, asked = asking()
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     game._detach_client(0)
     timer.fire()
     asked.clear()
@@ -714,10 +788,10 @@ def test_a_window_attached_again_is_asked_for_its_tile_s_size(asking):
 
 
 def test_the_window_can_be_restored_from_maximized_with_a_grown_main(asking):
-    """The floor is the equal grid at the launch size, so the Main a maximized window grew never holds it open."""
+    """The floor is the equal grid at the smallest rung, so the Main a maximized window grew never holds it open."""
     game, _timer, _asked = asking()
-    floor = required_game_area((746, 420), 2)
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    floor = required_game_area((534, 300), 2)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     assert (game.minimumWidth(), game.minimumHeight()) == floor
 
     game.game_resized(100, (1920, 1080))
@@ -729,19 +803,19 @@ def test_the_window_can_be_restored_from_maximized_with_a_grown_main(asking):
 
 def test_the_floor_with_no_ladder_is_still_measured_as_it_was(by_rung):
     game = by_rung((3532, 2051), [(1280, 1024), (1280, 1024)])
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
 
-    sizes = tile_layouts.sizes(FOCUS, [True, False])
+    sizes = tile_layouts.sizes(ONE_LARGE, [True, False])
     assert (game.minimumWidth(), game.minimumHeight()) == required_game_area((1280, 1024), sizes)
 
 
 def test_the_floor_with_rungs_off_follows_the_size_given_back(asking):
     game, _timer, _asked = asking()
-    game.set_layout(FOCUS, [True, False], by_rung=True)
+    game.set_layout(ONE_LARGE, [True, False], by_rung=True)
     game.game_resized(100, (1280, 720))
 
-    game.set_layout(FOCUS, [True, False])
-    sizes = tile_layouts.sizes(FOCUS, [True, False])
+    game.set_layout(ONE_LARGE, [True, False])
+    sizes = tile_layouts.sizes(ONE_LARGE, [True, False])
     assert (game.minimumWidth(), game.minimumHeight()) == required_game_area((1280, 720), sizes)
 
     game.game_resized(100, (746, 420))
@@ -765,7 +839,7 @@ def test_the_floor_never_passes_the_screen_when_a_game_can_follow_its_tile_down(
     game, _timer, _asked = asking(launches=LEFT_RUNNING, area=(1612, 971))
     on_1080p()
 
-    game.set_layout(GRID, [True, True], by_rung=True)
+    game.set_layout(ALL_EQUAL, [True, True], by_rung=True)
 
     budget, _dpr = screen_fit.budget_for(game)
     assert game.minimumWidth() <= budget[0]
@@ -773,39 +847,41 @@ def test_the_floor_never_passes_the_screen_when_a_game_can_follow_its_tile_down(
     assert game.minimumWidth() < required_game_area(LEFT_RUNNING[0], 2)[0]
 
 
-def test_in_a_grid_a_game_too_large_for_its_tile_is_asked_down_and_back_up(asking, on_1080p):
+def test_in_all_equal_each_game_follows_its_tile_down_and_back_up_in_its_own_family(asking, on_1080p):
     game, timer, asked = asking(launches=LEFT_RUNNING, area=(1612, 971))
     on_1080p()
-    game.set_layout(GRID, [True, True], by_rung=True)
+    game.set_layout(ALL_EQUAL, [True, True], by_rung=True)
 
     game.setMinimumSize(0, 0)
     game.resize(1612, 971)
     game._recompute_geometry()
     timer.fire()
-    assert asked == [(100, (746, 420))], "the one that fits is left alone"
+    # 806 wide each: 746x420 for the 16:9 one, and 720x540, its own family's, for the 4:3.
+    assert asked == [(100, (746, 420)), (101, (720, 540))]
     game.game_resized(100, (746, 420))
+    game.game_resized(101, (720, 540))
     asked.clear()
 
     game.resize(3000, 971)
     game._recompute_geometry()
     timer.fire()
-    assert asked == [(100, (1280, 720))]
+    assert asked == [(100, (1366, 768)), (101, (1024, 768))]
 
 
-def test_a_launch_that_fits_keeps_the_floor_it_had(asking, on_1080p):
+def test_beside_another_the_floor_is_the_equal_grid_at_the_smallest_rung(asking, on_1080p):
     game, _timer, _asked = asking()
     on_1080p()
 
-    game.set_layout(GRID, [True, True], by_rung=True)
+    game.set_layout(ALL_EQUAL, [True, True], by_rung=True)
 
-    assert (game.minimumWidth(), game.minimumHeight()) == required_game_area((746, 420), 2)
+    assert (game.minimumWidth(), game.minimumHeight()) == required_game_area((534, 300), 2)
 
 
 def test_a_lone_client_keeps_its_floor_whatever_the_screen(asking, on_1080p):
     game, timer, asked = asking(launches=[(2560, 1440)], area=(1612, 971))
     on_1080p()
 
-    game.set_layout(GRID, [True], by_rung=True)
+    game.set_layout(ALL_EQUAL, [True], by_rung=True)
     timer.fire()
 
     assert (game.minimumWidth(), game.minimumHeight()) == required_game_area((2560, 1440), 1)

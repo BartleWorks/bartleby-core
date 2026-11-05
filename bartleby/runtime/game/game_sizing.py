@@ -540,11 +540,21 @@ def _at_most_launch(
     return fitting_rung(area, smaller or family[:1], dpr)
 
 
+def _at_most_pixels(family: Sequence[tuple[int, int]], cap: tuple[int, int] | None) -> Sequence[tuple[int, int]]:
+    """The rungs of *family* with no more pixels than *cap*, or its smallest if none has; all of it with no cap."""
+    if cap is None:
+        return family
+    return [rung for rung in family if rung[0] * rung[1] <= cap[0] * cap[1]] or family[:1]
+
+
 def tile_targets(
     launches: Sequence[tuple[int, int] | None],
     areas: Sequence[tuple[int, int]],
     tiles: Tiles,
     dpr: float = 1.0,
+    *,
+    grow: bool = False,
+    cap: tuple[int, int] | None = None,
 ) -> list[tuple[int, int] | None]:
     """The size each client should run at, in slot order, or None for one with no target.
 
@@ -558,15 +568,26 @@ def tile_targets(
     another, it takes the largest rung below its launch size that fits, and goes back up as
     room comes. A lone client keeps its launch size whatever the tile, as it gains nothing.
 
+    With *grow*, the equal grid uses its room instead, BartleBuddy's All equal: each client
+    takes the largest rung of its family that fits its tile, with no more pixels than *cap*,
+    or any size with no cap. By pixels, so one cap serves 16:9 and 4:3 alike. A lone client
+    still keeps its launch size.
+
     With a Side tile, one rule answers: the largest of the client's own family that fits
     its tile, and for a Side tile always a rung below every Main tile's, since a follower
-    has no use for more. A client with no ladder has no target either way.
+    has no use for more. *cap* never touches it. A client with no ladder has no target
+    either way.
     """
     sizes = tile_sizes(tiles)
     families = [None if launch is None else aspect_family(launch) for launch in launches]
     if TileSize.SIDE not in sizes:
         if len(sizes) < 2:
             return [launch if family else None for launch, family in zip(launches, families)]
+        if grow:
+            return [
+                fitting_rung(area, _at_most_pixels(family, cap), dpr) if family else None
+                for area, family in zip(areas, families)
+            ]
         return [
             _at_most_launch(launch, area, family, dpr) if family else None
             for launch, area, family in zip(launches, areas, families)

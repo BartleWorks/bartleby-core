@@ -6,8 +6,8 @@ the recent launches and the resolution; and the product's name and version, and 
 of its logo disc, from the ``Product`` in use.
 
 Its tiles are BartleBot's equal grid unless a product hands it a ``tile_layouts.Layout``
-(:meth:`GameView.set_layout`), as BartleBuddy does: then the Main tiles go to the wizards
-the user moves and the rest sit Side in a strip. Placed by rung, each game can follow its
+(:meth:`GameView.set_layout`), as BartleBuddy does: then the Main tile goes to the wizard
+the user plays and the rest sit Side in a strip. Placed by rung, each game can follow its
 tile's size: this says what each should be (:attr:`GameView.game_size_wanted`) and embeds
 it again when told how that went (:meth:`GameView.game_resized`).
 """
@@ -31,7 +31,6 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from bartleby.qt import screen_fit
 from bartleby.qt.game_embed.card_columns import (
     ACCOUNTS_TITLE,
     ADD_ACCOUNT,
@@ -55,8 +54,6 @@ from bartleby.runtime.game import tile_layouts
 from bartleby.runtime.game.game_sizing import (
     Tiles,
     aspect_family,
-    fits,
-    largest_fitting,
     required_game_area,
     rung_tiles,
     tile_targets,
@@ -616,6 +613,12 @@ class GameView(ThemedMixin, QWidget):
         self._layout: Layout | None = None
         self._played: list[bool] = []
         self._by_rung = False
+        # See set_layout: the most pixels an equal grid by rung may grow a game to, or None.
+        self._cap: tuple[int, int] | None = None
+        # The placement order of the strip, by slot, and the slot that last had the Main tile:
+        # a new Main trades places with the old one (tile_layouts.trade_places).
+        self._placement: list[int] = []
+        self._main_slot: int | None = None
         # The size each window was first seen at, by hwnd. Kept because a ClientTile only
         # knows the size it was built over, and a window that has been resized is not at
         # its launch size when a re-attach builds a new tile over it.
@@ -1043,23 +1046,35 @@ class GameView(ThemedMixin, QWidget):
             if tile is not None:
                 tile.set_wizard_name(self._wizard_name_for(player))
 
-    def set_layout(self, layout: Layout | None, played: Sequence[bool] = (), *, by_rung: bool = False) -> None:
+    def set_layout(
+        self,
+        layout: Layout | None,
+        played: Sequence[bool] = (),
+        *,
+        by_rung: bool = False,
+        cap: tuple[int, int] | None = None,
+    ) -> None:
         """Place the tiles by *layout*, or as the equal grid for None.
 
-        *played* says, per **player** index, whether the user moves that wizard, as
+        *played* says, per **player** index, whether the user plays that wizard, as
         ``set_wizard_names``' list is aligned: those fill the layout's Main tiles and the
         rest sit Side (``tile_layouts.sizes``). A layout that leaves no Side tile is the
         equal grid all the same, BartleBot's layout, since ``Layout.grid`` means every
-        tile equal.
+        tile equal. When the Main tile changes hands, the old Main takes the new one's place
+        in the strip, and the rest stay put. The equal grid is in slot order, and the strip
+        comes back in the order it had.
 
         *by_rung* is for a product whose clients can be resized: each Side tile holds its
-        whole game and each Main tile is exactly a rung (``tile_layouts.arrange``), and
-        ``game_targets`` says what size each client should be. A smaller Main with no
-        resize behind it only costs the user room, so it stays off until one can follow.
+        whole game and each Main tile is exactly a rung (``tile_layouts.arrange``), an equal
+        grid grows each game to the largest rung its tile holds, with no more pixels than
+        *cap*, and ``game_targets`` says what size each client should be. A smaller Main
+        with no resize behind it only costs the user room, so it stays off until one can
+        follow.
         """
         self._layout = layout
         self._played = list(played)
         self._by_rung = by_rung
+        self._cap = None if cap is None else tuple(cap)
         if not by_rung:
             self._asked.clear()
         self._recompute_geometry()
@@ -1093,9 +1108,9 @@ class GameView(ThemedMixin, QWidget):
     def game_targets(self) -> dict[int, tuple[int, int]]:
         """The size each embedded window should run at, by hwnd, as things stand.
 
-        Its launch size with no Side tile, the largest rung of its aspect that fits with
-        one, and left out if it has no ladder (``game_sizing.tile_targets``). Empty unless
-        the tiles are placed by rung.
+        The largest rung of its aspect that fits its tile, at most the cap in an equal grid,
+        and left out if it has no ladder (``game_sizing.tile_targets``). A lone client keeps
+        its launch size. Empty unless the tiles are placed by rung.
         """
         slots = self._occupied_slots()
         if not self._rung_family_in_use() or not slots:
@@ -1106,6 +1121,8 @@ class GameView(ThemedMixin, QWidget):
             [(area.width(), area.height()) for area in areas],
             self._tile_sizes(slots),
             self.devicePixelRatio() or 1.0,
+            grow=True,
+            cap=self._cap,
         )
         return {
             self._tiles[slot].hwnd: target
@@ -1355,15 +1372,27 @@ class GameView(ThemedMixin, QWidget):
         self._note_targets()
 
     def _arrange(self, slots: list[int], sizes: list[TileSize]) -> None:
-        """Place Main and Side tiles by the layout (``tile_layouts.arrange``), at the game's aspect."""
+        """Place Main and Side tiles by the layout (``tile_layouts.arrange``), at the game's aspect.
+
+        In the placement order: a slot new to it goes last, and a new Main tile trades places
+        with the old one, so the rest of the strip keeps where it was.
+        """
         width, height = self._largest_size() or self._settings.game_resolution
         family = self._rung_family_in_use()
+        placement = [slot for slot in self._placement if slot in slots]
+        placement += [slot for slot in slots if slot not in placement]
+        mains = [slot for slot, size in zip(slots, sizes) if size is TileSize.MAIN]
+        if len(mains) == 1:
+            placement = tile_layouts.trade_places(placement, self._main_slot, mains[0])
+            self._main_slot = mains[0]
+        self._placement = placement
         rects = tile_layouts.arrange(
             self._layout,
             self._played_at(slots),
             (self.width(), self.height()),
             aspect=width / height,
             rung_tiles=rung_tiles(family, self.devicePixelRatio() or 1.0) if family else (),
+            order=[slots.index(slot) for slot in placement],
         )
         for slot, rect in zip(slots, rects):
             widget = self._widget_at(slot)
@@ -1392,9 +1421,10 @@ class GameView(ThemedMixin, QWidget):
         understated the minimum whenever they differed, and the biggest client was the one
         that got clipped.
 
-        Tiles by rung are measured as the equal grid at the launch sizes, and never at the sizes
-        the games have now. A floor taken from a Main grown by maximizing would stop the window
-        being restored, and its game would follow a smaller tile down anyway.
+        Tiles by rung are measured as the equal grid at the smallest rung (``_rung_floor``), and
+        never at the sizes the games have now. A floor taken from a Main grown by maximizing
+        would stop the window being restored, and its game would follow a smaller tile down
+        anyway.
         """
         slots = self._occupied_slots()
         if not slots:
@@ -1412,21 +1442,19 @@ class GameView(ThemedMixin, QWidget):
         self.setMinimumSize(*required_game_area(largest, self._tile_sizes(slots), self.devicePixelRatio() or 1.0))
 
     def _rung_floor(self, slots: list[int], family: Sequence[tuple[int, int]]) -> tuple[int, int]:
-        """The equal grid at the launch sizes, or at the largest rung the screen holds if it doesn't.
+        """The equal grid at the family's smallest rung, beside another; a lone client's launch size.
 
-        The launch fit allowed that grid, for a launch it judged. It never judged a client
-        started outside the app, or a launch made with the sidebar hidden that then shows, and a
-        floor past the screen pushes tiles off the window. Beside another, a game can follow its
-        tile down instead. A lone client keeps its floor, as it never resizes.
+        Beside another, every game can follow its tile down to the smallest rung, so that is
+        all the window needs, and a sidebar can widen as far as the games can shrink (#14). A
+        launch is still judged as the equal grid at its launch size, by the launch fit. A lone
+        client never resizes, so its floor is the size it launched at.
         """
+        count, dpr = len(slots), self.devicePixelRatio() or 1.0
+        if count > 1:
+            return required_game_area(family[0], count, dpr)
         launches = [size for size in map(self._launch_size_at, slots) if size is not None]
         launches = launches or [self._settings.game_resolution]
         largest = max(size[0] for size in launches), max(size[1] for size in launches)
-        count, dpr = len(slots), self.devicePixelRatio() or 1.0
-        if count > 1:
-            budget, _dpr = screen_fit.budget_for(self)
-            if not fits(largest, count, budget, dpr):
-                largest = largest_fitting(list(family), count, budget, dpr) or family[0]
         return required_game_area(largest, count, dpr)
 
     def _pending_resolutions(self) -> list[tuple[int, int]]:

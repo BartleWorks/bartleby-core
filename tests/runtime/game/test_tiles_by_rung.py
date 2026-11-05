@@ -15,9 +15,9 @@ import pytest
 from bartleby.runtime.game import game_sizing as gs
 from bartleby.runtime.game.game_sizing import VALID_RESOLUTIONS, aspect_family, fitting_rung, tile_size, tile_targets
 from bartleby.runtime.game.tile_layouts import (
-    FOCUS,
-    GRID,
-    PAIR,
+    ALL_EQUAL,
+    ONE_LARGE,
+    Layout,
     TileSize,
     arrange,
     equal_grid,
@@ -32,17 +32,26 @@ SHOWN_1440, SHOWN_4K = (2252, 1331), (3532, 2051)
 
 DISPLAY_SCALES = (1.0, 1.25, 1.5, 2.0)
 
+#: 4K at 125%, 3072x1728 logical, with a 48-pixel taskbar: the user's own setup (#14), with
+#: the sidebar hidden, at its 300 floor, at 480 and at 600, and the scale it's measured at.
+K4_SCALE = 1.25
+HIDDEN_4K125 = (3072, 1611)
+SIDEBAR_4K125 = {width: (3072 - width - 8, 1611) for width in (300, 480, 600)}
+
+#: Two Main tiles: no view uses it, but a layout is data, and the arithmetic takes any count.
+TWO_LARGE = Layout("Two large", mains=2)
+
 #: Every shape of session up to four clients: a layout and who the user moves.
 SESSIONS = [
-    (FOCUS, [True]),
-    (GRID, [True]),
-    (FOCUS, [True, False]),
-    (GRID, [True, True]),
-    (FOCUS, [True, False, False]),
-    (PAIR, [True, True, False]),
-    (FOCUS, [True, False, False, False]),
-    (PAIR, [True, True, False, False]),
-    (GRID, [True, True, True, True]),
+    (ONE_LARGE, [True]),
+    (ALL_EQUAL, [True]),
+    (ONE_LARGE, [True, False]),
+    (ALL_EQUAL, [True, True]),
+    (ONE_LARGE, [True, False, False]),
+    (TWO_LARGE, [True, True, False]),
+    (ONE_LARGE, [True, False, False, False]),
+    (TWO_LARGE, [True, True, False, False]),
+    (ALL_EQUAL, [True, True, True, True]),
 ]
 
 AREAS = [(w, h) for w in range(800, 4000, 160) for h in range(500, 2300, 120)]
@@ -85,7 +94,7 @@ def _main_and_side(layout, played, area, launch):
     ],
 )
 def test_two_accounts_on_1080p_one_following(launch, area, main, side):
-    assert _main_and_side(FOCUS, [True, False], area, launch) == (main, side)
+    assert _main_and_side(ONE_LARGE, [True, False], area, launch) == (main, side)
 
 
 @pytest.mark.parametrize(
@@ -105,11 +114,11 @@ def test_two_accounts_on_1080p_one_following(launch, area, main, side):
     ],
 )
 def test_one_main_on_other_screens_launched_at_16_9(area, followers, main, side):
-    assert _main_and_side(FOCUS, [True] + [False] * followers, area, WIDE) == (main, side)
+    assert _main_and_side(ONE_LARGE, [True] + [False] * followers, area, WIDE) == (main, side)
 
 
 def test_three_followers_on_1080p_with_the_sidebar_hidden_lie_in_a_row_below():
-    rects, _, _ = _placed(FOCUS, [True, False, False, False], HIDDEN_1080, WIDE)
+    rects, _, _ = _placed(ONE_LARGE, [True, False, False, False], HIDDEN_1080, WIDE)
     main, *side = rects
     assert all(s.y >= main.y + main.h for s in side)
 
@@ -119,7 +128,7 @@ def test_three_followers_on_1080p_with_the_sidebar_shown_are_a_grid_of_four_at_7
     area, launch = SHOWN_1080, gs.largest_fitting(list(aspect_family(WIDE)), 4, SHOWN_1080)
     assert launch == (746, 420)
 
-    rects, kinds, targets = _placed(FOCUS, [True, False, False, False], area, launch)
+    rects, kinds, targets = _placed(ONE_LARGE, [True, False, False, False], area, launch)
 
     assert kinds == 4
     assert targets == [launch] * 4
@@ -127,7 +136,132 @@ def test_three_followers_on_1080p_with_the_sidebar_shown_are_a_grid_of_four_at_7
 
 
 def test_two_main_tiles_on_1080p_with_the_sidebar_hidden():
-    assert _main_and_side(PAIR, [True, True, False], HIDDEN_1080, WIDE) == ((854, 480), (640, 360))
+    assert _main_and_side(TWO_LARGE, [True, True, False], HIDDEN_1080, WIDE) == ((854, 480), (640, 360))
+
+
+# -- #14's sizes table: One large and All equal, row by row --------------------------------------
+
+
+def _one_large(area, launch, clients, dpr=1.0):
+    """One large's targets, the strip's shape, and whether a strip fit at all."""
+    family = aspect_family(launch)
+    tiles = gs.rung_tiles(family, dpr)
+    played = [True] + [False] * (clients - 1)
+    rects = arrange(ONE_LARGE, played, area, rung_tiles=tiles)
+    kinds = sizes(ONE_LARGE, played) if strip_fits(ONE_LARGE, played, area, tiles) else clients
+    targets = tile_targets([launch] * clients, [(r.w, r.h) for r in rects], kinds, dpr, grow=True)
+    shape = "grid" if kinds == clients else ("below" if rects[1].y >= rects[0].y + rects[0].h else "beside")
+    return targets, shape
+
+
+def _all_equal(area, launch, clients, dpr=1.0, cap=None):
+    family = aspect_family(launch)
+    rects = arrange(ALL_EQUAL, [True] * clients, area, rung_tiles=gs.rung_tiles(family, dpr))
+    return tile_targets([launch] * clients, [(r.w, r.h) for r in rects], clients, dpr, grow=True, cap=cap)
+
+
+SIZES_TABLE = [
+    # (screen, launch, clients, area, dpr, One large's large and small, All equal)
+    ("1080p, 16:9, hidden", WIDE, 2, HIDDEN_1080, 1.0, (1280, 720), (534, 300), (854, 480)),
+    ("1080p, 16:9, shown", WIDE, 2, SHOWN_1080, 1.0, (960, 540), (534, 300), (746, 420)),
+    ("1080p, 4:3, hidden", NARROW, 2, HIDDEN_1080, 1.0, (1024, 768), (800, 600), (800, 600)),
+    ("1080p, 4:3, shown", NARROW, 2, SHOWN_1080, 1.0, (1024, 768), (480, 360), (720, 540)),
+    ("4K at 125%, hidden", (1600, 900), 4, HIDDEN_4K125, K4_SCALE, (2560, 1440), (960, 540), (1600, 900)),
+    ("4K at 125%, 300", (1600, 900), 4, SIDEBAR_4K125[300], K4_SCALE, (2560, 1440), (854, 480), (1600, 900)),
+    ("4K at 125%, 600", (1600, 900), 4, SIDEBAR_4K125[600], K4_SCALE, (2560, 1440), (746, 420), (1366, 768)),
+]
+
+
+@pytest.mark.parametrize(
+    ("screen", "launch", "clients", "area", "dpr", "large", "small", "equal"),
+    SIZES_TABLE,
+    ids=[r[0] for r in SIZES_TABLE],
+)
+def test_each_row_of_the_sizes_table(screen, launch, clients, area, dpr, large, small, equal):
+    targets, _ = _one_large(area, launch, clients, dpr)
+
+    assert targets == [large] + [small] * (clients - 1)
+    assert _all_equal(area, launch, clients, dpr) == [equal] * clients
+
+
+def test_at_a_600_sidebar_on_4k_the_small_tiles_lie_in_a_strip_below():
+    _, shape = _one_large(SIDEBAR_4K125[600], (1600, 900), 4, K4_SCALE)
+
+    assert shape == "below"
+
+
+def test_four_16_9_clients_on_1080p_with_the_sidebar_shown_have_no_strip_and_are_all_746x420():
+    targets, shape = _one_large(SHOWN_1080, (746, 420), 4)
+
+    assert shape == "grid"
+    assert targets == [(746, 420)] * 4
+    assert _all_equal(SHOWN_1080, (746, 420), 4) == [(746, 420)] * 4
+
+
+def test_when_both_strips_give_the_same_large_tile_the_one_with_bigger_small_tiles_wins():
+    """At a 480 sidebar on 4K, beside gives 534x300 small tiles, and below 746x420, with 2560x1440 either way."""
+    targets, shape = _one_large(SIDEBAR_4K125[480], (1600, 900), 4, K4_SCALE)
+
+    assert shape == "below"
+    assert targets == [(2560, 1440)] + [(746, 420)] * 3
+
+
+def test_a_600_sidebar_fits_beside_four_clients_launched_at_1600x900_on_4k_at_125():
+    """The window floor is the equal grid at the smallest rung, so the sidebar can widen (#14)."""
+    floor_w, floor_h = gs.required_game_area((534, 300), 4, K4_SCALE)
+    launch_w, _ = gs.required_game_area((1600, 900), 4, K4_SCALE)
+
+    assert floor_w <= SIDEBAR_4K125[600][0] and floor_h <= SIDEBAR_4K125[600][1]
+    # The launch size's grid was the old floor, which stopped the sidebar at 480.
+    assert launch_w > SIDEBAR_4K125[600][0]
+
+
+# -- All equal grows, up to the cap ---------------------------------------------------------------
+
+
+def test_all_equal_grows_past_the_launch_size_to_the_largest_rung_that_fits():
+    """Launched at 640x360, two clients on 1080p with the sidebar hidden each hold 854x480."""
+    assert _all_equal(HIDDEN_1080, (640, 360), 2) == [(854, 480)] * 2
+
+
+def test_without_grow_the_equal_grid_keeps_its_launch_size_as_bartlebot_s_does():
+    rects = arrange(ALL_EQUAL, [True, True], HIDDEN_1080, rung_tiles=gs.rung_tiles(aspect_family(WIDE)))
+
+    assert tile_targets([(640, 360)] * 2, [(r.w, r.h) for r in rects], 2) == [(640, 360)] * 2
+
+
+@pytest.mark.parametrize(
+    ("cap", "wide", "narrow"),
+    [
+        (None, (3840, 2160), (2048, 1536)),
+        ((1920, 1080), (1920, 1080), (1600, 1200)),
+        ((1280, 720), (1280, 720), (1024, 768)),
+        ((854, 480), (854, 480), (720, 540)),
+        ((100, 100), (534, 300), (480, 360)),
+    ],
+)
+def test_the_cap_is_by_pixels_so_one_cap_serves_both_aspects(cap, wide, narrow):
+    roomy = (4000, 4000)
+
+    assert tile_targets([WIDE, NARROW], [roomy, roomy], 2, grow=True, cap=cap) == [wide, narrow]
+
+
+def test_the_cap_never_touches_the_large_tile():
+    targets, _ = _one_large(HIDDEN_4K125, (1600, 900), 4, K4_SCALE)
+    family = aspect_family((1600, 900))
+    tiles = gs.rung_tiles(family, K4_SCALE)
+    played = [True, False, False, False]
+    rects = arrange(ONE_LARGE, played, HIDDEN_4K125, rung_tiles=tiles)
+    capped = tile_targets(
+        [(1600, 900)] * 4, [(r.w, r.h) for r in rects], sizes(ONE_LARGE, played), K4_SCALE, grow=True, cap=(854, 480)
+    )
+
+    assert capped == targets
+    assert capped[0] == (2560, 1440)
+
+
+def test_a_lone_client_never_grows():
+    assert tile_targets([(640, 360)], [(4000, 4000)], 1, grow=True) == [(640, 360)]
 
 
 # -- the families ------------------------------------------------------------------------------
@@ -289,12 +423,12 @@ def test_where_no_strip_fits_the_tiles_are_the_equal_grid_and_its_targets_hold()
     assert fell_back > 1_000
 
 
-def test_pair_falls_back_where_its_main_tiles_would_be_smaller_than_the_grid_s():
+def test_two_main_tiles_fall_back_where_they_would_be_smaller_than_the_grid_s():
     """Two Main tiles and a strip below would be 640x360 each, and the launch is 746x420."""
     area, launch = (1520, 980), (746, 420)
     assert gs.fits(launch, 3, area)
 
-    rects, kinds, targets = _placed(PAIR, [True, True, False], area, launch)
+    rects, kinds, targets = _placed(TWO_LARGE, [True, True, False], area, launch)
 
     assert kinds == 3
     assert targets == [launch] * 3
@@ -303,7 +437,7 @@ def test_pair_falls_back_where_its_main_tiles_would_be_smaller_than_the_grid_s()
 
 def test_a_main_tile_at_the_smallest_rung_leaves_no_strip():
     """A Side tile would have no rung below it. The Main tile fits, beside, in 1100 wide."""
-    assert not strip_fits(FOCUS, [True, False], (1100, 360), gs.rung_tiles(aspect_family(WIDE)))
+    assert not strip_fits(ONE_LARGE, [True, False], (1100, 360), gs.rung_tiles(aspect_family(WIDE)))
 
 
 # -- no Side tile, no resize -------------------------------------------------------------------
@@ -311,7 +445,13 @@ def test_a_main_tile_at_the_smallest_rung_leaves_no_strip():
 
 @pytest.mark.parametrize(
     ("layout", "played"),
-    [(FOCUS, [True]), (GRID, [True, True]), (GRID, [True, False]), (PAIR, [True, True]), (GRID, [True] * 4)],
+    [
+        (ONE_LARGE, [True]),
+        (ALL_EQUAL, [True, True]),
+        (ALL_EQUAL, [True, False]),
+        (TWO_LARGE, [True, True]),
+        (ALL_EQUAL, [True] * 4),
+    ],
 )
 @pytest.mark.parametrize("launch", [(534, 300), (1280, 720), (800, 600)])
 def test_with_no_side_tile_every_target_is_the_launch_size(layout, played, launch):
@@ -322,7 +462,7 @@ def test_with_no_side_tile_every_target_is_the_launch_size(layout, played, launc
 
 def test_a_one_account_session_never_asks_for_a_resize_whatever_the_area():
     for area in AREAS:
-        _, _, targets = _placed(FOCUS, [True], area, (640, 360))
+        _, _, targets = _placed(ONE_LARGE, [True], area, (640, 360))
         assert targets == [(640, 360)]
 
 
@@ -392,29 +532,29 @@ def test_a_side_rung_of_the_other_family_stays_below_main_by_pixels():
 @pytest.mark.parametrize(
     ("layout", "played", "area", "aspect", "expected"),
     [
-        (FOCUS, [True, False], HIDDEN_1080, 16 / 9, [(0, 68, 1483, 834), (1489, 0, 431, 242)]),
+        (ONE_LARGE, [True, False], HIDDEN_1080, 16 / 9, [(0, 68, 1483, 834), (1489, 0, 431, 242)]),
         (
-            FOCUS,
+            ONE_LARGE,
             [True, False, False, False],
             SHOWN_1080,
             4 / 3,
             [(0, 4, 1283, 962), (1289, 0, 323, 242), (1289, 248, 323, 242), (1289, 496, 323, 242)],
         ),
         (
-            PAIR,
+            TWO_LARGE,
             [True, True, False],
             SHOWN_1440,
             16 / 9,
             [(0, 181, 1123, 631), (1129, 181, 1123, 631), (0, 999, 590, 332)],
         ),
         (
-            GRID,
+            ALL_EQUAL,
             [True] * 4,
             HIDDEN_1080,
             16 / 9,
             [(0, 0, 857, 482), (863, 0, 857, 482), (0, 488, 857, 482), (863, 488, 857, 482)],
         ),
-        (FOCUS, [False, True], (1000, 1400), 4 / 3, [(0, 1150, 333, 250), (0, 197, 1000, 750)]),
+        (ONE_LARGE, [False, True], (1000, 1400), 4 / 3, [(0, 1150, 333, 250), (0, 197, 1000, 750)]),
     ],
 )
 def test_with_no_rungs_arrange_answers_as_it_did(layout, played, area, aspect, expected):

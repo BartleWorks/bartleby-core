@@ -142,9 +142,16 @@ class ActionBar(ThemedMixin, QWidget):
         checked: bool | None = None,
         tooltip: str | None = None,
         visible: bool | None = None,
+        icon: str | None = None,
     ) -> None:
-        """Show what the product reports of one action. What is left None stays as it was."""
+        """Show what the product reports of one action. What is left None stays as it was.
+
+        *icon* changes its glyph, for a button that shows which of two states is in effect,
+        as BartleBuddy's view toggle shows the view on screen.
+        """
         btn = self._buttons[action_id]
+        if icon is not None and icon != btn.icon_name:
+            btn.set_icon_name(icon)
         if enabled is not None:
             btn.setEnabled(enabled)
         if visible is not None:
