@@ -27,6 +27,7 @@ GWL_EXSTYLE = -20
 
 WS_CHILD = 0x40000000
 WS_VISIBLE = 0x10000000
+WS_DISABLED = 0x08000000
 WS_POPUP = 0x80000000
 WS_MAXIMIZEBOX = 0x00010000
 WS_MINIMIZEBOX = 0x00020000
@@ -178,6 +179,8 @@ _SIGNATURES: tuple[tuple[str, list, object], ...] = (
     ("SetWindowPos", [_HWND, _HWND, _INT, _INT, _INT, _INT, _UINT], _BOOL),
     ("MoveWindow", [_HWND, _INT, _INT, _INT, _INT, _BOOL], _BOOL),
     ("ShowWindow", [_HWND, _INT], _BOOL),
+    ("EnableWindow", [_HWND, _BOOL], _BOOL),
+    ("IsWindowEnabled", [_HWND], _BOOL),
     ("AttachThreadInput", [_DWORD, _DWORD, _BOOL], _BOOL),
     ("SetFocus", [_HWND], _HWND),
     ("IsChild", [_HWND, _HWND], _BOOL),
@@ -270,6 +273,8 @@ class EmbeddedWindow:
         self._attached = False
         self._embedded = False
         self._parent_hwnd = 0
+        # See set_input_enabled.
+        self._input_enabled = True
 
     # ------------------------------------------------------------------
     # Properties
@@ -287,6 +292,11 @@ class EmbeddedWindow:
     @property
     def is_embedded(self) -> bool:
         return self._embedded
+
+    @property
+    def input_enabled(self) -> bool:
+        """Whether the game takes the mouse and keyboard itself: see ``set_input_enabled``."""
+        return self._input_enabled
 
     def is_home(self) -> bool:
         """Whether the window is still a child of what it was embedded in; an apply takes it out."""
@@ -363,8 +373,31 @@ class EmbeddedWindow:
 
     def _take_in(self, parent_hwnd: int) -> None:
         self._user32.SetParent(self._hwnd, parent_hwnd)
-        self._user32.SetWindowLongW(self._hwnd, GWL_STYLE, _as_long(child_style(self._orig_style)))
+        # The style is written whole, so a window kept from input stays kept from it.
+        style = child_style(self._orig_style) | (0 if self._input_enabled else WS_DISABLED)
+        self._user32.SetWindowLongW(self._hwnd, GWL_STYLE, _as_long(style))
         self._parent_hwnd = parent_hwnd
+
+    def set_input_enabled(self, enabled: bool) -> None:
+        """Let the game take the mouse and keyboard, or keep them from it with ``EnableWindow``.
+
+        Disabled, a click on the game goes to its parent, the tile, and the game takes no
+        keyboard; it still draws, and still takes keys and clicks posted to it, which is how
+        the runtime drives it (Stage 1 of BartleBuddy's epic #14).
+        """
+        self._input_enabled = enabled
+        self._user32.EnableWindow(self._hwnd, enabled)
+
+    def sync_input(self) -> None:
+        """Make the window take input as last said, if a reembed's style write undid it; else nothing.
+
+        A reembed on a worker writes the style whole, and may have read ``input_enabled``
+        before a change on the GUI thread. ``IsWindowEnabled`` reads the style without a call
+        into the game, which ``EnableWindow`` is: one after every refit was 35 to 97 ms of the
+        GUI thread a swap (Stage 5.2's probe).
+        """
+        if bool(self._user32.IsWindowEnabled(self._hwnd)) != self._input_enabled:
+            self._user32.EnableWindow(self._hwnd, self._input_enabled)
 
     def move(self, x: int, y: int, width: int, height: int) -> None:
         """Position the embedded window within its parent (physical pixels)."""
@@ -379,7 +412,12 @@ class EmbeddedWindow:
 
         Idempotent — detaching the input queues twice would unbalance the
         AttachThreadInput refcount, and restore is reachable from several paths.
+
+        A game kept from input takes it again first, whatever else happens: a detached or
+        quit window left disabled can't be clicked or typed in at all.
         """
+        if not self._input_enabled:
+            self.set_input_enabled(True)
         if not self._embedded:
             return
         self._embedded = False

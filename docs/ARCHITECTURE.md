@@ -169,7 +169,9 @@ BartleBot hands it nothing more and gets its equal grid. BartleBuddy hands it a
 Main tile and the rest sit Side; captions per player (`set_captions`); a role icon per player
 on each pill (`set_pill_roles`) and the Active wizard's mark (`set_active_player`). It listens
 to `caption_clicked` to make that wizard Active, and to `role_clicked` for its role menu, a
-press that, unlike the caption's, leaves the keyboard where it was.
+press that, unlike the caption's, leaves the keyboard where it was. Under its swap first setting
+(`set_swap_first`) a press on a Side tile's game reaches the tile instead, as `body_clicked`,
+which makes that wizard Active too.
 Its launch screen is built with `editing=False`, offering no verb, Add card or settings link
 until BartleBuddy edits accounts itself. Its client manager runs on the runtime thread, so the
 tiles cross to the view as queued signals, through `runtime_bridge.TileCrossing`.
