@@ -904,8 +904,10 @@ The window's half is the product's two crossings around that:
   anywhere else `body_clicked`, and neither gives the game focus. A Main tile and every tile of an
   equal grid let clicks through. The game still draws and takes what the runtime posts. Which
   tiles swallow is settled each time the tiles are placed, before any size is asked for, and a
-  reembed writes the style whole with `WS_DISABLED` kept, then says the state again on the GUI
-  thread, in case it changed while the worker had the window. `focus_game` lets the input
+  reembed writes the style whole with `WS_DISABLED` kept, and the finish on the GUI thread puts
+  the state back if it changed while the worker had the window (`EmbeddedWindow.sync_input`). It
+  reads `IsWindowEnabled` first, since an `EnableWindow` after every refit, needed or not, was 35
+  to 97 ms of the GUI thread a swap. `focus_game` lets the input
   through first, since a disabled window takes no keys, and `restore` does before anything
   else, so a game is never left disabled on the desktop.
 - **Leaving.** `window_detached(hwnd)` says a window has gone to the desktop, and the product gives

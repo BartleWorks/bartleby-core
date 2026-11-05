@@ -453,9 +453,9 @@ class ClientTile(_PillIconHover, QWidget):
             return
         if ok:
             self._game_w, self._game_h = size
-        # Said again: the worker wrote the style whole, and may have read whether the game
-        # takes input before swallow_clicks changed it.
-        self._window.set_input_enabled(not self._swallowing)
+        # The worker wrote the style whole, and may have read whether the game takes input
+        # before swallow_clicks changed it.
+        self._window.sync_input()
         waiting, self._refit_next = self._refit_next, None
         if waiting is not None and (waiting != self.game_size or not self._window.is_home()):
             self._start_refit(*waiting)

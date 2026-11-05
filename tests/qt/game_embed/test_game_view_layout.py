@@ -62,6 +62,9 @@ class _Window:
     def set_input_enabled(self, enabled: bool) -> None:
         self.input_enabled = enabled
 
+    def sync_input(self) -> None:
+        pass
+
 
 class _Sized(_Window):
     """``_Window`` at the size this hwnd has now, for tests where the sizes matter."""

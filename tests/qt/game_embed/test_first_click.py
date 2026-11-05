@@ -180,16 +180,35 @@ def test_focus_game_lets_the_input_through_first(tile):
     assert tile._window.focused == 1
 
 
+def test_sync_input_puts_back_what_a_style_write_undid_and_otherwise_calls_nothing(window, user32):
+    window.set_input_enabled(False)
+    user32.calls.clear()
+    window.sync_input()
+    assert "EnableWindow" not in user32.names, "a call into the game, for nothing"
+
+    user32.enabled = True  # What a reembed that read the flag before the change leaves.
+    window.sync_input()
+
+    assert user32.calls == [("EnableWindow", GAME, False)]
+
+
 @pytest.mark.parametrize("swallowing", [True, False])
-def test_a_refit_says_again_whether_the_game_takes_input(tile, swallowing):
+def test_a_refit_puts_back_whether_the_game_takes_input(qtbot, monkeypatch, swallowing):
     """The worker reads it before writing the style whole, and it may have changed since."""
+    user32 = FakeUser32()
+    monkeypatch.setattr(client_tile, "_refit_pool", HeldPool(held=True))
+    monkeypatch.setattr(
+        client_tile, "EmbeddedWindow", lambda hwnd: EmbeddedWindow(hwnd, user32=user32, kernel32=FakeKernel32())
+    )
+    tile = ClientTile(GAME, "P1")
+    qtbot.addWidget(tile)
     tile.swallow_clicks(swallowing)
     tile.refit(534, 300)
-    tile._window.input_enabled = swallowing  # What a change between the read and the write leaves.
+    user32.enabled = swallowing  # What a change between the read and the write leaves.
 
     client_tile._refit_pool.run()
 
-    assert tile._window.input_enabled is not swallowing
+    assert user32.enabled is not swallowing
 
 
 def test_unembedding_a_swallowing_tile_lets_the_input_through_before_the_restore(qtbot, monkeypatch):

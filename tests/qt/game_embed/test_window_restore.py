@@ -195,7 +195,13 @@ class FakeUser32:
 
     def EnableWindow(self, hwnd, enabled):
         self._record("EnableWindow", hwnd, enabled)
+        self.enabled = bool(enabled)
         return False
+
+    enabled = True
+
+    def IsWindowEnabled(self, hwnd):
+        return self.enabled
 
 
 class FakeKernel32:

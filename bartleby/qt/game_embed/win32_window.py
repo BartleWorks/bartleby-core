@@ -180,6 +180,7 @@ _SIGNATURES: tuple[tuple[str, list, object], ...] = (
     ("MoveWindow", [_HWND, _INT, _INT, _INT, _INT, _BOOL], _BOOL),
     ("ShowWindow", [_HWND, _INT], _BOOL),
     ("EnableWindow", [_HWND, _BOOL], _BOOL),
+    ("IsWindowEnabled", [_HWND], _BOOL),
     ("AttachThreadInput", [_DWORD, _DWORD, _BOOL], _BOOL),
     ("SetFocus", [_HWND], _HWND),
     ("IsChild", [_HWND, _HWND], _BOOL),
@@ -382,12 +383,21 @@ class EmbeddedWindow:
 
         Disabled, a click on the game goes to its parent, the tile, and the game takes no
         keyboard; it still draws, and still takes keys and clicks posted to it, which is how
-        the runtime drives it (Stage 1 of BartleBuddy's epic #14). Always made, even when
-        nothing changes, so a caller can say it again after a reembed on a worker, whose
-        style may have been read before the change.
+        the runtime drives it (Stage 1 of BartleBuddy's epic #14).
         """
         self._input_enabled = enabled
         self._user32.EnableWindow(self._hwnd, enabled)
+
+    def sync_input(self) -> None:
+        """Make the window take input as last said, if a reembed's style write undid it; else nothing.
+
+        A reembed on a worker writes the style whole, and may have read ``input_enabled``
+        before a change on the GUI thread. ``IsWindowEnabled`` reads the style without a call
+        into the game, which ``EnableWindow`` is: one after every refit was 35 to 97 ms of the
+        GUI thread a swap (Stage 5.2's probe).
+        """
+        if bool(self._user32.IsWindowEnabled(self._hwnd)) != self._input_enabled:
+            self._user32.EnableWindow(self._hwnd, self._input_enabled)
 
     def move(self, x: int, y: int, width: int, height: int) -> None:
         """Position the embedded window within its parent (physical pixels)."""
