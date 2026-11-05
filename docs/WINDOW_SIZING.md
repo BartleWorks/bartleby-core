@@ -880,9 +880,32 @@ warning, and the game is in its tile either way:
   logged its own reset (`GamebryoClient::OnReset`) on every loss. Only one instruction in the exe
   sets the byte, and the renderer's own recovery never reads it.
 
+**As a multibox team uses it**, as BartleBuddy's `tools/probe_multibox.py` ran it with four clients
+on 4K at 125% on 2026-11-05 (BartleBuddy #15), a resize is right every time, and it is the
+window's half that is slow:
+
+- **Every client at once** comes out right: four to the rung below and back, ten times, in 1.7 to
+  2.1 s. So does a hundred changes of view with two clients resizing and a hundred with four, with
+  no crash, no device failure in the game's log and no climb in the games' memory.
+- **In a fight** a resize holds up as it starts, during a round's animation, during card selection
+  and as it ends. The picture, the hands and clicks are right after each.
+- **The game applies a size in 30 to 90 ms. The rest of a swap is the GUI thread.** A swap took 1.3
+  to 1.6 s. `ClientTile.refit` (`EmbeddedWindow.reembed`: `SetParent`, `SetWindowLongW`,
+  `SetWindowPos`) is a call into the game's thread, and held the GUI thread 414 to 579 ms each, one
+  client after the other. A press took about 300 ms to reach Qt, and `focus_game`'s first call on
+  a tile 470 ms.
+- **A refit leaves the foreground and the keyboard on its game.** After a swap they are on
+  whichever client was resized last, which is the old Active one as often as the new.
+- **A held key is let go when the keyboard moves.** W held on one game stopped it once the keyboard
+  went to another, and the other stood.
+- **A disabled embedded game passes its clicks to its tile.** After `EnableWindow(hwnd, False)` a
+  real click reaches the tile as a Qt press and never the game, while the game still draws and
+  takes posted keys and clicks by path.
+
 Open: a resize across 4:3 and 16:9 corrects the selected camera too, read in the world only, so
-combat's is unchecked; a device removed or hung, as by a driver reset, was not tried; and the Test
-realm's offset was read from its exe, and never run.
+combat's is unchecked; a device removed or hung, as by a driver reset, was not tried; the Test
+realm's offset was read from its exe, and never run; and two clients on a 1080p display, the core
+case, have not been run through the probe.
 
 ## Still open
 
