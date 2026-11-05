@@ -29,7 +29,8 @@ Everything below rests on one rule, inferred from every observation and contradi
 
 | movement | who causes it | reset? |
 |---|---|---|
-| a position written to memory | the client | yes, at once |
+| a position written to memory, far from where the server has the wizard | the client | yes, at once |
+| a short hop written to memory, as past a gate | the client | no, in play since |
 | walking by the movement keys | the client, at walking pace | no, but see resets below |
 | a teleport volume stepped into (Triton's Tele Up) | the server, when the wizard walks in | no |
 | an interact teleporter (Triton's hub stones) | the server, when the interact key is pressed | no |
@@ -38,6 +39,12 @@ Everything below rests on one rule, inferred from every observation and contradi
 | the yaw (facing) written to memory | the client | **no**: the camera turns a wizard at any rate, so the server does not check it |
 
 So a bot reaches anything by walking to it, and takes every shortcut the game itself offers.
+
+**A short hop holds.** The reset above was measured on long jumps across a zone. Hops of a
+short distance, such as stepping past a gate that won't open, have held in play since, with
+no reset. How far a hop can go is not measured, so walking stays the way to cover ground:
+nothing in core writes a position, and BartleBuddy's followers walk (epic BartleBuddy #14
+tabled hops for them, since 2.0x already keeps up).
 
 **Resets happen during ordinary walking too.** On a +40% mount the server threw the wizard back
 seven times across the walks recorded here, 221 to 655 units each time, to where it had stood
