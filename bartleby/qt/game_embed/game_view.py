@@ -568,6 +568,8 @@ class GameView(ThemedMixin, QWidget):
     # A tile's role icon was clicked (set_pill_roles): the player index, and the point under
     # the icon, global, for the product's role menu. Nothing here acts on it.
     role_clicked = pyqtSignal(int, QPoint)
+    # A press on a small tile's body under swap first (set_swap_first), by player index.
+    body_clicked = pyqtSignal(int)
     # A window should run at another size (an hwnd, and a (width, height)), and that has held
     # for RESIZE_SETTLE. Answered through game_resized, whenever the runtime has done it.
     game_size_wanted = pyqtSignal(object, object)
@@ -642,6 +644,8 @@ class GameView(ThemedMixin, QWidget):
         # See set_pill_roles and set_active_player, by player index as the captions are.
         self._pill_roles: list[tuple[str, str] | None] = []
         self._active_player: int | None = None
+        # See set_swap_first.
+        self._swap_first = False
 
         # Placeholder shown when no clients are embedded or detached
         self._placeholder = _GamePlaceholder(settings, self, editing=editing, empty_accounts_hint=empty_accounts_hint)
@@ -766,6 +770,7 @@ class GameView(ThemedMixin, QWidget):
         tile.detach_requested.connect(lambda slot=spec.slot: self._detach_client(slot))
         tile.caption_clicked.connect(lambda point, slot=spec.slot: self._on_caption_clicked(slot, point))
         tile.role_clicked.connect(lambda point, slot=spec.slot: self._on_role_clicked(slot, point))
+        tile.body_clicked.connect(lambda slot=spec.slot: self._on_body_clicked(slot))
         # By the tile, not the slot: a refit's finish belongs to its window wherever it moved.
         tile.refitted.connect(lambda tile=tile: self._after_refit(tile))
         self._mark_pill(spec.slot, spec.player)
@@ -869,11 +874,12 @@ class GameView(ThemedMixin, QWidget):
 
     def _reconnect_detach(self, tile: ClientTile, slot: int) -> None:
         """Point a tile's detach icon, caption and role icon at the slot it now occupies."""
-        for signal in (tile.detach_requested, tile.caption_clicked, tile.role_clicked):
+        for signal in (tile.detach_requested, tile.caption_clicked, tile.role_clicked, tile.body_clicked):
             with contextlib.suppress(TypeError):
                 signal.disconnect()
         tile.detach_requested.connect(lambda s=slot: self._detach_client(s))
         tile.caption_clicked.connect(lambda point, s=slot: self._on_caption_clicked(s, point))
+        tile.body_clicked.connect(lambda s=slot: self._on_body_clicked(s))
         tile.role_clicked.connect(lambda point, s=slot: self._on_role_clicked(s, point))
 
     def _reconnect_reattach(self, dtile: DetachedTile, slot: int) -> None:
@@ -1080,7 +1086,9 @@ class GameView(ThemedMixin, QWidget):
 
         *at_once* asks for the targets now instead of after ``RESIZE_SETTLE``: for a change
         the player made in one press, a swap or a change of view, where the settle only adds
-        half a second. A drag still waits, since its targets change all the way through.
+        half a second. A drag still waits, since its targets change all the way through. A
+        game whose new size is asked for isn't moved at its old one meanwhile
+        (``ClientTile.hold_moves``), since its refit puts it in place.
         """
         self._layout = layout
         self._played = list(played)
@@ -1088,11 +1096,32 @@ class GameView(ThemedMixin, QWidget):
         self._cap = None if cap is None else tuple(cap)
         if not by_rung:
             self._asked.clear()
-        self._recompute_geometry()
-        self._update_minimum_size()
-        if at_once:
+        if not at_once:
+            self._recompute_geometry()
+            self._update_minimum_size()
+            return
+        tiles = list(self._tiles.values())
+        for tile in tiles:
+            tile.hold_moves()
+        try:
+            self._recompute_geometry()
+            self._update_minimum_size()
             self._settle_timer.stop()
             self._ask_for_targets()
+        finally:
+            for tile in tiles:
+                tile.release_moves(refit_coming=tile.hwnd in self._asked)
+
+    def set_swap_first(self, on: bool) -> None:
+        """Say whether a small tile's first click only swaps, for a product with an Active wizard.
+
+        On, each Side tile swallows clicks (``ClientTile.swallow_clicks``): a press on its
+        body is ``body_clicked`` and nothing lands in its game. A Main tile and every tile of
+        an equal grid let clicks through, as every tile does with it off. BartleBot never
+        calls this.
+        """
+        self._swap_first = on
+        self._recompute_geometry()
 
     def set_resizable(self, hwnds: Iterable[int]) -> None:
         """Say which windows a size may be asked for: those with a runtime to do it, so the hooked.
@@ -1285,6 +1314,18 @@ class GameView(ThemedMixin, QWidget):
         if player is not None:
             self.caption_clicked.emit(player, point)
 
+    def _on_body_clicked(self, slot: int) -> None:
+        player = self._player_for(slot)
+        if player is not None:
+            self.body_clicked.emit(player)
+
+    def _swallow_small_tiles(self, slots: list[int], sizes: list[TileSize] | None) -> None:
+        """Under swap first, the Side tiles swallow clicks and the rest let them through: see set_swap_first."""
+        for i, slot in enumerate(slots):
+            tile = self._tiles.get(slot)
+            if tile is not None:
+                tile.swallow_clicks(self._swap_first and sizes is not None and sizes[i] is TileSize.SIDE)
+
     def _on_role_clicked(self, slot: int, point: QPoint) -> None:
         player = self._player_for(slot)
         if player is not None:
@@ -1426,6 +1467,8 @@ class GameView(ThemedMixin, QWidget):
                 widget = self._widget_at(idx)
                 if widget is not None:
                     widget.setGeometry(rect.x, rect.y, rect.w, rect.h)
+        # Before the targets: a refit started from them reads whether its game takes input.
+        self._swallow_small_tiles(all_slots, None if isinstance(tiles, int) else tiles)
         self._note_targets()
 
     def _arrange(self, slots: list[int], sizes: list[TileSize]) -> None:

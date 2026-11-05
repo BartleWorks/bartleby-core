@@ -863,7 +863,12 @@ The window's half is the product's two crossings around that:
   scans. The first ask `prepare`s every client, so a later swap doesn't wait on a scan. A change
   the player makes in one press, a swap or a change of view, asks at once instead
   (`set_layout(..., at_once=True)`): the settle is for a drag, and on a swap it only adds half a
-  second.
+  second. Asking at once, the tiles hold their games where they are while they are placed
+  (`ClientTile.hold_moves`), and a game whose size was asked for is left to its refit, which
+  places it. A move at the old size in between was a call into each game, about 30 ms of the GUI
+  thread a swap (Stage 5.2 of BartleBuddy #14). The refit is waited for only `_MOVE_GRACE_MS`
+  (500 ms), since a resize can wait out a loading screen and a client that can't be resized never
+  answers; then the game is moved after all. A drag moves each game as its tile changes, as before.
 - **Answering.** `GameView.game_resized(hwnd, size)` hands the tile the size measured, and
   `ClientTile.refit` embeds the window again there (`EmbeddedWindow.reembed`), with no second
   `AttachThreadInput`. A size it has already, with the game still its child, moves nothing. While
@@ -893,6 +898,16 @@ The window's half is the product's two crossings around that:
   once nothing is asked for, no refit is under way and every game is at its target, or at once
   when nothing is moving. BartleBuddy names the Active wizard. BartleBot names none, and its
   keyboard is never moved.
+- **Swap first.** With `GameView.set_swap_first(True)` each Side tile keeps the mouse and keyboard
+  from its game (`ClientTile.swallow_clicks`, `EmbeddedWindow.set_input_enabled`, which is
+  `EnableWindow`), so a press on the game reaches the tile: on the pill it is `caption_clicked`,
+  anywhere else `body_clicked`, and neither gives the game focus. A Main tile and every tile of an
+  equal grid let clicks through. The game still draws and takes what the runtime posts. Which
+  tiles swallow is settled each time the tiles are placed, before any size is asked for, and a
+  reembed writes the style whole with `WS_DISABLED` kept, then says the state again on the GUI
+  thread, in case it changed while the worker had the window. `focus_game` lets the input
+  through first, since a disabled window takes no keys, and `restore` does before anything
+  else, so a game is never left disabled on the desktop.
 - **Leaving.** `window_detached(hwnd)` says a window has gone to the desktop, and the product gives
   it back. `EmbeddedWindow.restore` sizes the frame from the client area it has at that moment and
   the frame it was found with, since a frame of its old size no longer matches the backbuffer.

@@ -62,7 +62,7 @@ class TestChildStyle:
         assert style & WS_CHILD
 
     def test_preserves_unrelated_bits(self) -> None:
-        marker = 0x00000004  # WS_DISABLED, nothing to do with framing
+        marker = 0x00000004  # nothing to do with framing
         assert child_style(OVERLAPPED | marker) & marker
 
 
@@ -192,6 +192,10 @@ class FakeUser32:
     def SetFocus(self, hwnd):
         self._record("SetFocus", hwnd)
         return 0
+
+    def EnableWindow(self, hwnd, enabled):
+        self._record("EnableWindow", hwnd, enabled)
+        return False
 
 
 class FakeKernel32:

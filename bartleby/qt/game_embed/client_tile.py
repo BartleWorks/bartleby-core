@@ -58,6 +58,10 @@ _MARK_ICON = "play"
 _refit_pool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="refit")
 # How long unembed waits for a refit under way before restoring the window anyway.
 _REFIT_WAIT_S = 5.0
+# How long a move held for a coming refit waits for it before moving after all (release_moves).
+# A swap's answers came 70 to 100 ms after the ask; a resize that waits out a loading screen,
+# or a client that can't be resized, never answers.
+_MOVE_GRACE_MS = 500
 
 
 def tile_pill_colors(color_key: int | None) -> tuple[QColor, QColor, QColor]:
@@ -229,6 +233,9 @@ class ClientTile(_PillIconHover, QWidget):
     # A press on the role icon a product put on the pill (set_pill_role): the point under
     # it, global, for the product's menu. Unlike the caption it leaves focus where it was.
     role_clicked = pyqtSignal(QPoint)
+    # A press on the tile away from its pill, while it swallows clicks (swallow_clicks): on
+    # the game, which takes none, or around it.
+    body_clicked = pyqtSignal()
     # A refit has embedded the game again and the tile has finished with it: game_size is the
     # new size, and the window is in its place. Not for a refit that had nothing to move.
     refitted = pyqtSignal()
@@ -273,6 +280,16 @@ class ClientTile(_PillIconHover, QWidget):
         self._refit_next: tuple[int, int] | None = None
         self._refit_future: Future | None = None
         self._reembedded.connect(self._on_reembedded)
+
+        # See swallow_clicks.
+        self._swallowing = False
+        # See hold_moves: whether moves are held, and whether one was held and is still owed.
+        self._moves_held = False
+        self._move_owed = False
+        self._move_timer = QTimer(self)
+        self._move_timer.setSingleShot(True)
+        self._move_timer.setInterval(_MOVE_GRACE_MS)
+        self._move_timer.timeout.connect(self._reposition)
 
         self._window.embed(int(self.winId()))
         # winId() made this tile and every ancestor native, each with a cursor of its own
@@ -392,6 +409,8 @@ class ClientTile(_PillIconHover, QWidget):
             self._refit_next = (width, height)
             return True
         if (width, height) == self.game_size and self._window.is_home():
+            if self._move_owed:
+                self._reposition()
             return False
         self._start_refit(width, height)
         return True
@@ -407,7 +426,9 @@ class ClientTile(_PillIconHover, QWidget):
         return self._refit_next or self._refitting or self.game_size
 
     def _start_refit(self, width: int, height: int) -> None:
-        # The parent and the place are read here, on the GUI thread, which owns the tile.
+        # The parent and the place are read here, on the GUI thread, which owns the tile. The
+        # reembed puts the game in its place, so a move held for it is paid.
+        self._settle_move()
         self._refitting = (width, height)
         self._refit_place = self._place(width, height)
         self._refit_future = _refit_pool.submit(
@@ -432,6 +453,9 @@ class ClientTile(_PillIconHover, QWidget):
             return
         if ok:
             self._game_w, self._game_h = size
+        # Said again: the worker wrote the style whole, and may have read whether the game
+        # takes input before swallow_clicks changed it.
+        self._window.set_input_enabled(not self._swallowing)
         waiting, self._refit_next = self._refit_next, None
         if waiting is not None and (waiting != self.game_size or not self._window.is_home()):
             self._start_refit(*waiting)
@@ -467,8 +491,59 @@ class ClientTile(_PillIconHover, QWidget):
         return self._game_away
 
     def focus_game(self) -> None:
-        """Give the embedded game window keyboard focus."""
+        """Give the embedded game window keyboard focus, and its clicks, since a disabled window takes no keys."""
+        self.swallow_clicks(False)
         self._window.focus()
+
+    def swallow_clicks(self, swallow: bool) -> None:
+        """Keep the mouse and keyboard from the game, so a press on it is the tile's, or let them through.
+
+        For a product whose small tiles swap first: a press on the pill is still
+        ``caption_clicked``, a press anywhere else is ``body_clicked``, and neither gives the
+        game focus. The game keeps drawing and the runtime keeps driving it, since it posts
+        what it sends (``EmbeddedWindow.set_input_enabled``). ``focus_game`` lets them through
+        again, and unembedding always does.
+        """
+        if swallow == self._swallowing or not self._window.is_embedded:
+            return
+        self._swallowing = swallow
+        self._window.set_input_enabled(not swallow)
+
+    @property
+    def swallowing_clicks(self) -> bool:
+        return self._swallowing
+
+    def hold_moves(self) -> None:
+        """Hold the game where it is through the resizes that follow, until ``release_moves``.
+
+        A swap resizes the tiles and then asks for each game's new size at once; a move at
+        the old size in between is a call into the game, 20 ms or more on the GUI thread,
+        for a place the refit's reembed sets anyway.
+        """
+        self._moves_held = True
+
+    def release_moves(self, *, refit_coming: bool) -> None:
+        """Stop holding moves. One held is made now, or, with *refit_coming*, left to the refit.
+
+        Left only for ``_MOVE_GRACE_MS``: a resize can wait out a loading screen, and a client
+        that can't be resized never answers, and the game is out of place until it moves.
+        """
+        self._moves_held = False
+        if not self._move_owed:
+            return
+        if refit_coming:
+            self._move_timer.start()
+        else:
+            self._reposition()
+
+    @property
+    def move_owed(self) -> bool:
+        """Whether a move was held and is still to be made, by a refit or after the grace."""
+        return self._move_owed
+
+    def _settle_move(self) -> None:
+        self._move_owed = False
+        self._move_timer.stop()
 
     def is_game_focused(self) -> bool:
         """Return True if the game window (or a child of it) has keyboard focus."""
@@ -493,6 +568,10 @@ class ClientTile(_PillIconHover, QWidget):
         """
         if not self._window.is_embedded or self._refitting is not None or not self._window.is_home():
             return
+        if self._moves_held:
+            self._move_owed = True
+            return
+        self._settle_move()
         self._window.move(*self._place(self._game_w, self._game_h), self._game_w, self._game_h)
 
     def _place(self, game_w: int, game_h: int) -> tuple[int, int]:
@@ -547,9 +626,15 @@ class ClientTile(_PillIconHover, QWidget):
             self.role_clicked.emit(self.mapToGlobal(self._role_rect.bottomLeft()))
         else:
             if event.button() == Qt.MouseButton.LeftButton:
-                self.focus_game()
-                if self._pill_rect.contains(event.pos()):
+                on_pill = self._pill_rect.contains(event.pos())
+                # Swallowing, the press only says where it was: the swap it asks for gives the
+                # keyboard to whichever game should have it.
+                if not self._swallowing:
+                    self.focus_game()
+                if on_pill:
                     self.caption_clicked.emit(self.mapToGlobal(self._pill_rect.bottomLeft()))
+                elif self._swallowing:
+                    self.body_clicked.emit()
             super().mousePressEvent(event)
 
     def _game_rect(self) -> QRect:

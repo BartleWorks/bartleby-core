@@ -57,6 +57,11 @@ class _Window:
     def reembed(self, parent: int, x: int, y: int, width: int, height: int) -> None:
         self.game_size = (width, height)
 
+    input_enabled = True
+
+    def set_input_enabled(self, enabled: bool) -> None:
+        self.input_enabled = enabled
+
 
 class _Sized(_Window):
     """``_Window`` at the size this hwnd has now, for tests where the sizes matter."""
