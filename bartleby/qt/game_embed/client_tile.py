@@ -45,6 +45,9 @@ __all__ = [
 # Pill icon constants
 _ICON_SIZE = 18
 _ICON_GAP = 6  # pixels between label text and detach icon
+# The Active mark: a product's sign that this is the wizard being played, ahead of the rest.
+_MARK_SIZE = 12
+_MARK_ICON = "play"
 
 
 def tile_pill_colors(color_key: int | None) -> tuple[QColor, QColor, QColor]:
@@ -155,8 +158,15 @@ class _PillIconHover:
     def _init_pill_icon_hover(self) -> None:
         self.setMouseTracking(True)
 
+    def _icon_tips(self) -> list[tuple[QRect, str]]:
+        """Each icon on the pill that acts on a click, and what its tooltip says."""
+        return [(self._icon_rect, self._pill_icon_tip())]
+
+    def _icon_at(self, pos: QPoint) -> tuple[QRect, str] | None:
+        return next(((rect, tip) for rect, tip in self._icon_tips() if rect.contains(pos)), None)
+
     def _over_icon(self, pos: QPoint) -> bool:
-        return self._icon_rect.contains(pos)
+        return self._icon_at(pos) is not None
 
     def _show_cursor(self, shape: Qt.CursorShape) -> None:
         if self.cursor().shape() != shape:
@@ -174,10 +184,10 @@ class _PillIconHover:
 
     def event(self, event) -> bool:
         if event.type() == QEvent.Type.ToolTip:
-            tip = self._pill_icon_tip()
-            if tip and self._over_icon(event.pos()):
+            icon = self._icon_at(event.pos())
+            if icon is not None and icon[1]:
                 # The rect: the tooltip goes once the pointer leaves the icon, not the tile.
-                QToolTip.showText(event.globalPos(), tip, self, self._icon_rect)
+                QToolTip.showText(event.globalPos(), icon[1], self, icon[0])
             else:
                 QToolTip.hideText()
                 event.ignore()
@@ -202,10 +212,13 @@ class ClientTile(_PillIconHover, QWidget):
     """
 
     detach_requested = pyqtSignal()
-    # A press on the caption pill, away from its detach icon: the point under the pill,
-    # global, for a menu a product opens there. The press still gives the game focus, as
-    # any press on the tile does.
+    # A press on the caption pill, away from its icons: the point under the pill, global,
+    # for a menu a product opens there. The press still gives the game focus, as any press
+    # on the tile does.
     caption_clicked = pyqtSignal(QPoint)
+    # A press on the role icon a product put on the pill (set_pill_role): the point under
+    # it, global, for the product's menu. Unlike the caption it leaves focus where it was.
+    role_clicked = pyqtSignal(QPoint)
 
     def __init__(self, hwnd: int, label: str, parent=None) -> None:
         super().__init__(parent)
@@ -219,6 +232,11 @@ class ClientTile(_PillIconHover, QWidget):
         # Pill hit-testing rects (updated each paintEvent)
         self._pill_rect: QRect = QRect()
         self._icon_rect: QRect = QRect()
+        self._role_rect: QRect = QRect()
+        # See set_pill_role and set_active_mark. BartleBot sets neither, so its pill is as it was.
+        self._role_icon: str | None = None
+        self._role_tip = ""
+        self._active_mark = False
 
         # Constructed before embedding: it captures the state needed to restore the
         # window later (parent, styles, screen rect, native resolution).
@@ -290,6 +308,32 @@ class ClientTile(_PillIconHover, QWidget):
         if key != self._color_key:
             self._color_key = key
             self.update()
+
+    def set_pill_role(self, icon: str | None, tip: str = "") -> None:
+        """Put *icon* on the pill, ahead of the label, as what a product's role menu opens from.
+
+        A press on it emits ``role_clicked``, and *tip* is its tooltip. None takes it off.
+        """
+        if (icon, tip) != (self._role_icon, self._role_tip):
+            self._role_icon, self._role_tip = icon, tip
+            if icon is None:
+                self._role_rect = QRect()
+            self.update()
+
+    @property
+    def pill_role(self) -> str | None:
+        """The role icon on the pill, or None."""
+        return self._role_icon
+
+    def set_active_mark(self, active: bool) -> None:
+        """Mark the pill as the wizard being played, which isn't always the largest tile."""
+        if active != self._active_mark:
+            self._active_mark = active
+            self.update()
+
+    @property
+    def active_mark(self) -> bool:
+        return self._active_mark
 
     def unembed(self) -> None:
         """Restore the game window to a normal, movable top-level window."""
@@ -383,6 +427,12 @@ class ClientTile(_PillIconHover, QWidget):
     def _pill_icon_tip(self) -> str:
         return "Detach this window"
 
+    def _icon_tips(self) -> list[tuple[QRect, str]]:
+        tips = super()._icon_tips()
+        if self._role_icon is not None:
+            tips.append((self._role_rect, self._role_tip))
+        return tips
+
     def set_focused(self, focused: bool) -> None:
         if focused != self._focused:
             self._focused = focused
@@ -391,6 +441,13 @@ class ClientTile(_PillIconHover, QWidget):
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton and self._icon_rect.contains(event.pos()):
             self.detach_requested.emit()
+        elif (
+            event.button() == Qt.MouseButton.LeftButton
+            and self._role_icon is not None
+            and self._role_rect.contains(event.pos())
+        ):
+            # Only the menu: a player choosing a role isn't choosing which game to type in.
+            self.role_clicked.emit(self.mapToGlobal(self._role_rect.bottomLeft()))
         else:
             if event.button() == Qt.MouseButton.LeftButton:
                 self.focus_game()
@@ -439,8 +496,9 @@ class ClientTile(_PillIconHover, QWidget):
             )
 
         # Client label pill — rendered in the LABEL_RESERVE strip above the game
-        # window, so it is never obscured by the Win32 child surface.
-        # Layout: [8px pad] [label text] [_ICON_GAP] [detach icon] [8px pad]
+        # window, so it is never obscured by the Win32 child surface. Layout:
+        # [8px pad] [Active mark] [role icon] [label text] [_ICON_GAP] [detach icon] [8px pad],
+        # where the mark and the role icon are there only when a product set them.
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         font = THEME.ui_font(bold=True)
         painter.setFont(font)
@@ -449,7 +507,10 @@ class ClientTile(_PillIconHover, QWidget):
         text_w = metrics.horizontalAdvance(text)
         text_h = metrics.height()
 
-        pill_w = text_w + _ICON_GAP + _ICON_SIZE + 16  # 8px left + 8px right padding
+        lead_w = (_MARK_SIZE + _ICON_GAP if self._active_mark else 0) + (
+            _ICON_SIZE + _ICON_GAP if self._role_icon is not None else 0
+        )
+        pill_w = lead_w + text_w + _ICON_GAP + _ICON_SIZE + 16  # 8px left + 8px right padding
         pill_h = max(text_h, _ICON_SIZE) + 6
         pill_x = (self.width() - pill_w) // 2
         pill_y = gy - FOCUS_BORDER - LABEL_GAP - pill_h
@@ -457,17 +518,29 @@ class ClientTile(_PillIconHover, QWidget):
         # Pill background
         text_color = _draw_pill(painter, QRect(pill_x, pill_y, pill_w, pill_h), self._color_key)
 
+        x = pill_x + 8
+        if self._active_mark:
+            mark = svg_pixmap(_MARK_ICON, _MARK_SIZE, tint=text_color.name())
+            painter.drawPixmap(x, pill_y + (pill_h - _MARK_SIZE) // 2, mark)
+            x += _MARK_SIZE + _ICON_GAP
+        if self._role_icon is not None:
+            role = svg_pixmap(self._role_icon, _ICON_SIZE, tint=text_color.name())
+            painter.drawPixmap(x, pill_y + (pill_h - _ICON_SIZE) // 2, role)
+            # A 2px buffer, as the detach icon has.
+            self._role_rect = QRect(x - 2, pill_y, _ICON_SIZE + 4, pill_h)
+            x += _ICON_SIZE + _ICON_GAP
+
         # Label text
         painter.setPen(text_color)
         painter.drawText(
-            QRect(pill_x + 8, pill_y + 3, text_w, text_h),
+            QRect(x, pill_y + 3, text_w, text_h),
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
             text,
         )
 
         # Detach icon (right side of pill, in the text's color)
         icon_pm = svg_pixmap("detach", _ICON_SIZE, tint=text_color.name())
-        ix = pill_x + 8 + text_w + _ICON_GAP
+        ix = x + text_w + _ICON_GAP
         iy = pill_y + (pill_h - _ICON_SIZE) // 2
         painter.drawPixmap(ix, iy, icon_pm)
 

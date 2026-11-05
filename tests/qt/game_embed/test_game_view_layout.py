@@ -9,7 +9,7 @@ replaced, so a ``ClientTile`` is built over a window that is never there.
 from __future__ import annotations
 
 import pytest
-from PyQt6.QtCore import QPoint, QPointF, Qt
+from PyQt6.QtCore import QPoint, QPointF, QRect, Qt
 from PyQt6.QtGui import QMouseEvent
 from PyQt6.QtWidgets import QWidget
 
@@ -206,6 +206,97 @@ def test_a_press_away_from_the_caption_reports_nothing(view):
     tile.mousePressEvent(press)
 
     assert clicked == []
+
+
+def _press(tile, point: QPoint) -> None:
+    tile.mousePressEvent(
+        QMouseEvent(
+            QMouseEvent.Type.MouseButtonPress,
+            QPointF(point),
+            QPointF(),
+            Qt.MouseButton.LeftButton,
+            Qt.MouseButton.LeftButton,
+            Qt.KeyboardModifier.NoModifier,
+        )
+    )
+
+
+def test_a_tile_moved_to_another_slot_reports_the_player_it_now_has(view):
+    """A drag on the team re-keys the tiles, and a caption that swaps must name the wizard it shows."""
+    clicked: list[int] = []
+    view.caption_clicked.connect(lambda player, _point: clicked.append(player))
+    moved = view._widget_at(0)
+    view.sync_tiles(
+        [TileSlot(slot=i, hwnd=hwnd, label=f"P{i + 1}", player=i) for i, hwnd in enumerate((101, 100, 102, 103))]
+    )
+    assert view._widget_at(1) is moved
+
+    moved.grab()
+    _press(moved, moved._pill_rect.topRight() + QPoint(-30, 4))
+
+    assert clicked == [1]
+
+
+def test_by_default_a_pill_has_no_role_and_no_active_mark(view):
+    """BartleBot hands neither, so its pill is as it was."""
+    tile = view._widget_at(0)
+    tile.grab()
+
+    assert tile.pill_role is None and not tile.active_mark
+    assert tile._role_rect.isEmpty()
+
+
+def test_roles_and_the_active_mark_land_on_the_pills_by_player_and_survive_a_sync(view):
+    view.set_pill_roles([("star_filled", "Quester"), None, ("pause", "None")])
+    view.set_active_player(2)
+    view.sync_tiles([TileSlot(slot=i, hwnd=100 + i, label=f"P{i + 1}", player=i) for i in range(4)])
+
+    tiles = [view._widget_at(slot) for slot in range(4)]
+    assert [t.pill_role for t in tiles] == ["star_filled", None, "pause", None]
+    assert [t.active_mark for t in tiles] == [False, False, True, False]
+
+    view.set_active_player(None)
+    assert not any(t.active_mark for t in tiles)
+
+
+def test_the_role_and_the_mark_widen_the_pill_and_move_its_text_right(view):
+    tile = view._widget_at(0)
+    tile.grab()
+    # A copy, since the tile replaces its rect on the next paint.
+    plain = QRect(tile._pill_rect)
+
+    view.set_pill_roles([("star_filled", "Quester")])
+    view.set_active_player(0)
+    tile.grab()
+
+    assert tile._pill_rect.width() > plain.width()
+    assert tile._pill_rect.left() < tile._role_rect.left() < tile._icon_rect.left()
+
+
+def test_a_press_on_the_role_opens_the_menu_and_leaves_focus_alone(view, monkeypatch):
+    roles: list[tuple[int, QPoint]] = []
+    captions: list = []
+    view.role_clicked.connect(lambda player, point: roles.append((player, point)))
+    view.caption_clicked.connect(lambda *args: captions.append(args))
+    view.set_pill_roles([None, ("star_filled", "Quester · click to change")])
+    tile = view._widget_at(1)
+    focused: list[bool] = []
+    monkeypatch.setattr(tile, "focus_game", lambda: focused.append(True))
+    tile.grab()
+
+    _press(tile, tile._role_rect.center())
+
+    assert roles == [(1, tile.mapToGlobal(tile._role_rect.bottomLeft()))]
+    assert captions == [] and focused == []
+
+
+def test_the_role_s_tooltip_is_the_one_its_product_gave(view):
+    view.set_pill_roles([("star_filled", "Quester · click to change")])
+    tile = view._widget_at(0)
+    tile.grab()
+
+    assert tile._icon_at(tile._role_rect.center()) == (tile._role_rect, "Quester · click to change")
+    assert tile._icon_at(tile._icon_rect.center()) == (tile._icon_rect, "Detach this window")
 
 
 # -- tiles by rung -------------------------------------------------------------------------
