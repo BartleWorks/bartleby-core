@@ -780,7 +780,8 @@ embedded in a tile, it was 242 to 265 ms, so a swap is about 0.75 s with `RESIZE
    HUD as it would have chosen itself, with no set-mode hook and no camera write. The manager
    comes from a static slot, so no game code is patched, and the byte's offset from the code,
    since it moves between builds. The byte clears when the apply is done, and a failed attempt
-   leaves it set and retries.
+   leaves it set and retries. While the device is lost, the apply only tests it and returns, so
+   the window stays in its tile until the device can be reset.
 3. **The window**: a top-level window follows by itself. An embedded one is taken out of its
    tile, as a hidden top-level window, by the time the byte clears. Embedding it again at the
    new size holds, and keyboard focus and a held key come through it.
@@ -809,7 +810,8 @@ still equals the client size after every resize, so the 1:1 contract holds.
 - **The 1:1 contract** is checked after the byte clears, with `read_device_size`.
 - **A byte that never clears** is taken back after `RESIZE_APPLY_TIMEOUT`, and the nodes put back.
   Left set, the game would apply it whenever it next could, with nobody watching for a window it
-  takes out of its tile.
+  takes out of its tile. In game this happens only behind a secure screen held past the timeout,
+  below.
 - **`give_back(client)`** returns the size read from the device before the first resize and the
   UI size read from the node, within `RESIZE_GIVE_BACK_TIMEOUT`, waits included. One still in a
   loading or under a higher lease then is left as it is, with a warning. The files are `restore_ui_size` and
@@ -860,9 +862,27 @@ Measured and worth knowing:
 Swaps in a fight ran with no issues in game, with two accounts, as did zone changes, so a fight is
 not waited out.
 
+**Through a device loss**, as BartleBuddy's `tools/probe_device_loss.py` ran it with four clients on
+2026-11-04 (BartleBuddy #11), a resize waits for the device and then completes, or fails with its one
+warning, and the game is in its tile either way:
+
+- **A refresh-rate change, Ctrl+Alt+Del held 3.5 s, and a lock** each completed, 0.5 s or less after
+  the device came back. The byte stayed set and the window stayed in its tile through the loss.
+- **A lock loses the device only briefly**: about 0.5 s as it locks, and for as long as the PIN
+  prompt is up, since the lock screen runs on the user's own desktop. A resize asked for as the
+  screen locks completes behind the lock screen.
+- **A secure screen held past the timeout**, such as Ctrl+Alt+Del, a slow PIN or a UAC prompt left
+  open, is the one case that reaches it. The byte was taken back while the device was still lost,
+  the nodes were put back, and when the screen came back the game reset its own device at its old
+  size, in its tile. Resizing then stays off for that client until it is hooked again.
+- **Taking the byte back cancels nothing.** A second client, with nothing asked of it, lost its
+  device at the same moments: its byte never rose, its window never left its tile, and the game
+  logged its own reset (`GamebryoClient::OnReset`) on every loss. Only one instruction in the exe
+  sets the byte, and the renderer's own recovery never reads it.
+
 Open: a resize across 4:3 and 16:9 corrects the selected camera too, read in the world only, so
-combat's is unchecked; a resize through a device loss, and with it taking the byte back, was not
-tried; and the Test realm's offset was read from its exe, and never run.
+combat's is unchecked; a device removed or hung, as by a driver reset, was not tried; and the Test
+realm's offset was read from its exe, and never run.
 
 ## Still open
 
