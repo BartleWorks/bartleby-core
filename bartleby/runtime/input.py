@@ -15,7 +15,6 @@ have the focus, so a key held on one client never reaches another.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import logging
 from typing import Protocol
 
@@ -120,18 +119,25 @@ class ClientInput:
             await self._keys.up(code)
 
     async def release_all(self) -> None:
-        """Let go of every held key. Safe to call more than once, and after the lease ends."""
+        """Let go of every held key. Safe to call more than once, and after the lease ends.
+
+        The repeat is waited for with ``asyncio.wait``, which never raises its end: a cancel
+        that reaches the caller in that wait is the caller's, and goes on up, where suppressing
+        CancelledError swallowed it and left a stopped follower walking. The keys are let go
+        either way.
+        """
         task, self._repeat = self._repeat, None
-        if task is not None and task is not asyncio.current_task():
-            task.cancel()
-            with contextlib.suppress(asyncio.CancelledError, Exception):
-                await task
-        held, self._held = self._held, {}
-        for code in held.values():
-            try:
-                await self._keys.up(code)
-            except Exception:  # noqa: BLE001 - a closed window has no key to let go of
-                logger.debug("Could not release a key on window %s", getattr(self.client, "window_handle", "?"))
+        try:
+            if task is not None and task is not asyncio.current_task():
+                task.cancel()
+                await asyncio.wait([task])
+        finally:
+            held, self._held = self._held, {}
+            for code in held.values():
+                try:
+                    await self._keys.up(code)
+                except Exception:  # noqa: BLE001 - a closed window has no key to let go of
+                    logger.debug("Could not release a key on window %s", getattr(self.client, "window_handle", "?"))
 
     async def _repeat_held(self) -> None:
         while self._held:

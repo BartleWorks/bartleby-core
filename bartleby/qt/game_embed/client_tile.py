@@ -6,6 +6,8 @@ import ctypes
 import ctypes.wintypes
 import logging
 import time
+from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 
 from PyQt6.QtCore import QEvent, QPoint, QRect, QRectF, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPen
@@ -48,6 +50,14 @@ _ICON_GAP = 6  # pixels between label text and detach icon
 # The Active mark: a product's sign that this is the wizard being played, ahead of the rest.
 _MARK_SIZE = 12
 _MARK_ICON = "play"
+
+# Where every tile's refit runs its Win32 calls (ClientTile.refit): off the GUI thread, which
+# SetParent would hold for 300 ms or more a call while the queues are joined. One worker per
+# tile there can be, so a swap's two refits, or All equal's four, run at once. Read at call
+# time, so a test can put a pool of its own here.
+_refit_pool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="refit")
+# How long unembed waits for a refit under way before restoring the window anyway.
+_REFIT_WAIT_S = 5.0
 
 
 def tile_pill_colors(color_key: int | None) -> tuple[QColor, QColor, QColor]:
@@ -219,6 +229,11 @@ class ClientTile(_PillIconHover, QWidget):
     # A press on the role icon a product put on the pill (set_pill_role): the point under
     # it, global, for the product's menu. Unlike the caption it leaves focus where it was.
     role_clicked = pyqtSignal(QPoint)
+    # A refit has embedded the game again and the tile has finished with it: game_size is the
+    # new size, and the window is in its place. Not for a refit that had nothing to move.
+    refitted = pyqtSignal()
+    # From the refit's worker to the GUI thread (queued): whether the reembed went through.
+    _reembedded = pyqtSignal(bool)
 
     def __init__(self, hwnd: int, label: str, parent=None) -> None:
         super().__init__(parent)
@@ -250,6 +265,14 @@ class ClientTile(_PillIconHover, QWidget):
         self._ring_timer.setInterval(_SPINNER_TICK_MS)
         self._ring_timer.setTimerType(Qt.TimerType.PreciseTimer)
         self._ring_timer.timeout.connect(lambda: self.update(self._ring_rect()))
+
+        # The refit under way on a worker (see refit): its size and the place it was sent to,
+        # the size asked for since, which the latest replaces, and its future, for unembed.
+        self._refitting: tuple[int, int] | None = None
+        self._refit_place: tuple[int, int] = (0, 0)
+        self._refit_next: tuple[int, int] | None = None
+        self._refit_future: Future | None = None
+        self._reembedded.connect(self._on_reembedded)
 
         self._window.embed(int(self.winId()))
         # winId() made this tile and every ancestor native, each with a cursor of its own
@@ -336,22 +359,90 @@ class ClientTile(_PillIconHover, QWidget):
         return self._active_mark
 
     def unembed(self) -> None:
-        """Restore the game window to a normal, movable top-level window."""
+        """Restore the game window to a normal, movable top-level window.
+
+        A refit under way finishes first, since its ``SetParent`` would take the window back
+        in after the restore, and one asked for since is dropped. Every removal of a tile
+        unembeds it before deleting it, so this covers detach, quit and Detach all.
+        """
+        self._refit_next = None
+        future = self._refit_future
+        if future is not None and not future.done():
+            try:
+                future.result(timeout=_REFIT_WAIT_S)
+            except FutureTimeout:
+                logger.warning("A refit was still under way after %.0f s; restoring the window anyway", _REFIT_WAIT_S)
         self._window.restore()
 
-    def refit(self, width: int, height: int) -> None:
+    def refit(self, width: int, height: int) -> bool:
         """The game now runs at this size: embed it again there, as an apply has taken it out.
 
+        The Win32 calls run on a worker (``_refit_pool``), since ``SetParent`` waits on every
+        game whose input queue the GUI thread is joined to; ``refitted`` says when it is
+        done. One runs at a time per tile: a size asked for meanwhile waits, and the latest
+        replaces any other waiting.
+
         Nothing moves if it is at this size already and still here, since a resize that had
-        nothing to do reports too.
+        nothing to do reports too. Whether a refit was started or queued, so the caller knows
+        whether ``refitted`` is coming.
         """
-        if not self._window.is_embedded or ((width, height) == self.game_size and self._window.is_home()):
+        if not self._window.is_embedded:
+            return False
+        if self._refitting is not None:
+            self._refit_next = (width, height)
+            return True
+        if (width, height) == self.game_size and self._window.is_home():
+            return False
+        self._start_refit(width, height)
+        return True
+
+    @property
+    def refitting(self) -> bool:
+        """Whether a refit is under way, its Win32 calls on a worker or its finish still to run."""
+        return self._refitting is not None
+
+    @property
+    def coming_size(self) -> tuple[int, int]:
+        """The size the game will have in this tile once the refits under way are in, else game_size."""
+        return self._refit_next or self._refitting or self.game_size
+
+    def _start_refit(self, width: int, height: int) -> None:
+        # The parent and the place are read here, on the GUI thread, which owns the tile.
+        self._refitting = (width, height)
+        self._refit_place = self._place(width, height)
+        self._refit_future = _refit_pool.submit(
+            self._reembed_off_thread, int(self.winId()), *self._refit_place, width, height
+        )
+
+    def _reembed_off_thread(self, parent: int, x: int, y: int, width: int, height: int) -> None:
+        """On the worker. The signal is the last thing it does, so a finished future means it was sent."""
+        ok = True
+        try:
+            self._window.reembed(parent, x, y, width, height)
+        except Exception:
+            logger.exception("Could not embed the game again at %dx%d", width, height)
+            ok = False
+        self._reembedded.emit(ok)
+
+    def _on_reembedded(self, ok: bool) -> None:
+        """Back on the GUI thread: take the new size, start the next refit if one waits, else finish."""
+        size, self._refitting = self._refitting, None
+        if size is None or not self._window.is_embedded:
+            # Unembedded meanwhile: the window is the desktop's again, and nothing here is.
             return
-        self._window.reembed(int(self.winId()), width, height)
-        self._game_w, self._game_h = width, height
+        if ok:
+            self._game_w, self._game_h = size
+        waiting, self._refit_next = self._refit_next, None
+        if waiting is not None and (waiting != self.game_size or not self._window.is_home()):
+            self._start_refit(*waiting)
+            return
+        # Moved again only if the tile changed size while the worker had it: each move is a
+        # call into the game, at 20 ms or more.
+        if self._place(*self.game_size) != self._refit_place:
+            self._reposition()
         self.watch_game()
-        self._reposition()
         self.update()
+        self.refitted.emit()
 
     def watch_game(self) -> None:
         """Show the ring while the game is out of this tile, for as long as that really is.
@@ -396,16 +487,22 @@ class ClientTile(_PillIconHover, QWidget):
         No-op once the window has been restored: a resizeEvent can still arrive
         between unembed() and the tile being deleted, and moving the window then
         would drag the popped-out game window back to tile coordinates. The same
-        while an apply has it: it is a top-level window until refit() takes it in.
+        while an apply has it: it is a top-level window until refit() takes it in. And
+        while a refit is under way, which would be a move at the old size between the
+        worker's ``SetParent`` and its finish; the finish moves it if the tile changed.
         """
-        if not self._window.is_embedded or not self._window.is_home():
+        if not self._window.is_embedded or self._refitting is not None or not self._window.is_home():
             return
+        self._window.move(*self._place(self._game_w, self._game_h), self._game_w, self._game_h)
+
+    def _place(self, game_w: int, game_h: int) -> tuple[int, int]:
+        """Where a game of this size goes in the tile as it is now, in physical pixels: see _reposition."""
         dpr = self.devicePixelRatio()
         tile_w = int(self.width() * dpr)
         tile_h = int(self.height() * dpr) - int(LABEL_RESERVE * dpr)
-        x = max(0, (tile_w - self._game_w) // 2)
-        y = int(LABEL_RESERVE * dpr) + max(0, (tile_h - self._game_h) // 2)
-        self._window.move(x, y, self._game_w, self._game_h)
+        x = max(0, (tile_w - game_w) // 2)
+        y = int(LABEL_RESERVE * dpr) + max(0, (tile_h - game_h) // 2)
+        return x, y
 
     # ------------------------------------------------------------------
     # Qt event overrides

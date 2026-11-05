@@ -346,15 +346,20 @@ class EmbeddedWindow:
 
         self._embedded = True
 
-    def reembed(self, parent_hwnd: int, width: int, height: int) -> None:
-        """Embed the window again at a new size, after an apply has made it a hidden top-level window.
+    def reembed(self, parent_hwnd: int, x: int, y: int, width: int, height: int) -> None:
+        """Embed the window again at a new size and place, after an apply has made it a hidden top-level window.
 
-        Parent, style and size again. The input queues are the thread's, and stay attached.
-        Moving it to its place in the tile is the caller's, as after :meth:`embed`.
+        Parent, style, then one ``SetWindowPos`` that places, sizes and flushes the frame. The
+        input queues stay attached: they are the GUI thread's, whichever thread runs this.
+
+        Safe to call from a worker thread, and ``ClientTile.refit`` does: ``SetParent`` waits on
+        every game whose input queue the GUI thread is joined to, for 300 ms or more a call,
+        and on the GUI thread that wait froze the app through every swap
+        (``docs/WINDOW_SIZING.md``, "Resizing a running client").
         """
         self._take_in(parent_hwnd)
         self._game_w, self._game_h = width, height
-        self._user32.SetWindowPos(self._hwnd, 0, 0, 0, width, height, SWP_NOZORDER | SWP_FRAMECHANGED)
+        self._user32.SetWindowPos(self._hwnd, 0, x, y, width, height, SWP_NOZORDER | SWP_FRAMECHANGED)
 
     def _take_in(self, parent_hwnd: int) -> None:
         self._user32.SetParent(self._hwnd, parent_hwnd)

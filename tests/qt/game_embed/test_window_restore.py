@@ -18,6 +18,8 @@ from bartleby.qt.game_embed.win32_window import (
     GWL_EXSTYLE,
     GWL_STYLE,
     SWP_FRAMECHANGED,
+    SWP_NOMOVE,
+    SWP_NOSIZE,
     WS_CAPTION,
     WS_CHILD,
     WS_EX_APPWINDOW,
@@ -329,7 +331,7 @@ class TestReembed:
         window.embed(TILE_HWND)
         user32.calls.clear()
 
-        window.reembed(TILE_HWND, 534, 300)
+        window.reembed(TILE_HWND, 13, 52, 534, 300)
 
         assert user32.call("SetParent")[1:] == (GAME_HWND, TILE_HWND)
         assert user32.call("SetWindowLongW")[1:] == (GAME_HWND, GWL_STYLE, child_style(OVERLAPPED))
@@ -339,9 +341,23 @@ class TestReembed:
         assert "AttachThreadInput" not in user32.names
         assert window.game_size == (534, 300)
 
+    def test_one_set_window_pos_places_and_sizes_it_with_no_move_after(
+        self, window: EmbeddedWindow, user32: FakeUser32
+    ) -> None:
+        """Each call is a wait on the game, so the place goes in the call that sizes it."""
+        window.embed(TILE_HWND)
+        user32.calls.clear()
+
+        window.reembed(TILE_HWND, 13, 52, 534, 300)
+
+        _, _hwnd, _after, x, y, cx, cy, flags = user32.call("SetWindowPos")
+        assert (x, y, cx, cy) == (13, 52, 534, 300)
+        assert not flags & (SWP_NOMOVE | SWP_NOSIZE)
+        assert user32.names == ["SetParent", "SetWindowLongW", "SetWindowPos"]
+
     def test_the_input_queues_are_still_detached_once(self, window: EmbeddedWindow, user32: FakeUser32) -> None:
         window.embed(TILE_HWND)
-        window.reembed(TILE_HWND, 534, 300)
+        window.reembed(TILE_HWND, 0, 0, 534, 300)
         window.restore()
 
         assert [c[3] for c in user32.calls if c[0] == "AttachThreadInput"] == [True, False]
@@ -357,7 +373,7 @@ class TestReembed:
         user32._parent = OWNER_HWND  # GetParent answers the owner for a top-level window.
         assert not window.is_home()
 
-        window.reembed(TILE_HWND, 534, 300)
+        window.reembed(TILE_HWND, 0, 0, 534, 300)
         user32._parent = TILE_HWND
         assert window.is_home()
 
@@ -368,7 +384,7 @@ class TestRestoreAfterAResize:
     ) -> None:
         """The frame it was found with would no longer match the backbuffer, which shifts every click."""
         window.embed(TILE_HWND)
-        window.reembed(TILE_HWND, 534, 300)
+        window.reembed(TILE_HWND, 0, 0, 534, 300)
         user32.client_size = (534, 300)
         user32.calls.clear()
 

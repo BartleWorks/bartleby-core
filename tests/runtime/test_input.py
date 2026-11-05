@@ -62,3 +62,31 @@ async def test_the_simulated_wizard_walks_twice_as_fast_at_the_cap():
     clock.advance(0.5)
     await keys.release_all()
     assert client.position[1] == pytest.approx(-600.0)
+
+
+async def test_a_cancel_that_lands_while_letting_go_still_cancels_the_caller():
+    """Letting go waits for the repeat to end, and a cancel of the caller in that wait is the caller's.
+
+    Swallowed, it left a follower walking on after its behavior was stopped, which hung a test of
+    it under the full suite's load.
+    """
+    sent = []
+
+    class Sender:
+        async def down(self, code):
+            sent.append(code)
+
+        async def up(self, code):
+            sent.append(-code)
+
+    keys = ClientInput(SimClient(), Sender())
+    await keys.hold(GameAction.MOVE_FORWARD)
+    letting_go = asyncio.create_task(keys.release_all())
+    await asyncio.sleep(0)  # It has cancelled the repeat, and waits for it.
+
+    letting_go.cancel()
+    await asyncio.wait([letting_go], timeout=1)
+
+    assert letting_go.cancelled(), "the caller's own cancel was swallowed"
+    assert sent[-1] == -ord("W"), "and the key is let go all the same"
+    assert keys.held == frozenset()
