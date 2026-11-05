@@ -79,7 +79,8 @@ class ActionBar(ThemedMixin, QWidget):
     Bar A, because the actions are about the clients, not about what the product does
     with them. A toggle that is on draws its glyph in the accent, the same way the node
     browser's favorite star reports its state. The buttons sit in the groups handed in,
-    with a divider between groups.
+    with a divider between groups. A button the product hides takes no room, and a divider
+    shows only between two groups that each have a button showing.
     """
 
     action_requested = pyqtSignal(str)  # a BarAction's id; never a menu action's
@@ -91,6 +92,8 @@ class ActionBar(ThemedMixin, QWidget):
         self._checked: dict[str, bool] = {}
         self._menus: dict[str, Callable[[QMenu], None]] = {}
         self._dividers: list[QFrame] = []
+        self._groups: list[list[str]] = []
+        self._hidden: set[str] = set()
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(4)
@@ -101,6 +104,7 @@ class ActionBar(ThemedMixin, QWidget):
                 divider.setFixedSize(*_DIVIDER_SIZE)
                 layout.addWidget(divider, alignment=Qt.AlignmentFlag.AlignVCenter)
                 self._dividers.append(divider)
+            self._groups.append([action.id for action in group])
             for action in group:
                 btn = IconButton(action.icon, tooltip=action.tooltip, size=24, icon_size=18, parent=self)
                 btn.clicked.connect(lambda _checked=False, a=action: self._pressed(a))
@@ -137,11 +141,19 @@ class ActionBar(ThemedMixin, QWidget):
         enabled: bool | None = None,
         checked: bool | None = None,
         tooltip: str | None = None,
+        visible: bool | None = None,
     ) -> None:
         """Show what the product reports of one action. What is left None stays as it was."""
         btn = self._buttons[action_id]
         if enabled is not None:
             btn.setEnabled(enabled)
+        if visible is not None:
+            btn.setVisible(visible)
+            if visible:
+                self._hidden.discard(action_id)
+            else:
+                self._hidden.add(action_id)
+            self._place_dividers()
         if checked is not None:
             if not self._actions[action_id].checkable:
                 raise ValueError(f"{action_id} is not a toggle")
@@ -149,6 +161,17 @@ class ActionBar(ThemedMixin, QWidget):
             btn.set_tint(IconTint.ACCENT if checked else IconTint.DEFAULT)
         if tooltip is not None:
             btn.setToolTip(tooltip)
+
+    def is_shown(self, action_id: str) -> bool:
+        """Whether the product has left this button showing, whether or not the bar is on screen yet."""
+        return action_id not in self._hidden
+
+    def _place_dividers(self) -> None:
+        """A divider before each group with a button showing, after another group with one."""
+        shown = [any(a not in self._hidden for a in group) for group in self._groups]
+        # The groups before each divider: the first group's divider is the second's, and so on.
+        for index, divider in enumerate(self._dividers, start=1):
+            divider.setVisible(shown[index] and any(shown[:index]))
 
     def set_menu(self, action_id: str, build: Callable[[QMenu], None]) -> None:
         """What a menu action's menu holds: *build* fills a fresh menu on every press."""
