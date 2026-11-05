@@ -5,7 +5,7 @@ import logging
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from wizwalker import XYZ
+from wizwalker import XYZ, Keycode
 
 import bartleby.runtime.actions.node_helpers as nh
 from bartleby.runtime.actions.node_helpers import (
@@ -24,6 +24,7 @@ from bartleby.runtime.paths import (
     MESSAGE_BOX_CENTER,
     MESSAGE_BOX_RIGHT,
 )
+from bartleby.runtime.testing.sim_client import SimClient
 from tests.conftest import (
     FakeClient,
     FakeEntity,
@@ -1237,3 +1238,39 @@ def _client_in_zone_once_answered(screen: ModalScreen, zone: str = "Dst"):
 
 
 # ── pick_up ──────────────────────────────────────────────────────────────────
+
+
+# ── advance_dialog_once ──────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def offer_page(monkeypatch):
+    """A side quest's offer page is open: the right button, ACCEPT, and the left, DECLINE. Clicks are recorded."""
+    clicked = []
+
+    async def visible(_client, path):
+        return path in (nh.ADVANCE_DIALOG_PATH, nh.DECLINE_QUEST_PATH)
+
+    async def click(_client, path):
+        clicked.append(path)
+        return True
+
+    monkeypatch.setattr(nh, "is_visible_by_path", visible)
+    monkeypatch.setattr(nh, "click_by_path", click)
+    monkeypatch.setattr(nh, "DIALOG_PAGE_SETTLE", 0.0)
+    return clicked
+
+
+async def test_an_offer_page_is_declined_by_default(offer_page):
+    """BartleBot's every call, which passes nothing."""
+    client = SimClient()
+    assert await nh.advance_dialog_once(client)
+    assert offer_page == [nh.DECLINE_QUEST_PATH]
+    assert not [r for r in client.inputs if r.kind == "press"]
+
+
+async def test_with_decline_off_an_offer_page_is_pressed_on_which_accepts_it(offer_page):
+    client = SimClient()
+    assert await nh.advance_dialog_once(client, decline=False)
+    assert offer_page == []
+    assert [r.detail for r in client.inputs if r.kind == "press"] == [Keycode.SPACEBAR.value]

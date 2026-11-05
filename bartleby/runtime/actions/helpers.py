@@ -6,6 +6,7 @@ that each product builds its own buttons from the list (:data:`HELPERS`):
 
 * **Interact** presses each client's Interact key where its prompt shows.
 * **Dialogue** presses each open dialogue on by a page, declining any side quest offered
+  unless the product says otherwise
   (:func:`~bartleby.runtime.actions.node_helpers.advance_dialog_once`); :class:`AutoDialogue`
   does it as dialogue opens.
 * **Speed** keeps each client's speed field at a multiplier, never above 2.0x in total, and
@@ -125,11 +126,14 @@ async def _dialogue_open(client) -> bool:
         return False
 
 
-async def advance_dialogue(arbiter: Arbiter, members: Sequence[Member], *, wait: bool = True) -> list[Member]:
+async def advance_dialogue(
+    arbiter: Arbiter, members: Sequence[Member], *, wait: bool = True, decline: bool = True
+) -> list[Member]:
     """Press every open dialogue on by one page. Returns the members it pressed on.
 
     With *wait* False, a member held by another owner is skipped this time rather than
-    waited for: what a watcher wants, since it comes round again.
+    waited for: what a watcher wants, since it comes round again. With *decline* off, a side
+    quest offered is accepted rather than declined (``advance_dialog_once``).
     """
 
     async def one(member: Member) -> bool:
@@ -137,7 +141,7 @@ async def advance_dialogue(arbiter: Arbiter, members: Sequence[Member], *, wait:
             return False
         try:
             async with arbiter.acquire(member.client, Owner.HOTKEY, wait=wait, detail="dialogue") as lease:
-                return await node_helpers.advance_dialog_once(lease.client)
+                return await node_helpers.advance_dialog_once(lease.client, decline=decline)
         except Busy:
             return False
 
@@ -190,13 +194,23 @@ class _Toggle:
 
 
 class AutoDialogue(_Toggle):
-    """Press dialogue on as it opens, on every member the getter answers."""
+    """Press dialogue on as it opens, on every member the getter answers.
+
+    *decline* says, at each page, whether a side quest offered is declined, which it is by
+    default. A product with a setting for it passes the setting.
+    """
+
+    def __init__(self, arbiter, members, on_change=None, *, decline: Callable[[], bool] = lambda: True) -> None:
+        super().__init__(arbiter, members, on_change)
+        self._decline = decline
 
     async def _loop(self) -> None:
-        logger.info("Auto-dialogue on: side quests are declined")
+        logger.info("Auto-dialogue on: side quests are %s", "declined" if self._decline() else "accepted")
         try:
             while True:
-                pressed = await advance_dialogue(self._arbiter, list(self._members()), wait=False)
+                pressed = await advance_dialogue(
+                    self._arbiter, list(self._members()), wait=False, decline=self._decline()
+                )
                 # Straight on to the next page while a conversation is going, as a run's watcher does.
                 await asyncio.sleep(DIALOG_FAST_POLL_INTERVAL if pressed else POLL_INTERVAL)
         finally:
