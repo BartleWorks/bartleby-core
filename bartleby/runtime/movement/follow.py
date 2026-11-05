@@ -277,9 +277,7 @@ class Follower:
         if self._leader_from is None:
             self._leader_from = leader
         start = self._leader_from
-        moved = (
-            leader.in_battle or leader.zone != start.zone or flat_distance(leader.position, start.position) > STILL
-        )
+        moved = leader.in_battle or leader.zone != start.zone or flat_distance(leader.position, start.position) > STILL
         if moved:
             self._awaiting_move = False
         return moved
