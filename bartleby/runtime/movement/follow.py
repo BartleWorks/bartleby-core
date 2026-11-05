@@ -17,6 +17,11 @@ reading the position back every tick, and a stall backed off from.
   place around a leader standing still (:func:`spacing_for`).
 * **Fights.** A fight the leader is in is joined by walking into it; once the follower is in
   one itself it does nothing, since a fight is combat's.
+* **Waiting for the leader to move**, when asked to (``wait_for_move``): nothing until the
+  leader has passed :data:`STILL`, changed zone or entered a fight. A product that picks a
+  new leader for the player, as BartleBuddy's swap does, uses it so that looking at a
+  wizard doesn't send the team running, nor a follower that logged in elsewhere straight
+  into a port.
 
 :meth:`Follower.plan` decides the next step from the snapshots alone, and is where the
 rules above live; :meth:`Follower.run` carries steps out under a movement lease, holding it
@@ -80,6 +85,9 @@ GATE_PUSH = 250.0
 #: Units from a still leader within which a follower walks straight to its place.
 PLACE_DIRECT = 600.0
 
+#: Why a follower made with ``wait_for_move`` stands, until its leader has moved.
+AWAITING_MOVE = "waiting for the leader to move"
+
 
 class StepKind(StrEnum):
     WAIT = "wait"  # nothing to do for now: loading, in a fight, or nothing readable
@@ -134,7 +142,9 @@ class Follower:
         port: PortToLeader | None = None,
         label: str = "",
         clock: Callable[[], float] = time.monotonic,
+        wait_for_move: bool = False,
     ) -> None:
+        """With *wait_for_move*, it stands until the leader has moved from where it first reads it."""
         self.client = client
         self.me = me
         self.leader = leader
@@ -157,6 +167,8 @@ class Follower:
         self._speed_watch = CharacterWatch()
         self.own_speed: int | None = None
         self.last_step = Step(StepKind.WAIT)
+        self._awaiting_move = wait_for_move
+        self._leader_from: Snapshot | None = None
 
     # -- deciding -----------------------------------------------------------------------
 
@@ -166,6 +178,8 @@ class Follower:
             return Step(StepKind.WAIT, reason="not readable")
         if me.in_battle:
             return Step(StepKind.WAIT, reason="in a fight")
+        if self._awaiting_move and not self._leader_has_moved(leader):
+            return Step(StepKind.WAIT, reason=AWAITING_MOVE)
         if now < self._port_after:
             return Step(StepKind.WAIT, reason="waiting to port again")
         self._note_leader(leader, now)
@@ -244,6 +258,31 @@ class Follower:
             self._stalls = 0
             self._stall_from = None
         self.cursor = seq
+
+    @property
+    def awaiting_move(self) -> bool:
+        """Whether it still stands because the leader hasn't moved since it began."""
+        return self._awaiting_move
+
+    @property
+    def stalled(self) -> bool:
+        """Whether it is stuck: it stalled on the way to its next point, or a port failed and it waits to try again."""
+        return self._stalls > 0 or self._clock() < self._port_after
+
+    def _leader_has_moved(self, leader: Snapshot) -> bool:
+        """Whether the leader has passed STILL, changed zone or entered a fight since it was first read.
+
+        Once it has, the wait is over for good: a leader standing still later is just still.
+        """
+        if self._leader_from is None:
+            self._leader_from = leader
+        start = self._leader_from
+        moved = (
+            leader.in_battle or leader.zone != start.zone or flat_distance(leader.position, start.position) > STILL
+        )
+        if moved:
+            self._awaiting_move = False
+        return moved
 
     def _note_leader(self, leader: Snapshot, now: float) -> None:
         if self._leader_still_at is None or flat_distance(leader.position, self._leader_still_at[0]) > STILL:

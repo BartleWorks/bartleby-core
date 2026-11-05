@@ -138,6 +138,71 @@ def test_a_fight_the_leader_is_in_is_joined():
     assert step.kind is StepKind.WALK and step.reason == "joining the fight"
 
 
+def waiting(trail=None):
+    """A follower made to wait for its leader to move."""
+    client, leader = SimClient(), SimClient()
+    return Follower(
+        client,
+        StateReader(client),
+        StateReader(leader),
+        trail or Trail(),
+        Arbiter(),
+        spacing=spacing_for(0),
+        wait_for_move=True,
+    )
+
+
+def test_by_default_a_follower_does_not_wait_for_the_leader_to_move():
+    f = follower(laid_trail(0, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600))
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(600, 0), 0).kind is StepKind.WALK
+    assert not f.awaiting_move
+
+
+def test_waiting_for_the_leader_to_move_it_neither_walks_nor_ports():
+    """A leader in another zone would be a port at once: a helper that logged in elsewhere."""
+    f = waiting(laid_trail(0, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600))
+    step = f.plan(snap(0, 0), (0, 0, 0), snap(600, 0), 0)
+    assert step.kind is StepKind.WAIT and step.reason == follow.AWAITING_MOVE
+
+    far = waiting(laid_trail(0, 60, zone="Elsewhere"))
+    assert far.plan(snap(0, 0), (0, 0, 0), snap(0, 0, zone="Elsewhere"), 0).kind is StepKind.WAIT
+    assert far.awaiting_move
+
+
+def test_a_leader_that_drifts_within_still_has_not_moved():
+    f = waiting(laid_trail(0, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600))
+    f.plan(snap(0, 0), (0, 0, 0), snap(600, 0), 0)
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(600 + follow.STILL - 1, 0), 1).kind is StepKind.WAIT
+
+
+@pytest.mark.parametrize(
+    "moved",
+    [
+        snap(600 + follow.STILL + 1, 0),
+        snap(600, 0, zone="WizardCity/WC_Hub"),
+        snap(600, 0, in_battle=True),
+    ],
+    ids=["past STILL", "another zone", "into a fight"],
+)
+def test_once_the_leader_moves_it_follows_and_waits_no_more(moved):
+    f = waiting(laid_trail(0, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600))
+    f.plan(snap(0, 0), (0, 0, 0), snap(600, 0), 0)
+
+    assert f.plan(snap(0, 0), (0, 0, 0), moved, 1).kind is not StepKind.WAIT
+    assert not f.awaiting_move
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(600, 0), 2).kind is not StepKind.WAIT, "a leader back where it was"
+
+
+def test_a_follower_that_stalled_or_waits_to_port_again_says_it_is_stalled():
+    f = follower()
+    assert not f.stalled
+    f._stalls = 1
+    assert f.stalled
+    f._stalls = 0
+    f._port_after = f._clock() + 60
+    assert f.stalled
+
+
 @pytest.fixture
 def quick(monkeypatch):
     """A follower's waits, shortened so a chase runs in well under a second of real time."""
