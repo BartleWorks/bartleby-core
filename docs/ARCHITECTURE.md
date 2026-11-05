@@ -165,9 +165,11 @@ reason when it will not fit. `screen_fit` asks `game_sizing`'s arithmetic about 
 panes, a list of `Pane`s; `docs/WINDOW_SIZING.md`, "Panes and tiles are lists", has the rules.
 
 BartleBot hands it nothing more and gets its equal grid. BartleBuddy hands it a
-`tile_layouts.Layout` and whether the user moves each wizard (`set_layout`), so the wizards the
-user moves have Main tiles and the rest sit Side; captions per player (`set_captions`), each
-naming what holds its wizard; and listens to `caption_clicked` for the wizard's control menu.
+`tile_layouts.Layout` and which wizard is Active (`set_layout`), so the Active wizard has the
+Main tile and the rest sit Side; captions per player (`set_captions`); a role icon per player
+on each pill (`set_pill_roles`) and the Active wizard's mark (`set_active_player`). It listens
+to `caption_clicked` to make that wizard Active, and to `role_clicked` for its role menu, a
+press that, unlike the caption's, leaves the keyboard where it was.
 Its launch screen is built with `editing=False`, offering no verb, Add card or settings link
 until BartleBuddy edits accounts itself. Its client manager runs on the runtime thread, so the
 tiles cross to the view as queued signals, through `runtime_bridge.TileCrossing`.

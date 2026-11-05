@@ -568,6 +568,9 @@ class GameView(ThemedMixin, QWidget):
     # A tile's caption was clicked: the player index it is captioned from, and the point
     # under the caption, global, for a menu to open at. Nothing here acts on it.
     caption_clicked = pyqtSignal(int, QPoint)
+    # A tile's role icon was clicked (set_pill_roles): the player index, and the point under
+    # the icon, global, for the product's role menu. Nothing here acts on it.
+    role_clicked = pyqtSignal(int, QPoint)
     # A window should run at another size (an hwnd, and a (width, height)), and that has held
     # for RESIZE_SETTLE. Answered through game_resized, whenever the runtime has done it.
     game_size_wanted = pyqtSignal(object, object)
@@ -629,6 +632,9 @@ class GameView(ThemedMixin, QWidget):
         self._settle_timer.timeout.connect(self._ask_for_targets)
         # See set_captions: a product's caption per player index, over the manager's label.
         self._captions: list[str | None] = []
+        # See set_pill_roles and set_active_player, by player index as the captions are.
+        self._pill_roles: list[tuple[str, str] | None] = []
+        self._active_player: int | None = None
 
         # Placeholder shown when no clients are embedded or detached
         self._placeholder = _GamePlaceholder(settings, self, editing=editing, empty_accounts_hint=empty_accounts_hint)
@@ -722,6 +728,7 @@ class GameView(ThemedMixin, QWidget):
                 widget.set_label(self._caption_for(t.player) or t.label)
                 widget.set_wizard_name(self._wizard_name_for(t.player))
                 widget.set_color_key(color_keys.get(t.username) if t.username else None)
+            self._mark_pill(t.slot, t.player)
             # Pushed on every sync alongside the captions, and for the same reason: a
             # launch changing stage moves no tile, so the reconciler has nothing to report
             # and the only thing that changed is what the tile says.
@@ -751,6 +758,8 @@ class GameView(ThemedMixin, QWidget):
         self._launch_sizes.setdefault(spec.hwnd, tile.game_size)
         tile.detach_requested.connect(lambda slot=spec.slot: self._detach_client(slot))
         tile.caption_clicked.connect(lambda point, slot=spec.slot: self._on_caption_clicked(slot, point))
+        tile.role_clicked.connect(lambda point, slot=spec.slot: self._on_role_clicked(slot, point))
+        self._mark_pill(spec.slot, spec.player)
         tile.show()
         self._remove_detached_tile(spec.slot)
         self._remove_pending_tile(spec.slot)
@@ -850,10 +859,13 @@ class GameView(ThemedMixin, QWidget):
             self._reconnect_reattach(dtile, slot)
 
     def _reconnect_detach(self, tile: ClientTile, slot: int) -> None:
-        """Point a tile's detach button at the slot it now occupies."""
-        with contextlib.suppress(TypeError):
-            tile.detach_requested.disconnect()
+        """Point a tile's detach icon, caption and role icon at the slot it now occupies."""
+        for signal in (tile.detach_requested, tile.caption_clicked, tile.role_clicked):
+            with contextlib.suppress(TypeError):
+                signal.disconnect()
         tile.detach_requested.connect(lambda s=slot: self._detach_client(s))
+        tile.caption_clicked.connect(lambda point, s=slot: self._on_caption_clicked(s, point))
+        tile.role_clicked.connect(lambda point, s=slot: self._on_role_clicked(s, point))
 
     def _reconnect_reattach(self, dtile: DetachedTile, slot: int) -> None:
         """Point a placeholder's attach button at the slot it now occupies."""
@@ -1168,10 +1180,41 @@ class GameView(ThemedMixin, QWidget):
             return self._captions[player]
         return None
 
+    def set_pill_roles(self, roles: Sequence[tuple[str, str] | None]) -> None:
+        """Put a role icon on each tile's pill by **player** index, as ``(icon, tooltip)``.
+
+        For a product with a role per wizard, as BartleBuddy's Quester, Helper and None: a
+        press on the icon is ``role_clicked``. A None entry, or a player past the end, has none.
+        """
+        self._pill_roles = list(roles)
+        self._mark_pills()
+
+    def set_active_player(self, player: int | None) -> None:
+        """Mark the pill of the wizard being played, by **player** index, or none with None."""
+        self._active_player = player
+        self._mark_pills()
+
+    def _mark_pills(self) -> None:
+        for slot, player in self._tile_players.items():
+            self._mark_pill(slot, player)
+
+    def _mark_pill(self, slot: int, player: int | None) -> None:
+        tile = self._tiles.get(slot)
+        if tile is None:
+            return
+        role = self._pill_roles[player] if player is not None and 0 <= player < len(self._pill_roles) else None
+        tile.set_pill_role(*(role or (None, "")))
+        tile.set_active_mark(player is not None and player == self._active_player)
+
     def _on_caption_clicked(self, slot: int, point: QPoint) -> None:
         player = self._player_for(slot)
         if player is not None:
             self.caption_clicked.emit(player, point)
+
+    def _on_role_clicked(self, slot: int, point: QPoint) -> None:
+        player = self._player_for(slot)
+        if player is not None:
+            self.role_clicked.emit(player, point)
 
     def _tile_sizes(self, slots: list[int]) -> Tiles:
         """Each occupied slot's tile size, or a plain count for the equal grid."""
