@@ -137,6 +137,24 @@ def test_a_hidden_button_takes_no_room_and_its_lone_group_loses_its_divider(qtbo
     assert all(d.isVisible() for d in bar.dividers) and bar.is_shown("talk")
 
 
+def test_a_product_can_change_a_button_s_glyph_and_its_tint_stays(qtbot):
+    bar = ActionBar(GROUPS)
+    qtbot.addWidget(bar)
+    toggle = next(a.id for group in GROUPS for a in group if a.checkable)
+    bar.set_state(toggle, checked=True)
+
+    bar.set_state(toggle, icon="tiles_equal")
+
+    assert bar.button(toggle).icon_name == "tiles_equal"
+    assert bar.button(toggle).tint is IconTint.ACCENT
+
+
+def test_the_glyph_of_all_equal_is_one_of_core_s_icons():
+    from bartleby.qt.theming.icon_utils import ICONS_DIR  # noqa: PLC0415
+
+    assert (ICONS_DIR / "tiles_equal.svg").exists()
+
+
 def test_a_press_reports_the_action_s_id(qtbot):
     bar = ActionBar(GROUPS)
     qtbot.addWidget(bar)
