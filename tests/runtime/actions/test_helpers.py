@@ -58,7 +58,7 @@ async def test_dialogue_is_pressed_only_where_it_is_open(arbiter):
     async def visible(client, path):
         return client is talking
 
-    async def advance(client):
+    async def advance(client, *, decline=True):
         advanced.append(client)
         return True
 
@@ -97,6 +97,29 @@ async def test_auto_dialogue_keeps_pressing_until_switched_off(arbiter):
         await toggle.set(False)
     assert advance.await_count >= 2
     assert changes == [True, False]
+
+
+async def test_auto_dialogue_declines_side_quests_unless_told_not_to(arbiter, monkeypatch):
+    monkeypatch.setattr(helpers, "DIALOG_FAST_POLL_INTERVAL", 0.001)
+    client = SimClient()
+    decline = [True]
+    seen = []
+
+    async def advance(_client, *, decline=True):
+        seen.append(decline)
+        return True
+
+    with (
+        patch.object(helpers.node_helpers, "is_visible_by_path", AsyncMock(return_value=True)),
+        patch.object(helpers.node_helpers, "advance_dialog_once", side_effect=advance),
+    ):
+        toggle = AutoDialogue(arbiter, lambda: team(client), decline=lambda: decline[0])
+        await toggle.set(True)
+        await asyncio.sleep(0.05)
+        decline[0] = False
+        await asyncio.sleep(0.05)
+        await toggle.set(False)
+    assert seen[0] is True and seen[-1] is False, "read again at every page"
 
 
 async def test_speed_never_goes_above_2x_and_is_given_back(arbiter, monkeypatch):

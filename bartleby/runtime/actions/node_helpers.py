@@ -70,13 +70,17 @@ def _dialog_lock(client) -> asyncio.Lock:
     return lock
 
 
-async def advance_dialog_once(client) -> bool:
+async def advance_dialog_once(client, *, decline: bool = True) -> bool:
     """Advance *client*'s open dialogue by one page, declining a side quest rather than taking it.
 
     The one place dialogue is pressed. A side quest's offer page puts ACCEPT on the right
     button, the same one SPACEBAR presses to advance every other page, so pressing through
     blind takes every side quest an NPC offers. The offer page is the only one with a left
     button (DECLINE), so while that shows it is clicked instead, and nothing else is pressed.
+
+    With *decline* off, an offer page is pressed on like any other, which accepts the side
+    quest: a player's own choice (BartleBuddy's "Decline side quests" setting). BartleBot
+    always declines.
 
     DECLINE is only read once the right button shows: a child's visibility is its own flag
     (see is_visible_by_path), and the right button is the one already trusted to say a
@@ -88,7 +92,7 @@ async def advance_dialog_once(client) -> bool:
     async with _dialog_lock(client):
         if not await is_visible_by_path(client, ADVANCE_DIALOG_PATH):
             return False
-        if await is_visible_by_path(client, DECLINE_QUEST_PATH):
+        if decline and await is_visible_by_path(client, DECLINE_QUEST_PATH):
             if await click_by_path(client, DECLINE_QUEST_PATH):
                 logger.info("Declined a side quest offer")
             else:

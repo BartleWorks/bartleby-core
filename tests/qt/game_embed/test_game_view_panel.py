@@ -114,6 +114,29 @@ def test_a_divider_sits_between_each_group_and_nowhere_else(qapp):
     assert across > within
 
 
+def test_a_hidden_button_takes_no_room_and_its_lone_group_loses_its_divider(qtbot):
+    bar = ActionBar(GROUPS)
+    qtbot.addWidget(bar)
+    bar.show()
+    width = bar.sizeHint().width()
+
+    bar.set_state("talk", visible=False)
+    assert not bar.is_shown("talk") and not bar.button("talk").isVisible()
+    assert all(d.isVisible() for d in bar.dividers), "its group still has Speed showing"
+    assert bar.sizeHint().width() < width
+
+    bar.set_state("speed", visible=False)
+    assert [d.isVisible() for d in bar.dividers] == [False, True], "one divider between the two groups left"
+
+    bar.set_state("move", visible=False)
+    bar.set_state("port", visible=False)
+    assert [d.isVisible() for d in bar.dividers] == [False, False], "nothing before the last group"
+
+    for action_id in ("move", "port", "speed", "talk"):
+        bar.set_state(action_id, visible=True)
+    assert all(d.isVisible() for d in bar.dividers) and bar.is_shown("talk")
+
+
 def test_a_press_reports_the_action_s_id(qtbot):
     bar = ActionBar(GROUPS)
     qtbot.addWidget(bar)

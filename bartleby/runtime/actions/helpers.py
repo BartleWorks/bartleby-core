@@ -6,6 +6,7 @@ that each product builds its own buttons from the list (:data:`HELPERS`):
 
 * **Interact** presses each client's Interact key where its prompt shows.
 * **Dialogue** presses each open dialogue on by a page, declining any side quest offered
+  unless the product says otherwise
   (:func:`~bartleby.runtime.actions.node_helpers.advance_dialog_once`); :class:`AutoDialogue`
   does it as dialogue opens.
 * **Speed** keeps each client's speed field at a multiplier, never above 2.0x in total, and
@@ -35,6 +36,7 @@ from enum import StrEnum
 
 from bartleby.runtime.actions import node_helpers
 from bartleby.runtime.actions.live_character import CharacterWatch, live_character_id
+from bartleby.runtime.actions.speed_ledger import SpeedLedger
 from bartleby.runtime.arbiter import Arbiter, Busy, LeaseLost, Owner
 from bartleby.runtime.clients import group_manager
 from bartleby.runtime.game import wizard_names
@@ -125,11 +127,14 @@ async def _dialogue_open(client) -> bool:
         return False
 
 
-async def advance_dialogue(arbiter: Arbiter, members: Sequence[Member], *, wait: bool = True) -> list[Member]:
+async def advance_dialogue(
+    arbiter: Arbiter, members: Sequence[Member], *, wait: bool = True, decline: bool = True
+) -> list[Member]:
     """Press every open dialogue on by one page. Returns the members it pressed on.
 
     With *wait* False, a member held by another owner is skipped this time rather than
-    waited for: what a watcher wants, since it comes round again.
+    waited for: what a watcher wants, since it comes round again. With *decline* off, a side
+    quest offered is accepted rather than declined (``advance_dialog_once``).
     """
 
     async def one(member: Member) -> bool:
@@ -137,7 +142,7 @@ async def advance_dialogue(arbiter: Arbiter, members: Sequence[Member], *, wait:
             return False
         try:
             async with arbiter.acquire(member.client, Owner.HOTKEY, wait=wait, detail="dialogue") as lease:
-                return await node_helpers.advance_dialog_once(lease.client)
+                return await node_helpers.advance_dialog_once(lease.client, decline=decline)
         except Busy:
             return False
 
@@ -190,13 +195,23 @@ class _Toggle:
 
 
 class AutoDialogue(_Toggle):
-    """Press dialogue on as it opens, on every member the getter answers."""
+    """Press dialogue on as it opens, on every member the getter answers.
+
+    *decline* says, at each page, whether a side quest offered is declined, which it is by
+    default. A product with a setting for it passes the setting.
+    """
+
+    def __init__(self, arbiter, members, on_change=None, *, decline: Callable[[], bool] = lambda: True) -> None:
+        super().__init__(arbiter, members, on_change)
+        self._decline = decline
 
     async def _loop(self) -> None:
-        logger.info("Auto-dialogue on: side quests are declined")
+        logger.info("Auto-dialogue on: side quests are %s", "declined" if self._decline() else "accepted")
         try:
             while True:
-                pressed = await advance_dialogue(self._arbiter, list(self._members()), wait=False)
+                pressed = await advance_dialogue(
+                    self._arbiter, list(self._members()), wait=False, decline=self._decline()
+                )
                 # Straight on to the next page while a conversation is going, as a run's watcher does.
                 await asyncio.sleep(DIALOG_FAST_POLL_INTERVAL if pressed else POLL_INTERVAL)
         finally:
@@ -214,21 +229,43 @@ class SpeedBoost(_Toggle):
     game wrote is the member's own, and is what switching off restores, only to the
     character it was read from. A write waits for :class:`CharacterWatch`: the field of a
     logged-out character is freed memory (:mod:`bartleby.runtime.actions.live_character`).
+
+    Where another writer shares the field, as a walking follower does in BartleBuddy, the two
+    share a *ledger* (:mod:`bartleby.runtime.actions.speed_ledger`), so neither takes the
+    other's value for the game's own, and *skip* names a client the other holds just now,
+    which the boost leaves alone, on and off. Switching off gives back every field the
+    ledger holds a write of, the other writer's included.
     """
 
-    def __init__(self, arbiter, members, multiplier: Callable[[], float], on_change=None) -> None:
+    def __init__(
+        self,
+        arbiter,
+        members,
+        multiplier: Callable[[], float],
+        on_change=None,
+        *,
+        ledger: SpeedLedger | None = None,
+        skip: Callable[[object], bool] = lambda _client: False,
+    ) -> None:
         super().__init__(arbiter, members, on_change)
         self._multiplier = multiplier
         self._value = 0
-        # The game's own value per window: the client, the character it was read from, the value.
-        self._originals: dict[int, tuple[object, int, int]] = {}
+        self._ledger = ledger if ledger is not None else SpeedLedger()
+        self._skip = skip
         self._watch = CharacterWatch()
+
+    @property
+    def value(self) -> int | None:
+        """The speed field's value while on (a percentage over 1.0x), else None."""
+        return self._value if self.on else None
 
     async def _loop(self) -> None:
         self._value = speed_value(self._multiplier())
         logger.info("Speed on: %.1fx in total", 1 + self._value / 100)
         while True:
             for member in list(self._members()):
+                if self._skip(member.client):
+                    continue
                 with contextlib.suppress(Exception):
                     await self._boost(member)
             await asyncio.sleep(SPEED_REAPPLY_INTERVAL)
@@ -241,36 +278,38 @@ class SpeedBoost(_Toggle):
         current = await client.client_object.speed_multiplier()
         if current == self._value:
             return
-        self._originals[client.window_handle] = (client, character, current)
+        self._ledger.observe(client, character, current)
         try:
             async with self._arbiter.acquire(client, Owner.HOTKEY, wait=False, detail="speed") as lease:
                 await lease.input.write_speed(self._value)
+                self._ledger.wrote(client, character, self._value)
         except Busy:
             pass
 
     async def _after_off(self) -> None:
-        originals, self._originals = self._originals, {}
         self._watch.clear()
-        for client, character, original in originals.values():
-            await self._give_back(client, character, original)
+        for client in self._ledger.clients():
+            if not self._skip(client):
+                await self._give_back(client)
         logger.info("Speed off: every player walks at their own speed")
 
     async def restore(self, client) -> None:
         """Give *client* its own speed back, if the field still holds ours."""
         self._watch.forget(client)
-        entry = self._originals.pop(client.window_handle, None)
-        if entry is not None:
-            await self._give_back(*entry)
+        await self._give_back(client)
 
-    async def _give_back(self, client, character: int, original: int) -> None:
+    async def _give_back(self, client) -> None:
         try:
             # Only to the character it was read from, and only over our own value: one the
             # game has written since is already its own.
-            if await live_character_id(client) != character:
+            character = await live_character_id(client)
+            if not self._ledger.wrote_to(client, character):
+                self._ledger.forget(client)
                 return
-            if await client.client_object.speed_multiplier() == self._value:
+            value = self._ledger.to_give_back(client, character, await client.client_object.speed_multiplier())
+            if value is not None:
                 async with self._arbiter.acquire(client, Owner.HOTKEY, detail="speed") as lease:
-                    await lease.input.write_speed(original)
+                    await lease.input.write_speed(value)
         except Exception:
             logger.debug("Speed: could not restore window %s", client.window_handle)
 
