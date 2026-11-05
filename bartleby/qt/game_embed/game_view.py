@@ -562,6 +562,11 @@ class GameView(ThemedMixin, QWidget):
     # own widgets or another application have it. What arms the authoring hotkeys: they
     # are system-wide keys, and armed anywhere else they would eat F1 in every other app.
     game_focus_changed = pyqtSignal(object)
+    # The game the player last gave the keyboard to (an hwnd): a click on an embedded game, a
+    # detached window brought to the front, or the keyboard target given it (set_keyboard_target).
+    # Unlike game_focus_changed it holds while the app's own widgets or another application
+    # have the keyboard, and never names a game a refit left the keyboard on for the moment.
+    player_focus_changed = pyqtSignal(object)
     # A tile's caption was clicked: the player index it is captioned from, and the point
     # under the caption, global, for a menu to open at. Nothing here acts on it.
     caption_clicked = pyqtSignal(int, QPoint)
@@ -575,6 +580,8 @@ class GameView(ThemedMixin, QWidget):
     game_size_wanted = pyqtSignal(object, object)
     # A window has just left its tile for the desktop (an hwnd): its launch size is due back.
     window_detached = pyqtSignal(object)
+    # A detached window is back in its tile (an hwnd).
+    window_reattached = pyqtSignal(object)
 
     def __init__(
         self,
@@ -590,6 +597,9 @@ class GameView(ThemedMixin, QWidget):
         # See game_focus_changed and last_focused_hwnd.
         self._focused_hwnd: int | None = None
         self._last_focused_hwnd: int | None = None
+        # See player_focus_changed, and keep_keyboard_over.
+        self._player_focus: int | None = None
+        self._keeps_keyboard: list[QWidget] = []
         self._detached_tiles: dict[int, DetachedTile] = {}
         # Slots holding a launch that has not produced a window yet. A third tile kind
         # rather than a flag on the other two: it has no hwnd, so almost nothing the
@@ -773,6 +783,7 @@ class GameView(ThemedMixin, QWidget):
         tile.body_clicked.connect(lambda slot=spec.slot: self._on_body_clicked(slot))
         # By the tile, not the slot: a refit's finish belongs to its window wherever it moved.
         tile.refitted.connect(lambda tile=tile: self._after_refit(tile))
+        tile.game_clicked.connect(lambda tile=tile: self._note_player_focus(tile.hwnd))
         self._mark_pill(spec.slot, spec.player)
         tile.show()
         self._remove_detached_tile(spec.slot)
@@ -956,6 +967,12 @@ class GameView(ThemedMixin, QWidget):
         self._update_minimum_size()
         self._set_embed_state(bool(self._tiles))
         self._update_overlay()
+        self.window_reattached.emit(hwnd)
+
+    @property
+    def detached_hwnds(self) -> frozenset[int]:
+        """The windows out of their tiles, on the desktop: detached by the player, or held out scaled."""
+        return frozenset(self._detached_hwnds.values())
 
     @property
     def has_detached(self) -> bool:
@@ -1170,14 +1187,43 @@ class GameView(ThemedMixin, QWidget):
         A refit embeds a game again, and the keyboard is left on whichever game was embedded
         last. Once every refit is in, with nothing asked for and every game at its target,
         the target's game is given the keyboard. A new target is given it on the same terms,
-        at once if nothing is moving. BartleBuddy's window names the Active wizard;
-        BartleBot never calls this, and nothing here moves its keyboard.
+        at once if nothing is moving, and not at all if its game has the keyboard already, as
+        one the player just clicked does. BartleBuddy's window names the game the player is
+        on: the Active wizard's, or one they clicked into since. BartleBot never calls this,
+        and nothing here moves its keyboard.
         """
         if hwnd == self._keyboard_target:
             return
         self._keyboard_target = hwnd
-        self._keyboard_owed = hwnd is not None
+        self._keyboard_owed = hwnd is not None and not self._has_keyboard(hwnd)
         self._give_keyboard()
+
+    def give_keyboard_back(self) -> None:
+        """Give the keyboard target's game the keyboard again, after a press on the app took it.
+
+        For a product's buttons and menus that act on the games, so the player's keys go on
+        reaching the game they were in. As after a refit, it waits until nothing is moving,
+        and does nothing with no target or when the game still has the keyboard.
+        """
+        if self._keyboard_target is None or self._has_keyboard(self._keyboard_target):
+            return
+        self._keyboard_owed = True
+        self._give_keyboard()
+
+    def keep_keyboard_over(self, widget: QWidget) -> None:
+        """Let a press on *widget*, or anything inside it, leave the keyboard with the game.
+
+        A press on the app's own widgets takes the keyboard from the game, so a field typed
+        into gets the keys. A product's bar of actions about the games is no such field.
+        """
+        self._keeps_keyboard.append(widget)
+
+    def _has_keyboard(self, hwnd: int) -> bool:
+        """Whether the game in *hwnd* is embedded and has the keyboard, with the app in front."""
+        tile = next((tile for tile in self._tiles.values() if tile.hwnd == hwnd), None)
+        return (
+            tile is not None and tile.is_game_focused() and _user32.GetForegroundWindow() == int(self.window().winId())
+        )
 
     def _give_keyboard(self) -> None:
         if not self._keyboard_owed or self._keyboard_target is None or self._asked:
@@ -1192,6 +1238,18 @@ class GameView(ThemedMixin, QWidget):
             return
         self._keyboard_owed = False
         tile.focus_game()
+        self._note_player_focus(tile.hwnd)
+
+    def _note_player_focus(self, hwnd: int) -> None:
+        """The player's keys now go to the game in *hwnd*: see player_focus_changed."""
+        if hwnd != self._player_focus:
+            self._player_focus = hwnd
+            self.player_focus_changed.emit(hwnd)
+
+    @property
+    def player_focus(self) -> int | None:
+        """The game the player last gave the keyboard to, or None if none yet. See player_focus_changed."""
+        return self._player_focus
 
     def game_targets(self) -> dict[int, tuple[int, int]]:
         """The size each embedded window should run at, by hwnd, as things stand.
@@ -1322,11 +1380,16 @@ class GameView(ThemedMixin, QWidget):
             self.body_clicked.emit(player)
 
     def _swallow_small_tiles(self, slots: list[int], sizes: list[TileSize] | None) -> None:
-        """Under swap first, the Side tiles swallow clicks and the rest let them through: see set_swap_first."""
+        """Under swap first, the Side tiles swallow clicks and the rest let them through: see set_swap_first.
+
+        A window that isn't in game never swallows: it has no player to swap to, so a press
+        on it can only give it the keyboard.
+        """
         for i, slot in enumerate(slots):
             tile = self._tiles.get(slot)
             if tile is not None:
-                tile.swallow_clicks(self._swap_first and sizes is not None and sizes[i] is TileSize.SIDE)
+                small = sizes is not None and sizes[i] is TileSize.SIDE
+                tile.swallow_clicks(self._swap_first and small and self._player_for(slot) is not None)
 
     def _on_role_clicked(self, slot: int, point: QPoint) -> None:
         player = self._player_for(slot)
@@ -1632,6 +1695,8 @@ class GameView(ThemedMixin, QWidget):
             while widget is not None:
                 if isinstance(widget, ClientTile):
                     return False  # click is on or inside a game tile; the tile grants focus itself
+                if widget in self._keeps_keyboard:
+                    return False  # see keep_keyboard_over
                 widget = widget.parent() if isinstance(widget, QWidget) else None
             # Click landed on a non-game Qt widget; revoke game focus if any tile has it.
             for tile in self._tiles.values():
@@ -1660,6 +1725,10 @@ class GameView(ThemedMixin, QWidget):
             focused = None
         if foreground and foreground in self._detached_hwnds.values():
             focused = foreground
+            # A detached window comes to the front only by the player's hand, so it counts as
+            # theirs. An embedded game is theirs only by a click, never by the poll, which
+            # would also see the game a refit left the keyboard on.
+            self._note_player_focus(foreground)
         if focused is not None:
             self._last_focused_hwnd = focused
         if focused != self._focused_hwnd:
