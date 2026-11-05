@@ -896,8 +896,16 @@ The window's half is the product's two crossings around that:
 - **The keyboard after a refit** is left on whichever game was embedded last. A product names
   the game it should be on with `GameView.set_keyboard_target(hwnd)`, and the view gives it focus
   once nothing is asked for, no refit is under way and every game is at its target, or at once
-  when nothing is moving. BartleBuddy names the Active wizard. BartleBot names none, and its
-  keyboard is never moved.
+  when nothing is moving, and not at all to a game that has the keyboard already. BartleBuddy
+  names the game the player is on. BartleBot names none, and its keyboard is never moved.
+- **The player's focus.** `GameView.player_focus_changed` names the game the player last gave
+  the keyboard to: a click on an embedded game (`ClientTile.game_clicked`), a detached window
+  brought to the front, or the keyboard target given its keyboard. The 50 ms poll never sets it,
+  since it also sees the game a refit left the keyboard on for the moment, and it holds while
+  another application or the app's own widgets have the keyboard. A press on a widget a product
+  named with `keep_keyboard_over` leaves the keyboard with the game, and `give_keyboard_back()`
+  hands it to the target again after a menu or a button took it. A caption press is reported
+  before the keyboard is given, 20 to 50 ms sooner, still on the press (#93).
 - **Swap first.** With `GameView.set_swap_first(True)` each Side tile keeps the mouse and keyboard
   from its game (`ClientTile.swallow_clicks`, `EmbeddedWindow.set_input_enabled`, which is
   `EnableWindow`), so a press on the game reaches the tile: on the pill it is `caption_clicked`,
