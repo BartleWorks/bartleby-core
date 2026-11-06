@@ -141,6 +141,10 @@ own layers. See [Node help](#node-help).
   exists.
 - **W6. Use numbers only when they are a cost or a range to choose from:** "about 35 MB",
   "3 to 5 seconds". Never use a number from one anecdote.
+- **W7. Name a player "Player 1" wherever there is room:** setup, dialogs, messages,
+  tooltips, row titles, a Team card's status row. Keep "P1" where space is tight, as on a
+  tile's label, a pill, a chip or a badge, and in logs, where it is the slot convention.
+  Testers didn't know what "P1" meant (BartleBot #263).
 
 ## Capitalization and punctuation
 
@@ -273,7 +277,8 @@ descriptions. So the details layer gets longer here, and moves to the usage note
 2. Does a summary or param help use its control's form? (S2, N6)
 3. Could the reader act on every sentence? If not, cut it. (D1, D2, F5)
 4. Is there any "never", "not … but", "rather than" or "either way"? (V3)
-5. Would every word be in the UI, or in the game, for this surface's reader? (W1, N1)
+5. Would every word be in the UI, or in the game, for this surface's reader? Does it say
+   "Player 1" where there's room for it? (W1, W7, N1)
 6. Is it sentence case, unless it's a title, a menu item, a node name or a param label?
    (C1, N3)
 7. Is it shown anywhere else, and does it read right there? (X1, N9)
