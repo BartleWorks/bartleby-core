@@ -67,6 +67,10 @@ logger = logging.getLogger(__name__)
 _user32 = ctypes.windll.user32
 #: ``ShowWindow``'s command for a minimized window back at its place and size.
 _SW_RESTORE = 9
+# How long a swap's rings stay up once its last refit is in (ClientTile.show_ring), so each
+# game has drawn a frame at its new size. What the probe ran (BartleBuddy #23); nothing
+# shorter was tried.
+RING_LIFT_MS = 60
 
 _OVERLAY_BTN_SIZE = 34
 _OVERLAY_BTN_MARGIN = 4
@@ -658,6 +662,11 @@ class GameView(ThemedMixin, QWidget):
         self._active_player: int | None = None
         # See set_swap_first.
         self._swap_first = False
+        # See set_layout: the rings a swap showed all come off this long after it settles.
+        self._lift_timer = QTimer(self)
+        self._lift_timer.setSingleShot(True)
+        self._lift_timer.setInterval(RING_LIFT_MS)
+        self._lift_timer.timeout.connect(self._lift_rings)
 
         # Placeholder shown when no clients are embedded or detached
         self._placeholder = _GamePlaceholder(settings, self, editing=editing, empty_accounts_hint=empty_accounts_hint)
@@ -1107,7 +1116,10 @@ class GameView(ThemedMixin, QWidget):
         the player made in one press, a swap or a change of view, where the settle only adds
         half a second. A drag still waits, since its targets change all the way through. A
         game whose new size is asked for isn't moved at its old one meanwhile
-        (``ClientTile.hold_moves``), since its refit puts it in place.
+        (``ClientTile.hold_moves``), since its refit puts it in place. Each of those tiles
+        shows the ring and not its game (``ClientTile.show_ring``) from before any tile
+        changes shape until every refit is in, when all the rings come off together after
+        ``RING_LIFT_MS``. BartleBot never asks at once, so it shows none.
         """
         self._layout = layout
         self._played = list(played)
@@ -1123,6 +1135,8 @@ class GameView(ThemedMixin, QWidget):
         for tile in tiles:
             tile.hold_moves()
         try:
+            self._lift_timer.stop()
+            self._show_rings_for_targets()
             self._recompute_geometry()
             self._update_minimum_size()
             self._settle_timer.stop()
@@ -1130,6 +1144,48 @@ class GameView(ThemedMixin, QWidget):
         finally:
             for tile in tiles:
                 tile.release_moves(refit_coming=tile.hwnd in self._asked)
+        self._watch_rings()
+
+    def _show_rings_for_targets(self) -> None:
+        """Show the ring on each tile whose game is about to be asked for a new size, before any tile moves.
+
+        The targets are worked out from where the tiles are going, as ``_ask_for_targets``
+        will ask for them once they are there.
+        """
+        slots = self._occupied_slots()
+        if not slots or not self._rung_family_in_use():
+            return
+        _tiles, rects, _placement, _main = self._plan_geometry(slots)
+        targets = self._targets_at(slots, [(rect.w, rect.h) for rect in rects])
+        for tile in self._tiles.values():
+            target = targets.get(tile.hwnd)
+            if tile.hwnd in self._resizable and target is not None:
+                if target != self._asked.get(tile.hwnd, tile.coming_size):
+                    tile.show_ring(True)
+
+    def _watch_rings(self) -> None:
+        """Start the rings' lift once the tiles have settled, and put it off while they haven't."""
+        if not any(tile.ring_shown for tile in self._tiles.values()):
+            self._lift_timer.stop()
+        elif not self._settled():
+            self._lift_timer.stop()
+        elif not self._lift_timer.isActive():
+            self._lift_timer.start()
+
+    def _lift_rings(self) -> None:
+        if not self._settled():
+            return
+        for tile in self._tiles.values():
+            tile.show_ring(False)
+
+    def _settled(self) -> bool:
+        """Nothing asked for, no refit under way, and every game at its target."""
+        if self._asked:
+            return False
+        tiles = {tile.hwnd: tile for tile in self._tiles.values()}
+        if any(tile.refitting for tile in tiles.values()):
+            return False
+        return all(tiles[hwnd].game_size == target for hwnd, target in self._targets_to_ask_for().items())
 
     def set_swap_first(self, on: bool) -> None:
         """Say whether a small tile's first click only swaps, for a product with an Active wizard.
@@ -1152,6 +1208,7 @@ class GameView(ThemedMixin, QWidget):
         self._resizable = frozenset(hwnds)
         self._asked = {hwnd: size for hwnd, size in self._asked.items() if hwnd in self._resizable}
         self._note_targets()
+        self._watch_rings()
 
     def game_resized(self, hwnd: int, size: tuple[int, int]) -> None:
         """A window now runs at *size*, as the runtime measured it: its tile embeds it there.
@@ -1182,6 +1239,7 @@ class GameView(ThemedMixin, QWidget):
         if moved:
             self._keyboard_owed = True
         self._give_keyboard()
+        self._watch_rings()
 
     def set_keyboard_target(self, hwnd: int | None) -> None:
         """Say which game the keyboard goes to once the tiles have settled, or None for none.
@@ -1254,14 +1312,9 @@ class GameView(ThemedMixin, QWidget):
         )
 
     def _give_keyboard(self) -> None:
-        if not self._keyboard_owed or self._keyboard_target is None or self._asked:
+        if not self._keyboard_owed or self._keyboard_target is None or not self._settled():
             return
-        tiles = {tile.hwnd: tile for tile in self._tiles.values()}
-        if any(tile.refitting for tile in tiles.values()):
-            return
-        if any(tiles[hwnd].game_size != target for hwnd, target in self._targets_to_ask_for().items()):
-            return
-        tile = tiles.get(self._keyboard_target)
+        tile = next((tile for tile in self._tiles.values() if tile.hwnd == self._keyboard_target), None)
         if tile is None:
             return
         self._keyboard_owed = False
@@ -1290,9 +1343,13 @@ class GameView(ThemedMixin, QWidget):
         if not self._rung_family_in_use() or not slots:
             return {}
         areas = [self._widget_at(slot).size() for slot in slots]
+        return self._targets_at(slots, [(area.width(), area.height()) for area in areas])
+
+    def _targets_at(self, slots: list[int], areas: list[tuple[int, int]]) -> dict[int, tuple[int, int]]:
+        """``game_targets`` for tiles of these sizes, by hwnd: where they are, or where they are going."""
         targets = tile_targets(
             [self._launch_size_at(slot) for slot in slots],
-            [(area.width(), area.height()) for area in areas],
+            areas,
             self._tile_sizes(slots),
             self.devicePixelRatio() or 1.0,
             grow=True,
@@ -1552,33 +1609,47 @@ class GameView(ThemedMixin, QWidget):
         if n == 0:
             return
 
-        tiles = self._tile_sizes(all_slots)
-        if not isinstance(tiles, int):
-            self._arrange(all_slots, tiles)
-        else:
-            for idx, rect in zip(all_slots, tile_layouts.equal_grid(n, self.width(), self.height())):
-                widget = self._widget_at(idx)
-                if widget is not None:
-                    widget.setGeometry(rect.x, rect.y, rect.w, rect.h)
+        tiles, rects, self._placement, self._main_slot = self._plan_geometry(all_slots)
+        for slot, rect in zip(all_slots, rects):
+            widget = self._widget_at(slot)
+            if widget is not None:
+                widget.setGeometry(rect.x, rect.y, rect.w, rect.h)
         # Before the targets: a refit started from them reads whether its game takes input.
         self._swallow_small_tiles(all_slots, None if isinstance(tiles, int) else tiles)
         self._note_targets()
+        # A tile that left drops out of what the rings wait for.
+        self._watch_rings()
 
-    def _arrange(self, slots: list[int], sizes: list[TileSize]) -> None:
-        """Place Main and Side tiles by the layout (``tile_layouts.arrange``), at the game's aspect.
+    def _plan_geometry(self, slots: list[int]) -> tuple[Tiles, list, list[int], int | None]:
+        """Where each of *slots* goes, without moving anything.
+
+        The tile sizes, the rects in slot order, and the placement order and Main slot that
+        come with them, for ``_recompute_geometry`` to set.
+        """
+        tiles = self._tile_sizes(slots)
+        if isinstance(tiles, int):
+            return tiles, list(tile_layouts.equal_grid(len(slots), self.width(), self.height())), *self._strip()
+        return tiles, *self._arrangement(slots, tiles)
+
+    def _strip(self) -> tuple[list[int], int | None]:
+        return self._placement, self._main_slot
+
+    def _arrangement(self, slots: list[int], sizes: list[TileSize]) -> tuple[list, list[int], int | None]:
+        """Main and Side tiles by the layout (``tile_layouts.arrange``), at the game's aspect.
 
         In the placement order: a slot new to it goes last, and a new Main tile trades places
-        with the old one, so the rest of the strip keeps where it was.
+        with the old one, so the rest of the strip keeps where it was. The rects, and the
+        placement and Main slot to keep once they are set.
         """
         width, height = self._largest_size() or self._settings.game_resolution
         family = self._rung_family_in_use()
         placement = [slot for slot in self._placement if slot in slots]
         placement += [slot for slot in slots if slot not in placement]
+        main_slot = self._main_slot
         mains = [slot for slot, size in zip(slots, sizes) if size is TileSize.MAIN]
         if len(mains) == 1:
-            placement = tile_layouts.trade_places(placement, self._main_slot, mains[0])
-            self._main_slot = mains[0]
-        self._placement = placement
+            placement = tile_layouts.trade_places(placement, main_slot, mains[0])
+            main_slot = mains[0]
         rects = tile_layouts.arrange(
             self._layout,
             self._played_at(slots),
@@ -1587,10 +1658,7 @@ class GameView(ThemedMixin, QWidget):
             rung_tiles=rung_tiles(family, self.devicePixelRatio() or 1.0) if family else (),
             order=[slots.index(slot) for slot in placement],
         )
-        for slot, rect in zip(slots, rects):
-            widget = self._widget_at(slot)
-            if widget is not None:
-                widget.setGeometry(rect.x, rect.y, rect.w, rect.h)
+        return list(rects), placement, main_slot
 
     def _largest_size(self) -> tuple[int, int] | None:
         """The largest game on screen or launching, componentwise; see ``_update_minimum_size``."""

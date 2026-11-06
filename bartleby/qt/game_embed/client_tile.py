@@ -5,12 +5,13 @@ from __future__ import annotations
 import ctypes
 import ctypes.wintypes
 import logging
+import math
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
 
 from PyQt6.QtCore import QEvent, QPoint, QRect, QRectF, Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPen
+from PyQt6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPen, QRegion
 from PyQt6.QtWidgets import QToolTip, QVBoxLayout, QWidget
 
 from bartleby.qt import streamer_mode
@@ -36,6 +37,7 @@ __all__ = [
     "LABEL_RESERVE",
     "ClientTile",
     "DetachedTile",
+    "RING_LIMIT_MS",
     "PendingTile",
     "ScaledTile",
     "launch_status_text",
@@ -62,6 +64,9 @@ _REFIT_WAIT_S = 5.0
 # A swap's answers came 70 to 100 ms after the ask; a resize that waits out a loading screen,
 # or a client that can't be resized, never answers.
 _MOVE_GRACE_MS = 500
+# How long a ring over a swap (show_ring) stays up at most, whatever the refits are doing: a
+# resize can wait out a loading screen, and a client that can't be resized never answers.
+RING_LIMIT_MS = 1500
 
 
 def tile_pill_colors(color_key: int | None) -> tuple[QColor, QColor, QColor]:
@@ -286,6 +291,17 @@ class ClientTile(_PillIconHover, QWidget):
 
         # See swallow_clicks.
         self._swallowing = False
+        # See show_ring: whether the tile is clipped to its pill strip, the ring the view paints
+        # behind it, and the physical place in the tile the game was last put, which the clip
+        # keeps one pixel of showing.
+        self._ring_shown = False
+        self._ring_behind: _RingBehind | None = None
+        self._game_at: tuple[int, int] | None = None
+        self._ring_limit = QTimer(self)
+        self._ring_limit.setSingleShot(True)
+        self._ring_limit.setInterval(RING_LIMIT_MS)
+        self._ring_limit.timeout.connect(lambda: self.show_ring(False))
+
         # See hold_moves: whether moves are held, and whether one was held and is still owed.
         self._moves_held = False
         self._move_owed = False
@@ -383,8 +399,13 @@ class ClientTile(_PillIconHover, QWidget):
 
         A refit under way finishes first, since its ``SetParent`` would take the window back
         in after the restore, and one asked for since is dropped. Every removal of a tile
-        unembeds it before deleting it, so this covers detach, quit and Detach all.
+        unembeds it before deleting it, so this covers detach, quit and Detach all, and none
+        of them leaves a tile clipped or a ring behind it (``show_ring``).
         """
+        self.show_ring(False)
+        if self._ring_behind is not None:
+            self._ring_behind.deleteLater()
+            self._ring_behind = None
         self._refit_next = None
         future = self._refit_future
         if future is not None and not future.done():
@@ -434,6 +455,8 @@ class ClientTile(_PillIconHover, QWidget):
         self._settle_move()
         self._refitting = (width, height)
         self._refit_place = self._place(width, height)
+        # The worker's SetWindowPos moves the game before the finish runs here.
+        self._update_mask()
         self._refit_future = _refit_pool.submit(
             self._reembed_off_thread, int(self.winId()), *self._refit_place, width, height
         )
@@ -456,6 +479,8 @@ class ClientTile(_PillIconHover, QWidget):
             return
         if ok:
             self._game_w, self._game_h = size
+            self._game_at = self._refit_place
+        self._update_mask()
         # The worker wrote the style whole, and may have read whether the game takes input
         # before swallow_clicks changed it.
         self._window.sync_input()
@@ -492,6 +517,64 @@ class ClientTile(_PillIconHover, QWidget):
     def game_away(self) -> bool:
         """Whether the tile is drawing the ring because its game has been taken out."""
         return self._game_away
+
+    def show_ring(self, on: bool) -> None:
+        """Show the ring in this tile's body, and not its game, or show its game again.
+
+        For a swap, from before the tiles change shape until every game is in at its new
+        size, so nothing out of place is seen: the old layout, the rings, then the new. On,
+        the tile is clipped to its pill strip (``setMask``, ``SetWindowRgn`` on the tile, our
+        own window, so no call into the game), and the view paints the ring behind it
+        (``_RingBehind``). The game keeps running and drawing under the clip, which its
+        drawing honors. One pixel of it is left showing, at its top left wherever it goes,
+        since a game with nothing showing runs 200 to 500 ms slower through its resize and
+        draws nothing that reaches the screen, so it came back white (BartleBuddy #23).
+
+        It comes off by itself after ``RING_LIMIT_MS``. Saying it again changes nothing, and
+        a tile with no game embedded shows none.
+        """
+        if on == self._ring_shown or (on and not self._window.is_embedded):
+            return
+        self._ring_shown = on
+        if on:
+            if self._ring_behind is None and self.parentWidget() is not None:
+                self._ring_behind = _RingBehind(self)
+            if self._ring_behind is not None:
+                self._ring_behind.start()
+            self._update_mask()
+            self._ring_limit.start()
+        else:
+            self._ring_limit.stop()
+            self.clearMask()
+            if self._ring_behind is not None:
+                self._ring_behind.stop()
+        # The pill sits in the strip while clipped, wherever the game is (see paintEvent).
+        self.update()
+
+    @property
+    def ring_shown(self) -> bool:
+        """Whether the tile is clipped to its pill strip, with the ring behind it: see show_ring."""
+        return self._ring_shown
+
+    def _game_pixels(self) -> list[tuple[int, int]]:
+        """Where the clip leaves a pixel of the game showing, in logical pixels: see show_ring.
+
+        Its top left, rounded up so it is inside the game at any scale. Two while a refit is
+        under way: where the game is, and where the worker is about to put it.
+        """
+        dpr = self.devicePixelRatio() or 1.0
+        places = [self._game_at] if self._game_at is not None else []
+        if self._refitting is not None and self._refit_place not in places:
+            places.append(self._refit_place)
+        return [(math.ceil(x / dpr), math.ceil(y / dpr)) for x, y in places]
+
+    def _update_mask(self) -> None:
+        if not self._ring_shown:
+            return
+        region = QRegion(0, 0, self.width(), min(LABEL_RESERVE, self.height()))
+        for x, y in self._game_pixels():
+            region = region.united(QRegion(x, y, 1, 1))
+        self.setMask(region)
 
     def focus_game(self) -> None:
         """Give the embedded game window keyboard focus, and its clicks, since a disabled window takes no keys."""
@@ -575,7 +658,9 @@ class ClientTile(_PillIconHover, QWidget):
             self._move_owed = True
             return
         self._settle_move()
-        self._window.move(*self._place(self._game_w, self._game_h), self._game_w, self._game_h)
+        self._game_at = self._place(self._game_w, self._game_h)
+        self._window.move(*self._game_at, self._game_w, self._game_h)
+        self._update_mask()
 
     def _place(self, game_w: int, game_h: int) -> tuple[int, int]:
         """Where a game of this size goes in the tile as it is now, in physical pixels: see _reposition."""
@@ -593,6 +678,14 @@ class ClientTile(_PillIconHover, QWidget):
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
         self._reposition()
+        self._update_mask()
+        if self._ring_shown and self._ring_behind is not None:
+            self._ring_behind.place()
+
+    def moveEvent(self, event) -> None:
+        super().moveEvent(event)
+        if self._ring_shown and self._ring_behind is not None:
+            self._ring_behind.place()
 
     def nativeEvent(self, event_type, message):
         msg = ctypes.wintypes.MSG.from_address(int(message))
@@ -667,6 +760,9 @@ class ClientTile(_PillIconHover, QWidget):
 
         game = self._game_rect()
         gx, gy, gw, gh = game.x(), game.y(), game.width(), game.height()
+        # The pill goes above the game, but in the strip while the clip leaves only that: a
+        # swap's large tile still holds its small game, centered well below the strip.
+        pill_gy = LABEL_RESERVE if self._ring_shown else gy
 
         # Focus highlight — filled rectangle behind the game window, in the account's
         # color (the accent when none is known). The Win32 child covers the game area,
@@ -703,7 +799,7 @@ class ClientTile(_PillIconHover, QWidget):
         pill_w = lead_w + text_w + _ICON_GAP + _ICON_SIZE + 16  # 8px left + 8px right padding
         pill_h = max(text_h, _ICON_SIZE) + 6
         pill_x = (self.width() - pill_w) // 2
-        pill_y = gy - FOCUS_BORDER - LABEL_GAP - pill_h
+        pill_y = pill_gy - FOCUS_BORDER - LABEL_GAP - pill_h
 
         # Pill background
         text_color = _draw_pill(painter, QRect(pill_x, pill_y, pill_w, pill_h), self._color_key)
@@ -737,6 +833,63 @@ class ClientTile(_PillIconHover, QWidget):
         # Store rects for hit-testing in mousePressEvent
         self._pill_rect = QRect(pill_x, pill_y, pill_w, pill_h)
         self._icon_rect = QRect(ix - 2, pill_y, _ICON_SIZE + 4, pill_h)  # 2px buffer
+
+
+class _RingBehind(QWidget):
+    """The ring behind a clipped tile's body, painted by the view: see ``ClientTile.show_ring``.
+
+    A child of the tile's parent, not of the tile, and alien, so it is painted into the view's
+    own window: it shows only where the tile's clip lets the view through, and the tile, a
+    native window, stays above it. It fills the color behind every tile and turns the ring at
+    the body's center, repainting only the ring's square, as a tile's own ring does.
+    """
+
+    def __init__(self, tile: ClientTile) -> None:
+        super().__init__(tile.parentWidget())
+        self._tile = tile
+        self._start = time.monotonic()
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self._timer = QTimer(self)
+        self._timer.setInterval(_SPINNER_TICK_MS)
+        self._timer.setTimerType(Qt.TimerType.PreciseTimer)
+        self._timer.timeout.connect(lambda: self.update(self._square()))
+        # Its parent deletes it in the end; the tile's unembed does so sooner.
+        tile.destroyed.connect(self.deleteLater)
+        self.hide()
+
+    def place(self) -> None:
+        """Over the tile's body, below its pill strip, under the tile."""
+        tile = self._tile.geometry()
+        self.setGeometry(tile.x(), tile.y() + LABEL_RESERVE, tile.width(), max(0, tile.height() - LABEL_RESERVE))
+        self.stackUnder(self._tile)
+
+    def start(self) -> None:
+        self.place()
+        self._start = time.monotonic()
+        self.show()
+        self._timer.start()
+
+    def stop(self) -> None:
+        self._timer.stop()
+        self.hide()
+
+    @property
+    def turning(self) -> bool:
+        return self._timer.isActive()
+
+    def _square(self) -> QRect:
+        """The ring's square, padded by the pen it is stroked with."""
+        side = 2 * (_SPINNER_RADIUS + _SPINNER_THICKNESS)
+        rect = QRect(0, 0, side, side)
+        rect.moveCenter(self.rect().center())
+        return rect
+
+    def paintEvent(self, event) -> None:
+        painter = QPainter(self)
+        painter.fillRect(event.rect(), THEME.qcolor("bg"))
+        center = self.rect().center()
+        _paint_ring(painter, center.x(), center.y(), _ring_angle(self._start))
+        painter.end()
 
 
 class _WindowlessTile(_PillIconHover, QWidget):
