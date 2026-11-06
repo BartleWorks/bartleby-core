@@ -68,8 +68,9 @@ _user32 = ctypes.windll.user32
 #: ``ShowWindow``'s command for a minimized window back at its place and size.
 _SW_RESTORE = 9
 # How long a swap's rings stay up once its last refit is in (ClientTile.show_ring), so each
-# game has drawn a frame at its new size. What the probe ran (BartleBuddy #23); nothing
-# shorter was tried.
+# game has drawn a frame at its new size. What the probe ran (BartleBuddy #23): 150 ms
+# cleared the white frame left at the lift no better (BartleBuddy #24), and nothing shorter
+# was tried.
 RING_LIFT_MS = 60
 
 _OVERLAY_BTN_SIZE = 34
