@@ -41,6 +41,10 @@ Stated 2026-09-30 for BartleBot #116.
 - **Flee is never disabled** in any fight; it is clickable only during the planning phase.
 - Fleeing lands the player in its world's hub as if teleported, with **empty mana**. Mana
   wisps are almost always reachable from where fled players land.
+- **Mana never regenerates on its own** (stated 2026-11-06). Only mana wisps and potions
+  restore it.
+- **Every world's hub zone has mana wisps, but at Lemuria's hub teleport point none is in
+  render range** (checked in game 2026-11-06). Every other world has one in range there.
 - A player defeated in a fight the group wins comes back at 1 health and otherwise behaves
   as if it won.
 - The world hub is always a safe spot. The planning timer (30 s) starts when cards become
@@ -102,6 +106,11 @@ Stated 2026-10-03 and corrected 2026-10-05.
 - Marking has **no cooldown**, but it **costs mana**, so a drop in current mana shows a mark
   click landed. MarkButton is grayed when marking is impossible: no mana, in combat, or in a
   zone that refuses marks (a house). Marking works in the Four Dungeons' entrance zones.
+- **Marking and recalling each cost 10 mana, or a tenth of the player's maximum mana if that
+  is smaller** (stated 2026-11-06). How the game rounds the tenth isn't known.
+- **The hub and HOME buttons, and teleporting to a friend or group member, cost no mana**
+  (stated 2026-11-06). A player with empty mana can still reach the Commons and teleport
+  back to another player.
 - **Recall has its own 30 s cooldown, not shared** with the hub and HOME buttons; only hub
   and HOME share a timer. While recall's runs, `RecallButton/txtRecallTimer` is visible and
   RecallButton is grayed. Grayed with no timer means no mark is set anywhere, or recall is
