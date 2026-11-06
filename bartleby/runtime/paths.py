@@ -49,6 +49,11 @@ NETWORK_LINK_SLOW_PATH = ["WorldView", "windowHUD", "spriteNetworkLinkSlow"]
 NETWORK_LINK_BAD_PATH = ["WorldView", "windowHUD", "spriteNetworkLinkBad"]
 NETWORK_LINK_BROKEN_PATH = ["WorldView", "windowHUD", "spriteNetworkLinkBroken"]
 
+# The chat box's line being typed in: visible from the Enter that opens chat until the Enter
+# that sends or the Esc that closes it, and hidden otherwise. Found by BartleBuddy's
+# tools/probe_multibox.py --played (its #15), which read the whole tree with chat open and shut.
+CHAT_EDIT_PATH = ["WorldView", "WizardChatBox", "chatContainer", "chatEditContainer"]
+
 # Generic modal message box buttons — shared by all in-game message boxes.
 # YES / OK typically use centerButton; NO / Cancel typically use rightButton.
 # Read MESSAGE_BOX_CAPTION_PATH to identify which dialog is showing.
