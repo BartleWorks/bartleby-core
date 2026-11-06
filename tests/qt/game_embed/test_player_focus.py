@@ -139,9 +139,20 @@ def test_focus_game_called_by_the_app_is_not_the_players(tile):
 @pytest.fixture
 def user32(monkeypatch):
     """The view's user32 for the poll and the hand-back: the app in front unless a test says not."""
-    fake = SimpleNamespace(foreground=None, set_focus=[])
+    fake = SimpleNamespace(foreground=None, set_focus=[], brought=[], minimized=set(), restored=[], refuse=False)
     fake.GetForegroundWindow = lambda: fake.foreground
     fake.SetFocus = fake.set_focus.append
+
+    def set_foreground(hwnd: int) -> bool:
+        fake.brought.append(hwnd)
+        if fake.refuse:
+            return False
+        fake.foreground = hwnd
+        return True
+
+    fake.SetForegroundWindow = set_foreground
+    fake.IsIconic = lambda hwnd: hwnd in fake.minimized
+    fake.ShowWindow = lambda hwnd, command: fake.restored.append((hwnd, command))
     monkeypatch.setattr(game_view_module, "_user32", fake)
     return fake
 
@@ -315,6 +326,62 @@ def test_the_view_says_which_windows_are_detached_and_when_one_comes_back(focusi
     game.reattach_client(1)
     assert game.detached_hwnds == frozenset()
     assert back == [101]
+
+
+def test_a_detached_game_is_brought_to_the_front_in_its_own_window(focusing, user32):
+    game, _heard = focusing
+    game._detach_client(1)
+
+    assert game.bring_to_front(101)
+
+    assert user32.brought == [101]
+    assert user32.foreground == 101
+
+
+def test_a_minimized_detached_game_is_restored_as_it_comes_to_the_front(focusing, user32):
+    game, _heard = focusing
+    game._detach_client(1)
+    user32.minimized.add(101)
+
+    game.bring_to_front(101)
+
+    assert user32.restored == [(101, game_view_module._SW_RESTORE)]
+    assert user32.brought == [101]
+
+
+def test_an_embedded_game_brings_the_app_to_the_front(focusing, user32):
+    """From a detached game's window, a hotkey for one in a tile: the app comes in front of it."""
+    game, _heard = focusing
+    game._detach_client(1)
+    user32.foreground = 101
+
+    assert game.bring_to_front(100)
+
+    assert user32.brought == [int(game.window().winId())]
+
+
+def test_a_window_in_front_already_is_left_alone(focusing, user32):
+    game, _heard = focusing
+
+    assert game.bring_to_front(100)
+
+    assert user32.brought == []
+
+
+def test_a_game_the_view_doesnt_hold_brings_nothing_to_the_front(focusing, user32):
+    game, _heard = focusing
+
+    assert not game.bring_to_front(0xBEEF)
+
+    assert user32.brought == []
+
+
+def test_a_window_windows_keeps_back_is_reported(focusing, user32):
+    game, _heard = focusing
+    game._detach_client(1)
+    user32.refuse = True
+
+    assert not game.bring_to_front(101)
 
 
 def test_a_tile_whose_window_is_not_in_game_never_swallows(by_rung):
