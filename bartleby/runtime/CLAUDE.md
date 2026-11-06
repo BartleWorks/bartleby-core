@@ -95,7 +95,10 @@ result counted. So:
   so the FSM moves on as if the step had worked, and the watcher fights beside a node that
   never actually stopped.
 - **Clean up in `finally` or `async with`**, which run on a cancel. WizWalker's
-  `mouse_handler` is an `async with`, so a click cut short still releases the hook.
+  `mouse_handler` is an `async with`, so a click cut short still releases the hook. A
+  cleanup that awaits can be cut short in turn, by a second cancel (a preempt, then Stop
+  all), so what must happen whatever comes goes in a `finally` of its own: the arbiter's
+  give-back once ended at its keys' release, and left a client held by a task gone.
 - **Expect to be run again from a half-done state.** A client may be somewhere else, or a
   window may still be open. A node that cannot pick up from there should fail, which sends
   the run to recovery; it must not assume the world is as it was before its first run.
