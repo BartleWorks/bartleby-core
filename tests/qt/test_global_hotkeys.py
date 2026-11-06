@@ -17,7 +17,10 @@ from bartleby.qt.global_hotkeys import (
     WM_HOTKEY,
     GlobalHotkeys,
     binding_problems,
+    binding_refusals,
+    game_key_clashes,
     parse_binding,
+    types_in_chat,
 )
 from bartleby.runtime.game.game_keybindings import GameBinding
 
@@ -178,3 +181,59 @@ def test_two_actions_on_one_key_and_a_key_nothing_registers_are_problems():
     assert binding_problems({"stop": "Space"}, _LABELS) == [
         "Stop all: Space can't be used. Choose F1–F24, a letter or a digit."
     ]
+
+
+def test_a_key_armed_everywhere_is_not_judged_by_binding_problems():
+    """BartleBot's answers stay as they were: it has no key armed everywhere."""
+    assert binding_problems({"stop": "5"}, _LABELS) == []
+
+
+# -- refusals and clashes, told apart --------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("text", "types"),
+    [
+        ("1", True),
+        ("Q", True),
+        ("Shift+Q", True),
+        ("Ctrl+1", False),
+        ("Alt+Q", False),
+        ("Ctrl+Shift+Q", False),
+        ("F5", False),
+        ("Shift+F5", False),
+        ("", False),
+        ("Space", False),
+    ],
+)
+def test_a_letter_or_digit_with_no_ctrl_or_alt_types_in_chat(text, types):
+    assert types_in_chat(text) is types
+
+
+def test_a_key_the_game_binds_is_a_clash_not_a_refusal():
+    bindings = {"skip": "F12"}
+    assert binding_refusals(bindings, _LABELS) == []
+    assert game_key_clashes(bindings, _LABELS, _PRINT) == [
+        "Skip dialogue: F12 is the game's key for Print Screen, which won't work in the game while this is set."
+    ]
+
+
+def test_a_key_another_action_holds_and_one_nothing_registers_are_refusals_not_clashes():
+    assert binding_refusals({"stop": "F12", "skip": "F12"}, _LABELS) == [
+        "Skip dialogue and Stop all both use F12. Choose another key for one of them."
+    ]
+    # Stop all's F12 is still a clash; the second action on it isn't judged twice.
+    assert game_key_clashes({"stop": "F12", "skip": "F12"}, _LABELS, _PRINT) == [
+        "Stop all: F12 is the game's key for Print Screen, which won't work in the game while this is set."
+    ]
+    assert binding_refusals({"skip": "Space"}, _LABELS) == [
+        "Skip dialogue: Space can't be used. Choose F1–F24, a letter or a digit."
+    ]
+    assert game_key_clashes({"skip": "Space"}, _LABELS, _PRINT) == []
+
+
+def test_a_key_that_types_is_refused_only_on_an_action_armed_everywhere():
+    assert binding_refusals({"stop": "5"}, _LABELS, armed_everywhere={"stop"}) == [
+        "Stop all: 5 types in every application, and Stop all works everywhere. Choose an F-key, or add Ctrl or Alt."
+    ]
+    assert binding_refusals({"stop": "Ctrl+5", "skip": "5"}, _LABELS, armed_everywhere={"stop"}) == []
