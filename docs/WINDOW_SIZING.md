@@ -898,6 +898,43 @@ The window's half is the product's two crossings around that:
   once nothing is asked for, no refit is under way and every game is at its target, or at once
   when nothing is moving, and not at all to a game that has the keyboard already. BartleBuddy
   names the game the player is on. BartleBot names none, and its keyboard is never moved.
+- **The ring through a swap.** Asking at once, each tile whose game is about to be asked for a new
+  size shows the ring in its body, and not its game, from before any tile changes shape until every
+  refit is in (`ClientTile.show_ring`). The view works the targets out from where the tiles are
+  going (`_plan_geometry`, `_targets_at`), rings each tile `_ask_for_targets` will ask for, and only
+  then places them. Once nothing is asked for, no refit is under way and every game is at its
+  target, the condition the keyboard waits for, every ring comes off together `RING_LIFT_MS` (60)
+  later, so the swap ends in one frame: the old layout, the rings, the new. A ring comes off by
+  itself after `RING_LIMIT_MS` (1,500), a tile that leaves drops out of the wait, and `unembed`
+  clears it first, so nothing is left clipped by a detach, a quit or Detach all. A drag shows no
+  ring, and BartleBot never asks at once. Without it a swap showed each game out of place for
+  about 410 ms and then white as it came back: the reembed's `SetParent` makes the game a visible
+  child at its old size and place 40 to 120 ms before the `SetWindowPos` that places it, and then
+  it is white at its new size for about a frame until it draws.
+  - **The clip.** On, the tile's mask (`QWidget.setMask`, which is `SetWindowRgn` on the tile, our
+    own window, so no call into the game) is its pill strip, `LABEL_RESERVE` high. A child's
+    drawing honors its parent's region, so the game keeps running and drawing under it, out of
+    sight. Setting it costs 0 to 1 ms. The pill is drawn in the strip while it is on, wherever the
+    game is: a swap's large tile still holds its small game, centered well below the strip, until
+    its refit.
+  - **The pixel.** One logical pixel of the game is left showing, at its top left, rounded up into
+    it at any scale. A game with nothing of its window showing, whether hidden, covered by a
+    sibling or wholly clipped, ran 200 to 500 ms slower through its apply and its reembed, and what
+    it drew meanwhile never reached the screen, so it came back white. With the pixel it does
+    neither. That is inferred from the timings, not read from the game: every variant that left
+    nothing showing paid, and the one that left a pixel didn't. The pixel follows the place the
+    tile last put its game (`_reposition`, and the refit's `_refit_place`), with two while a refit
+    is under way, since the worker's `SetWindowPos` moves the game before the finish runs. A held
+    move doesn't move the game, so the pixel holds through the layout.
+  - **The ring behind.** The view paints it: `_RingBehind`, an alien child of the view over the
+    tile's body, so it shows only where the clip lets the view through, filling `THEME.bg` and
+    turning the ring at the body's center, a square at a time.
+  - **Rejected,** in BartleBuddy's `tools/probe_swap_look.py` (2026-11-06, four clients on 4K):
+    hiding the games, which looks right but doubled a swap (1,265 ms against 625), since a hidden
+    game is about 500 ms slower and each hide and show holds the GUI thread; a native child over
+    the tile, since the reembed's `SetParent` puts the game above it; a top-level window over the
+    view, 100 to 280 ms to show; and a stretched picture of each game, too coarse at the large
+    size. With the pixel the swap took 652 ms, as the swap without the clip did in the same run, and showed no white frame.
 - **The player's focus.** `GameView.player_focus_changed` names the game the player last gave
   the keyboard to: a click on an embedded game (`ClientTile.game_clicked`), a detached window
   brought to the front, or the keyboard target given its keyboard. The 50 ms poll never sets it,
