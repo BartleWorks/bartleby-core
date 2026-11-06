@@ -935,6 +935,12 @@ The window's half is the product's two crossings around that:
     the tile, since the reembed's `SetParent` puts the game above it; a top-level window over the
     view, 100 to 280 ms to show; and a stretched picture of each game, too coarse at the large
     size. With the pixel the swap took 652 ms, as the swap without the clip did in the same run, and showed no white frame.
+  - **As built,** filmed by `probe_swap_look.py --built` over twelve swaps: a game out of place in
+    no frame, 2 or 3 jumps, the large tile's pill in its strip all through, the keys on the Active
+    wizard every time, and in place at a median of 722 ms. A white frame still showed in 3 of 12,
+    each as the rings came off, and holding them 150 ms instead of 60 cleared it no better (2 of
+    12). Most likely the area the clip hid is white until the game's next present, since what it
+    draws while clipped never reaches the screen. Not proven; open as BartleBuddy #24.
 - **The player's focus.** `GameView.player_focus_changed` names the game the player last gave
   the keyboard to: a click on an embedded game (`ClientTile.game_clicked`), a detached window
   brought to the front, or the keyboard target given its keyboard. The 50 ms poll never sets it,
