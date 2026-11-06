@@ -1,8 +1,8 @@
 # Writing user-facing text
 
 How to write every string a user reads in BartleBot: titles, descriptions, buttons,
-headings, tooltips, placeholders, messages, status lines, setup's pages and the node
-help. This does not cover log lines, which have their own rules in the root `CLAUDE.md`,
+headings, tooltips, placeholders, messages, status lines, setup's pages, the node help
+and the release notes, which the update popup shows. This does not cover log lines, which have their own rules in the root `CLAUDE.md`,
 or developer docs.
 
 The rules come from comparing BartleBot with VS Code, IntelliJ IDEA, Unreal Engine, Unity
