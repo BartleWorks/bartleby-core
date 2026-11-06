@@ -80,6 +80,9 @@ def test_a_relative_path_is_made_absolute_before_it_is_sent(monkeypatch, tmp_pat
     assert single_instance.absolute_arguments(["Gift.bbot", "--x"]) == [str(tmp_path / "Gift.bbot"), "--x"]
 
 
+# A known flake (BartleWorks/BartleBuddy#13): the second launch's arguments missed the 5 s wait
+# under -n auto load, and it passes alone. See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 def test_two_later_launches_each_arrive(qtbot, first, name):
     first.claim([])
     got = []

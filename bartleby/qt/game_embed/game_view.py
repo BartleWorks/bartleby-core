@@ -65,6 +65,8 @@ from bartleby.shared import game_dpi, product
 logger = logging.getLogger(__name__)
 
 _user32 = ctypes.windll.user32
+#: ``ShowWindow``'s command for a minimized window back at its place and size.
+_SW_RESTORE = 9
 
 _OVERLAY_BTN_SIZE = 34
 _OVERLAY_BTN_MARGIN = 4
@@ -1209,6 +1211,32 @@ class GameView(ThemedMixin, QWidget):
             return
         self._keyboard_owed = True
         self._give_keyboard()
+
+    def bring_to_front(self, hwnd: int) -> bool:
+        """Bring the window the game in *hwnd* is played in to the front: its own when detached, else the app's.
+
+        For a product's hotkey, which may be pressed in a detached game's window or in the
+        app: the window the game is played in comes in front of it, restored if minimized,
+        and the keyboard goes there with it. Windows lets a process do this only when the
+        player's last input was its own, which a hotkey's press is
+        (``SetForegroundWindow``). An embedded game's keyboard is still the keyboard
+        target's, given once the tiles settle (``set_keyboard_target``). Whether the window
+        is in front; False for a game this view holds neither way.
+        """
+        if hwnd in self._detached_hwnds.values():
+            window = hwnd
+        elif any(tile.hwnd == hwnd for tile in self._tiles.values()):
+            window = int(self.window().winId())
+        else:
+            return False
+        if _user32.GetForegroundWindow() == window:
+            return True
+        if _user32.IsIconic(window):
+            _user32.ShowWindow(window, _SW_RESTORE)
+        if not _user32.SetForegroundWindow(window):
+            logger.info("Windows kept window %#x from coming to the front", window)
+            return False
+        return True
 
     def keep_keyboard_over(self, widget: QWidget) -> None:
         """Let a press on *widget*, or anything inside it, leave the keyboard with the game.
