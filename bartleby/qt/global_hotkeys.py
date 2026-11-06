@@ -1,23 +1,36 @@
-"""System-wide hotkeys for the authoring utilities, armed only while a game window has focus.
+"""System-wide hotkeys, armed while a game window has the keyboard, and a product's one exception.
 
-A game window embedded in BartleBot belongs to another process, so its keystrokes never
-reach Qt and a ``QShortcut`` cannot see them. ``RegisterHotKey`` can: Windows delivers
-``WM_HOTKEY`` to the registering thread whichever window has the keyboard.
+A game window embedded in BartleBot or BartleBuddy belongs to another process, so its
+keystrokes never reach Qt and a ``QShortcut`` cannot see them. ``RegisterHotKey`` can:
+Windows delivers ``WM_HOTKEY`` to the registering thread whichever window has the keyboard.
 
 Two decisions follow from that key being system-wide:
 
 * **Registered only while a game window holds the keyboard.** Registered any longer, F1
   would stop reaching every other application on the machine, and a binding on a digit
-  would take the canvas's favorites keys and every text field in BartleBot with it.
-  ``GameView.game_focus_changed`` says when; ``set_armed`` follows it.
+  would take the canvas's favorites keys and every text field in the app with it.
+  ``GameView.game_focus_changed`` says when; ``set_armed`` follows it. The one exception is
+  BartleBuddy's Stop all, armed all the time so control can be taken back from anywhere,
+  which is why a key armed everywhere can't be one that types (``binding_refusals``).
 * **Read through a Qt native event filter, not WizWalker's ``HotkeyListener``.** That
   listener takes ``WM_HOTKEY`` off the thread queue with its own ``PeekMessage`` loop, and
   under qasync Qt's dispatcher pumps the same queue first -- the message would be gone
   before the listener looked. Qt hands every message it pumps to its native filters.
 
+Each set of keys armed on its own terms is a ``GlobalHotkeys`` of its own, with its own id
+base. BartleBot has two: the authoring keys and speed authoring's digits. BartleBuddy has
+three: Stop all, armed everywhere; the keys that type in chat (``types_in_chat``), which
+stand down while the game's chat is open; and the rest.
+
 A binding is a ``QKeySequence`` portable string of one key and its modifiers ("F1",
 "Shift+F2", "Ctrl+8"). Only keys with a fixed virtual-key code are accepted -- F1-F24,
 A-Z and 0-9 -- because the rest depend on the keyboard layout.
+
+What is wrong with a set of bindings comes in two kinds. A refusal can't work: a key
+nothing can register, two actions on one key, or a key that types on an action armed
+everywhere (``binding_refusals``). A clash with the game works, and takes that key from the
+game while a game window has the keyboard (``game_key_clashes``). BartleBot's Authoring tab
+warns of both alike (``binding_problems``); BartleBuddy's Hotkeys tab refuses only the first.
 """
 
 from __future__ import annotations
@@ -25,7 +38,7 @@ from __future__ import annotations
 import ctypes
 import ctypes.wintypes
 import logging
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Collection, Iterator, Mapping, Sequence
 
 from PyQt6.QtCore import QAbstractNativeEventFilter
 
@@ -49,8 +62,15 @@ _MODIFIERS = {"ctrl": MOD_CONTROL, "alt": MOD_ALT, "shift": MOD_SHIFT}
 # window, so two sharing ids would each replace the other's keys.
 ID_BASE_AUTHORING = 0xB800
 ID_BASE_SPEED_AUTHORING = 0xB900
+#: BartleBuddy's sets (Stage 6 of its #14): Stop all, armed everywhere.
+ID_BASE_EVERYWHERE = 0xBA00
+#: BartleBuddy's keys armed while a game has the keyboard that don't type in chat: the F-keys and chords.
+ID_BASE_IN_GAME = 0xBB00
+#: BartleBuddy's keys armed while a game has the keyboard that do type in chat (``types_in_chat``).
+ID_BASE_TYPING = 0xBC00
 
 _VK_F1 = 0x70
+_VK_F24 = 0x87
 
 
 def parse_binding(text: str) -> tuple[int, int] | None:
@@ -71,6 +91,19 @@ def parse_binding(text: str) -> tuple[int, int] | None:
     return None if vk is None else (modifiers, vk)
 
 
+def types_in_chat(text: str) -> bool:
+    """Whether the binding *text* types a character in a text box: a letter or digit with no Ctrl or Alt.
+
+    Shift or not, since Shift only changes what it types. An F-key types nothing, and
+    neither does a key held with Ctrl or Alt. False for an empty or unbindable *text*.
+    """
+    combo = parse_binding(text)
+    if combo is None:
+        return False
+    modifiers, vk = combo
+    return not modifiers & (MOD_CONTROL | MOD_ALT) and not _VK_F1 <= vk <= _VK_F24
+
+
 def binding_problems(
     bindings: Mapping[str, str],
     labels: Mapping[str, str],
@@ -84,9 +117,48 @@ def binding_problems(
     another, since only the first would ever fire; a key the game itself binds
     (*game_bindings*, the players' own) is a third, since while the hotkey is armed the game
     never sees that key. Moved from BartleBot's Authoring tab in Stage 11 of #167, for
-    BartleBuddy's Hotkeys tab.
+    BartleBuddy's Hotkeys tab, which since Stage 6 of BartleBuddy #14 tells the two kinds
+    apart through :func:`binding_refusals` and :func:`game_key_clashes`.
     """
-    problems: list[str] = []
+    return [sentence for _refused, sentence in _judged(bindings, labels, game_bindings)]
+
+
+def binding_refusals(
+    bindings: Mapping[str, str],
+    labels: Mapping[str, str],
+    *,
+    armed_everywhere: Collection[str] = (),
+) -> list[str]:
+    """What can't work in a set of bindings, as sentences; empty when everything can.
+
+    A key nothing can register, and two actions on one key, as :func:`binding_problems`
+    says them. And a key that types (:func:`types_in_chat`) on an action in
+    *armed_everywhere*, which would take that key from every application on the machine.
+    """
+    return [sentence for refused, sentence in _judged(bindings, labels, (), armed_everywhere) if refused]
+
+
+def game_key_clashes(
+    bindings: Mapping[str, str],
+    labels: Mapping[str, str],
+    game_bindings: Sequence[GameBinding],
+) -> list[str]:
+    """What each binding takes from the game, as :func:`binding_problems` says it; empty when nothing.
+
+    A key the game binds still works as a hotkey, and the game doesn't see it while a game
+    window has the keyboard. A key that is refused, or a second action on one key, isn't
+    judged here: it is a refusal (:func:`binding_refusals`).
+    """
+    return [sentence for refused, sentence in _judged(bindings, labels, game_bindings) if not refused]
+
+
+def _judged(
+    bindings: Mapping[str, str],
+    labels: Mapping[str, str],
+    game_bindings: Sequence[GameBinding],
+    armed_everywhere: Collection[str] = (),
+) -> Iterator[tuple[bool, str]]:
+    """Each problem in a set of bindings, in *labels*' order, and whether it is a refusal rather than a clash."""
     game: dict[tuple[int, int], GameBinding] = {}
     for gb in game_bindings:
         combo = parse_binding(gb.binding)
@@ -99,17 +171,27 @@ def binding_problems(
             continue
         combo = parse_binding(text)
         if combo is None:
-            problems.append(f"{label}: {text} can't be used. Choose F1–F24, a letter or a digit.")
+            yield True, f"{label}: {text} can't be used. Choose F1–F24, a letter or a digit."
         elif combo in seen:
-            problems.append(f"{label} and {seen[combo]} both use {text}. Choose another key for one of them.")
+            yield True, f"{label} and {seen[combo]} both use {text}. Choose another key for one of them."
+        elif action in armed_everywhere and types_in_chat(text):
+            yield (
+                True,
+                (
+                    f"{label}: {text} types in every application, and {label} works everywhere. "
+                    "Choose an F-key, or add Ctrl or Alt."
+                ),
+            )
         else:
             seen[combo] = label
             if clash := game.get(combo):
-                problems.append(
-                    f"{label}: {text} is the game's key for {clash.description}, which won't work in "
-                    "the game while this is set."
+                yield (
+                    False,
+                    (
+                        f"{label}: {text} is the game's key for {clash.description}, which won't work in "
+                        "the game while this is set."
+                    ),
                 )
-    return problems
 
 
 def _virtual_key(key: str) -> int | None:

@@ -214,6 +214,9 @@ def test_alt_down_moves_the_card_that_has_focus(qapp):
     assert seen == [[1, 0, 2]]
 
 
+# A known flake (BartleWorks/BartleBuddy#13): under -n auto load the card doesn't hold focus
+# after the rebuild, and it passes alone. See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 def test_focus_follows_the_moved_card_through_a_rebuild(qapp):
     """A host that answers ``reordered`` by building new cards gets focus put back on the
     moved card's replacement, so Alt+Down can be pressed again straight away."""
