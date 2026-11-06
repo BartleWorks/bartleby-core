@@ -194,12 +194,17 @@ class Arbiter:
         key = client_key(lease.client)
         slot = self._slot(key)
         lease.active = False
-        await lease.input.close()
-        if slot.lease is lease:
-            slot.lease, slot.task = None, None
-            slot.freed.set()
-            self._notify(key, None)
-            self._wake_next(slot)
+        try:
+            await lease.input.close()
+        finally:
+            # Whatever ends the close, as a holder stopped while it lets go: a client left
+            # held by a task that has ended keeps every later claim waiting forever. The
+            # keys are let go all the same (``ClientInput.release_all``).
+            if slot.lease is lease:
+                slot.lease, slot.task = None, None
+                slot.freed.set()
+                self._notify(key, None)
+                self._wake_next(slot)
 
     def _wake_next(self, slot: _Slot) -> None:
         for _, _, future in sorted(slot.waiters):
