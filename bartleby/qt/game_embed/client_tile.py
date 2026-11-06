@@ -236,6 +236,9 @@ class ClientTile(_PillIconHover, QWidget):
     # A press on the tile away from its pill, while it swallows clicks (swallow_clicks): on
     # the game, which takes none, or around it.
     body_clicked = pyqtSignal()
+    # The player's press gave the game the keyboard: a click on the game, or a press on the
+    # tile while it lets clicks through. Never a focus_game the app calls for itself.
+    game_clicked = pyqtSignal()
     # A refit has embedded the game again and the tile has finished with it: game_size is the
     # new size, and the window is in its place. Not for a refit that had nothing to move.
     refitted = pyqtSignal()
@@ -595,6 +598,7 @@ class ClientTile(_PillIconHover, QWidget):
         msg = ctypes.wintypes.MSG.from_address(int(message))
         if is_click_notification(msg.message, msg.wParam) and self._window.is_embedded:
             self.focus_game()
+            self.game_clicked.emit()
         # Never super().nativeEvent: calling the base implementation from a Python
         # override crashes PyQt6 with an access violation on the first message. The
         # base only ever answers "not handled", so answer that directly.
@@ -627,14 +631,18 @@ class ClientTile(_PillIconHover, QWidget):
         else:
             if event.button() == Qt.MouseButton.LeftButton:
                 on_pill = self._pill_rect.contains(event.pos())
-                # Swallowing, the press only says where it was: the swap it asks for gives the
-                # keyboard to whichever game should have it.
-                if not self._swallowing:
-                    self.focus_game()
+                # The caption is reported before the keyboard is given, which takes 20 to 50 ms
+                # with the queues joined, so the swap it asks for starts that much sooner. Both
+                # are still on the press, which is what #93's timing needs.
                 if on_pill:
                     self.caption_clicked.emit(self.mapToGlobal(self._pill_rect.bottomLeft()))
                 elif self._swallowing:
                     self.body_clicked.emit()
+                # Swallowing, the press only says where it was: the swap it asks for gives the
+                # keyboard to whichever game should have it.
+                if not self._swallowing and self._window.is_embedded:
+                    self.focus_game()
+                    self.game_clicked.emit()
             super().mousePressEvent(event)
 
     def _game_rect(self) -> QRect:

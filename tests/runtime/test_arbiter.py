@@ -172,6 +172,46 @@ async def test_a_behavior_being_stopped_stays_cancelled_even_when_revoked_too(ar
         await task
 
 
+async def test_a_holder_stopped_while_it_lets_go_still_frees_the_client(arbiter, client):
+    """Preempted, then stopped while its keys are being let go: the next claim must still get the client.
+
+    Stop all cancelling a follower that a dialogue press had just preempted left the
+    client held by a task that had ended, and every later claim, Stop all's own among
+    them, waited forever.
+    """
+    holding, closing = asyncio.Event(), asyncio.Event()
+
+    async def mover():
+        async with arbiter.acquire(client, Owner.MOVEMENT) as lease:
+            await lease.input.hold(GameAction.MOVE_FORWARD)
+            real_close = lease.input.close
+
+            async def slow_close():
+                closing.set()
+                try:
+                    await asyncio.sleep(10)
+                finally:
+                    await real_close()
+
+            lease.input.close = slow_close
+            holding.set()
+            await asyncio.sleep(10)
+
+    async def claim():
+        async with arbiter.acquire(client, Owner.HOTKEY) as lease:
+            return lease.owner
+
+    task = asyncio.create_task(mover())
+    await holding.wait()
+    claimer = asyncio.create_task(claim())
+    await closing.wait()
+    task.cancel()
+    assert await asyncio.wait_for(claimer, 1.0) is Owner.HOTKEY
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert not client.held, "its keys are let go all the same"
+
+
 async def test_wait_free_returns_once_the_holder_lets_go(arbiter, client):
     release = asyncio.Event()
 
