@@ -39,6 +39,12 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   disabled changes with it, fields, combo boxes, buttons and cards, and so do the two that borrow
   `surface_disabled` as a hover: `ActionButton`'s `TERTIARY` and `IconButton`. The dark
   theme is unchanged.
+- `wizard_names.capture_from_combat` reads the local player's nameplate again, where it never
+  returned a name (#6): it read `client.combat_handler`, which no client has, and logged the
+  `AttributeError` at DEBUG. It builds wizwalker's `CombatHandler(client)` instead. A failed
+  read mid-fight, a wizwalker error or a `ValueError`, is still logged at DEBUG; anything
+  else is a warning with its traceback. It still never raises. The test client lost its
+  `combat_handler`, which is what hid this, so a product test that set one has nothing to set.
 
 ## 0.2.0
 

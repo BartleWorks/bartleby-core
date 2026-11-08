@@ -1,9 +1,11 @@
 """Unit tests for wizard name detection and caching."""
 
 import asyncio
+import logging
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from wizwalker.errors import HookNotReady, MemoryInvalidated, MemoryReadError
 
 import bartleby.runtime.game.wizard_names as wn
 from tests.conftest import FakeClient
@@ -478,24 +480,69 @@ def _member(*, is_client: bool, name: str) -> MagicMock:
     return m
 
 
+def _handler_with(members=None, *, side_effect=None):
+    """Patch the CombatHandler capture_from_combat builds, to one answering *members*.
+
+    The handler is patched where wizard_names looks it up, never set on the client: a
+    client has no combat handler, and a FakeClient that had one hid exactly that (#6).
+    """
+    handler = MagicMock()
+    handler.get_members = AsyncMock(return_value=members or [], side_effect=side_effect)
+    return patch.object(wn, "CombatHandler", return_value=handler)
+
+
 async def test_capture_from_combat_picks_the_local_player():
     client = FakeClient()
-    client.combat_handler.get_members = AsyncMock(
-        return_value=[
-            _member(is_client=False, name="Some Enemy"),
-            _member(is_client=True, name="<Color;FFFFFFFF>Wolf Deathblade</Color>"),
-        ]
-    )
+    members = [
+        _member(is_client=False, name="Some Enemy"),
+        _member(is_client=True, name="<Color;FFFFFFFF>Wolf Deathblade</Color>"),
+    ]
 
-    assert await wn.capture_from_combat(client) == "Wolf Deathblade"
-
-
-async def test_capture_from_combat_returns_none_outside_combat():
-    assert await wn.capture_from_combat(FakeClient()) is None
+    with _handler_with(members) as build:
+        assert await wn.capture_from_combat(client) == "Wolf Deathblade"
+    build.assert_called_once_with(client)
 
 
-async def test_capture_from_combat_never_raises():
+async def test_capture_from_combat_answers_none_for_an_empty_nameplate():
+    with _handler_with([_member(is_client=True, name="<Color;FFFFFFFF></Color>")]):
+        assert await wn.capture_from_combat(FakeClient()) is None
+
+
+async def test_capture_from_combat_returns_none_outside_combat(caplog):
+    """wizwalker's own handler, on a client with no combatant windows: None, and nothing logged."""
     client = FakeClient()
-    client.combat_handler.get_members = AsyncMock(side_effect=RuntimeError("not in combat"))
+    client.root_window.get_windows_with_name = AsyncMock(return_value=[])
 
-    assert await wn.capture_from_combat(client) is None
+    with caplog.at_level(logging.DEBUG, logger=wn.__name__):
+        assert await wn.capture_from_combat(client) is None
+    assert caplog.records == []
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        MemoryInvalidated("This combat member is no longer valid"),
+        MemoryReadError(0x1000),
+        HookNotReady("Root window"),
+        ValueError("Couldn't find name child"),
+    ],
+    ids=["invalidated", "read-error", "hook-not-ready", "no-name-window"],
+)
+async def test_capture_from_combat_logs_an_expected_failure_at_debug(error, caplog):
+    member = _member(is_client=True, name="unused")
+    member.name.side_effect = error
+
+    with _handler_with([member]), caplog.at_level(logging.DEBUG, logger=wn.__name__):
+        assert await wn.capture_from_combat(FakeClient()) is None
+    assert [r.levelno for r in caplog.records] == [logging.DEBUG]
+
+
+async def test_capture_from_combat_warns_of_an_unexpected_failure_and_never_raises(caplog):
+    with (
+        _handler_with(side_effect=AttributeError("'Client' object has no attribute 'combat_handler'")),
+        caplog.at_level(logging.DEBUG, logger=wn.__name__),
+    ):
+        assert await wn.capture_from_combat(FakeClient()) is None
+    [record] = caplog.records
+    assert record.levelno == logging.WARNING
+    assert record.exc_info is not None and record.exc_info[0] is AttributeError
