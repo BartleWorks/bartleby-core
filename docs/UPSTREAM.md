@@ -3,6 +3,8 @@
 wizwalker and wizsprinter are **ours**. Both live under `BartleWorks`, both are
 maintained here rather than staged for someone else's PR queue, and both are pinned by
 exact commit. The local checkout paths and repo URLs are in the root `CLAUDE.md`.
+bartleby-core itself is released, and a product pins a release by its tag: *Core's
+releases*, at the end.
 
 ## The libraries
 
@@ -161,7 +163,8 @@ cd ../wizwalker && git tag bartlebot-pin-$(date +%Y%m%d) main && git push origin
 Tags follow `bartlebot-pin-YYYYMMDD`. A second pin on the same day takes a letter after
 the date, as `bartlebot-pin-20260926b` did. Never delete a tag that an older commit of
 this repo still pins, or you break the build at that revision. The tags are also what
-keeps a pin reachable once the feature branch it was made on is deleted.
+keeps a pin reachable once the feature branch it was made on is deleted. This is the
+forks' scheme alone: core has releases, tagged `vX.Y.Z` (*Core's releases*, below).
 
 Current pins, both on `main`:
 
@@ -216,27 +219,80 @@ Current pins, both on `main`:
   `cast_time * 2`; `CombatConfigProvider.from_string`; and the generator backend's
   unawaited round. Earlier pins are in `git log` and the earlier tags.
 
-## Bumping BartleBot's pin to core
+## Core's releases
 
-bartleby-core is pinned the same way, by exact commit, in BartleBot's `[tool.uv.sources]`:
-its release build cannot build from a path. BartleBuddy takes core by local path
-(`docs/ARCHITECTURE.md`, *How a product takes core*). A stage that changes core:
+Core has a version of its own, independent of either product, and a product pins a release
+of it. Two products take core, so a change one product drove can break the other, and the
+version and the changelog are how the other one finds out.
+
+- **SemVer, with Cargo's rule while core is 0.x.** A minor bump (0.2.0 to 0.3.0) means a
+  product may have to change: a name removed or moved, a call an old caller makes that now
+  fails, a stand-in or protocol that needs more, a behavior a caller relied on. A patch bump
+  (0.2.0 to 0.2.1) means nothing breaks: additions, fixes and docs.
+- **A release is cut when a product needs to pin a change**, not per merge. A docs-only
+  merge never needs one, and several merges can wait for the same release.
+- **The tag is the version.** A release is a tag `vX.Y.Z` on a commit of `master`, and
+  `hatch-vcs` reads it at build time (`[tool.hatch.version]` in `pyproject.toml`), so no
+  file holds the number. A commit past the tag builds as the next patch, marked as a
+  development build (`0.2.1.dev3+g1a2b3c4`). Only `v` tags count: the old
+  `bartlebot-pin-YYYYMMDD` tags on core are ignored, and kept, since older BartleBot
+  commits pin them. Never delete or move either kind.
+- **`CHANGELOG.md` says what each release changes**, with a **Breaking** list of what a
+  product must fix to take it. A merge that changes what a product sees adds its line in
+  the merge itself, under `## Unreleased` at the top, starting that heading if the last
+  release left none.
+- **Core's milestones are named for its versions** (`0.2.0`), in BartleWorks/bartleby-core.
+  An issue meant for the next release goes in its milestone, which closes when the tag is
+  pushed.
+
+### Cutting a release
+
+From an up-to-date `master` with the suite green. The last release tag is the base:
 
 ```bash
-# while the stage is built, BartleBot's branch takes the sibling checkout
-#   bartleby-core = { path = "../bartleby-core", editable = true }
 cd ../bartleby-core
-git switch master && git merge --no-ff <stage-branch>
-git tag bartlebot-pin-$(date +%Y%m%d) master
-git push origin master refs/tags/bartlebot-pin-$(date +%Y%m%d)
+git switch master && git pull --ff-only
+git log --oneline v0.2.0..master            # what the release holds
+# Breaking not empty: the minor (0.3.0). Otherwise the patch (0.2.1).
+# CHANGELOG.md: "## Unreleased" becomes "## 0.3.0", committed on master
+git tag -a v0.3.0 -m "bartleby-core 0.3.0"
+uv build --wheel -o <a scratch folder>      # the wheel's name says 0.3.0
+git push origin master refs/tags/v0.3.0
+gh api -X PATCH repos/BartleWorks/bartleby-core/milestones/<number> -f state=closed
+```
+
+### How a product takes a release
+
+By tag, in its `[tool.uv.sources]`; `uv.lock` records the commit the tag named:
+
+```toml
+bartleby-core = { git = "https://github.com/BartleWorks/bartleby-core.git", tag = "v0.3.0" }
+```
+
+Moving the pin is a change in the product, on its own branch:
+
+```bash
 cd ../BartleBot
-#   bartleby-core = { git = "https://github.com/BartleWorks/bartleby-core.git", rev = "<core's merge commit, in full>" }
+# read CHANGELOG.md's Breaking for every release after the old pin, and fix each item
+#   bartleby-core = { git = "https://github.com/BartleWorks/bartleby-core.git", tag = "v0.3.0" }
 uv lock && uv sync && uv run pytest -n auto
 ```
 
-Core has one long-lived branch, `master`, and it is never rewritten, so a pinned commit stays
-reachable; it is tagged anyway, as the forks' pins are. With the path source an edit to core
-is live in BartleBot at once, with no `--no-sync`: uv keeps an editable path install as it is.
+A product pins a release, never a commit between releases: when it needs a change, cut a
+release. While a stage spanning the repos is built, the product's branch takes the sibling
+checkout instead, `bartleby-core = { path = "../bartleby-core", editable = true }`, and an
+edit to core is live at once, with no `--no-sync`, since uv keeps an editable path install
+as it is. Core merges first and is released, and the product's merge carries the new tag.
+
+BartleBot always pins a release, since its release build cannot build from a path. Its
+`rev` pin at `1b1caab` predates core's releases, and BartleBot #301 moves it to `v0.2.0`.
+BartleBuddy takes core by path, editable, until it is packaged (BartleBuddy #4), and then
+pins by tag the same way. With the path, its installed version is the development build
+after the nearest tag, built again on a sync once core's commit or tags move
+(`[tool.uv] cache-keys` in core's `pyproject.toml`).
+
+Core has one long-lived branch, `master`, and it is never rewritten, so every tag stays
+reachable.
 
 ## Remotes and identity
 

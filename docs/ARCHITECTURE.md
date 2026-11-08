@@ -57,11 +57,12 @@ its file name. What it needs from BartleBot becomes one named cut, the same thre
 The three repos sit side by side under one folder, and each product names core in its
 `[tool.uv.sources]`:
 
-- **BartleBuddy**, by local path, editable, while core is in motion. It moves to a pin by
-  commit before its first CI build.
-- **BartleBot**, from Stage 3 of #167, by git URL and commit, since its release build cannot
-  build from a path. Every stage that changes core bumps the pin. A stage branch may use the
-  path while it is built; its merge carries the pin.
+- **BartleBuddy**, by local path, editable, while core is in motion. It moves to a release
+  tag before its first CI build (BartleBuddy #4).
+- **BartleBot**, by git URL and a release tag, `tag = "vX.Y.Z"`, since its release build
+  cannot build from a path. A release is cut when a product needs a change, and
+  `CHANGELOG.md` says what each one breaks (`docs/UPSTREAM.md`, *Core's releases*). A stage
+  branch may use the path while it is built; its merge carries the new tag.
 
 A change that belongs to both products goes in core, never copied into one. A stage of a
 family plan changes the three repos together: a branch in each named for the stage, merged

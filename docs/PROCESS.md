@@ -46,6 +46,9 @@ no commit trail behind it.
   three products, and an issue with no `Product` drops out of every per-product view.
 - **A milestone is a commitment.** Add `1.0.0` only if it blocks going public. No
   milestone is the default and carries no stigma.
+- **Core's milestones are named for core's versions** (`0.2.0`), never a product's: core
+  is released on its own, and its milestone closes when the release's tag is pushed
+  (`docs/UPSTREAM.md`, *Core's releases*).
 - **Priority and Size are set at triage, not at creation.** Filing is cheap;
   estimating is not. Leave them empty and sweep them periodically.
 - **Never put work items in a markdown checklist.** A checklist line cannot be

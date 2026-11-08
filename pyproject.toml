@@ -69,7 +69,7 @@ build-backend = "hatchling.build"
 
 # The version is the nearest release tag, vX.Y.Z, and only that: the old bartlebot-pin-YYYYMMDD
 # tags would otherwise read as version YYYYMMDD. A commit past the tag, or a tree with edits,
-# gets a .devN version after it. The fallback is for a copy with no git history at all.
+# builds as the next patch's .devN (0.2.1.dev3+g1a2b3c4). The fallback is for a copy with no git history at all.
 [tool.hatch.version]
 source = "vcs"
 tag-pattern = '^v(?P<version>\d+\.\d+\.\d+)$'
