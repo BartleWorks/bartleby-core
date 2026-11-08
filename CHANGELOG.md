@@ -15,6 +15,12 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 - The render sheet frees what a surface `deleteLater`'d before it grabs, as the running
   app's event loop does, so Quick Launch draws each card once instead of twice (#11). A
   product's sheet changes only where a surface was drawing widgets it had replaced.
+- A disabled control in the light theme reads as off, not as a shade of enabled (#2):
+  `surface_disabled` moved from `#e4e7ec` to a grayer `#dadfe8`, 1.19:1 off `surface`, and
+  `text_disabled` from `#a8adb8` to `#9096a3`, 2.2:1 on it. Everything both products draw
+  disabled changes with it, fields, combo boxes, buttons and cards, and so do the two that borrow
+  `surface_disabled` as a hover: `ActionButton`'s `TERTIARY` and `IconButton`. The dark
+  theme is unchanged.
 
 ## 0.2.0
 

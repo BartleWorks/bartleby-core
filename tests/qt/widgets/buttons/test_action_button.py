@@ -112,8 +112,8 @@ def test_the_disabled_look_is_one_look_for_all_four(qapp):
 
 
 def test_a_disabled_button_has_no_visible_outline(qapp):
-    """Its border is its fill: enabled ``TERTIARY`` is only ~3% off ``surface_disabled``,
-    so the outline is what actually separates off from on."""
+    """Its border is its fill: enabled ``TERTIARY`` is only a shade off ``surface_disabled``,
+    so losing the outline does much of the work of separating off from on."""
     for style in ActionStyle:
         sheet = ActionButton("plus", "x", style=style).styleSheet()
         disabled = sheet.split("QPushButton:disabled")[1]
