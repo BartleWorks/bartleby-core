@@ -68,9 +68,15 @@ class _Theme:
     # the color of *enabled* secondary text, so reusing it for the disabled
     # palette group made a disabled button indistinguishable from an enabled one
     # carrying a hint label.  Pairing it with ``surface_disabled`` means disabled
-    # reads as a change of shape (flatter, recessed), not just a change of shade.
-    text_disabled: str = "#a8adb8"
-    surface_disabled: str = "#e4e7ec"  # button/base fill for the Disabled palette group
+    # reads as a change of fill, not just a change of shade, and a disabled field
+    # or ``ActionButton`` draws its outline in that fill, so it reads flat too.
+    # The fill moves a different way in each theme.  The dark one sinks toward
+    # ``bg``, into the panel.  The light one has no room there (``surface`` is
+    # 1.12:1 off white), so it goes grayer, the grayed-out look of a light UI, and
+    # has to sit well clear of ``surface`` to be seen: #e4e7ec, 1.10:1 off it, did
+    # not (#2).  ``test_disabled_affordance.py`` holds both themes to this.
+    text_disabled: str = "#9096a3"  # ~2.2:1 on surface_disabled — legible as "off", not as content
+    surface_disabled: str = "#dadfe8"  # grayer than surface, 1.19:1 off it: the Disabled group's button/base fill
 
     # ------------------------------------------------------------------
     # Node: Neutral (default / hover / selected)
@@ -356,7 +362,7 @@ class _Theme:
         p.setColor(QPalette.ColorRole.LinkVisited, QColor(self.accent))
 
         # Disabled group.  Both the text *and* the fill shift, so a disabled
-        # control reads as recessed rather than merely dimmer — text alone was
+        # control reads as off rather than merely dimmer — text alone was
         # not a strong enough signal (text_disabled vs text is a shade apart,
         # and both are legible).  Done through the palette rather than QSS on
         # purpose: a QSS ``background`` rule on QPushButton makes
@@ -617,7 +623,7 @@ DARK = _Theme(
     # Text variants
     text_muted="#9e9e9e",  # lightened from #808080 — was 3.5:1 on bg, now ~5.5:1
     text_subtle="#999999",
-    text_disabled="#5a5a5a",  # ~2.4:1 on surface_disabled — legible as "off", not as content
+    text_disabled="#5a5a5a",  # ~2.2:1 on surface_disabled — legible as "off", not as content
     surface_disabled="#262629",  # between bg and surface: a disabled button sinks into the panel
     # Node: Neutral
     node_fill="#3c3c3c",

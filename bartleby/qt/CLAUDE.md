@@ -221,8 +221,9 @@ Five rules that are easy to get wrong:
   outline: drawn unfilled it read as a tinted `TERTIARY` on the light theme's near-white
   field, and thickening the border to fix it would have been a shape change.
 - **A disabled button has no outline.** Its border is drawn in `surface_disabled`, the
-  same color as its fill, because an enabled `TERTIARY` (`surface`) sits only ~3% off
-  that fill — losing the outline is what actually separates off from on. It matters most
+  same color as its fill, because an enabled `TERTIARY` (`surface`) sits only a shade off
+  that fill (1.1:1 to 1.2:1) — losing the outline does much of the work of separating off
+  from on. It matters most
   on the inspector surfaces, where most buttons start disabled.
 - **Derive, never hardcode.** `SECONDARY`'s wash is mixed from `THEME.accent` over
   `THEME.bg` at style time, and how much of it shows through is read off `bg`'s own

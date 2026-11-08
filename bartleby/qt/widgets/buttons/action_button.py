@@ -233,8 +233,8 @@ class ActionButton(ThemedMixin, QPushButton):
             # One disabled look for all four: a disabled button is not a weaker version of
             # its style, it is the same "off" every disabled control on the screen wears.
             # The border is the fill color, i.e. no visible outline at all — an enabled
-            # ``TERTIARY`` sits only ~3% off ``surface_disabled`` in the light theme, so
-            # losing the outline is what actually separates off from on.
+            # ``TERTIARY`` sits only a shade off ``surface_disabled`` (1.1:1 to 1.2:1), so
+            # losing the outline does much of the work of separating off from on.
             f"QPushButton:disabled {{ color: {THEME.text_disabled}; background: {THEME.surface_disabled};"
             f" border-color: {THEME.surface_disabled}; }}"
         )

@@ -8,6 +8,44 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+### Added
+
+- `ElidedLabel(color=)`, a `THEME` token the text is painted in and re-read on every theme
+  switch, as `ThemedTextLabel`'s is; and `ElidedLabel.shown_text()` and `is_elided()`, as
+  on `WrappingElidedLabel` (#3). `text()` is still the full text.
+
+### Changed
+
+- `ElidedLabel`'s tooltip is the full text only while the text is elided, as
+  `WrappingElidedLabel`'s is, where it was the full text on every label (#3). A label that
+  fits shows no tooltip unless the caller set one. A tooltip the caller set is kept beside
+  the full text, and through the next `setText`, which used to overwrite it; and on either
+  label, one that is the label's own text is not said twice.
+- An `ElidedLabel`'s minimum width is 24px or its text's width, whichever is less, and an
+  empty one asks for no width (#3), where every label's minimum was 24px and an empty one's
+  hint about a character. It elides inside `margin()` as well as the contents margins,
+  which its size hint already counted.
+
+### Fixed
+
+- The render sheet frees what a surface `deleteLater`'d before it grabs, as the running
+  app's event loop does, so Quick Launch draws each card once instead of twice (#11). A
+  product's sheet changes only where a surface was drawing widgets it had replaced.
+- A disabled control in the light theme reads as off, not as a shade of enabled (#2):
+  `surface_disabled` moved from `#e4e7ec` to a grayer `#dadfe8`, 1.19:1 off `surface`, and
+  `text_disabled` from `#a8adb8` to `#9096a3`, 2.2:1 on it. Everything both products draw
+  disabled changes with it, fields, combo boxes, buttons and cards, and so do the two that borrow
+  `surface_disabled` as a hover: `ActionButton`'s `TERTIARY` and `IconButton`. The dark
+  theme is unchanged.
+- `wizard_names.capture_from_combat` reads the local player's nameplate again, where it never
+  returned a name (#6): it read `client.combat_handler`, which no client has, and logged the
+  `AttributeError` at DEBUG. It builds wizwalker's `CombatHandler(client)` instead. A failed
+  read mid-fight, a wizwalker error or a `ValueError`, is still logged at DEBUG; anything
+  else is a warning with its traceback. It still never raises. The test client lost its
+  `combat_handler`, which is what hid this, so a product test that set one has nothing to set.
+
 ## 0.2.0
 
 Core's first release. Everything after `1b1caab` (`bartlebot-pin-20261101b`), the commit

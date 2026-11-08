@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QFontMetrics
 from PyQt6.QtWidgets import QLabel, QSizePolicy
 
@@ -59,15 +59,18 @@ def test_size_hint_still_asks_for_the_full_width(qapp):
 
 
 def test_keeps_the_full_text_available(qapp):
-    lbl = ElidedLabel(_LONG)
+    lbl = ElidedLabel()
+    lbl.resize(40, 16)  # hidden, so set before the text: a hidden label's resize event waits for show
+    lbl.setText(_LONG)
 
     assert lbl.full_text() == _LONG
     assert lbl.text() == _LONG  # so callers reading .text() still see everything
-    assert lbl.toolTip() == _LONG
+    assert lbl.toolTip() == _LONG  # elided at this width, so the whole of it is on hover
 
 
 def test_set_text_updates_full_text_and_tooltip(qapp):
     lbl = ElidedLabel("first")
+    lbl.resize(40, 16)
     lbl.setText("second and rather longer")
 
     assert lbl.full_text() == "second and rather longer"
@@ -365,3 +368,183 @@ def test_a_real_font_change_elides_again_at_the_new_size(qapp):
 
     assert lbl.elided_text(80) == elide_long_words(_UNBROKEN, lbl.fontMetrics(), 80)
     assert lbl.elided_text(80) != small
+
+
+# -- ElidedLabel: what the bot header's label brought (#3) --------------------------
+
+
+def _laid_out(lbl: ElidedLabel, width: int) -> ElidedLabel:
+    """*lbl* shown offscreen at *width*, so its resize is delivered rather than held."""
+    lbl.setAttribute(Qt.WidgetAttribute.WA_DontShowOnScreen)
+    lbl.show()
+    lbl.resize(width, 20)
+    return lbl
+
+
+def test_the_tooltip_is_the_full_text_only_while_elided(qapp):
+    """A label that fits says nothing on hover; it used to repeat its own text."""
+    lbl = ElidedLabel(_ZONE)
+    _laid_out(lbl, lbl.sizeHint().width() * 2)
+    assert not lbl.is_elided()
+    assert lbl.toolTip() == ""
+
+    _laid_out(lbl, _half_width(lbl))
+    assert lbl.is_elided()
+    assert lbl.toolTip() == _ZONE
+
+
+def test_new_text_that_fits_clears_the_tooltip(qapp):
+    lbl = _laid_out(ElidedLabel(_ZONE), 0)
+    lbl.resize(_half_width(lbl), 20)
+    assert lbl.toolTip() == _ZONE
+
+    lbl.setText("x")
+
+    assert lbl.toolTip() == ""
+
+
+def test_the_callers_tooltip_stays_beside_the_full_text(qapp):
+    """A caller's tooltip says something the text does not; eliding must not replace it."""
+    lbl = ElidedLabel(_ZONE)
+    lbl.setToolTip("Navigate to the zone")
+    _laid_out(lbl, lbl.sizeHint().width() * 2)
+    assert lbl.toolTip() == "Navigate to the zone"
+
+    _laid_out(lbl, _half_width(lbl))
+    assert lbl.toolTip() == f"{_ZONE}\n\nNavigate to the zone"
+
+
+def test_the_callers_tooltip_outlives_new_text(qapp):
+    """It used to be overwritten by the next setText."""
+    lbl = _laid_out(ElidedLabel("first"), 400)
+    lbl.setToolTip("Why it says so")
+
+    lbl.setText("second")
+
+    assert lbl.toolTip() == "Why it says so"
+
+
+def test_a_tooltip_that_is_the_full_text_is_not_said_twice(qapp):
+    lbl = ElidedLabel(_ZONE)
+    lbl.setToolTip(_ZONE)
+    _laid_out(lbl, _half_width(lbl))
+
+    assert lbl.toolTip() == _ZONE
+
+
+def test_the_wrapping_label_does_not_say_its_text_twice_either(qapp):
+    lbl = WrappingElidedLabel(_UNBROKEN)
+    lbl.setToolTip(_UNBROKEN)
+    _at_width(lbl, 150)
+
+    assert lbl.toolTip() == _UNBROKEN
+
+
+def test_shown_text_is_what_is_drawn_and_text_stays_whole(qapp):
+    lbl = _laid_out(ElidedLabel(_ZONE), 0)
+    lbl.resize(_half_width(lbl), 20)
+
+    assert lbl.shown_text() == lbl.elided_text(lbl.contentsRect().width())
+    assert lbl.shown_text() != _ZONE
+    assert lbl.text() == _ZONE
+
+
+def test_a_font_change_re_decides_the_tooltip(qapp):
+    """A stylesheet's font-size lands after construction, and what fits changes with it."""
+    lbl = _laid_out(ElidedLabel(_ZONE), 0)
+    lbl.setFont(_font_px(10))
+    lbl.resize(QFontMetrics(lbl.font()).horizontalAdvance(_ZONE) + 4, 20)
+    assert lbl.toolTip() == ""
+
+    lbl.setFont(_font_px(24))
+
+    assert lbl.toolTip() == _ZONE
+
+
+def test_the_size_hint_counts_the_contents_margins(qapp):
+    """A subclass that moves its text with a margin (the bot header's baseline shift) is given room for it."""
+    lbl = ElidedLabel(_ZONE)
+    plain = lbl.sizeHint()
+
+    lbl.setContentsMargins(3, 4, 5, 6)
+
+    assert lbl.sizeHint() == QSize(plain.width() + 8, plain.height() + 10)
+    assert lbl.minimumSizeHint().height() == plain.height() + 10
+
+
+def test_a_margin_narrows_the_room_and_re_decides_the_tooltip(qapp):
+    lbl = ElidedLabel(_ZONE)
+    _laid_out(lbl, lbl.sizeHint().width())
+    assert not lbl.is_elided()
+
+    lbl.setContentsMargins(20, 0, 0, 0)
+
+    assert lbl.is_elided()
+    assert lbl.toolTip() == _ZONE
+
+
+def test_text_at_its_own_size_hint_is_not_elided(qapp):
+    """The hint and the paint agree on the margins: a label given its hint shows all of it."""
+    lbl = ElidedLabel(_ZONE)
+    lbl.setContentsMargins(0, 2, 0, 0)
+    lbl.setMargin(3)
+    _laid_out(lbl, lbl.sizeHint().width())
+
+    assert lbl.shown_text() == _ZONE
+
+
+def test_the_minimum_is_small_but_never_wider_than_the_text(qapp):
+    """An empty label beside others claims nothing; a long one keeps room for "…" and a character."""
+    assert ElidedLabel("").sizeHint().width() == ElidedLabel("").minimumSizeHint().width() == 0
+    short = ElidedLabel("i")
+    assert short.minimumSizeHint().width() == min(24, short.sizeHint().width())
+    assert ElidedLabel(_LONG).minimumSizeHint().width() == 24
+
+
+def test_a_maximum_policy_keeps_the_small_minimum(qapp):
+    """What the bot header sets: never wider than the text, and still shrinkable."""
+    lbl = ElidedLabel(_LONG)
+    lbl.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Preferred)
+
+    assert lbl.sizePolicy().horizontalPolicy().value & QSizePolicy.PolicyFlag.ShrinkFlag.value
+    assert lbl.minimumSizeHint().width() == 24
+
+
+def test_a_color_token_paints_the_text_in_that_color(qapp):
+    from bartleby.qt.theming.theme import THEME
+
+    lbl = ElidedLabel("x", color="text_subtle")
+
+    assert lbl.palette().color(lbl.foregroundRole()).name().lower() == THEME.text_subtle.lower()
+    assert lbl.styleSheet() == ""
+
+
+def test_a_color_token_is_read_again_on_a_theme_switch(qapp, monkeypatch):
+    """The token is resolved on each StyleChange, so nothing has to push the new color in."""
+    from PyQt6.QtCore import QEvent
+    from PyQt6.QtWidgets import QApplication
+
+    from bartleby.qt.theming import theme as theme_mod
+
+    lbl = ElidedLabel("x", color="text_subtle")
+    before = theme_mod.active_theme()
+    other = theme_mod.LIGHT if before is theme_mod.DARK else theme_mod.DARK
+    assert other.text_subtle.lower() != before.text_subtle.lower()  # guards the premise
+    try:
+        theme_mod.set_theme_instance(other)
+        QApplication.sendEvent(lbl, QEvent(QEvent.Type.StyleChange))
+
+        assert lbl.palette().color(lbl.foregroundRole()).name().lower() == other.text_subtle.lower()
+    finally:
+        theme_mod.set_theme_instance(before)
+
+
+def test_set_text_color_replaces_a_token(qapp):
+    from PyQt6.QtCore import QEvent
+    from PyQt6.QtWidgets import QApplication
+
+    lbl = ElidedLabel("x", color="text_subtle")
+    lbl.set_text_color("#123456")
+    QApplication.sendEvent(lbl, QEvent(QEvent.Type.StyleChange))
+
+    assert lbl.palette().color(lbl.foregroundRole()).name().lower() == "#123456"

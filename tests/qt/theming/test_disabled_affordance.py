@@ -10,7 +10,7 @@ readable either way, so "disabled" was indistinguishable from "enabled".
 from __future__ import annotations
 
 import pytest
-from PyQt6.QtGui import QIcon, QPalette
+from PyQt6.QtGui import QColor, QIcon, QPalette
 
 from bartleby.qt.theming.icon_utils import svg_icon, svg_pixmap
 from bartleby.qt.theming.theme import DARK, LIGHT
@@ -27,6 +27,47 @@ def test_disabled_text_differs_from_enabled_secondary_text(qapp, theme):
 def test_disabled_fill_differs_from_the_enabled_button_fill(qapp, theme):
     """Text alone is too weak a signal — the fill has to move as well."""
     assert theme.surface_disabled.lower() != theme.surface.lower()
+
+
+def _luminance(hex_color: str) -> float:
+    """WCAG relative luminance."""
+    color = QColor(hex_color)
+
+    def channel(v: float) -> float:
+        return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+
+    return 0.2126 * channel(color.redF()) + 0.7152 * channel(color.greenF()) + 0.0722 * channel(color.blueF())
+
+
+def _contrast(a: str, b: str) -> float:
+    """WCAG contrast ratio, 1.0 (identical) to 21.0 (black on white)."""
+    lo, hi = sorted((_luminance(a), _luminance(b)))
+    return (hi + 0.05) / (lo + 0.05)
+
+
+@pytest.mark.parametrize("theme", [LIGHT, DARK], ids=["light", "dark"])
+def test_disabled_text_is_legible_as_off_but_not_as_content(theme):
+    """Low contrast on purpose, in a band: under 3:1, the floor for large text, so it never
+    reads as content, and over 2:1 so it can still be read. The light theme's was 1.8:1."""
+    assert 2.0 <= _contrast(theme.text_disabled, theme.surface_disabled) < 3.0
+
+
+@pytest.mark.parametrize("theme", [LIGHT, DARK], ids=["light", "dark"])
+def test_disabled_fill_sits_measurably_apart_from_surface(theme):
+    assert _contrast(theme.surface_disabled, theme.surface) >= 1.05
+
+
+def test_dark_disabled_fill_sinks_toward_the_page():
+    """Between ``bg`` and ``surface``: a disabled control sinks into the panel."""
+    assert _luminance(DARK.bg) < _luminance(DARK.surface_disabled) < _luminance(DARK.surface)
+
+
+def test_light_disabled_fill_is_grayed_well_clear_of_surface():
+    """``surface`` is barely off white, so there is no room toward the page: the fill goes
+    grayer instead, and needs more distance than the dark one to be seen. #e4e7ec, at
+    1.10:1, did not read as disabled (#2)."""
+    assert _luminance(LIGHT.surface_disabled) < _luminance(LIGHT.surface)
+    assert _contrast(LIGHT.surface_disabled, LIGHT.surface) >= 1.15
 
 
 @pytest.mark.parametrize("theme", [LIGHT, DARK], ids=["light", "dark"])

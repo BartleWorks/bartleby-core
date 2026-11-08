@@ -23,6 +23,8 @@ import asyncio
 import logging
 import re
 
+from wizwalker.combat import CombatHandler
+from wizwalker.errors import WizWalkerError
 from wizwalker.memory.memory_object import Primitive
 
 from bartleby.runtime.clients import game_keys
@@ -383,12 +385,26 @@ async def capture_from_combat(client) -> str | None:
     Free relative to detect_wizard_name — it reads windows the game already has on screen
     and sends no input — but only returns a name while the client is in a duel. Intended
     as an opportunistic cache filler, not a primary route.
+
+    A client has no combat handler of its own, so one is built here, as the probes build
+    theirs. Outside a duel there are no combatant windows, and get_members answers [].
+
+    Never raises. A read that fails mid-fight is expected and logged at DEBUG: wizwalker
+    raises its own errors for memory and hooks (MemoryInvalidated once a combatant's
+    participant is gone, MemoryReadError, HookNotReady, ClientClosedError), and ValueError
+    for a combatant with no Name window, the same pair its window search treats as
+    unreadable. Anything else is a bug here or in the API this relies on, and is logged as
+    a warning with its traceback. One except for both once hid at DEBUG that this read an
+    attribute no client has, so it never returned a name at all (#6).
     """
     try:
-        for member in await client.combat_handler.get_members():
+        handler = CombatHandler(client)
+        for member in await handler.get_members():
             if await member.is_client():
                 name = strip_markup(await member.name())
                 return name or None
-    except Exception:
+    except (WizWalkerError, ValueError):
         logger.debug("Could not read the wizard name from combat", exc_info=True)
+    except Exception:
+        logger.warning("Reading the wizard name from combat failed unexpectedly", exc_info=True)
     return None
