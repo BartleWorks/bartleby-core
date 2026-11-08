@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import os
 
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QWidget
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QColor, QImage, QPainter
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from bartleby.qt.testing.render_sheet import Surface, compare, core_themes, is_blank, render
 from bartleby.qt.theming.theme import DARK, LIGHT, active_theme
@@ -72,6 +74,38 @@ def test_a_surface_of_one_color_is_blank(qapp, tmp_path):
     render([Surface("empty", QWidget, (40, 40))], tmp_path)
 
     assert is_blank(tmp_path / "empty.light.png")
+
+
+class _Swatch(QWidget):
+    """A card that paints itself one color, whatever the theme's stylesheet says."""
+
+    def __init__(self, color: Qt.GlobalColor) -> None:
+        super().__init__()
+        self._color = QColor(color)
+
+    def paintEvent(self, event):  # noqa: N802 - Qt's name
+        QPainter(self).fillRect(self.rect(), self._color)
+
+
+def _column_that_replaced_its_card() -> QWidget:
+    """A column whose red card was replaced by a blue one, the old one only ``deleteLater``'d, as ``CardColumn.set_cards`` does."""
+    column = QWidget()
+    layout = QVBoxLayout(column)
+    layout.setContentsMargins(0, 0, 0, 0)
+    old = _Swatch(Qt.GlobalColor.red)
+    layout.addWidget(old)
+    old.deleteLater()
+    layout.addWidget(_Swatch(Qt.GlobalColor.blue))
+    return column
+
+
+def test_a_widget_the_surface_replaced_is_gone_before_the_grab(qapp, tmp_path):
+    render([Surface("replaced", _column_that_replaced_its_card, (40, 40))], tmp_path)
+
+    for theme in ("light", "dark"):
+        image = QImage(str(tmp_path / f"replaced.{theme}.png"))
+        colors = {image.pixelColor(x, y).name() for x in range(image.width()) for y in range(image.height())}
+        assert colors == {"#0000ff"}, theme
 
 
 def test_the_offscreen_platform_is_pointed_at_the_systems_fonts(monkeypatch, tmp_path):

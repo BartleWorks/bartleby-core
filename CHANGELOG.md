@@ -8,6 +8,14 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+### Fixed
+
+- The render sheet frees what a surface `deleteLater`'d before it grabs, as the running
+  app's event loop does, so Quick Launch draws each card once instead of twice (#11). A
+  product's sheet changes only where a surface was drawing widgets it had replaced.
+
 ## 0.2.0
 
 Core's first release. Everything after `1b1caab` (`bartlebot-pin-20261101b`), the commit

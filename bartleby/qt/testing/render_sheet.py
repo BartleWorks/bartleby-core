@@ -82,7 +82,15 @@ def apply_theme(app: QApplication, theme: object) -> None:
 
 
 def _settle(app: QApplication) -> None:
+    """Turn the loop as the running app would, freeing what the surface ``deleteLater``'d.
+
+    ``processEvents`` leaves a ``DeferredDelete`` alone with no event loop running
+    (``widget_lifetime.py`` has why), so a widget a surface replaced, as ``CardColumn.set_cards``
+    replaces its cards, would still be laid out and drawn beside its replacement when the sheet
+    grabs. The running app's loop frees it, so each turn sends them first, as ``_free`` does.
+    """
     for _ in range(SETTLE_TURNS):
+        app.sendPostedEvents(None, QEvent.Type.DeferredDelete)
         app.processEvents()
 
 
