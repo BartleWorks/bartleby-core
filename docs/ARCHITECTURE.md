@@ -264,7 +264,7 @@ BartleBuddy's window comes back where it closed, from `UiState`.
 ## Where the runtime runs
 
 Anything synchronous on Qt's thread holds every coroutine on a loop that shares it. A tile
-resize waits for the game's window thread to answer a move, which BartleBot's #285 measured
+resize waits for the game's window thread to answer a move, which BartleWorks/bartleby-core#9 (BartleBot's #285) measured
 at 1.1 to 1.4 s, and an embed at up to 3.6 s. So the two products differ, by what their
 runtime does:
 

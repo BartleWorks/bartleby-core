@@ -1,16 +1,18 @@
 # Walking
 
-Moving a wizard now that the server resets a teleport: what the server allows, how a route is
+Moving a wizard now that the server limits teleports: what the server allows, how a route is
 planned from a zone's own files, how a live walk follows it, and every measurement taken so far.
 
 
-Until late October 2026 every node that moved a wizard wrote its position to memory
-(`client.teleport`, about 60 calls across 26 files) and the server accepted it. **The server
-now resets a wizard to the last position it acknowledged** whenever the client claims one it
-could not have walked to, so a written position is undone at once and BartleBot cannot move
-at all. This document is the record of the work to move by walking instead. It was all done
-as probes, on the `walk-planner` branch (off `ahmarra-test-realm`); nothing in `bartlebot/`
-uses it yet. Each probe's docstring has its own OUTCOME section with the run-by-run numbers.
+Every BartleBot node that moves a wizard writes its position to memory (34 writes across 18
+files: `client.teleport`, and one wizsprinter `tp_to`), and for most of 2026 the server accepted it. In late October
+it began resetting a wizard to the last position it acknowledged whenever the client claimed
+one it could not have walked to, and the game update of November 2026 limits teleport
+distance on live. So **a written position is only a short hop past an obstacle, such as a
+closed door, and never a way to travel**: everything else walks. This document is the record
+of the work to move by walking. It is still probes, in BartleBot's `tools/`; nothing in
+`bartlebot/` uses them yet, and the Walking Routes epic is what will. Each probe's docstring
+has its own OUTCOME section with the run-by-run numbers.
 
 | probe | what it does | needs a client |
 |---|---|---|
@@ -20,7 +22,8 @@ uses it yet. Each probe's docstring has its own OUTCOME section with the run-by-
 | `tools/probe_mob_paths.py` | watches a zone's mobs and says whether they walk their paths | yes |
 
 All four need numpy, which is not a project dependency yet: run them as
-`uv run --with numpy python tools/<probe>.py`. Their output goes to `logs/walk_route/`.
+`uv run --no-sync --with numpy python tools/<probe>.py`. Without `--no-sync`, uv syncs first and
+silently swaps an editable bartleby-core for the pinned one. Their output goes to `logs/walk_route/`.
 
 ## What the server allows
 
