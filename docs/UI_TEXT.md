@@ -42,8 +42,10 @@ kind of fact.
 | **Details** (behind the `?`) | what the user can't predict but needs in order to choose | two sentences at most, about 35 words |
 
 The reasons behind a design, the history, how it works inside and the edge cases go in
-the user guide, not in the app. The `site/` docs are where that guide will live. Until
-it exists, they stay in the developer docs, and the UI leaves them out.
+the user guide, not in the app. BartleBot's is its site, from `site/`, which F1 and a
+dialog's `?` open at the page for what is in front of the user (BartleBot's
+`bartlebot/gui/context_help.py`). A product with no guide yet keeps them in its developer
+docs, and its UI leaves them out.
 
 A node's help page is the one place in the app that works like a manual, so it has its
 own layers. See [Node help](#node-help).
