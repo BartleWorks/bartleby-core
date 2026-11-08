@@ -8,7 +8,10 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
-## Unreleased
+## 0.2.1
+
+The four fixes of core's 0.2.1 milestone, and the `ElidedLabel(color=)` BartleBot's bot
+header needs, which makes this BartleBot's first release pin. Nothing breaks.
 
 ### Added
 
