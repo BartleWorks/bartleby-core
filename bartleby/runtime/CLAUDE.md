@@ -114,6 +114,15 @@ a `PromptKind` (`INTERACT_PROMPT`, `DUNGEON_ENTRANCE_PROMPT`) rather than its ow
 clears a stale prompt via `reset_xyz`, retries up to `MAX_RETRIES`, and logs the failure.
 It lived six times over until #104, and a fix to it had to be made six times.
 
+The game sometimes drops one client's press of Interact, leaving it at the prompt while the
+rest load in, and a node that pressed once lost the whole team a relog to it (BartleBot's
+Enter Gauntlet, four times running on 2026-11-07, until the recovery-loop guard stopped the
+run). A node that presses Interact at a prompt and waits for the zone change uses BartleBot's
+`press_interact_until_through()` after its first press and instance prompt: it presses again
+for a client still showing the prompt and not on its way, Safety Delay apart and up to
+`MAX_RETRIES` times, answering a modal first. `enter_gauntlet` and `enter_dungeon` use it;
+`enter_zone_via_object`'s own re-press loop predates it.
+
 Every approach starts from `reset_xyz`, whether or not a prompt shows, and waits there for
 the prompt to read absent for `PROMPT_CLEAR_SETTLE`. A prompt reading absent may only be on
 its way: off a loading screen beside another object, that object's prompt comes up a moment

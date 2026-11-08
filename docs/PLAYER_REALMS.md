@@ -76,7 +76,7 @@ one key, which opens the door for one instance -- and a bot holding one cannot b
 
 1. the Option Values and Options rows gray out Separate, naming the nodes;
 2. the canvas marks the node an error while the bot's file declares Separate;
-3. `AppController._check_player_realms` refuses the run, which is what a hand-edited file or an
+3. `Run._check_player_realms` (`controller/run.py`) refuses the run, which is what a hand-edited file or an
    override from before the node was added reaches.
 
 **With one player there is nothing to arrange** (#264), so Option Values grays both choices, each

@@ -96,7 +96,7 @@ BartleBot supplies what core's copies cut away:
 | `streamer_mode.configure(setting)` | a read of `SettingsManager.streamer_mode` |
 | `TitleBar(menu_bar, logo)` | `bartleby.qt.logo.logo_icon()`, the family's tree |
 | `group_manager.form_group(..., safety_delay=)` | the user's Safety Delay at every call; core's default is BartleBot's 3.0 s |
-| `run_trace.start(slot_of, directory)` | `app_controller.start_run_trace`, which traces only in developer mode, under `logs/trace/` |
+| `run_trace.start(slot_of, directory)` | `controller/run.py`'s `start_run_trace`, which traces only in developer mode, under `logs/trace/` |
 | `product.use(product)`, `configure_logging(product, settings)`, `SingleInstance(product)` | `bartlebot.packaging.product.product()`, built at startup, and its `SettingsManager` |
 | `GameAction`, which names the movement keys BartleBuddy holds | `run_probe.PRESSED_ACTIONS`, the actions a run needs keys for |
 | `LogPanel(settings)`, a `LogSettings` | its `SettingsManager`; it clears the panel itself as a run starts, when `clear_log_on_run` says to |

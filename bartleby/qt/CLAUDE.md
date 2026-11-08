@@ -109,7 +109,7 @@ instead of firing into a destroyed widget.
 
 Two failure modes the guard cannot see, so check them by hand:
 
-- **A color inside rich text.** The required-field marker in BartleBot's `param_panel` is a
+- **A color inside rich text.** The required-field marker in BartleBot's `param_form` is a
   `<span>` carrying `THEME.error` in the label's own *text*, so restyling means
   rewriting the text. The guard looks for `setStyleSheet`.
 - **A widget styled only on the next switch.** The guard checks that
@@ -321,7 +321,7 @@ of its own; BartleBot's list is `AUTHORING_GROUPS`, BartleBuddy's `BAR_GROUPS`. 
 Four `QPushButton`s stay bare on purpose, and the reason is the same for all of them:
 **their background is the data they display.** Any shared class writes `background`,
 which paints over the one thing they exist to show. Those are BartleBot's color swatches in
-`settings/theme_tab.py`, `canvas/param_panel.py` and `canvas/edit_scene.py`, and
+`settings/theme_tab.py`, `canvas/region_page.py` and `canvas/edit_scene.py`, and
 `bot_canvas`'s `_warning_pill` — a status pill that happens to be clickable.
 
 **`theme_tab.py`'s "Reset to System Default" is the last one, and it is the sharpest
@@ -879,7 +879,7 @@ warm its window; do not add a call per widget class.
 
 Python 3.13 enforces that only one asyncio task may be executing at a time. `QDialog.exec()` re-enters Qt's event loop synchronously, but the calling task's frame remains on the Python call stack. While the dialog is open, any asyncio sleep or future that completes will attempt a `task_wakeup()` callback. Python 3.13 detects the calling task is still "being executed" and raises `RuntimeError: Cannot enter into task while another task is being executed`. qasync catches and logs this error, but the woken task is permanently stuck — its sleep Future is consumed and it never resumes.
 
-**Rule:** If you need to show a blocking dialog before starting an async operation, do it in the synchronous Qt slot *before* calling `asyncio.create_task()`. Example pattern in BartleBot's `AppController._on_run_requested()` — the safety warning dialog runs there, in the slot, so no asyncio task exists yet when `.exec()` blocks.
+**Rule:** If you need to show a blocking dialog before starting an async operation, do it in the synchronous Qt slot *before* calling `asyncio.create_task()`. Example pattern in BartleBot's `Run.on_run_requested()` (`controller/run.py`) — the safety warning dialog runs there, in the slot, so no asyncio task exists yet when `.exec()` blocks.
 
 A coroutine that has something to say afterwards defers it: `QTimer.singleShot(0, lambda: ...)`, a
 queued signal, or `QMenu.popup` rather than `exec`. `test_no_coroutine_opens_a_modal_itself` reads
