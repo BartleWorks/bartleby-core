@@ -285,7 +285,7 @@ edit to core is live at once, with no `--no-sync`, since uv keeps an editable pa
 as it is. Core merges first and is released, and the product's merge carries the new tag.
 
 BartleBot always pins a release, since its release build cannot build from a path. Its
-`rev` pin at `1b1caab` predates core's releases, and BartleBot #301 moves it to `v0.2.0`.
+`rev` pin at `1b1caab` predates core's releases, and Stage 3 of the Walking Routes plan moves it to `v0.2.0`.
 BartleBuddy takes core by path, editable, until it is packaged (BartleBuddy #4), and then
 pins by tag the same way. With the path, its installed version is the development build
 after the nearest tag, built again on a sync once core's commit or tags move
