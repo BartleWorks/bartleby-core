@@ -31,10 +31,12 @@ BartleBot, BartleBuddy and core are checked out side by side under one folder. E
 product's `[tool.uv.sources]` assumes it, and so do the `@` imports of these rules in each
 product's CLAUDE.md files.
 
-- **How a product takes core.** BartleBuddy by local path, editable, while core is in motion.
-  BartleBot by git URL and commit, from Stage 3 of #167 on, since its release build cannot
-  build from a path; a stage branch may use the path while it is built, and its merge
-  carries the pin. A change that belongs to both products goes here, never copied into one.
+- **How a product takes core.** By a release: core is versioned on its own, SemVer with
+  Cargo's rule for 0.x, and a product pins a tag `vX.Y.Z`, cut when it needs a change.
+  `CHANGELOG.md` lists what each release breaks (`docs/UPSTREAM.md`, *Core's releases*).
+  BartleBot pins one, since its release build cannot build from a path; BartleBuddy takes
+  core by path, editable, until it is packaged. A stage branch may use the path while it
+  is built. A change that belongs to both products goes here, never copied into one.
 - **How the rules reach a session.** Each product's root CLAUDE.md imports this file, and
   its GUI, runtime and test CLAUDE.md files import `bartleby/qt/CLAUDE.md`,
   `bartleby/runtime/CLAUDE.md` and `tests/CLAUDE.md`, so a rule loads where the work
@@ -185,7 +187,8 @@ repo.
 | `docs/RELOGGING.md` | why a client slows down, and the two ways to clear it |
 | `docs/FIRST_RUN.md` | setup's frame and the pages both products ask: the walk, first run and rerun, and the game folder, accounts, launch profile and combat pages, each with what it writes and when it is answered |
 | `docs/PLAYER_REALMS.md` | telling whether players share a realm by sight, the record of who does, the Player Realms option and what blocks Separate, and where each node checks and repairs |
-| `docs/UPSTREAM.md` | wizwalker/wizsprinter forks, offset fixes, bumping a pin |
+| `docs/UPSTREAM.md` | wizwalker/wizsprinter forks, offset fixes, bumping a pin, and core's releases: the version rule, cutting one, and how a product pins one |
+| `CHANGELOG.md` | what each core release changes, and what a product must fix to take it |
 | `docs/GAME_UPDATES.md` | a game update on the Test realm: its branches and when they merge, comparing the installs, the snapshots, which hooks break, capturing a type dump, replacing a broken pattern, and the record of each update |
 | `docs/PROCESS.md` | issues, labels, milestones, the backlog board |
 

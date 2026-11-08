@@ -1,6 +1,7 @@
 [project]
 name = "bartleby-core"
-version = "0.1.0"
+# From the release tag, vX.Y.Z, through hatch-vcs ([tool.hatch.version]; docs/UPSTREAM.md).
+dynamic = ["version"]
 description = "What every Bartleby product shares: accounts, launch profiles, strategies, the client runtime and its widgets"
 license = "GPL-3.0-or-later"
 requires-python = ">=3.13"
@@ -63,8 +64,23 @@ quote-style = "double"
 indent-style = "space"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+# The version is the nearest release tag, vX.Y.Z, and only that: the old bartlebot-pin-YYYYMMDD
+# tags would otherwise read as version YYYYMMDD. A commit past the tag, or a tree with edits,
+# builds as the next patch's .devN (0.2.1.dev3+g1a2b3c4). The fallback is for a copy with no git history at all.
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = '^v(?P<version>\d+\.\d+\.\d+)$'
+fallback-version = "0.0.0"
+
+[tool.hatch.version.raw-options]
+git_describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "v[0-9]*.[0-9]*.[0-9]*"]
+
+# Rebuild the version when the commit or the tags change, for a product that takes core by path.
+[tool.uv]
+cache-keys = [{ file = "pyproject.toml" }, { git = { commit = true, tags = true } }]
 
 [tool.hatch.build.targets.wheel]
 packages = ["bartleby"]
