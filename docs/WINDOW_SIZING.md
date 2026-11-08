@@ -118,7 +118,7 @@ nothing else**:
 
 Every pairing below was driven on a live client with a sigil prompt up, checking whether
 the prompt covered the hub and dorm buttons. `MEASURED_PAIRINGS` in
-`tests/game/test_game_sizing.py` is this table, and the model is held to it — **if a change and
+`tests/runtime/game/test_game_sizing.py` is this table, and the model is held to it — **if a change and
 a measurement disagree, the measurement wins.**
 
 | resolution | ratio | max scale | | resolution | ratio | max scale |
