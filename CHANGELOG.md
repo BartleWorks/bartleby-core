@@ -10,6 +10,24 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ## Unreleased
 
+### Added
+
+- `ElidedLabel(color=)`, a `THEME` token the text is painted in and re-read on every theme
+  switch, as `ThemedTextLabel`'s is; and `ElidedLabel.shown_text()` and `is_elided()`, as
+  on `WrappingElidedLabel` (#3). `text()` is still the full text.
+
+### Changed
+
+- `ElidedLabel`'s tooltip is the full text only while the text is elided, as
+  `WrappingElidedLabel`'s is, where it was the full text on every label (#3). A label that
+  fits shows no tooltip unless the caller set one. A tooltip the caller set is kept beside
+  the full text, and through the next `setText`, which used to overwrite it; and on either
+  label, one that is the label's own text is not said twice.
+- An `ElidedLabel`'s minimum width is 24px or its text's width, whichever is less, and an
+  empty one asks for no width (#3), where every label's minimum was 24px and an empty one's
+  hint about a character. It elides inside `margin()` as well as the contents margins,
+  which its size hint already counted.
+
 ### Fixed
 
 - The render sheet frees what a surface `deleteLater`'d before it grabs, as the running

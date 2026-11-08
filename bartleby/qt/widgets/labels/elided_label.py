@@ -66,14 +66,28 @@ class ElidedLabel(QLabel):
     whenever the layout has room, and only shrink under pressure.  (An
     ``Ignored`` policy also zeroes the minimum, but it discards the size hint
     too, so a label with no stretch factor collapses to nothing even in a wide
-    panel.)
+    panel.)  A caller that wants the label never wider than its text, in a row of
+    stretch-0 siblings, sets ``Maximum`` itself: it keeps ``ShrinkFlag``, so the
+    small minimum still counts.
 
-    The untruncated text is always available as the tooltip.
+    The hint is QLabel's, measured from the full text and counting the contents
+    margins and :meth:`margin`, so a subclass that moves its text with a margin is
+    handed room for it. The text is elided at paint time against that same inner
+    width, so ``text()`` stays the full text whatever is on screen;
+    :meth:`shown_text` is what is drawn.
+
+    The full text is the tooltip while it is elided, ahead of any tooltip the caller
+    set; with nothing elided, only the caller's shows, as on
+    :class:`WrappingElidedLabel`.
 
     *elide_mode* chooses which end is sacrificed.  The default ``ElideRight``
     suits text whose head identifies it; pass ``ElideLeft`` for values like a
     zone path, where the tail (``…/WC_Streets/Interior``) is what tells one
     apart from another and the shared prefix is the disposable part.
+
+    *color* names a ``THEME`` token to paint the text in, re-read on every theme
+    switch, as ``ThemedTextLabel``'s does. :meth:`set_text_color` takes a resolved
+    color instead, for a caller that re-derives it itself.
     """
 
     _MIN_WIDTH = 24  # enough for "…" plus a character or two
@@ -83,20 +97,31 @@ class ElidedLabel(QLabel):
         text: str = "",
         parent=None,
         elide_mode: Qt.TextElideMode = Qt.TextElideMode.ElideRight,
+        *,
+        color: str | None = None,
     ):
         super().__init__(parent)
         self._full_text = ""
+        self._own_tooltip = ""
         self._elide_mode = elide_mode
         self._text_color: str | None = None
+        self._color_token = color
         self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        self._apply_text_color()
         self.setText(text)
 
     def setText(self, text: str) -> None:  # noqa: N802 — Qt naming
         self._full_text = text or ""
-        # The full string stays reachable even when the visible form is clipped.
-        self.setToolTip(self._full_text)
         super().setText(self._full_text)
+        self._apply_tooltip()
         self.update()
+
+    def setToolTip(self, tip: str) -> None:  # noqa: N802 — Qt naming
+        self._own_tooltip = tip or ""
+        self._apply_tooltip()
+
+    def _apply_tooltip(self) -> None:
+        super().setToolTip(_elision_tooltip(self._full_text, self.is_elided(), self._own_tooltip))
 
     def set_text_color(self, color: str) -> None:
         """Paint the text in *color*, and keep painting it in that color across a theme switch.
@@ -109,14 +134,20 @@ class ElidedLabel(QLabel):
         text stays in the old theme until something restyles the card again (a hover).
         The label's own ``StyleChange`` arrives after its repolish, so re-applying from
         there is the one moment the color sticks whatever order Qt visits them in.
+
+        Replaces a *color* token given at construction: the latest word on the color wins.
         """
         self._text_color = color
+        self._color_token = None
         self._apply_text_color()
 
     def _apply_text_color(self) -> None:
-        if self._text_color is None:
+        # The token is resolved here, on every StyleChange, never kept: THEME is a proxy,
+        # and a resolved value is the old theme's after a switch.
+        held = getattr(THEME, self._color_token) if self._color_token is not None else self._text_color
+        if held is None:
             return
-        color = QColor(self._text_color)
+        color = QColor(held)
         palette = self.palette()
         if palette.color(self.foregroundRole()) == color:
             return
@@ -125,12 +156,29 @@ class ElidedLabel(QLabel):
 
     def changeEvent(self, event) -> None:  # noqa: N802 — Qt naming
         super().changeEvent(event)
-        if event.type() == QEvent.Type.StyleChange:
+        kind = event.type()
+        if kind == QEvent.Type.StyleChange:
             self._apply_text_color()
+        if kind in (QEvent.Type.FontChange, QEvent.Type.ContentsRectChange):
+            # Either can change what fits: a stylesheet's font-size lands after
+            # construction, and a margin narrows the room.
+            self._apply_tooltip()
+
+    def resizeEvent(self, event) -> None:  # noqa: N802 — Qt naming
+        super().resizeEvent(event)
+        self._apply_tooltip()
 
     def full_text(self) -> str:
         """The complete, untruncated text — what ``text()`` would return on a plain QLabel."""
         return self._full_text
+
+    def shown_text(self) -> str:
+        """What is drawn at the current width: the full text, or its elided form."""
+        return self.elided_text(self._text_rect().width())
+
+    def is_elided(self) -> bool:
+        """Whether the text is cut short at the current width."""
+        return self.shown_text() != self._full_text
 
     def elide_mode(self) -> Qt.TextElideMode:
         """Which end of the text is dropped when it does not fit."""
@@ -144,14 +192,46 @@ class ElidedLabel(QLabel):
         """
         return QFontMetrics(self.font()).elidedText(self._full_text, self._elide_mode, width)
 
+    def _text_rect(self) -> QRect:
+        """Where the text goes: inside the contents margins and :meth:`margin`, as QLabel's hint counts them."""
+        m = self.margin()
+        return self.contentsRect().adjusted(m, m, -m, -m)
+
+    def sizeHint(self) -> QSize:  # noqa: N802 — Qt naming
+        """QLabel's, except that no text asks for no width beyond the margins.
+
+        An empty QLabel asks for about a character's width, which beside its siblings in
+        a row is a gap with nothing in it: the bot header's file line is empty for a bot
+        not yet saved.
+        """
+        hint = super().sizeHint()
+        if not self._full_text:
+            margins = self.contentsMargins()
+            hint.setWidth(margins.left() + margins.right() + 2 * self.margin())
+        return hint
+
     def minimumSizeHint(self) -> QSize:  # noqa: N802 — Qt naming
-        return QSize(self._MIN_WIDTH, super().minimumSizeHint().height())
+        """Small, but never wider than the text: an empty or short label claims no more than it shows."""
+        return QSize(min(self._MIN_WIDTH, self.sizeHint().width()), super().minimumSizeHint().height())
 
     def paintEvent(self, event) -> None:  # noqa: ARG002, N802 — Qt naming
+        rect = self._text_rect()
         painter = QPainter(self)
         painter.setPen(self.palette().color(self.foregroundRole()))
-        painter.drawText(self.contentsRect(), int(self.alignment()), self.elided_text(self.contentsRect().width()))
+        painter.drawText(rect, int(self.alignment()), self.elided_text(rect.width()))
         painter.end()
+
+
+def _elision_tooltip(full_text: str, elided: bool, own: str) -> str:
+    """The tooltip of a label that may be elided: the full text while it is, then the caller's own.
+
+    The full text is left out when the caller's tooltip already is it, so a name with
+    its own name as the tooltip does not say it twice.
+    """
+    parts = [full_text] if elided and full_text != own else []
+    if own:
+        parts.append(own)
+    return "\n\n".join(parts)
 
 
 def elide_long_words(text: str, metrics: QFontMetrics, width: int) -> str:
@@ -259,10 +339,7 @@ class WrappingElidedLabel(QLabel):
         self._apply_tooltip()
 
     def _apply_tooltip(self) -> None:
-        parts = [self._full_text] if self.is_elided() else []
-        if self._own_tooltip:
-            parts.append(self._own_tooltip)
-        super().setToolTip("\n\n".join(parts))
+        super().setToolTip(_elision_tooltip(self._full_text, self.is_elided(), self._own_tooltip))
 
     def _content_width(self, width: int) -> int:
         margins = self.contentsMargins()
