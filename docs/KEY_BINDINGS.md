@@ -55,12 +55,12 @@ then the key (`game/key_bindings.py`, `parse_input`). The key is named one of tw
   read as latin-1. The Delete key is written `.` (0x2E), its code, not the table's `delete`.
 
 Every name marked *in game* in `KEY_CODES` was bound by hand on r811339 and pressed with that
-code (`tools/probe_key_bindings.py`). Two findings there need **rechecking on the build that
-goes live**, before `ahmarra-test-realm` merges (`docs/GAME_UPDATES.md`, r811339):
+code (`tools/probe_key_bindings.py`). Two findings there:
 
 - **`comma` and `period` are swapped.** The game names the `.` key `comma` and the `,` key
   `period`, and each name presses the key it was recorded from, so `KEY_CODES` follows the
-  game: `comma` is 0xBE. A fix on KingsIsle's side is those two lines.
+  game: `comma` is 0xBE. Still so on the live build, r813697, checked in game on 2026-11-16.
+  A fix on KingsIsle's side is those two lines.
 - **The numpad `.` (0x6E) may land on N's binding.** Sent, it toggled the compass, N's
   action; no numpad was at hand to bind it by hand.
 

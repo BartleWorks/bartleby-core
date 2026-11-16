@@ -168,7 +168,12 @@ forks' scheme alone: core has releases, tagged `vX.Y.Z` (*Core's releases*, belo
 
 Current pins, both on `main`:
 
-- **wizwalker `20c7ba4`** (`bartlebot-pin-20261101`): `client.video_manager`, which changes a
+- **wizwalker `6a64fcf`** (`bartlebot-pin-20261116`): Ahmarra's live build, r813697, which is
+  r811339's recompiled code and layout (`docs/GAME_UPDATES.md`, *Record: r813697*). The
+  autobot's code cave, the client, teleport and drops hooks found on that code, the root window
+  read from `rcx`, and CombatParticipant's and CoreObject's offsets moved. The video manager's
+  `_FRAME_PATTERN` matches nothing on it, so a resize raises before it writes, and the client
+  keeps its size. On top of `20c7ba4` (`bartlebot-pin-20261101`): `client.video_manager`, which changes a
   running client's resolution with no hook. It writes the live `Resolution` node and sets the
   pending byte, the manager coming from the static slot its base constructor stores `this` in,
   and every field offset from the code of the function that applies a pending change

@@ -67,9 +67,9 @@ KEY_CODES: dict[str, int] = {
     "separator": 0x6C,
     "subtract": 0x6D,  # in game: numpad -
     "question": 0xBF,  # the / key: it fired both times, but alongside the chat line it shares
-    # SWAPPED on r811339: the game calls the "." key "comma" and the "," key "period", and each
-    # name presses the key it was recorded from. Recheck on the live build before
-    # ahmarra-test-realm merges (docs/GAME_UPDATES.md); a fix there is these two lines.
+    # SWAPPED since r811339, and still on the live build r813697: the game calls the "." key
+    # "comma" and the "," key "period", and each name presses the key it was recorded from.
+    # A fix on KingsIsle's side is these two lines.
     "comma": 0xBE,  # in game
     "period": 0xBC,  # in game
     "equal": 0xBB,  # in game

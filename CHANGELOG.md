@@ -8,6 +8,32 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## 0.3.0
+
+Wizwalker for Ahmarra's live build, r813697, on which the hooks of the old pin do not
+install. A minor release only because a product has to move its own wizwalker pin with it.
+
+### Breaking
+
+- **wizwalker is pinned at `6a64fcf`** (`bartlebot-pin-20261116`), where it was `20c7ba4`. uv
+  reads a git dependency's sources too, so a product that pins wizwalker itself has to pin
+  the same commit, or `uv lock` refuses the two. On r813697 the old pin's autobot, client,
+  teleport and drops hooks match nothing, so no client could be hooked with it anyway.
+
+### Changed
+
+- The `comma`/`period` comment in `key_bindings.KEY_CODES`, `docs/KEY_BINDINGS.md` and
+  `docs/GAME_UPDATES.md` say the swap is still there on the live build, checked in game;
+  the codes themselves are unchanged. `docs/GAME_UPDATES.md` has a record of r813697.
+- The three game data snapshots were regenerated from the live install. Only their headers
+  changed: the date, and the module each names, which had still said `bartlebot/`.
+
+### Known
+
+- Resizing a running client fails on r813697: the video manager's `_FRAME_PATTERN` matches
+  nothing, so `ClientResizer` gets the error before anything is written and the client keeps
+  its size.
+
 ## 0.2.1
 
 The four fixes of core's 0.2.1 milestone, and the `ElidedLabel(color=)` BartleBot's bot
