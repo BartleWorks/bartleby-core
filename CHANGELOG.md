@@ -21,6 +21,14 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   is `master` as it stood before; bringing it back is a revert of the merge that removed it.
   A product that ran a `Follower` drops it. `SpeedLedger` stays, as `SpeedBoost`'s, and
   `SpeedBoost(skip=)` too.
+- **wizwalker is pinned at `78929a9`** (`bartlebot-pin-20261116b`), where it was `6a64fcf`. A
+  product that pins wizwalker itself pins the same commit, as for 0.3.0.
+
+### Fixed
+
+- Resizing a running client works on r813697, 0.3.0's *Known*: wizwalker's video manager finds
+  its fields in `GamebryoClient::VidRestart`, which r813697 no longer inlines into the frame
+  function where the old pattern matched (BartleBuddy #30). Nothing in core changed for it.
 
 ### Changed
 

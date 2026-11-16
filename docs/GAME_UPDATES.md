@@ -96,15 +96,20 @@ every `SimpleHook` is written into, so when it breaks, every such hook does too.
 **`VideoManager`'s two patterns** (`memory/memory_objects/video_manager.py`) find no hook site,
 so a broken one costs resizing and nothing else: it raises before anything is written, and the
 client keeps its size. `_SLOT_PATTERN` is the base constructor's store of `this` in the
-manager's static slot. `_FRAME_PATTERN` is the function that applies a pending mode change, and
-its code is read at fixed distances from the match for the pending byte (twice, which must
-agree), the device pointer and the device's size. The pattern can hold while one of those
-moves, which raises `VideoManagerError`. To replace them, the manager's class overrides the
-frame function and calls it directly: the frame function's one direct caller loads `this` from
-`r15`, the entry of that override leads to the class's vtable and so its constructors, and the
-base constructor they call holds the store, the only write to the slot but the destructor's
-clear. BartleBot's `tools/probe_runtime_resize.py slot <w> <h>`, on one client of the build in
-the world, compares the answer with what a hook captures and resizes there and back.
+manager's static slot. `_FRAME_PATTERN` is `GamebryoClient::VidRestart`, the function that
+applies a pending mode change, from `mov rbx, rcx` on, past its prologue. Its code is read at
+fixed distances from the match for the device pointer (twice, which must agree), the device's
+size and the pending byte's clear. The pattern can hold while one of those moves, which raises
+`VideoManagerError`. To replace `_FRAME_PATTERN`, find VidRestart by the strings it names
+(`find_function.py --string "GamebryoClient::VidRestart() - Presenter failed to restart!"`,
+which gives it on both builds at once); the frame function, `GamebryoClient::PreRender`, tests
+the byte and calls it, and r806919 and r812087 inlined it there too. To replace `_SLOT_PATTERN`,
+the manager's class overrides the frame function and calls it directly: the frame function's
+one direct caller loads `this` from `r15`, the entry of that override leads to the class's
+vtable and so its constructors, and the base constructor they call holds the store, the only
+write to the slot but the destructor's clear. BartleBot's `tools/probe_runtime_resize.py slot
+<w> <h>`, on one client of the build in the world, compares the answer with what a hook on
+PreRender's test captures and resizes there and back.
 
 **The config nodes** a resize writes are found by name, not by a pattern, so no scan here reports
 them. `client_resizer.find_config_nodes` checks the object around each name at fixed offsets. If
@@ -342,8 +347,13 @@ Live on 2026-11-16, read against the Test realm's r812087, since no copy of r806
   new world's zone wads on first visit too:** this one had only Bale Flotilla's of
   Ahmarra's, so its zones and entities in the snapshots are the hub's, and the rest of the
   world's wait on a rerun once each zone has been visited, with its links recorded in game.
-- **Broken and not yet replaced:** the video manager's `_FRAME_PATTERN`, so resizing a
-  running client fails before it writes; and the chat and social systems manager patterns,
+- **The video manager's `_FRAME_PATTERN`** matched nothing, so resizing a running client failed
+  before it wrote, until wizwalker `78929a9` (BartleBuddy #30). r813697 no longer inlines
+  VidRestart into PreRender, and the old pattern was over the inlined copy; the new one is
+  VidRestart's own body, which r812087 also has, at the same distances. The field offsets did
+  not move: the pending byte +0x222A3, the device +0x222A8, its size +0x1C and +0x20. The
+  size's registers did, from `esi`/`r14d` to `edi`/`esi`, so their check takes any.
+- **Broken and not yet replaced:** the chat and social systems manager patterns,
   deferred as on r811339.
 - **Tools:** `dump_zone_names.py` cannot read the new zone records with the r806919 dump as
   its type list, and reads them with r813697's, which is why the new build's dump goes into
