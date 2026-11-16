@@ -8,7 +8,10 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
-## Unreleased
+## 0.4.0
+
+Following shelved, and wizwalker that resizes a running client on Ahmarra's live build again.
+A minor release for both: a product drops any `Follower` and moves its own wizwalker pin.
 
 ### Breaking
 
