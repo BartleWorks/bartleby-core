@@ -1,6 +1,6 @@
 """A simulated client: a real client's interface, with no game behind it.
 
-The arbiter, following, spacing and the quester are where most bugs will be, and none of
+The arbiter, the helpers and the resizer are where most bugs will be, and none of
 them should need the game to test. A :class:`SimClient` answers the reads they make
 (position, yaw, zone, loading, battle, the speed field, the character, the interact prompt), takes the
 input they send (keys pressed and held, yaw and speed written), logs every input with the
@@ -10,7 +10,7 @@ game's, and its ``video_manager`` a fake apply of the size those nodes say.
 
 Movement is integrated on demand against a clock the test can drive (:class:`SimClock`),
 so a test runs as fast as it likes and lands where the arithmetic says. Walking speed is
-600 units a second on foot, as measured (BartleBot's docs/WALKING.md), times the speed
+600 units a second on foot, as measured (``docs/WIZARD101.md``, *Moving*), times the speed
 field's bonus.
 """
 

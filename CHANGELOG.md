@@ -8,6 +8,26 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+### Breaking
+
+- **Following is shelved.** `bartleby.runtime.movement` is gone, `Follower`, `spacing_for`,
+  `Trail` and its geometry with it, and so are the timing constants only it read:
+  `FOLLOW_TICK`, `FOLLOW_STALL_WINDOW`, `FOLLOW_BACK_OFF`, `LEADER_SETTLE`,
+  `FOLLOW_PROMPT_WAIT`, `FOLLOW_LINK_WAIT`, `FOLLOW_GATE_WAIT` and `FOLLOW_PORT_RETRY`. Long
+  written teleports hold again on Ahmarra's live build, so walking is no longer the only way
+  to move a wizard. All of it, with `docs/WALKING.md`, is on the `walking-shelf` branch, which
+  is `master` as it stood before; bringing it back is a revert of the merge that removed it.
+  A product that ran a `Follower` drops it. `SpeedLedger` stays, as `SpeedBoost`'s, and
+  `SpeedBoost(skip=)` too.
+
+### Changed
+
+- `docs/WIZARD101.md` has a *Moving* section in `WALKING.md`'s place: what the server allows,
+  with long teleports holding again, walking pace, the 2.0x speed rule, and the game's own
+  Teleport to Leader and Follow Leader.
+
 ## 0.3.0
 
 Wizwalker for Ahmarra's live build, r813697, on which the hooks of the old pin do not

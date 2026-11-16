@@ -15,12 +15,12 @@ that each product builds its own buttons from the list (:data:`HELPERS`):
 * **Gather** ports every other client to the source through the friends list.
 * **Group** forms one in-game group around the source (``clients/group_manager.py``).
 
-XYZ sync is not here: it wrote positions, which the server now resets (BartleBot's
-docs/WALKING.md). Following the leader's trail (:mod:`bartleby.runtime.movement.follow`)
-is what replaces it.
+No helper writes a position. Following the leader's trail by keys, which took the place of
+an XYZ sync while the server reset written positions, is shelved on the ``walking-shelf``
+branch (``docs/WIZARD101.md``, *Moving*).
 
 Each helper reads first and takes a lease only for a client it has something to press on,
-so a dialogue watcher polling four clients does not stop a follower on every tick. A
+so a dialogue watcher polling four clients does not take a lease on every tick. A
 helper's lease is :attr:`~bartleby.runtime.arbiter.Owner.HOTKEY`, which preempts movement
 and yields to combat and recovery.
 """
@@ -230,7 +230,7 @@ class SpeedBoost(_Toggle):
     character it was read from. A write waits for :class:`CharacterWatch`: the field of a
     logged-out character is freed memory (:mod:`bartleby.runtime.actions.live_character`).
 
-    Where another writer shares the field, as a walking follower does in BartleBuddy, the two
+    Where another writer shares the field, as BartleBuddy's walking follower did, the two
     share a *ledger* (:mod:`bartleby.runtime.actions.speed_ledger`), so neither takes the
     other's value for the game's own, and *skip* names a client the other holds just now,
     which the boost leaves alone, on and off. Switching off gives back every field the
