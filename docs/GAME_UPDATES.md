@@ -24,7 +24,9 @@ its type dump on `master` (the record below lists them), and they stay on
 The Test realm installs to `C:\ProgramData\KingsIsle Entertainment\Wizard101 Test` and
 **downloads zone wads on demand**, so it holds a third of live's. Anything that reads every
 zone's wad is wrong there until the install is complete, and the tools say so where it
-matters.
+matters. **A live install does the same for a zone no one has entered:** on the day a new
+world goes live, its zones are missing until visited, so list the world's wads in
+`Data/GameData` before trusting a zone tool's answer for it.
 
 ## 1. What changed
 
@@ -334,9 +336,12 @@ Live on 2026-11-16, read against the Test realm's r812087, since no copy of r806
   teleport across Olde Town held 15 s each way with no reset: the server-side reset of long
   teleports Ahmarra first shipped with has been rolled back (`docs/WALKING.md` has the
   resets as they were). The `comma`/`period` swap is still there.
-- **BartleBot's game data** was regenerated from the live install the same day, every zone
-  wad included, and r813697's dump went into its `game/data/` with r806919's moved to
-  `tools/`; the r811339 data `master` had held back was replaced by it, not restored.
+- **BartleBot's game data** was regenerated from the live install the same day, and
+  r813697's dump went into its `game/data/` with r806919's moved to `tools/`; the r811339
+  data `master` had held back was replaced by it, not restored. **A live install fetches a
+  new world's zone wads on first visit too:** this one had only Bale Flotilla's of
+  Ahmarra's, so its zones and entities in the snapshots are the hub's, and the rest of the
+  world's wait on a rerun once each zone has been visited, with its links recorded in game.
 - **Broken and not yet replaced:** the video manager's `_FRAME_PATTERN`, so resizing a
   running client fails before it writes; and the chat and social systems manager patterns,
   deferred as on r811339.
