@@ -27,7 +27,7 @@ way somewhere else. So it preempts the quester and movement, which resume from t
 and it waits for a hotkey, combat and recovery, and for `is_loading` to end. A fight alone is
 not waited out, since a tile that has changed shape would cut its game off until the fight ended,
 though the combat lease still goes first. Finding its config nodes takes seconds and is reads alone, so it comes before the
-lease, and a follower walks through it. Once the writes begin they run out of any cancel's reach,
+lease, and nothing else waits on it. Once the writes begin they run out of any cancel's reach,
 since the game can't be asked to stop: a higher owner or Stop all waits the length of an apply,
 and whoever embeds the window always hears how it ended.
 

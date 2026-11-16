@@ -17,6 +17,50 @@ listed here. The date and issue say where each came from.
   (2026-10-22).
 - **Crowns items are always sellable** through quicksell (2026-10-22).
 
+## Moving, and what the server allows
+
+The server checks movement the client claims, never movement the server causes. How much it
+lets the client claim has changed twice in 2026:
+
+| movement | who causes it | reset? |
+|---|---|---|
+| a position written to memory, far from where the server has the wizard | the client | no, on Ahmarra's live build (r813697, 2026-11-16); yes, at once, from late October until then |
+| a short hop written to memory, as past a gate | the client | no |
+| walking by the movement keys | the client, at walking pace | no, but see resets below |
+| a teleport volume stepped into, an interact teleporter | the server | no |
+| a zone change, the World Gate, porting to a friend, Mark and Recall | the server | no |
+| the run to a duel circle when a fight starts | the server | no |
+| the yaw (facing) written to memory | the client | no: the camera turns a wizard at any rate |
+
+- **A long written teleport holds again.** One of 12,842 units across Olde Town held 15 s
+  each way on r813697 (`GAME_UPDATES.md`, *Record: r813697*). From late October the server
+  reset any position it could not have seen walked to, and Ahmarra first shipped with that;
+  it was rolled back. A change like it can come back with any update, so a bot's teleports
+  are worth a look after each one.
+- **Resets happen during ordinary walking too.** On a +40% mount the server threw a wizard
+  back 221 to 655 units, to where it had stood about 0.7 s earlier; players see the same
+  rubber-banding.
+- **Walking pace** measured 600 units a second on foot on flat ground (wizwalker's constant
+  says 580). A mount multiplies it, most by 1.4 and the fastest by 1.55; the height of a
+  stair is free.
+- **The speed multiplier may be written, up to 2.0x.** The engine is built to allow 2.0x, so
+  the client's `speed_multiplier` (a percentage, `write_speed_multiplier` in wizwalker) may be
+  written up to 100. The field holds the whole bonus, a mount's included, so 100 is 2.0x in
+  total, never 2.0x on top of a mount. It is never raised above 100 to find where the
+  server's limit is.
+- **The game's own group tools**, on the group HUD since Ahmarra: **Teleport to Leader** ports
+  to the leader as a friend or roster port does, in fewer clicks and with no confirmation, so
+  between zones it is the fastest of the three ways, and within a zone close to a written
+  position. **Follow Leader** walks the leader's path and ports when it falls behind, worse
+  than our own follower did at zone changes and on winding paths (both tried by hand on
+  2026-11-16). The client asks for it with `MSG_RequestGroupFollow`; `GroupMember` has
+  `m_followingLeader`.
+
+Walking routes, planned from a zone's own files, and following the leader by keys were
+built while long teleports were reset, and are shelved on the `walking-shelf` branches of
+core, BartleBot and BartleBuddy since 2026-11-16. Core's holds `docs/WALKING.md`, with every
+measurement and what was not done.
+
 ## Battles, the ghost window and wisps
 
 Stated 2026-09-27 for BartleBot #117; the full write-up is the design comment on that issue.

@@ -270,13 +270,14 @@ at 1.1 to 1.4 s, and an embed at up to 3.6 s. So the two products differ, by wha
 runtime does:
 
 - **BartleBuddy runs its runtime on a thread of its own**, a plain asyncio loop
-  (`bartleby.qt.runtime_bridge.RuntimeThread`), because a follower steers every `FOLLOW_TICK`. Only
+  (`bartleby.qt.runtime_bridge.RuntimeThread`), because a follower steered every 50 ms, and
+  following comes back from the `walking-shelf` branch on one. Only
   snapshots cross out, as queued signals, and only commands cross in, as coroutines.
 - **BartleBot runs everything on one qasync loop.** Its nodes press, read and wait; nothing
   of its steers on a tick, so a held loop delays a node without walking a wizard off course.
 
 The difference was measured, in Stage 4 of #167, by BartleBuddy's
-`tools/probe_follow_jitter.py`: three followers on `SimClient`s under BartleBot's GUI load,
+`tools/probe_follow_jitter.py` (shelved with following): three followers on `SimClient`s under BartleBot's GUI load,
 four embedded tiles with one resized every 10 s and each move held 1.2 s, for 5 minutes per
 model. On one loop, every resize stopped every follower for 1.27 s, and all 29 broke the
 rule that no steering gap through a resize may reach 250 ms. On the runtime thread the GUI

@@ -7,9 +7,8 @@ does not own at that moment. Memory *reads* need no lease and do not come throug
 Keys are pressed by the account's own binding (:func:`~bartleby.runtime.clients.game_keys.press`),
 never by a fixed letter, since every account binds them differently (BartleBot's
 ``docs/KEY_BINDINGS.md``). A held key is sent as window messages, key-down repeated every
-:data:`~bartleby.runtime.timing.HELD_KEY_REPEAT` as a held key repeats, which is how
-BartleBot's walking probe walks (``tools/probe_walk_input.py``); the game window need not
-have the focus, so a key held on one client never reaches another.
+:data:`~bartleby.runtime.timing.HELD_KEY_REPEAT` as a held key repeats; the game window need
+not have the focus, so a key held on one client never reaches another.
 """
 
 from __future__ import annotations
@@ -26,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 #: The game's speed field at 2.0x: a percentage bonus that already holds a mount's, so 100
 #: is 2.0x in total whatever the mount. The engine allows 2.0x; nothing writes above it
-#: (BartleBot's docs/WALKING.md, "The speed multiplier may be written, up to 2.0x").
+#: (``docs/WIZARD101.md``, *Moving*).
 SPEED_VALUE_MAX = 100
 
 

@@ -334,7 +334,7 @@ Live on 2026-11-16, read against the Test realm's r812087, since no copy of r806
   build that walks a change back is no promise that live will.
 - **In game:** `smoke_test_client.py` passed every check on a live client, and a 12,842-unit
   teleport across Olde Town held 15 s each way with no reset: the server-side reset of long
-  teleports Ahmarra first shipped with has been rolled back (`docs/WALKING.md` has the
+  teleports Ahmarra first shipped with has been rolled back (`docs/WIZARD101.md`, *Moving*, has the
   resets as they were). The `comma`/`period` swap is still there.
 - **BartleBot's game data** was regenerated from the live install the same day, and
   r813697's dump went into its `game/data/` with r806919's moved to `tools/`; the r811339
