@@ -311,10 +311,35 @@ day (`tools/r806919_WizardDev.json`); the one checked in before was r800294's.
   its own in memory, one `InputBindingList` (`tools/probe_binding_memory.py`); the shared
   `LocalInputBindings.xml` holds one account's at most. A binding with a modifier did not
   reach the game by any of three ways of sending it (`tools/probe_key_bindings.py`).
-  **Recheck both of these on the build that goes live, before this branch merges:** the game
-  names the main `.` key `comma` and the `,` key `period`, swapped (seen binding by hand on
-  2026-10-22, and pressing each code opened the other's action), which reads as a bug
-  KingsIsle may fix; and whether the numpad `.` key, code `0x6E` with no name in the game's
-  table, lands on N's binding, as sending `0x6E` toggled the compass (N) here. Untried so far
-  for want of a numpad. `docs/KEY_BINDINGS.md` has the rest: how BartleBot reads a client's
-  bindings, and what a press of an action can use.
+  The game names the main `.` key `comma` and the `,` key `period`, swapped (seen binding by
+  hand on 2026-10-22, and pressing each code opened the other's action), which reads as a bug
+  KingsIsle may fix; the live build kept it (*Record: r813697*). Whether the numpad `.` key,
+  code `0x6E` with no name in the game's table, lands on N's binding, as sending `0x6E`
+  toggled the compass (N) here, is untried for want of a numpad. `docs/KEY_BINDINGS.md` has
+  the rest: how BartleBot reads a client's bindings, and what a press of an action can use.
+
+## Record: r813697 (Ahmarra live)
+
+Live on 2026-11-16, read against the Test realm's r812087, since no copy of r806919 was kept.
+
+- **The code is r811339's.** r812087 had put every hook site back to r806919's bytes, and
+  word was that KingsIsle had gone back to the old compiler. Live did not: wizwalker's
+  r806919 patterns for the autobot, the client, teleport and drops match nothing on it, and
+  the r811339 replacements match once each. Every site disassembles as r811339's did,
+  including the bytes the hooks replay by hand, and the autobot function is 3,975 bytes
+  again. The type dump has no class whose layout differs from r811339's; 9 are new (the
+  school-switch spell effect and its element, and `ZoneAdjectiveChangeList`). So a Test realm
+  build that walks a change back is no promise that live will.
+- **In game:** `smoke_test_client.py` passed every check on a live client, and a 12,842-unit
+  teleport across Olde Town held 15 s each way with no reset: the server-side reset of long
+  teleports Ahmarra first shipped with has been rolled back (`docs/WALKING.md` has the
+  resets as they were). The `comma`/`period` swap is still there.
+- **BartleBot's game data** was regenerated from the live install the same day, every zone
+  wad included, and r813697's dump went into its `game/data/` with r806919's moved to
+  `tools/`; the r811339 data `master` had held back was replaced by it, not restored.
+- **Broken and not yet replaced:** the video manager's `_FRAME_PATTERN`, so resizing a
+  running client fails before it writes; and the chat and social systems manager patterns,
+  deferred as on r811339.
+- **Tools:** `dump_zone_names.py` cannot read the new zone records with the r806919 dump as
+  its type list, and reads them with r813697's, which is why the new build's dump goes into
+  `game/data/` before the snapshots are regenerated.
