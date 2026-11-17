@@ -55,9 +55,13 @@ lets the client claim has changed twice in 2026:
   than our own follower did at zone changes and on winding paths (both tried by hand on
   2026-11-16). The client asks for it with `MSG_RequestGroupFollow`; `GroupMember` has
   `m_followingLeader`. The group menu button (`windowHUD/GroupSystemButton`) shows only
-  while the player is in a group, and its `LeaderText` label only on the leader, so the HUD
-  says who is grouped and who leads with no window opened. **The menu and its buttons hide
-  in battle**, so a read then says nothing about the group, and nor does one while loading.
+  while the player is in a group, so the HUD says who is grouped with no window opened. Its
+  `LeaderText` label shows only on the leader, and **only while that client's group menu is
+  open**: its visibility flag follows the screen, so a leader with its menu closed reads
+  the same as a member, and who leads is read by opening the menu (two clicks, putting it
+  back). A Gather from a leader whose menu was closed sent everyone through the friends
+  list; with the menu open, they went by the group (2026-11-17). **The menu and its buttons
+  hide in battle**, so a read then says nothing about the group, and nor does one while loading.
   The menu never closes by itself, not after a teleport and not on a zone change. On the
   leader its teleport button is **Ask Group to Teleport**, a summon; on a member it is
   Teleport to Leader, which is refused with the same dialogs as a friends-list port when the

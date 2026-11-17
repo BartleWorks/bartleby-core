@@ -13,8 +13,8 @@ that each product builds its own buttons from the list (:data:`HELPERS`):
   gives each its own back when switched off (:class:`SpeedBoost`). BartleBot's authoring
   Speed is this class too.
 * **Gather** ports every other client to the source: by the game's own Teleport to Leader
-  where the source leads a group the client is shown to be in, and through the friends list
-  for the rest (:func:`gather`, :class:`RosterMemo`).
+  where the source leads a group the client is shown to be in, by group_manager's group
+  record, and through the friends list for the rest (:func:`gather`).
 * **Group** forms one in-game group around the source (``clients/group_manager.py``).
 
 No helper writes a position. Following the leader's trail by keys, which took the place of
@@ -41,7 +41,6 @@ from bartleby.runtime.actions.live_character import CharacterWatch, live_charact
 from bartleby.runtime.actions.speed_ledger import SpeedLedger
 from bartleby.runtime.arbiter import Arbiter, Busy, LeaseLost, Owner
 from bartleby.runtime.clients import group_manager
-from bartleby.runtime.clients.group_manager import GroupState
 from bartleby.runtime.game import wizard_names
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.input import speed_value
@@ -331,80 +330,30 @@ async def _leases(arbiter: Arbiter, members: Sequence[Member], detail: str):
         yield leases
 
 
-class RosterMemo:
-    """Who was last seen in the source's group, so that Gather need not open a window to know.
-
-    Gather's leader route needs proof that a mover is in the source's group, not merely in a
-    group: a mover in a stranger's group reads grouped on the HUD just the same, and its
-    Teleport to Leader would take it to the stranger. The proof is the source's roster
-    listing the mover's wizard name, and a roster costs a social-window visit, so the last
-    one read is kept here: the one :func:`group` left (``form_group``'s ``GroupResult.states``)
-    or the one :func:`gather` read itself.
-
-    It is only ever used beside the HUD's cheap reads, which say whether it still holds:
-    :func:`gather` forgets it once the source no longer reads leading, and drops a mover from
-    it once that mover no longer reads grouped. A product keeps one for its session and
-    passes it to both helpers; without one, each Gather that can take the leader route reads
-    the roster again. Names are compared case-insensitively, and never logged.
-    """
-
-    def __init__(self) -> None:
-        self._source: object | None = None
-        self._names: set[str] = set()
-
-    def record(self, source, roster: Sequence[str]) -> None:
-        """Remember *roster* as the group *source* is in, replacing whatever was known."""
-        self._source = source
-        self._names = {name.casefold() for name in roster if name}
-
-    def record_group(self, clients: Sequence[object], source, states: Sequence[GroupState] | None) -> None:
-        """Remember the source's group as ``form_group`` left it, or forget it when that says nothing."""
-        state = next((s for c, s in zip(clients, states or ()) if c is source), None)
-        if state is not None and state.grouped and state.roster:
-            self.record(source, state.roster)
-        else:
-            self.forget()
-
-    def forget(self) -> None:
-        self._source = None
-        self._names = set()
-
-    def drop(self, client) -> None:
-        """Take *client* off the roster: it no longer reads grouped, so it may have left."""
-        name = wizard_names.cached_name(client)
-        if name:
-            self._names.discard(name.casefold())
-
-    def lists(self, source, client) -> bool:
-        """Whether the roster known for *source*'s group lists *client*'s cached wizard name."""
-        if self._source is not source:
-            return False
-        name = wizard_names.cached_name(client)
-        return bool(name) and name.casefold() in self._names
-
-
-async def gather(
-    arbiter: Arbiter, source: Member, members: Sequence[Member], memo: RosterMemo | None = None
-) -> list[Member]:
+async def gather(arbiter: Arbiter, source: Member, members: Sequence[Member]) -> list[Member]:
     """Port every member but *source* to it. Returns those that went.
 
     Two routes, taken at once under the movers' leases. A mover takes the game's own
-    Teleport to Leader (``group_manager.port_to_leader``) when the source's HUD shows it
-    leading, the mover's shows it grouped, and the mover is proven to be in the source's
-    group: listed on the source's roster. *memo* holds the last roster known
-    (:class:`RosterMemo`); when it cannot prove every such mover, the source's roster is read
-    again, in one social-window visit under a lease on the source. Everyone else ports
-    through the friends list, which needs the source's wizard name, from the cache or
-    memory; the name never reaches a log. Each slot's route is logged.
+    Teleport to Leader (``group_manager.port_to_leader``) when group_manager's group record
+    proves it in a group the source leads (``members_led_by``), which reads the HUD and opens
+    nothing. A mover the HUD shows grouped may be in a stranger's group, where Teleport to
+    Leader would take it to the stranger, so the record is the proof, never the HUD alone.
 
-    In battle the group menu hides and the HUD cannot tell, so everyone takes the friends list.
+    With no record of the source leading, and a grouped mover to send, the source's group is
+    learned (``learn_group``) under a lease on the source: its group menu is opened to read
+    whether it leads, and put back, and only if it does is its roster read, in one
+    social-window visit. That is how a group the player formed by hand is used without
+    Group. A leader-route mover that does not go makes the record forgotten.
+
+    Everyone else ports through the friends list, which needs the source's wizard name, from
+    the cache or memory; the name never reaches a log. Each slot's route is logged. In battle
+    the group menu hides and the HUD cannot tell, so everyone takes the friends list.
     """
     movers = [m for m in members if m.client is not source.client]
     if not movers:
         logger.info("Gather: there is no one else to port")
         return []
-    memo = memo if memo is not None else RosterMemo()
-    by_leader = await _leader_route(arbiter, source, movers, memo)
+    by_leader = await _leader_route(arbiter, source, movers)
     by_friend = [m for m in movers if m not in by_leader]
 
     name = None
@@ -432,37 +381,29 @@ async def gather(
             ),
         )
     if len(leader_went) < len(by_leader):
-        # A proven mover that did not go may have left the group since its roster was read.
-        memo.forget()
+        # A proven mover that did not go may have left the group since it was recorded.
+        group_manager.forget_group(source.client)
     went = sorted([*leader_went, *friend_went], key=lambda m: m.slot)
     logger.info("Gather: %s ported to %s", _labels(went) or "nobody", source.label)
     return went
 
 
-async def _leader_route(arbiter: Arbiter, source: Member, movers: Sequence[Member], memo: RosterMemo) -> list[Member]:
-    """The movers that can take Teleport to Leader to *source*, by the HUD and the source's roster.
+async def _leader_route(arbiter: Arbiter, source: Member, movers: Sequence[Member]) -> list[Member]:
+    """The movers that can take Teleport to Leader to *source*, by group_manager's group record.
 
-    Reads the HUD first, which opens nothing, and brings *memo* up to date with it. The
-    source's roster is read only when the HUD shows a grouped mover the memo cannot place.
+    A record of the source leading answers with no click. Without one, the source's group is
+    learned, under a lease on it, but only when the source and some mover read grouped:
+    otherwise no mover could take the route, and nothing is clicked.
     """
-    if await group_manager.hud_leads(source.client) is not True:
-        memo.forget()
-        return []
-    grouped = await asyncio.gather(*(group_manager.hud_grouped(m.client) for m in movers))
-    candidates = []
-    for mover, is_grouped in zip(movers, grouped):
-        if is_grouped is True:
-            candidates.append(mover)
-        else:
-            memo.drop(mover.client)
-    if not candidates:
-        return []
-    if not all(memo.lists(source.client, m.client) for m in candidates):
+    clients = [m.client for m in movers]
+    proven = await group_manager.members_led_by(source.client, clients)
+    if proven is None:
+        grouped = await asyncio.gather(*(group_manager.hud_grouped(c) for c in (source.client, *clients)))
+        if grouped[0] is not True or True not in grouped[1:]:
+            return []
         async with arbiter.acquire(source.client, Owner.HOTKEY, detail="gather") as lease:
-            state = await group_manager.read_group_state(lease.client)
-        if state.roster:
-            memo.record(source.client, state.roster)
-    return [m for m in candidates if memo.lists(source.client, m.client)]
+            proven = await group_manager.learn_group(lease.client, clients)
+    return [m for m in movers if any(m.client is c for c in proven)]
 
 
 async def _port(movers: Sequence[Member], source: Member, route: str, port) -> list[Member]:
@@ -480,12 +421,12 @@ async def _port(movers: Sequence[Member], source: Member, route: str, port) -> l
     return [m for i, m in enumerate(movers) if i not in missing]
 
 
-async def group(arbiter: Arbiter, source: Member, members: Sequence[Member], memo: RosterMemo | None = None) -> bool:
+async def group(arbiter: Arbiter, source: Member, members: Sequence[Member]) -> bool:
     """Put every member in one in-game group, *source* leading. True when all are in it.
 
     Every account must be friends with the leader in game; the invites go through its
-    friends list, so they work across zones. The source's group as the call left it goes in
-    *memo*, for Gather's leader route (:class:`RosterMemo`).
+    friends list, so they work across zones. ``form_group`` records the group it leaves, with
+    its leader, which is what Gather's leader route reads after it.
     """
     ordered = sorted(members, key=lambda m: m.slot)
     if len(ordered) < 2:
@@ -496,8 +437,6 @@ async def group(arbiter: Arbiter, source: Member, members: Sequence[Member], mem
         names = await wizard_names.resolve_names(clients)
         leader = next(i for i, m in enumerate(ordered) if m.client is source.client)
         result = await group_manager.form_group(clients, names, leader_index=leader)
-    if memo is not None:
-        memo.record_group(clients, source.client, result.states)
     if result.success:
         logger.info("Group: %s", result.summary())
     else:

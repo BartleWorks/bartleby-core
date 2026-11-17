@@ -143,7 +143,8 @@ class _GroupMenu:
 
     def __init__(self, ui: FakeUI):
         self.ui = ui
-        self.open: dict = {}
+        # FakeUI's own, which its LeaderText follows.
+        self.open: dict = ui.menu_open
         self.clicks: list = []
         self.opens = True
         self.teleport_clickable = True
@@ -213,14 +214,19 @@ async def test_a_menu_already_open_is_not_toggled(ui, menu):
     assert menu.open[member] is True
 
 
-async def test_the_leader_is_refused_and_nothing_is_clicked(ui, menu):
-    """On the leader the teleport button is Ask Group to Teleport, which summons everyone."""
+async def test_a_leader_whose_menu_was_closed_is_never_clicked_into_a_summon(ui, menu):
+    """On the leader the teleport button is Ask Group to Teleport, which summons everyone.
+
+    Who leads can be read only with the menu open, so the menu is opened to read it, and
+    closed again on finding the leader.
+    """
     leader, _ = _group(ui)
 
     with pytest.raises(ValueError, match="leads"):
         await _with(menu.patches(), lambda: gm.teleport_to_leader(leader))
 
-    assert menu.clicks == []
+    assert menu.clicked(leader) == ["menu", "menu"]
+    assert menu.open[leader] is False
 
 
 async def test_the_leader_is_refused_even_with_its_menu_already_open(ui, menu):
@@ -246,7 +252,8 @@ async def test_a_hud_that_cannot_tell_who_leads_is_refused_and_nothing_is_clicke
     with pytest.raises(ValueError, match="cannot tell"):
         await _with(patches, lambda: gm.teleport_to_leader(member))
 
-    assert menu.clicks == []
+    assert menu.clicked(member) == ["menu", "menu"], "the menu is opened to read, and closed again"
+    assert menu.open[member] is False
 
 
 async def test_a_client_in_battle_is_refused_and_nothing_is_clicked(ui, menu):
@@ -296,7 +303,7 @@ async def test_a_member_made_leader_while_the_menu_opens_is_refused_before_telep
         await _with(patches, lambda: gm.teleport_to_leader(member))
 
     assert member in ui.leads
-    assert menu.clicked(member) == ["menu"]
+    assert menu.clicked(member) == ["menu", "menu"], "no teleport, and the menu opened to check is closed"
 
 
 async def test_a_menu_that_never_opens_raises_without_clicking_teleport(ui, menu):
@@ -394,7 +401,8 @@ async def test_port_to_leader_leaves_the_leader_out_and_ports_the_rest(ui, menu)
     result = await _with(menu.patches(), lambda: gm.port_to_leader([leader, member], trigger_timeout=0.05, ceiling=1.0))
 
     assert result.unstarted == {0} and result.jumped == {1}
-    assert menu.clicked(leader) == []
+    assert "teleport" not in menu.clicked(leader)
+    assert menu.open[leader] is False
 
 
 async def test_port_to_leader_with_only_the_leader_raises_and_clicks_nothing(ui, menu):
@@ -403,7 +411,8 @@ async def test_port_to_leader_with_only_the_leader_raises_and_clicks_nothing(ui,
     with pytest.raises(ValueError, match="leads"):
         await _with(menu.patches(), lambda: gm.port_to_leader([leader]))
 
-    assert menu.clicks == []
+    assert "teleport" not in menu.clicked(leader)
+    assert menu.open[leader] is False
 
 
 async def test_a_refusal_after_teleport_to_leader_flows_through_port_clients(ui, menu):

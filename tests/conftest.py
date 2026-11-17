@@ -97,6 +97,16 @@ def _forget_fake_clients():
     _clients_in_this_test.clear()
 
 
+@pytest.fixture(autouse=True)
+def _forget_group_records():
+    """Start each test with no group record (group_manager's): a dict clear, so it costs nothing."""
+    from bartleby.runtime.clients import group_manager
+
+    group_manager.forget_all_groups()
+    yield
+    group_manager.forget_all_groups()
+
+
 class FakeClient:
     """AsyncMock-backed stub for a WizSprinter SprintyClient.
 
