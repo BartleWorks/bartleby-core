@@ -17,6 +17,10 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   through the client's memory with wizwalker's `memory_login` (the command Deimos' wizlaunch
   calls), and type it only when that cannot be sent, logging why. Needs the wizwalker pin
   that has `wizwalker.login`.
+- Auto-select takes Play again on the same build, where Enter no longer does: the drive and
+  `press_character_select_play`, which BartleBot's relog calls, press Space. Clicking
+  `btnPlay` is the sturdier fix, set aside for now; that function's docstring says what it
+  would take.
 
 ### Changed
 

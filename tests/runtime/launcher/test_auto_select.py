@@ -75,7 +75,9 @@ class FakeGameClient:
     """A launching client, walked through the screens the probe recorded.
 
     `screen` moves loading → charselect after `loading_polls` reads, and charselect →
-    world when Enter arrives. `root_ready` gates whether the tree reads at all.
+    world when Space arrives, as on the 2026-11-16 build; Enter does nothing there now.
+    `root_ready` gates whether the tree reads at all. `pressed` is each key with the
+    screen it landed on, since Space is both the loading screens' key and Play's.
     """
 
     def __init__(self, *, root_ready: bool = True, loading_polls: int = 3) -> None:
@@ -84,6 +86,7 @@ class FakeGameClient:
         self.screen = "loading"
         self.polls = 0
         self._loading_polls = loading_polls
+        self.pressed: list[tuple[int, str]] = []
         self.hook_handler = MagicMock()
         self.hook_handler.read_current_root_window_base = self._read_root
 
@@ -101,8 +104,13 @@ class FakeGameClient:
         return self.screen == "charselect"
 
     def on_key(self, vk: int) -> None:
-        if vk == _VK_RETURN and self.screen == "charselect":
+        self.pressed.append((vk, self.screen))
+        if vk == _VK_SPACE and self.screen == "charselect":
             self.screen = "world"
+
+    def on(self, screen: str) -> list[int]:
+        """The keys pressed while *screen* was up."""
+        return [vk for vk, at in self.pressed if at == screen]
 
 
 class Hooked:
@@ -166,34 +174,39 @@ def game(keys):
 # ---------------------------------------------------------------------------
 
 
-async def test_enter_is_pressed_exactly_once_on_character_select(keys, fast, game):
-    """The whole point of reading the screen: no blind Enter, ever."""
+async def test_play_is_pressed_exactly_once_on_character_select(keys, fast, game):
+    """The whole point of reading the screen: no blind press, ever."""
     reached = await auto_select_character(TITLE, HookedWhenInWorld(game), lambda: game)
     assert reached is True
-    assert keys.keys_down.count(_VK_RETURN) == 1
+    assert game.on("charselect") == [_VK_SPACE]
 
 
-async def test_loading_screens_are_skipped_with_space_not_enter(keys, fast, game):
+async def test_play_is_space_not_enter(keys, fast, game):
+    """Enter stopped taking Play on the 2026-11-16 build; see press_character_select_play."""
+    await auto_select_character(TITLE, HookedWhenInWorld(game), lambda: game)
+    assert _VK_RETURN not in keys.keys_down
+
+
+async def test_loading_screens_are_skipped_with_space(keys, fast, game):
     """Enter on an unidentified screen could confirm a modal; Space is the safe skip."""
     await auto_select_character(TITLE, HookedWhenInWorld(game), lambda: game)
-    before_enter = keys.keys_down[: keys.keys_down.index(_VK_RETURN)]
-    assert before_enter, "expected the loading screens to be skipped"
-    assert set(before_enter) == {_VK_SPACE}
+    assert game.on("loading"), "expected the loading screens to be skipped"
+    assert set(game.on("loading")) == {_VK_SPACE}
 
 
 async def test_nothing_is_pressed_after_play_is_taken(keys, fast, game):
     """Once character select is gone the client is loading in — keys would hit the world."""
     await auto_select_character(TITLE, HookedWhenInWorld(game), lambda: game)
-    after_enter = keys.keys_down[keys.keys_down.index(_VK_RETURN) + 1 :]
-    assert after_enter == []
+    assert game.on("world") == []
 
 
-async def test_enter_is_retried_while_character_select_persists(keys, fast, game):
+async def test_play_is_retried_while_character_select_persists(keys, fast, game):
     """The screen swallows the first press or two while the Play button resolves."""
     swallowed = {"n": 0}
 
     def _on_key(vk: int) -> None:
-        if vk == _VK_RETURN and game.screen == "charselect":
+        game.pressed.append((vk, game.screen))
+        if vk == _VK_SPACE and game.screen == "charselect":
             swallowed["n"] += 1
             if swallowed["n"] >= 3:
                 game.screen = "world"
@@ -201,16 +214,16 @@ async def test_enter_is_retried_while_character_select_persists(keys, fast, game
     keys.on_key = _on_key
     reached = await auto_select_character(TITLE, HookedWhenInWorld(game), lambda: game)
     assert reached is True
-    assert keys.keys_down.count(_VK_RETURN) == 3
+    assert len(game.on("charselect")) == 3
 
 
-async def test_gives_up_pressing_enter_after_the_cap(keys, fast, game, monkeypatch):
+async def test_gives_up_pressing_play_after_the_cap(keys, fast, game, monkeypatch):
     """A character select that eats every press must not be hammered forever."""
     monkeypatch.setattr(auto_select, "AUTO_SELECT_MAX_ENTER", 3)
-    keys.on_key = None  # Enter never takes
+    keys.on_key = lambda vk: game.pressed.append((vk, game.screen))  # Play never takes
     reached = await auto_select_character(TITLE, Hooked(after=None), lambda: game, timeout=0.4)
     assert reached is False
-    assert keys.keys_down.count(_VK_RETURN) == 3
+    assert len(game.on("charselect")) == 3
 
 
 async def test_returns_immediately_if_already_in_game(keys, fast, game):
@@ -253,14 +266,14 @@ async def test_falls_back_to_blind_when_the_tree_never_reads(keys, fast):
     reached = await auto_select_character(TITLE, Hooked(after=40), lambda: blind)
     assert reached is True
     assert keys.keys_down
-    assert set(keys.keys_down) == {_VK_RETURN}
+    assert set(keys.keys_down) == {_VK_SPACE}
 
 
 async def test_falls_back_to_blind_when_no_client_is_available(keys, fast):
     """No borrowable client (never detected) is the other way sight can fail."""
     reached = await auto_select_character(TITLE, Hooked(after=40))
     assert reached is True
-    assert set(keys.keys_down) == {_VK_RETURN}
+    assert set(keys.keys_down) == {_VK_SPACE}
 
 
 async def test_timeout_returns_false_without_raising(keys, fast):
@@ -308,7 +321,7 @@ async def test_loading_screens_are_skipped_with_auto_select_off(keys, fast, game
 async def test_play_is_never_pressed_with_auto_select_off(keys, fast, game):
     """The whole point: the client is delivered to character select and left there."""
     await drive_to_character_select(TITLE, lambda: False, lambda: game)
-    assert _VK_RETURN not in keys.keys_down
+    assert game.on("charselect") == []
     assert game.screen == "charselect"
 
 
@@ -319,7 +332,7 @@ async def test_nothing_is_pressed_once_character_select_is_up(keys, fast, game):
 
 
 async def test_no_blind_fallback_with_auto_select_off(keys, fast):
-    """Blind means Enter, which picks a character — so there is no fallback here."""
+    """Blind means the key that plays, which picks a character — so there is no fallback here."""
     blind = FakeGameClient(root_ready=False)
     reached = await drive_to_character_select(TITLE, Hooked(after=None), lambda: blind)
     assert reached is False
@@ -337,7 +350,7 @@ async def test_character_select_drive_times_out_without_raising(keys, fast):
     with patch.object(auto_select, "is_visible_by_path", lambda c, path: c.is_visible(path)):
         reached = await drive_to_character_select(TITLE, Hooked(after=None), lambda: stuck, timeout=0.3)
     assert reached is False
-    assert _VK_RETURN not in keys.keys_down
+    assert stuck.screen == "loading"
 
 
 # ---------------------------------------------------------------------------
@@ -715,9 +728,15 @@ def test_press_target_is_zero_when_there_is_nothing_to_aim_at(keys):
 
 
 async def test_the_drive_still_reaches_an_embedded_window(keys, fast, game):
-    """End to end: the window is embedded before character select and Enter still lands."""
+    """End to end: the window is embedded before character select and Play still lands."""
     keys.window_missing()  # FindWindowW finds nothing once the window is a child
     reached = await auto_select_character(TITLE, HookedWhenInWorld(game), lambda: game)
     assert reached is True
-    assert keys.keys_down.count(_VK_RETURN) == 1
+    assert game.on("charselect") == [_VK_SPACE]
     assert {hwnd for hwnd, _msg, _vk in keys.posted} == {game.window_handle}
+
+
+async def test_the_relog_node_presses_play_with_space(keys, fast):
+    """press_character_select_play is how BartleBot's relog takes Play, the same key as a launch."""
+    await auto_select.press_character_select_play(4242)
+    assert keys.keys_down == [_VK_SPACE]

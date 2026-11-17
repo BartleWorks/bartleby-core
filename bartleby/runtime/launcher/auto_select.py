@@ -3,7 +3,8 @@
 After the launcher sends the login, a Wizard101 instance still has three gates
 between it and a usable client: a loading screen that ignores input for ~3 s and then
 skips on any key, a second loading screen that skips immediately, and the character-select
-screen, where Enter plays the most recently played character. Until those are cleared
+screen, where Space plays the most recently played character (Enter did until the
+2026-11-16 build; ``press_character_select_play`` says why). Until those are cleared
 hooks cannot activate, so the client never reaches ``ClientManager.clients`` and no bot can
 route to it. It *is* on screen throughout — a window is embedded as soon as its title
 identifies it, which is why keystrokes here cannot be aimed by ``FindWindowW`` alone; see
@@ -26,17 +27,20 @@ dismissed. So the screen can be identified rather than guessed at.
 That is what this module does:
 
     loading screens   press a harmless key on a timer (nothing to read yet)
-    character select  positively identified, then Enter
+    character select  positively identified, then Space
     load-in           press nothing at all, just wait for the hooks
 
-Enter therefore only ever lands on a screen we have confirmed is character select.
+The press meant to play therefore only lands on a screen confirmed to be character select.
+Since the 2026-11-16 build the loading screens' key, Space, also takes Play, so one of
+those can reach character select too, but only in the instant between a read that says
+loading and the press after it: the panel appears exactly when the screen does.
 
 That positive identification is also what makes the two halves separable. With the
 ``auto_select_character`` setting off the loading screens are *still* skipped — they carry
 no decision, and making the user watch them and press a key twice is nobody's preference —
 and the drive simply stops when ``at_character_select`` goes true, having pressed nothing
 that could pick a character. ``drive_to_character_select`` is that half; it has no blind
-fallback, because blind means Enter. That
+fallback, because blind means pressing the key that plays. That
 matters beyond tidiness: blind Enter opened the chat box on arrival (recovery carried a
 whole ESC dance to close it again) and would confirm an unexpected modal sight unseen — a
 login queue, a ToS update, an expired subscription. Neither is possible now.
@@ -47,8 +51,9 @@ The driver reads the tree through the ``Client`` that ``ClientManager`` already 
 this window, and must never make its own. Two ``Client`` objects over one game process
 mean two ``_prepare_autobot`` calls, and the second zeroes the scratch region the first
 one's hooks jump into — corrupting live hooks in the game process. ``ClientManager``
-registers a ``Client`` and installs its hooks the moment the window appears (see
-``_start_activation``), so by the time the tree is readable there is always one to borrow.
+registers a ``Client`` the moment the window appears and installs its hooks once the
+launch has sent its login (``_start_activation``, ``login_gate``), so by the time the tree
+is readable there is always one to borrow.
 
 If the tree never becomes readable, the driver falls back to the old blind behavior
 rather than failing the launch.
@@ -162,9 +167,9 @@ async def _try_press(title: str, vk: int, get_client: Callable[[], object | None
 async def _tree_is_readable(client) -> bool:
     """Whether the client's root window has been written yet.
 
-    ClientManager installs the root-window hook as soon as it sees the window, but the
-    game does not write the address until it builds its first UI root, so this is False
-    for roughly the first two seconds of a launch.
+    ClientManager installs the root-window hook once the launch has sent the window's
+    login, and the game does not write the address until it builds its first UI root, so
+    this is False for the first seconds of a launch.
     """
     try:
         return bool(await client.hook_handler.read_current_root_window_base())
@@ -175,11 +180,27 @@ async def _tree_is_readable(client) -> bool:
 async def press_character_select_play(hwnd: int) -> None:
     """Take the highlighted character on a screen already confirmed to be character select.
 
-    Public so the relog node presses Play exactly the way a launch does. Enter rather than
-    clicking ``btnPlay``: the button's own visibility flickers while the screen settles,
-    which is the same reason ``at_character_select`` reads the panel instead.
+    Public so the relog node presses Play exactly the way a launch does.
+
+    Space, since the game's 2026-11-16 build (r813697 live). Enter played the character
+    until then; that build moved the screen's focus, as it did the login window's, and Enter
+    now does nothing while Space takes Play. Both act on whatever the screen has focused,
+    not on Play itself, so a later patch can break this the same way. Key bindings are not
+    the risk: they are the game world's, and this screen's keys are its focus handling.
+
+    **If it breaks again, click ``btnPlay`` instead** (``CHAR_SELECT_PLAY_PATH``), which
+    is aimed at the button and no focus can move. It was set aside for the key on
+    2026-11-16 because it costs more:
+
+    * ``node_helpers.click_window`` installs wizwalker's mouseless cursor hook, and at
+      this screen the client manager is usually still installing the client's other hooks
+      (the tree reads once the root window hook is in, before the rest). Both allocate
+      from the same autobot region, so the click must wait for the install to finish.
+    * The button's visibility flickers while the screen settles, so the click must skip
+      a grayed or missing button and retry until ``at_character_select`` goes false.
+    * A key that still works is worth keeping as the fallback for a click that never lands.
     """
-    await _press(hwnd, _VK_RETURN)
+    await _press(hwnd, _VK_SPACE)
 
 
 async def press_escape(hwnd: int) -> None:
@@ -343,7 +364,8 @@ async def _drive_by_sight(
                 return True
             seen_character_select = True
             if enters < AUTO_SELECT_MAX_ENTER:
-                await _try_press(expected_title, _VK_RETURN, lambda: client)
+                # The key press_character_select_play uses, and why it is that one.
+                await _try_press(expected_title, _VK_SPACE, lambda: client)
                 enters += 1
             elif enters == AUTO_SELECT_MAX_ENTER:
                 logger.warning(
@@ -377,10 +399,12 @@ async def _drive_blind(
     deadline: float,
     get_client: Callable[[], object | None] = lambda: None,
 ) -> bool:
-    """Fallback for when the UI tree never reads: press Enter on a timer and hope.
+    """Fallback for when the UI tree never reads: press Space on a timer and hope.
 
-    This is what the whole drive used to be. It can open the chat box on arrival and can
-    confirm an unexpected modal, so it runs only when reading the screen has failed.
+    This is what the whole drive used to be, with Enter, which could open the chat box on
+    arrival. It can still confirm an unexpected modal, so it runs only when reading the
+    screen has failed. Space because it skips the loading screens and, since the
+    2026-11-16 build, is what takes Play (``press_character_select_play``).
     """
     loop = asyncio.get_event_loop()
     # The handle is not known up front here -- the tree never read, so there may be no
@@ -396,7 +420,7 @@ async def _drive_blind(
             logger.info("Auto-select: the window for '%s' was closed — abandoning the drive", expected_title)
             return False
         seen_hwnd = _press_target(expected_title, get_client) or seen_hwnd
-        await _try_press(expected_title, _VK_RETURN, get_client)
+        await _try_press(expected_title, _VK_SPACE, get_client)
         await asyncio.sleep(AUTO_SELECT_KEY_INTERVAL)
 
     if is_hooked():
@@ -433,8 +457,8 @@ async def clean_up_after_auto_select(client, *, remember_realm: bool = False) ->
     the blind fallback path: there, Enter lands in the game world on arrival and opens it,
     and ESC on an open chat box closes it *and* opens the settings window — so the only
     reliable sequence is ESC until settings appears, then ESC until it goes away again.
-    Both loops no-op when nothing is open, which is the normal case now that Enter only
-    ever lands on the character-select screen.
+    Both loops no-op when nothing is open, which is the normal case now that the key that
+    plays only ever lands on the character-select screen.
 
     *remember_realm* turns the game's Remember Realm option on while that settings window
     is up, between the two ESC loops — the one moment per launch it is already open, so

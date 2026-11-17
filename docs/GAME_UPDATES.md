@@ -364,6 +364,9 @@ Live on 2026-11-16, read against the Test realm's r812087, since no copy of r806
   field saved focused, and the launcher's typed login, a tab between the two, stopped getting
   in: the focus it typed into was no longer the account field's. The launcher now sends the login through the client's memory, the command
   Deimos' wizlaunch calls (`wizwalker/login.py`), and types it only when that fails.
+- **Character select** moved its focus the same way: Enter no longer takes Play, and Space
+  does, so auto-select presses Space (`auto_select.press_character_select_play` says what
+  clicking `btnPlay` instead would take, if a later patch moves it again).
 - **Broken and not yet replaced:** the chat and social systems manager patterns,
   deferred as on r811339.
 - **Tools:** `dump_zone_names.py` cannot read the new zone records with the r806919 dump as
