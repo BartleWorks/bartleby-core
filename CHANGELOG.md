@@ -29,9 +29,20 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   grouped and not leading, since on the leader the same button summons the whole group; a
   leader passed in is left out as unstarted. `close_group_menu(client)` closes the menu
   where it is open and never raises. The button's path is `paths.GROUP_TELEPORT_BUTTON_PATH`.
+- `helpers.RosterMemo`, the last roster known for the source's group, which `helpers.gather`
+  and `helpers.group` both take as an optional `memo` and a product keeps for its session:
+  `group` records the source's group as `form_group` left it (`GroupResult.states`), and
+  `gather` the roster it read. Without one, `gather` reads the roster each time it needs it.
 
 ### Changed
 
+- `helpers.gather` ports each mover by Teleport to Leader (`port_to_leader`) when the
+  source's HUD shows it leading, the mover's shows it grouped, and the source's roster lists
+  the mover's cached wizard name, since a mover in a stranger's group reads grouped too.
+  The roster comes from the memo while those HUD reads still hold, and is otherwise read in
+  one social-window visit on the source, under a lease on it. Every other mover goes through
+  the friends list as before, and both batches port at once. A source whose name is not
+  known still sends its proven movers by the leader route. Each slot's route is logged.
 - Group membership comes from the HUD, and the social window is opened only to tell which
   group. `read_group_states` skips every client the HUD shows ungrouped, so a survey at bot
   start opens nothing. `is_grouped` is False with no window when any client reads
