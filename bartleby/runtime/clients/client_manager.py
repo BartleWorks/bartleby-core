@@ -43,6 +43,7 @@ from bartleby.runtime.clients.launch_tracker import LaunchStage, LaunchTracker
 from bartleby.runtime.clients.tile_slots import TileSlot, build_tile_slots
 from bartleby.runtime.clients.window_kill import force_close_client
 from bartleby.runtime.launcher import auto_select
+from bartleby.runtime.launcher.login_gate import gate as login_gate
 from bartleby.runtime.timing import (
     CLIENT_DETECT_ERROR_BACKOFF,
     CLIENT_DETECT_INTERVAL,
@@ -194,6 +195,8 @@ class ClientManager:
         # character is in-game, so activation runs as a background task per client and the
         # hwnd sits here meanwhile — see _start_activation for why this can't be awaited inline.
         self._activating_hwnds: set[int] = set()
+        # New windows not hooked yet because a launch is logging them in: see _activate_ungated.
+        self._gated_clients: list = []
         # Windows whose hook activation raised. Kept out of the published client list for
         # good: retrying would re-prepare the autobot region the failed hooks jump into.
         self._failed_hook_hwnds: set[int] = set()
@@ -229,6 +232,7 @@ class ClientManager:
         for task in list(self._activation_tasks):
             task.cancel()
         self._activation_tasks.clear()
+        self._gated_clients.clear()
         self._activating_hwnds.clear()
         self._failed_hook_hwnds.clear()
 
@@ -534,14 +538,15 @@ class ClientManager:
         while True:
             try:
                 self._handler.remove_dead_clients()
-                for c in self._handler.get_new_clients():
-                    self._start_activation(c)
+                self._gated_clients.extend(self._handler.get_new_clients())
+                self._activate_ungated()
 
                 clients = list(self._handler.clients)
 
                 # Exclude unhooked clients — window still open but hooks deactivated —
-                # plus clients whose hooks are still coming up or failed to install.
-                excluded = self._unhooked_hwnds | self._activating_hwnds | self._failed_hook_hwnds
+                # plus clients whose hooks are held back, still coming up, or failed to install.
+                gated = {c.window_handle for c in self._gated_clients}
+                excluded = self._unhooked_hwnds | gated | self._activating_hwnds | self._failed_hook_hwnds
                 clients = [c for c in clients if c.window_handle not in excluded]
 
                 # Identify windows by title, over *every* live window rather than only the
@@ -651,6 +656,24 @@ class ClientManager:
             except Exception:
                 logger.exception("Client loop error")
                 await asyncio.sleep(CLIENT_DETECT_ERROR_BACKOFF)
+
+    def _activate_ungated(self) -> None:
+        """Start hooking each new window the login gate no longer holds; keep the rest for a later pass.
+
+        A launch holds its windows until their logins are sent, because the login uses the
+        root window hook's site for as long as it takes (``launcher/login_gate.py``). A
+        window that closed while held is dropped: the handler has reaped it already.
+        """
+        live = {c.window_handle for c in self._handler.clients}
+        held = []
+        for client in self._gated_clients:
+            if client.window_handle not in live:
+                continue
+            if login_gate.holds(client.window_handle):
+                held.append(client)
+            else:
+                self._start_activation(client)
+        self._gated_clients = held
 
     def _start_activation(self, client) -> None:
         """Begin hooking a newly detected client, without blocking the detection loop.

@@ -8,6 +8,32 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+### Breaking
+
+- **wizwalker is pinned at `a1559cf`** (`bartlebot-pin-20261116c`), where it was `78929a9`. A
+  product that pins wizwalker itself pins the same commit: the launcher imports
+  `wizwalker.login`, which earlier pins do not have.
+
+### Fixed
+
+- The launcher logs in again on the 2026-11-16 build, whose login window moved its focus and
+  tab order out from under the typed login. `launch_account` and `launch_accounts` send it
+  through the client's memory with wizwalker's `memory_login` (the command Deimos' wizlaunch
+  calls), and type it only when that cannot be sent, logging why.
+- Auto-select takes Play again on the same build, where Enter no longer does: the drive and
+  `press_character_select_play`, which BartleBot's relog calls, press Space. Clicking
+  `btnPlay` is the sturdier fix, set aside for now; that function's docstring says what it
+  would take.
+
+### Changed
+
+- `ClientManager` does not hook a window a launch is logging in until its login is sent, since
+  the login borrows the root window hook's site: every new window while a launch spawns, and
+  the launch's own until each login is out (`launcher/login_gate.py`). A window the user opens
+  during a launch's spawn is hooked a few seconds later than it was.
+
 ## 0.4.0
 
 Following shelved, and wizwalker that resizes a running client on Ahmarra's live build again.

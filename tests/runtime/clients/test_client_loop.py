@@ -18,6 +18,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from bartleby.runtime.clients.client_manager import ClientManager
+from bartleby.runtime.launcher.login_gate import gate
 
 # ---------------------------------------------------------------------------
 # Test harness
@@ -63,6 +64,7 @@ class LoopHarness:
     """Binds the real loop and activation methods; stubs the parts under no test."""
 
     _client_loop = ClientManager._client_loop
+    _activate_ungated = ClientManager._activate_ungated
     _start_activation = ClientManager._start_activation
     _build_ordered_clients = ClientManager._build_ordered_clients
     _assign_slot = ClientManager._assign_slot
@@ -78,6 +80,7 @@ class LoopHarness:
         self._unhooked_clients: list = []
         self._unhooked_hwnds: set[int] = set()
         self._activating_hwnds: set[int] = set()
+        self._gated_clients: list = []
         self._failed_hook_hwnds: set[int] = set()
         self._activation_tasks: set[asyncio.Task] = set()
         self._client_loop_task: asyncio.Task | None = None
@@ -347,3 +350,57 @@ async def test_has_client_titled(harness, monkeypatch):
     harness._clients = [FakeHookClient(100)]
     assert harness.has_client_titled("[Alpha] Wizard101") is True
     assert harness.has_client_titled("[Beta] Wizard101") is False
+
+
+async def test_a_window_a_launch_is_logging_in_is_not_hooked_until_its_login_is_sent(harness):
+    """The login borrows the root window hook's site, so the hooks must wait for it."""
+    gate.hold([100])
+    try:
+        client = FakeHookClient(100)
+        harness._handler.add(client)
+        harness.start()
+        await _tick()
+        assert client.activate_calls == 0
+        assert harness.published_hwnds == set()
+
+        gate.release([100])
+        client.hooks_ready.set_result(None)
+        await _tick()
+        assert client.activate_calls == 1
+        assert harness.published_hwnds == {100}
+    finally:
+        gate.release([100])
+        harness.stop()
+
+
+async def test_every_new_window_waits_while_a_launch_is_spawning(harness):
+    """Before the launcher has claimed its window it cannot name it, so none is hooked."""
+    other = FakeHookClient(200)
+    harness._handler.add(other)
+    harness.start()
+    try:
+        with gate.spawning():
+            await _tick()
+            assert other.activate_calls == 0
+        await _tick()
+        assert other.activate_calls == 1
+    finally:
+        harness.stop()
+
+
+async def test_a_held_window_that_closes_is_dropped(harness):
+    gate.hold([100])
+    try:
+        client = FakeHookClient(100)
+        harness._handler.add(client)
+        harness.start()
+        await _tick()
+        harness._handler.clients.remove(client)
+        await _tick()
+        assert harness._gated_clients == []
+        gate.release([100])
+        await _tick()
+        assert client.activate_calls == 0
+    finally:
+        gate.release([100])
+        harness.stop()

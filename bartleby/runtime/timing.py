@@ -380,6 +380,12 @@ LAUNCH_LOGIN_SCREEN_TIMEOUT = 180.0
 # wait: this covers process spawn, and a window that has not appeared by now is one the
 # launcher never started rather than one that is being slow.
 LAUNCH_SPAWN_TIMEOUT = 90.0
+
+# How long a window at the login screen may take to run the login sent through its memory
+# (wizwalker's memory_login) before it is typed instead. The game runs it on its next
+# frame, so seconds are already a window that is not drawing; the typing it falls back to
+# is no slower to find out about.
+LAUNCH_MEMORY_LOGIN_TIMEOUT = 10.0
 # Seconds to wait between starting successive Wizard101 instances, and between
 # successive auto-login attempts, in a multi-account launch profile. The
 # login server intermittently rejects logins that arrive in too-tight
@@ -387,7 +393,7 @@ LAUNCH_SPAWN_TIMEOUT = 90.0
 # most of the benefit of launching a team in parallel.
 
 AUTO_SELECT_FIRST_SCREEN_DELAY = 3.0
-# Seconds to wait after auto-login is typed before the first keypress. The loading screen
+# Seconds to wait after auto-login is sent before the first keypress. The loading screen
 # that follows login ignores input for roughly this long, so anything sent earlier is
 # simply dropped — this is a floor, not a guess at when the screen ends.
 
