@@ -29,6 +29,12 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   grouped and not leading, since on the leader the same button summons the whole group; a
   leader passed in is left out as unstarted. `close_group_menu(client)` closes the menu
   where it is open and never raises. The button's path is `paths.GROUP_TELEPORT_BUTTON_PATH`.
+- `group_manager.leader_roster(clients) -> LeaderRoster | None`: when the HUD shows every
+  client grouped and exactly one leading, that leader's index and its `read_group_state`,
+  from one social-window visit; None, with no window opened, otherwise. `LeaderRoster.lists(name)`
+  says whether a wizard is in the leader's group by its roster, case-insensitively, and is
+  False for no name or a leader the visit found ungrouped. `is_grouped`'s one-leader path
+  is built on it.
 - `helpers.RosterMemo`, the last roster known for the source's group, which `helpers.gather`
   and `helpers.group` both take as an optional `memo` and a product keeps for its session:
   `group` records the source's group as `form_group` left it (`GroupResult.states`), and

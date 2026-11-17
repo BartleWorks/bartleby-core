@@ -665,9 +665,11 @@ async def is_grouped(clients: list) -> bool:
 
     The HUD answers most of it with no window opened. Any client it shows ungrouped makes
     this False at once. When it shows every client grouped and exactly one of ours leading,
-    that leader's roster is the only one read (_leader_lists_everyone). Anything less
-    certain is the full survey: a client the HUD cannot read, no leader among ours or
-    several, a wizard name not yet known, or a roster missing one of them.
+    that leader's roster is the only one read (leader_roster), and it is True when every
+    cached wizard name is on it: names cost a character-page open each, so a client with
+    none yet goes to the survey without the visit. Anything less certain is the full
+    survey: a client the HUD cannot read, no leader among ours or several, a wizard name not
+    yet known, or a roster missing one of them. A leader read on the way is not visited again.
     """
     if len(clients) < 2:
         return False
@@ -675,36 +677,69 @@ async def is_grouped(clients: list) -> bool:
     if any(hud.grouped is False for hud in huds):
         return False
     known: dict[int, GroupState] = {}
-    if await _leader_lists_everyone(clients, huds, known):
-        return True
+    names = [wizard_names.cached_name(client) for client in clients]
+    found = await _leader_roster(clients, huds) if all(names) else None
+    if found is not None:
+        known[found.index] = found.state
+        if all(found.lists(name) for name in names):
+            return True
     states = await _read_group_states(clients, huds, known)
     if not all(state.grouped for state in states):
         return False
     return same_group(states) is not False
 
 
-async def _leader_lists_everyone(clients: list, huds: list[_Hud], known: dict[int, GroupState]) -> bool:
-    """Whether the one leader among our clients lists every one of them, read in one visit.
+@dataclass(frozen=True)
+class LeaderRoster:
+    """The one leader among some clients, as the HUD named it, and its Group tab from one visit.
 
-    Only tried when the HUD shows every client grouped and exactly one of them leading: a
-    wizard belongs to at most one group, so every one of our names on the leader's roster
-    puts all of them in its group. Names are the cached ones (wizard_names.cached_name),
-    since finding one costs a character-page open; a client with none yet sends this back
-    to the full survey. The leader's state goes into `known`, so that a survey after a
-    False does not visit it again.
+    `index` is the leader's position in the clients that were passed, and `state` what
+    read_group_state read on it. A wizard is in one group at most, so every name the
+    roster lists (lists) is in the leader's group, and any other client the HUD showed
+    grouped is in a group none of those clients leads.
     """
+
+    index: int
+    state: GroupState
+
+    def lists(self, name: str | None) -> bool:
+        """Whether wizard `name` is in the leader's group, by its roster, case-insensitively.
+
+        False for no name, and for a leader the visit found ungrouped after all.
+        """
+        return bool(name) and self.state.grouped and _lists(self.state.roster, name)
+
+
+async def leader_roster(clients: list) -> LeaderRoster | None:
+    """The one leader among these clients and its roster, read in a single social-window visit.
+
+    None, with no window opened, unless the HUD shows every client grouped and exactly one
+    of them leading (hud_grouped, hud_leads): a client it cannot read, in battle or loading,
+    one it shows ungrouped, no leader among them or several. The visit is read_group_state,
+    so it never raises, and an unreadable roster comes back empty, which lists nobody.
+
+    What a product reads instead of every client's Group tab when it wants to know who is
+    grouped with whom, as is_grouped does.
+    """
+    return await _leader_roster(clients, await _read_huds(clients))
+
+
+def _sole_leader(huds: list[_Hud]) -> int | None:
+    """The index of the one client leading, when the HUD shows every client grouped; else None."""
     if any(hud.grouped is not True or hud.leads is None for hud in huds):
-        return False
+        return None
     leaders = [idx for idx, hud in enumerate(huds) if hud.leads]
-    if len(leaders) != 1:
-        return False
-    names = [wizard_names.cached_name(client) for client in clients]
-    if not all(names):
-        return False
-    leader = leaders[0]
-    state = await run_trace.traced(read_group_state(clients[leader]), "group.read_state", client=clients[leader])
-    known[leader] = state
-    return state.grouped and all(_lists(state.roster, name) for name in names)
+    return leaders[0] if len(leaders) == 1 else None
+
+
+async def _leader_roster(clients: list, huds: list[_Hud]) -> LeaderRoster | None:
+    """leader_roster, given the HUD already read."""
+    leader = _sole_leader(huds)
+    if leader is None:
+        return None
+    client = clients[leader]
+    state = await run_trace.traced(read_group_state(client), "group.read_state", client=client)
+    return LeaderRoster(leader, state)
 
 
 async def leave_group(client) -> bool:
