@@ -2382,6 +2382,66 @@ async def test_is_grouped_keeps_the_unreadable_roster_fallback(ui, cached_names)
     assert await _run_with(ui, lambda: gm.is_grouped([a, b])) is True
 
 
+# --- leader_roster: the one leader's roster in one visit ------------------------------------
+
+
+async def test_leader_roster_reads_only_the_one_leaders_group_tab(ui):
+    clients = [ui.make_client(n) for n in _FOUR]
+    ui.put_in_group(clients[2], clients[0], clients[1], clients[3])
+
+    found = await _run_with(ui, lambda: gm.leader_roster(clients))
+
+    assert found is not None and found.index == 2
+    assert {name.casefold() for name in found.state.roster} == {name.casefold() for name in _FOUR}
+    assert _visits(ui) == [clients[2]], "more than the leader's window was opened"
+
+
+async def test_leader_roster_lists_only_the_leaders_group(ui):
+    """One of ours grouped with strangers reads grouped on the HUD, and is not on the leader's roster."""
+    clients = [ui.make_client(n, grouped=True) for n in _FOUR[:3]]
+    elsewhere = ui.make_client(_FOUR[3])
+    ui.put_in_foreign_group(elsewhere, "Stranger One")
+
+    found = await _run_with(ui, lambda: gm.leader_roster([*clients, elsewhere]))
+
+    assert found is not None
+    assert all(found.lists(name) for name in _FOUR[:3])
+    assert found.lists(_FOUR[0].upper()), "a roster is compared case-insensitively"
+    assert not found.lists(_FOUR[3])
+    assert not found.lists(None)
+
+
+def test_a_leader_found_ungrouped_lists_nobody():
+    found = gm.LeaderRoster(0, gm.GroupState(grouped=False, roster=("Alice A",)))
+
+    assert not found.lists("Alice A")
+
+
+def _hud_cannot_tell(ui, clients):
+    clients[1].in_battle.return_value = True
+
+
+def _one_ungrouped(ui, clients):
+    ui.remove_from_group(clients[3])
+
+
+def _no_leader_of_ours(ui, clients):
+    ui.leads.clear()
+
+
+@pytest.mark.parametrize(
+    "setup",
+    [_hud_cannot_tell, _one_ungrouped, _no_leader_of_ours, _two_groups_of_ours],
+    ids=["hud-cannot-tell", "one-ungrouped", "no-leader-of-ours", "several-leaders"],
+)
+async def test_leader_roster_is_none_without_a_window_unless_the_hud_names_one_leader(ui, setup):
+    clients = [ui.make_client(n, grouped=True) for n in _FOUR]
+    setup(ui, clients)
+
+    assert await _run_with(ui, lambda: gm.leader_roster(clients)) is None
+    assert _visits(ui) == []
+
+
 # --- _choose_leader prefers the client that actually leads ----------------------------------
 
 
