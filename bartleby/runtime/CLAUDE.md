@@ -201,7 +201,8 @@ screens re-ports a player that already arrived, forever (#69), and cannot tell a
 was already there from one whose port failed (#14).
 
 `node_helpers.port_clients` accepts all three, so start any port to a player through it
-(`port_to_friend`, `group_manager.port_to_group_member`) rather than watching `is_loading()`
+(`port_to_friend`, `group_manager.port_to_group_member`, `group_manager.port_to_leader`)
+rather than watching `is_loading()`
 yourself. Pass `maybe_there` only for clients with a reason to already be at the target: those
 alone may be presumed there after a re-issue, and every presumption should be logged by player
 number. Realm cannot be read without opening the spellbook, so never skip porting a player for

@@ -931,9 +931,10 @@ async def port_clients(
     """Start a port on every client with `initiate`, and wait for each port to show itself.
 
     `initiate(client)` is how one client's port is started: the friends list for port_to_friend,
-    the group roster for group_manager.port_to_group_member. Everything after the start is the
-    same whichever way it began -- the dungeon exit and cross-realm warnings are confirmed, a
-    friend-busy dialog is a refusal -- so it lives here once. See port_to_friend for the rest.
+    the group roster for group_manager.port_to_group_member, and the HUD's Teleport to Leader
+    for group_manager.port_to_leader. Everything after the start is the same whichever way it
+    began -- the dungeon exit and cross-realm warnings are confirmed, a friend-busy dialog is a
+    refusal -- so it lives here once. See port_to_friend for the rest.
 
     What a successful port looks like depends on where the client starts, and the realm it is on
     cannot be read without opening the spellbook, so every sign is accepted from every client:

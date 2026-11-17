@@ -48,6 +48,11 @@ to a player who is already in a group, so form_group dissolves every group excep
 largest one (see leave_group and _dissolve_other_groups) and then invites the freed
 clients into it — the same invite path any ungrouped client takes.
 
+A group is also a way to port. port_to_group_member goes to a member through the Group
+tab's roster, and port_to_leader to the leader through the HUD's own Teleport to Leader,
+the fewest clicks of any port. On the leader that button summons the whole group instead,
+so teleport_to_leader clicks it only on a client the HUD shows grouped and not leading.
+
 Deliberately free of Qt and FSM dependencies, so that any product's runtime can call it,
 and so it can be tested without either.
 
@@ -74,6 +79,7 @@ from bartleby.runtime.paths import (
     GROUP_INVITE_ACCEPT_PATH,
     GROUP_LEADER_TEXT_PATH,
     GROUP_ROSTER_LINES,
+    GROUP_TELEPORT_BUTTON_PATH,
     GROUP_WINDOW_CLOSE_PATH,
     INVITE_TO_GROUP_BUTTON_PATH,
     LEAVE_GROUP_BUTTON_PATH,
@@ -1499,3 +1505,96 @@ async def port_to_group_member(clients_to_move: list, name: str, **kwargs) -> no
     finally:
         await node_helpers.poll_until(lambda: node_helpers.none_loading(clients_to_move), None, POLL_INTERVAL)
         await asyncio.gather(*(close_social_window(c) for c in clients_to_move))
+
+
+async def _group_menu_open(client) -> bool:
+    """Whether the HUD's group menu is open on this client, by its teleport button's own flag."""
+    return await node_helpers.is_visible_by_path(client, GROUP_TELEPORT_BUTTON_PATH)
+
+
+async def _require_member(client) -> None:
+    """Raise ValueError unless the HUD shows this client grouped, and not leading its group.
+
+    The guard on the group menu's teleport button, which on the leader summons the whole group
+    (paths.GROUP_TELEPORT_BUTTON_PATH). A client the HUD cannot read, in battle, loading or with
+    the path moved, fails it too: only a plain False for leading lets the click through.
+    """
+    hud = await _read_hud(client, leader=True)
+    if hud.grouped is not True:
+        raise ValueError("the HUD does not show this client in a group")
+    if hud.leads is True:
+        raise ValueError("this client leads its group, where the button asks the group to teleport")
+    if hud.leads is not False:
+        raise ValueError("the HUD cannot tell whether this client leads its group")
+
+
+async def teleport_to_leader(client) -> None:
+    """Start a port to this client's group leader. Raises ValueError if it cannot start.
+
+    The game's own Teleport to Leader, on the HUD's group menu: open the menu, unless it is
+    already open, and click its teleport button. The same contract as
+    teleport_to_group_member, so node_helpers.port_clients can drive it, and the port behaves
+    as a friends-list port does once it starts: the same refusals, no dialog of its own.
+
+    On the leader that button is Ask Group to Teleport, a summon, so nothing is clicked
+    unless the HUD shows this client grouped and not leading (_require_member). The check is
+    read again just before the teleport click when the menu had to be opened first, and has
+    no way around it. A client the HUD cannot read, in battle or loading, is refused the
+    same way.
+
+    The menu is left open, since it never closes by itself: port_to_leader closes it once
+    the port is over, and anything else calling this closes it with close_group_menu.
+
+    Waits out any form_group in progress first, as teleport_to_group_member does, though
+    for another reason: form_group can change who leads (a leader leaving hands the group
+    on), and the leader check read halfway through could pass a client about to lead. It
+    does not hold the lock itself: ports must not queue behind each other.
+    """
+    lock = _form_group_lock()
+    if lock.locked():
+        async with lock:
+            pass
+
+    await _require_member(client)
+    if not await _group_menu_open(client):
+        # The menu button is a toggle, so it is clicked only while the menu reads closed.
+        if not await node_helpers.click_by_path(client, GROUP_HUD_BUTTON_PATH):
+            raise ValueError("the group menu button could not be clicked")
+        if not await node_helpers.poll_until(
+            lambda: _group_menu_open(client), timeout=TRIGGER_TIMEOUT, poll_interval=POLL_INTERVAL
+        ):
+            raise ValueError("the group menu did not open")
+        await _require_member(client)
+    if not await node_helpers.click_by_path(client, GROUP_TELEPORT_BUTTON_PATH):
+        raise ValueError("the Teleport to Leader button could not be clicked")
+
+
+async def close_group_menu(client) -> None:
+    """Close the HUD's group menu if it is open, retrying until it is gone. Never raises.
+
+    The menu button is a toggle, so a closed menu costs one read and no click
+    (node_helpers.click_until_gone checks before every click). A click on the menu button
+    is safe on the leader too: only the teleport button inside the menu summons.
+    """
+    try:
+        await node_helpers.click_until_gone(client, GROUP_HUD_BUTTON_PATH, is_open=lambda: _group_menu_open(client))
+    except Exception:
+        logger.debug("Could not close the group menu", exc_info=True)
+
+
+async def port_to_leader(clients_to_move: list, **kwargs) -> node_helpers.PortToFriendResult:
+    """Port every client to its group leader, and wait for each to start loading.
+
+    port_to_group_member's counterpart through the HUD's Teleport to Leader, with
+    node_helpers.port_clients' arguments and result. Pass the members alone: a client that
+    leads, or whose HUD cannot be read, is refused by teleport_to_leader, so it is left out
+    of the wait as unstarted, and ValueError is raised only when no client's port began.
+
+    The group menu stays open across the port, so it is closed on every client once the
+    loading screens have cleared, and left alone where it is already closed.
+    """
+    try:
+        return await node_helpers.port_clients(clients_to_move, teleport_to_leader, **kwargs)
+    finally:
+        await node_helpers.poll_until(lambda: node_helpers.none_loading(clients_to_move), None, POLL_INTERVAL)
+        await asyncio.gather(*(close_group_menu(c) for c in clients_to_move))
