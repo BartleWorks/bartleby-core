@@ -21,6 +21,14 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   out of comparisons, so `GroupState(grouped, roster)` builds and compares as before.
 - `node_helpers.visible_if_present(client, path)`, `is_visible_by_path` with None for a
   path that resolves to no window.
+- `group_manager.port_to_leader(clients_to_move, **kwargs) -> PortToFriendResult`, a port
+  to the group's leader by the HUD's own Teleport to Leader, driven by `port_clients` as
+  `port_to_group_member` is, with the same arguments and result. It closes the group menu
+  on every client once the loading screens clear. Its starter is
+  `teleport_to_leader(client)`, which raises ValueError unless the HUD shows the client
+  grouped and not leading, since on the leader the same button summons the whole group; a
+  leader passed in is left out as unstarted. `close_group_menu(client)` closes the menu
+  where it is open and never raises. The button's path is `paths.GROUP_TELEPORT_BUTTON_PATH`.
 
 ### Changed
 

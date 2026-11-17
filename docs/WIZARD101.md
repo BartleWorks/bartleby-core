@@ -58,11 +58,11 @@ lets the client claim has changed twice in 2026:
   while the player is in a group, and its `LeaderText` label only on the leader, so the HUD
   says who is grouped and who leads with no window opened. **The menu and its buttons hide
   in battle**, so a read then says nothing about the group, and nor does one while loading.
-  The menu never closes by itself. On the leader its teleport button is **Ask Group to
-  Teleport**, a summon; on a member it is Teleport to Leader, which is refused with the same
-  dialogs as a friends-list port when the leader cannot be reached, and otherwise lands on
-  the leader's exact position, as a friends-list port does (all checked on r813697,
-  2026-11-17). Leadership cannot be handed on: the leader changes only when the leader
+  The menu never closes by itself, not after a teleport and not on a zone change. On the
+  leader its teleport button is **Ask Group to Teleport**, a summon; on a member it is
+  Teleport to Leader, which is refused with the same dialogs as a friends-list port when the
+  leader cannot be reached, and otherwise lands on the leader's exact position, as a
+  friends-list port does (all checked on r813697, 2026-11-17). Leadership cannot be handed on: the leader changes only when the leader
   leaves the group or logs off.
 
 Walking routes, planned from a zone's own files, and following the leader by keys were

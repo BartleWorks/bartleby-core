@@ -446,6 +446,17 @@ GROUP_WINDOW_CLOSE_PATH = ["WorldView", "SocialSystemsWindow", "CloseSocialSyste
 GROUP_HUD_BUTTON_PATH = ["WorldView", "windowHUD", "GroupSystemButton"]
 GROUP_LEADER_TEXT_PATH = ["WorldView", "windowHUD", "GroupSystemButton", "LeaderText"]
 
+# The group menu's teleport button. A click on GROUP_HUD_BUTTON_PATH toggles the menu, and
+# this button reads HIDDEN while the menu is closed, so its flag is how the menu's openness is
+# read. The menu never closes by itself, not after a teleport and not on a zone change, and it
+# hides in battle with the rest of the HUD's group controls.
+# THE BUTTON HAS TWO MEANINGS. On a member it is Teleport to Leader, a port to the leader that
+# behaves exactly like a friends-list port. On the LEADER it is Ask Group to Teleport, which
+# summons the whole group to the leader. So it is clicked only once the HUD has said this
+# client is grouped and does not lead (group_manager.teleport_to_leader), and never on a
+# client where that cannot be told. Established in game on r813697 (2026-11-17).
+GROUP_TELEPORT_BUTTON_PATH = ["WorldView", "windowHUD", "GroupSystemButton", "GroupButtonLayout", "GroupTeleportButton"]
+
 # The Leave Group button: the game HIDES it when ungrouped rather than graying it, so check
 # visibility, not enabled-ness. Verified with tools/probe_group_ui.py. It was the membership
 # read until the HUD's above, and is still what leave_group clicks and what a social-window
