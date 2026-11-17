@@ -29,6 +29,7 @@ from bartleby.runtime.launcher.auto_select import (
     wait_for_client_in,
 )
 from bartleby.runtime.launcher.launch_profile import launch_account
+from bartleby.runtime.launcher.login_gate import gate
 from bartleby.runtime.paths import CHAR_SELECT_PATH
 
 TITLE = "[Alpha] Wizard101"
@@ -585,7 +586,7 @@ def _stubbed_launch():
         patch("bartleby.runtime.launcher.launch_profile.get_all_wizard_handles", return_value=[]),
         patch("bartleby.runtime.launcher.launch_profile._start_and_claim_handle", AsyncMock(return_value=77)),
         patch("bartleby.runtime.launcher.launch_profile._wait_for_login_screen", AsyncMock()),
-        patch("bartleby.runtime.launcher.launch_profile.instance_login"),
+        patch("bartleby.runtime.launcher.launch_profile._log_in", new_callable=AsyncMock),
         patch("bartleby.runtime.launcher.launch_profile.set_window_title"),
         patch("bartleby.runtime.launcher.launch_profile.SettingsManager") as sm,
     ):
@@ -607,6 +608,33 @@ async def test_launch_account_without_a_driver_does_not_wait():
     """drive=None is how a caller says 'leave it at character select'."""
     with _stubbed_launch():
         assert await launch_account("user1", "pw", "Alpha") == TITLE
+
+
+async def test_launch_account_holds_its_window_unhooked_until_the_login_is_sent():
+    """The login borrows the root window hook's site; the hooks wait for it (login_gate)."""
+    held = []
+    with (
+        _stubbed_launch(),
+        patch(
+            "bartleby.runtime.launcher.launch_profile._log_in",
+            AsyncMock(side_effect=lambda handle, *_a: held.append(gate.holds(handle))),
+        ),
+    ):
+        await launch_account("user1", "pw", "Alpha")
+
+    assert held == [True]
+    assert not gate.holds(77)
+
+
+async def test_launch_account_lets_a_window_that_never_reached_the_login_screen_go():
+    with (
+        _stubbed_launch(),
+        patch("bartleby.runtime.launcher.launch_profile._wait_for_login_screen", AsyncMock(return_value=False)),
+        pytest.raises(RuntimeError),
+    ):
+        await launch_account("user1", "pw", "Alpha")
+
+    assert not gate.holds(77)
 
 
 async def test_a_drive_that_ends_because_its_window_closed_is_not_a_failure():
@@ -643,7 +671,7 @@ async def test_profile_drives_every_account_concurrently():
         patch("bartleby.runtime.launcher.launch_profile._wait_for_n_new_handles", AsyncMock(return_value=[1, 2, 3])),
         patch("bartleby.runtime.launcher.launch_profile._wait_for_login_screen", AsyncMock()),
         patch("bartleby.runtime.launcher.launch_profile.start_instance"),
-        patch("bartleby.runtime.launcher.launch_profile.instance_login"),
+        patch("bartleby.runtime.launcher.launch_profile._log_in", new_callable=AsyncMock),
         patch("bartleby.runtime.launcher.launch_profile.set_window_title"),
         patch("bartleby.runtime.launcher.launch_profile.jitter", return_value=0.0),
         patch("bartleby.runtime.launcher.launch_profile.CredentialStore") as creds,

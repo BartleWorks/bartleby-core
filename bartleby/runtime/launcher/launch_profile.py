@@ -16,6 +16,7 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Protocol
 
+from wizwalker.login import memory_login
 from wizwalker.utils import (
     get_all_wizard_handles,
     get_window_title,
@@ -28,8 +29,10 @@ from wizwalker.utils import (
 from bartleby.runtime.clients.credentials import CredentialStore, account_label
 from bartleby.runtime.clients.launch_tracker import LaunchStage
 from bartleby.runtime.game.game_sizing import ui_size_for
+from bartleby.runtime.launcher.login_gate import gate
 from bartleby.runtime.timing import (
     LAUNCH_LOGIN_SCREEN_TIMEOUT,
+    LAUNCH_MEMORY_LOGIN_TIMEOUT,
     LAUNCH_SPAWN_TIMEOUT,
     LAUNCH_STAGGER_DELAY,
     jitter,
@@ -474,7 +477,7 @@ async def _wait_for_n_new_handles(known_handles: set[int], n: int, timeout: floa
 
     Used to claim a whole batch of instances started back-to-back, instead of
     waiting for each one individually — the account each handle ends up with
-    doesn't matter, since login credentials are just typed into whichever
+    doesn't matter, since login credentials are just sent to whichever
     window, so there's no need to correlate a given handle back to the
     start_instance() call that spawned it.
 
@@ -492,6 +495,27 @@ async def _wait_for_n_new_handles(known_handles: set[int], n: int, timeout: floa
         if loop.time() >= deadline:
             raise TimeoutError(f"Only {len(new_handles)} of {n} game windows started within {timeout:.0f}s")
         await asyncio.sleep(0.1)
+
+
+async def _log_in(handle: int, username: str, password: str) -> None:
+    """Log the window at the login screen in, through its memory, or by typing if that fails.
+
+    Through memory first, because typing rests on the login window's focus and tab order,
+    and the game's 2026-11-16 build moved them: the username and password went to the wrong
+    fields. ``memory_login`` calls the command the window ends in instead
+    (``wizwalker/login.py``). It refuses a credential with a space in it, a client whose
+    code it cannot find after a patch, and a window that does not run it in time, and each
+    of those is typed instead -- which is what every launch did before.
+
+    Its errors never hold the credentials, so the reason is logged as it is.
+    """
+    try:
+        await memory_login(handle, username, password, timeout=LAUNCH_MEMORY_LOGIN_TIMEOUT)
+    except Exception as error:
+        logger.warning(
+            "Launch: typing the login for '%s', since it could not be sent: %s", account_label(username), error
+        )
+        instance_login(handle, username, password)
 
 
 async def launch_account(
@@ -522,12 +546,18 @@ async def launch_account(
     w, h = resolution if resolution is not None else SettingsManager.instance().game_resolution
     _patch_window_config(w, h, _LAUNCH_ANCHOR_X, _LAUNCH_ANCHOR_Y)
     _report(progress, username, LaunchStage.STARTING)
-    handle = await _start_and_claim_handle(set(get_all_wizard_handles()))
-    if not await _wait_for_login_screen(handle):
-        _report(progress, username, LaunchStage.FAILED)
-        raise RuntimeError(f"'{display_name}' never reached the login screen.")
-    _report(progress, username, LaunchStage.LOGGING_IN)
-    instance_login(handle, username, password)
+    # The window is not hooked until its login is sent: see login_gate.
+    with gate.spawning():
+        handle = await _start_and_claim_handle(set(get_all_wizard_handles()))
+        gate.hold([handle])
+    try:
+        if not await _wait_for_login_screen(handle):
+            _report(progress, username, LaunchStage.FAILED)
+            raise RuntimeError(f"'{display_name}' never reached the login screen.")
+        _report(progress, username, LaunchStage.LOGGING_IN)
+        await _log_in(handle, username, password)
+    finally:
+        gate.release([handle])
     title = f"[{display_name}] Wizard101"
     set_window_title(handle, title)
     _report(progress, username, LaunchStage.LOADING)
@@ -554,7 +584,7 @@ async def launch_accounts(
 
     The batch shape is the whole point: instances are spawned back-to-back with a short
     stagger, the login screens are waited for once for all of them, and each drive starts
-    as soon as its own login is typed. Doing this one client at a time costs the full
+    as soon as its own login is sent. Doing this one client at a time costs the full
     launch — spawn, two loading screens, character select, load-in — per client, which is
     minutes rather than seconds once more than one window is involved.
 
@@ -565,7 +595,7 @@ async def launch_accounts(
     *progress* is told which stage each account is in. The batch shape is visible in what
     it can honestly say: every window's login screen is waited for in one shared gather, so
     the whole batch sits at STARTING until the slowest of them is up, and the accounts only
-    diverge from ``instance_login`` onward. That is not a reporting gap to paper over — it
+    diverge from the login onward. That is not a reporting gap to paper over — it
     is what is actually happening, and a per-client stage invented for the shared wait
     would claim progress that has not been made.
     """
@@ -583,19 +613,38 @@ async def launch_accounts(
     known = set(get_all_wizard_handles())
     for username, _password, _display in accounts:
         _report(progress, username, LaunchStage.STARTING)
-    for i, _ in enumerate(accounts):
-        start_instance()
-        if i < len(accounts) - 1:
-            await asyncio.sleep(jitter(LAUNCH_STAGGER_DELAY))
-    handles = await _wait_for_n_new_handles(known, len(accounts))
+    # No window is hooked until its own login is sent: see login_gate.
+    with gate.spawning():
+        for i, _ in enumerate(accounts):
+            start_instance()
+            if i < len(accounts) - 1:
+                await asyncio.sleep(jitter(LAUNCH_STAGGER_DELAY))
+        handles = await _wait_for_n_new_handles(known, len(accounts))
+        gate.hold(handles)
+    try:
+        return await _log_in_and_drive(handles, accounts, drive, progress)
+    finally:
+        gate.release(handles)
 
+
+async def _log_in_and_drive(
+    handles: list[int],
+    accounts: list[tuple[str, str, str]],
+    drive: DriveFn | None,
+    progress: ProgressFn | None,
+) -> list[str]:
+    """The rest of ``launch_accounts``, from the claimed windows on.
+
+    Each window's gate hold is released as its login is sent, or as it is skipped; the
+    caller's release of them all is for a batch that raises partway.
+    """
     # Single shared wait for all instances to reach the login screen
     reached = await asyncio.gather(*[_wait_for_login_screen(h) for h in handles])
 
     # Stagger login attempts too — the login server intermittently rejects logins that
     # arrive in too-tight succession.
     #
-    # Each instance's drive starts as soon as its own login is typed, rather than after
+    # Each instance's drive starts as soon as its own login is sent, rather than after
     # the whole batch: the drives are independent, cost nothing while they wait, and
     # overlapping them with the remaining stagger delays is most of the reason a team
     # launch is faster than doing this by hand.
@@ -604,15 +653,18 @@ async def launch_accounts(
     # it was advancing -- see _report_drive_outcome.
     drives: list[tuple[str, int, asyncio.Task]] = []
     for i, (handle, (username, password, display_name)) in enumerate(zip(handles, accounts)):
-        # A window that never reached the login screen is skipped rather than typed into.
+        # A window that never reached the login screen is skipped rather than logged into.
         # Its siblings are unaffected — that is the whole reason the wait reports instead
         # of raising — and typing credentials at whatever screen it is actually showing is
         # the one outcome worse than not launching it.
         if not reached[i]:
+            gate.release([handle])
             _report(progress, username, LaunchStage.FAILED)
             continue
         _report(progress, username, LaunchStage.LOGGING_IN)
-        instance_login(handle, username, password)
+        await _log_in(handle, username, password)
+        # Now, not when the batch is done: its drive waits on the hooks this lets in.
+        gate.release([handle])
         title = f"[{display_name}] Wizard101"
         set_window_title(handle, title)
         titles.append(title)

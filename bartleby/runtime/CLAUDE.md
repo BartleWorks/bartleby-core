@@ -223,7 +223,7 @@ Interactions need no wait: the prompt they wait for is the confirmation.
 ## The client manager
 
 `bartleby.runtime.clients.client_manager.ClientManager` finds, hooks, names and orders the
-game clients for every product. Three rules, each the cost of a bug:
+game clients for every product. Four rules, each the cost of a bug or of a crash avoided:
 
 - **Hooking runs in the background.** `activate_hooks()` waits for a character to be in a
   game zone, with no timeout, so a window at login or character select never returns from
@@ -231,6 +231,11 @@ game clients for every product. Three rules, each the cost of a bug:
   long as one window sat at character select, which auto-select makes every launch.
   `_start_activation` runs it as a task per window, and the window waits in
   `_activating_hwnds` meanwhile.
+- **A window a launch is logging in is not hooked until its login is sent.** The login
+  goes through wizwalker's `memory_login`, which borrows the root window hook's site, and
+  two jumps on one site crash the game. `launcher/login_gate.py` holds every new window
+  while a launch spawns and each of its own until its login is out; `_activate_ungated`
+  hooks the rest and keeps the held ones in `_gated_clients` for a later pass.
 - **A failed activation is never retried.** `activate_all_hooks()` installs every hook
   before it waits, so one abandoned mid-wait leaves jumps into wizwalker's autobot scratch
   region, and a fresh `Client` for the same process re-runs `_prepare_autobot`, which zeroes

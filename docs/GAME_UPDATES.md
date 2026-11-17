@@ -111,6 +111,13 @@ write to the slot but the destructor's clear. BartleBot's `tools/probe_runtime_r
 <w> <h>`, on one client of the build in the world, compares the answer with what a hook on
 PreRender's test captures and resizes there and back.
 
+**The login** (`wizwalker/login.py`) has one pattern of its own, `LOGIN_CALL_PATTERN`, the
+login window's call to the game's command dispatcher, and borrows `RootWindowHook`'s site. A
+broken one costs nothing but the way in: the launcher types the login instead, as every launch
+did before 2026-11-16, and logs why. The pattern matches twice, and the two copies must resolve to
+the same client global and dispatcher, read at fixed distances from the match (`+13` and `+18`),
+or it refuses; look at both when it changes count.
+
 **The config nodes** a resize writes are found by name, not by a pattern, so no scan here reports
 them. `client_resizer.find_config_nodes` checks the object around each name at fixed offsets. If
 those move, it finds no single live pair, and each client gets one warning and keeps its size.
@@ -353,6 +360,10 @@ Live on 2026-11-16, read against the Test realm's r812087, since no copy of r806
   VidRestart's own body, which r812087 also has, at the same distances. The field offsets did
   not move: the pending byte +0x222A3, the device +0x222A8, its size +0x1C and +0x20. The
   size's registers did, from `esi`/`r14d` to `edi`/`esi`, so their check takes any.
+- **The login window** came with its account field moved to its first child and its password
+  field saved focused, and the launcher's typed login, a tab between the two, stopped getting
+  in: the focus it typed into was no longer the account field's. The launcher now sends the login through the client's memory, the command
+  Deimos' wizlaunch calls (`wizwalker/login.py`), and types it only when that fails.
 - **Broken and not yet replaced:** the chat and social systems manager patterns,
   deferred as on r811339.
 - **Tools:** `dump_zone_names.py` cannot read the new zone records with the r806919 dump as

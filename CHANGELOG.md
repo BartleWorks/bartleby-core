@@ -8,6 +8,23 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+### Fixed
+
+- The launcher logs in again on the 2026-11-16 build, whose login window moved its focus and
+  tab order out from under the typed login. `launch_account` and `launch_accounts` send it
+  through the client's memory with wizwalker's `memory_login` (the command Deimos' wizlaunch
+  calls), and type it only when that cannot be sent, logging why. Needs the wizwalker pin
+  that has `wizwalker.login`.
+
+### Changed
+
+- `ClientManager` does not hook a window a launch is logging in until its login is sent, since
+  the login borrows the root window hook's site: every new window while a launch spawns, and
+  the launch's own until each login is out (`launcher/login_gate.py`). A window the user opens
+  during a launch's spawn is hooked a few seconds later than it was.
+
 ## 0.4.0
 
 Following shelved, and wizwalker that resizes a running client on Ahmarra's live build again.

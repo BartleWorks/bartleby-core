@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from bartleby.runtime.launcher.launch_profile import launch_accounts
+from bartleby.runtime.launcher.login_gate import gate
 
 ACCOUNTS = [
     ("alpha", "pw1", "a***a"),
@@ -35,7 +36,7 @@ def launcher():
         ),
         patch("bartleby.runtime.launcher.launch_profile._wait_for_login_screen", AsyncMock()),
         patch("bartleby.runtime.launcher.launch_profile.start_instance", lambda: events.append("start")),
-        patch("bartleby.runtime.launcher.launch_profile.instance_login") as login,
+        patch("bartleby.runtime.launcher.launch_profile._log_in", new_callable=AsyncMock) as login,
         patch("bartleby.runtime.launcher.launch_profile.set_window_title"),
         patch("bartleby.runtime.launcher.launch_profile.jitter", return_value=0.0),
         patch("bartleby.runtime.launcher.launch_profile.SettingsManager") as sm,
@@ -103,3 +104,34 @@ async def test_every_drive_is_awaited_before_returning(launcher) -> None:
     await launch_accounts(ACCOUNTS, drive=_drive)
 
     assert len(finished) == 3
+
+
+# --- the login gate: no window hooked while its login is being sent -------------------
+
+
+async def test_each_window_is_held_until_its_own_login_is_sent(launcher) -> None:
+    """Released one by one, not when the batch is done: each drive waits on its window's hooks."""
+    held: list[list[bool]] = []
+    launcher.login.side_effect = lambda *_a: held.append([gate.holds(h) for h in (11, 12, 13)])
+
+    await launch_accounts(ACCOUNTS)
+
+    assert held == [[True, True, True], [False, True, True], [False, False, True]]
+    assert not any(gate.holds(h) for h in (11, 12, 13))
+
+
+async def test_every_window_is_held_while_the_batch_spawns(launcher) -> None:
+    seen: list[bool] = []
+    with patch("bartleby.runtime.launcher.launch_profile.start_instance", lambda: seen.append(gate.holds(999))):
+        await launch_accounts(ACCOUNTS)
+
+    assert seen == [True, True, True]
+    assert not gate.holds(999)
+
+
+async def test_a_batch_that_raises_lets_its_windows_go(launcher) -> None:
+    launcher.login.side_effect = RuntimeError("boom")
+    with pytest.raises(RuntimeError):
+        await launch_accounts(ACCOUNTS)
+
+    assert not any(gate.holds(h) for h in (11, 12, 13))

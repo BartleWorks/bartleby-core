@@ -48,7 +48,7 @@ class LaunchStage(Enum):
     Deliberately coarse, because the launcher is. ``launch_accounts`` waits for every
     window's login screen in one shared gather, so "waiting for the login screen" is a fact
     about the *batch* and has no per-client answer to report; the clients only diverge from
-    ``instance_login`` onward. Past that, the auto-select drive is a single call that
+    the login onward. Past that, the auto-select drive is a single call that
     returns a bool at the end, so breaking LOADING down further would mean new
     instrumentation inside ``auto_select`` rather than passing through something that
     already exists. It is not worth it: what the user is actually asking of a slow launch

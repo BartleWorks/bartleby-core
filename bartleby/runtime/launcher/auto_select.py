@@ -1,6 +1,6 @@
 """Drive a freshly launched client from auto-login through to in-game.
 
-After ``instance_login`` types the credentials, a Wizard101 instance still has three gates
+After the launcher sends the login, a Wizard101 instance still has three gates
 between it and a usable client: a loading screen that ignores input for ~3 s and then
 skips on any key, a second loading screen that skips immediately, and the character-select
 screen, where Enter plays the most recently played character. Until those are cleared
