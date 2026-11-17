@@ -343,7 +343,9 @@ async def gather(arbiter: Arbiter, source: Member, members: Sequence[Member]) ->
     learned (``learn_group``) under a lease on the source: its group menu is opened to read
     whether it leads, and put back, and only if it does is its roster read, in one
     social-window visit. That is how a group the player formed by hand is used without
-    Group. A leader-route mover that does not go makes the record forgotten.
+    Group. So is a record that leaves out a mover the HUD shows grouped
+    (``missing_from_record``), since the player may have added it by hand: the group is
+    learned again, once. A leader-route mover that does not go makes the record forgotten.
 
     Everyone else ports through the friends list, which needs the source's wizard name, from
     the cache or memory; the name never reaches a log. Each slot's route is logged. In battle
@@ -391,13 +393,17 @@ async def gather(arbiter: Arbiter, source: Member, members: Sequence[Member]) ->
 async def _leader_route(arbiter: Arbiter, source: Member, movers: Sequence[Member]) -> list[Member]:
     """The movers that can take Teleport to Leader to *source*, by group_manager's group record.
 
-    A record of the source leading answers with no click. Without one, the source's group is
-    learned, under a lease on it, but only when the source and some mover read grouped:
-    otherwise no mover could take the route, and nothing is clicked.
+    A record of the source leading answers with no click, unless it leaves out a mover the
+    HUD shows grouped. Without one, or then, the source's group is learned, under a lease on
+    it, but only when the source and some mover read grouped: otherwise no mover could take
+    the route, and nothing is clicked.
     """
     clients = [m.client for m in movers]
     proven = await group_manager.members_led_by(source.client, clients)
-    if proven is None:
+    if proven is not None and await group_manager.missing_from_record(source.client, clients, proven):
+        async with arbiter.acquire(source.client, Owner.HOTKEY, detail="gather") as lease:
+            proven = await group_manager.learn_group(lease.client, clients)
+    elif proven is None:
         grouped = await asyncio.gather(*(group_manager.hud_grouped(c) for c in (source.client, *clients)))
         if grouped[0] is not True or True not in grouped[1:]:
             return []

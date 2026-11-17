@@ -57,6 +57,13 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   says whether a wizard is in the leader's group by its roster, case-insensitively, and is
   False for no name or a leader the visit found ungrouped. `is_grouped`'s one-leader path
   is built on it.
+- `group_manager.missing_from_record(target, clients, proven) -> list`: the clients a valid
+  record of `target` leading leaves out while the HUD shows them grouped, with no window and
+  no click. `learn_group` now learns the group again, once per call, when one is missing,
+  since the player may have added that wizard by hand; a client the learning finds in
+  another group is remembered as outside it, by character, until the HUD shows it leave, so
+  it does not make the next call learn again. `helpers.gather` learns again the same way,
+  under its lease on the source.
 
 ### Changed
 

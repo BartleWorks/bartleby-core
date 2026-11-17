@@ -60,7 +60,11 @@ it answers, and thrown away when one contradicts it: the leader reading ungroupe
 member on another character (a relog drops a wizard from its group), or an open menu
 saying otherwise about who leads. A member reading ungrouped, or leaving by leave_group,
 is dropped from it, and a leader leaving takes it with it, since the game moves the lead.
-forget_group is for a caller that has seen it wrong.
+forget_group is for a caller that has seen it wrong. A client the HUD shows grouped that a
+valid record leaves out may have been added to the group by hand since, so learn_group
+learns the group again, once (missing_from_record); one the learning found in another
+group is remembered as outside it, so that it is not learned again for that client until
+the HUD shows it leave.
 
 A group is also a way to port. port_to_group_member goes to a member through the Group
 tab's roster, and port_to_leader to the leader through the HUD's own Teleport to Leader,
@@ -556,12 +560,18 @@ class GroupRecord:
 
 
 class _Record:
-    """The record itself: the leader, each member's character id, the roster, all held weakly."""
+    """The record itself: the leader, each member's character id, the roster, all held weakly.
 
-    def __init__(self, leader, characters: dict, names: tuple[str, ...]) -> None:
+    `outside` holds, by character id, the clients a learning saw grouped but not on the
+    roster: in another group then, so a missing member that is one of them is not a reason
+    to learn again (missing_from_record).
+    """
+
+    def __init__(self, leader, characters: dict, names: tuple[str, ...], outside: dict | None = None) -> None:
         self.leader = weakref.ref(leader)
         self.characters: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary(characters)
         self.names = names
+        self.outside: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary(outside or {})
 
     def leads(self, client) -> bool:
         return self.leader() is client
@@ -570,6 +580,10 @@ class _Record:
 # Every client in a record, mapped to it. A wizard is in one group at most, so a client is in
 # one record at most. Keyed weakly, so a client gone with its window takes its entry along.
 _record_of: "weakref.WeakKeyDictionary[object, _Record]" = weakref.WeakKeyDictionary()
+
+# Every client a record holds as outside its group, mapped to that record, so that a HUD read
+# showing it ungrouped can take it off: it has left that other group.
+_outside_of: "weakref.WeakKeyDictionary[object, _Record]" = weakref.WeakKeyDictionary()
 
 
 def group_record(client) -> GroupRecord | None:
@@ -596,6 +610,7 @@ def forget_group(client) -> None:
 def forget_all_groups() -> None:
     """Throw away every record, as at the start of a test."""
     _record_of.clear()
+    _outside_of.clear()
 
 
 def _discard(record: _Record) -> None:
@@ -603,6 +618,10 @@ def _discard(record: _Record) -> None:
         if _record_of.get(client) is record:
             del _record_of[client]
     record.characters.clear()
+    for client in list(record.outside):
+        if _outside_of.get(client) is record:
+            del _outside_of[client]
+    record.outside.clear()
 
 
 def _drop(client) -> None:
@@ -622,10 +641,14 @@ def _observe(client, hud: _Hud) -> None:
 
     A client the HUD shows ungrouped has left: a member is dropped, and a leader takes the
     record with it. A leader read from an open menu that says otherwise than the record, of
-    the recorded leader or of anyone in its group, throws the record away.
+    the recorded leader or of anyone in its group, throws the record away. A client held as
+    outside a group that reads ungrouped is outside it no longer: it has left the other one.
     """
     if hud.grouped is False:
         _drop(client)
+        outside = _outside_of.pop(client, None)
+        if outside is not None:
+            outside.outside.pop(client, None)
         return
     record = _record_of.get(client)
     if record is not None and hud.leads is not None and record.leads(client) != hud.leads:
@@ -641,22 +664,27 @@ async def _character_id(client) -> int:
         return wizard_names.NO_CHARACTER
 
 
-async def _record(leader, members, names=()) -> None:
+async def _record(leader, members, names=(), outside=()) -> None:
     """Record `leader` leading a group of `members`, each with the character it is on now.
 
     Each client is taken out of any record it was in first, and a record one of them led
     goes with it. Nothing is recorded for a group with none of the product's clients but the
-    leader.
+    leader. `outside` are clients seen grouped elsewhere (_Record.outside).
     """
     clients = [leader, *(m for m in members if m is not leader)]
     if len(clients) < 2:
         return
-    characters = await asyncio.gather(*(_character_id(c) for c in clients))
+    others = [c for c in outside if not any(c is m for m in clients)]
+    characters = await asyncio.gather(*(_character_id(c) for c in [*clients, *others]))
     for client in clients:
         _drop(client)
-    record = _Record(leader, dict(zip(clients, characters)), tuple(names))
+    record = _Record(
+        leader, dict(zip(clients, characters)), tuple(names), dict(zip(others, characters[len(clients) :]))
+    )
     for client in clients:
         _record_of[client] = record
+    for client in others:
+        _outside_of[client] = record
     logger.debug("Recorded a group of %d of the product's clients", len(clients))
 
 
@@ -714,35 +742,84 @@ async def members_led_by(target, clients) -> list | None:
     return [c for c, ok in zip(listed, found) if ok]
 
 
+async def missing_from_record(target, clients, proven) -> list:
+    """The clients a valid record of `target` leading leaves out while the HUD shows them grouped.
+
+    `proven` is what members_led_by just answered for `target` and `clients`. A client among
+    `clients` (`target` left out) that it does not hold is missing when the HUD shows it
+    grouped, no record holds it in another group, and the last learning of this one did not
+    see it grouped outside it, on the character it is on now (_Record.outside). Each may
+    have been added to `target`'s group by hand since the record was written, which is what
+    learn_group learns again for.
+
+    [] when there is no record of `target` leading, or the HUD cannot show `target` grouped.
+    Opens no window and clicks nothing: one HUD read on `target` and on each client left
+    out, and a character id where one was seen outside.
+    """
+    record = _record_of.get(target)
+    if record is None or not record.leads(target):
+        return []
+    rest = [c for c in clients if c is not target and not any(c is p for p in proven) and c not in record.characters]
+    rest = [c for c in rest if _record_of.get(c) is None]
+    if not rest or (await _read_hud(target)).grouped is not True:
+        return []
+
+    async def missing(client) -> bool:
+        if (await _read_hud(client)).grouped is not True:
+            return False
+        if client not in record.outside:
+            return True
+        return record.outside.get(client) != await _character_id(client)
+
+    found = await asyncio.gather(*(missing(c) for c in rest))
+    return [c for c, gone in zip(rest, found) if gone]
+
+
 async def learn_group(target, clients) -> list:
-    """members_led_by, learning the group first when there is no record of `target` leading one.
+    """members_led_by, learning the group when there is no record of `target` leading one, or the record misses one.
 
     To learn, `target`'s group menu is read (read_leads: two clicks when it is closed, and it
     is left as found). If `target` leads, its roster is read in one social-window visit
     (read_group_state), and every client among `clients` whose cached wizard name it lists is
-    recorded in its group. If it does not lead, or cannot tell, nothing is recorded and no
-    client is proven.
+    recorded in its group; one the HUD shows grouped that it does not list is recorded as
+    outside it. If it does not lead, or cannot tell, nothing is recorded and no client is
+    proven.
+
+    A valid record is learned again, once per call, when it leaves out a client the HUD shows
+    grouped (missing_from_record): the player may have added that wizard to the group by
+    hand. A client that is in another group is found outside it by that learning, so it does
+    not make the next call learn again.
 
     How a group the player formed by hand is used without pressing Group. It clicks on
     `target`, so the caller holds a lease on it.
     """
     known = await members_led_by(target, clients)
     if known is not None:
-        return known
+        if not await missing_from_record(target, clients, known):
+            return known
+        logger.debug("The HUD shows a client grouped that the group record leaves out; learning it again")
+    await _learn(target, clients)
+    return await members_led_by(target, clients) or []
+
+
+async def _learn(target, clients) -> None:
+    """Read `target`'s menu and, when it leads, its roster, and record what they show. See learn_group."""
     if await read_leads(target) is not True:
-        return []
+        return
     state = await run_trace.traced(read_group_state(target), "group.read_state", client=target)
     if not state.grouped or not state.roster:
-        return []
-    members = []
+        return
+    members, unlisted = [], []
     for client in clients:
+        if client is target:
+            continue
         name = wizard_names.cached_name(client)
-        if client is not target and name and _lists(state.roster, name):
-            members.append(client)
+        (members if name and _lists(state.roster, name) else unlisted).append(client)
     if not members:
-        return []
-    await _record(target, members, state.roster)
-    return await members_led_by(target, clients) or []
+        return
+    grouped = await asyncio.gather(*(_read_hud(c) for c in unlisted))
+    outside = [c for c, hud in zip(unlisted, grouped) if hud.grouped is True]
+    await _record(target, members, state.roster, outside)
 
 
 async def read_group_state(client, confirm_grouped_timeout: float | None = None) -> GroupState:
