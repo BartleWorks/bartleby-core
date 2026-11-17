@@ -581,6 +581,41 @@ async def test_gather_from_a_leader_whose_menu_is_closed_learns_its_group_and_ta
     assert ui.social_button_clicks == [clients[0]], "one roster read, on the source"
 
 
+async def test_gather_learns_again_for_a_wizard_added_to_the_group_by_hand(arbiter, ui):
+    clients = [ui.make_client(n) for n in NAMES[:3]]
+    members = team(*clients)
+
+    with _over(ui, clients) as ported:
+        assert await helpers.group(arbiter, members[0], members[:2])
+        ui.put_in_group(clients[0], clients[2])  # by hand, after Group recorded the pair
+        ui.menu_clicks.clear()
+        ui.social_button_clicks.clear()
+        went = await helpers.gather(arbiter, members[0], members)
+
+    assert [m.slot for m in went] == [2, 3]
+    assert ported == {"leader": [clients[1:]], "friend": []}
+    assert ui.menu_clicks == [clients[0], clients[0]] and ui.social_button_clicks == [clients[0]]
+
+
+async def test_gather_looks_once_at_a_mover_in_another_group(arbiter, ui):
+    clients = [ui.make_client(n) for n in NAMES[:3]]
+    members = team(*clients)
+
+    with _over(ui, clients) as ported:
+        assert await helpers.group(arbiter, members[0], members[:2])
+        ui.put_in_foreign_group(clients[2], "Stranger One")
+        ui.menu_clicks.clear()
+        ui.social_button_clicks.clear()
+        await helpers.gather(arbiter, members[0], members)
+        assert ui.social_button_clicks == [clients[0]], "the group was learned again, once"
+        ui.menu_clicks.clear()
+        ui.social_button_clicks.clear()
+        await helpers.gather(arbiter, members[0], members)
+
+    assert ported == {"leader": [[clients[1]], [clients[1]]], "friend": [[clients[2]], [clients[2]]]}
+    assert ui.menu_clicks == [] and ui.social_button_clicks == [], "the mover outside made it learn again"
+
+
 async def test_gather_after_group_clicks_nothing_on_the_source(arbiter, ui):
     clients = [ui.make_client(n) for n in NAMES[:3]]
     members = team(*clients)

@@ -2995,3 +2995,80 @@ async def test_learning_needs_the_members_cached_names(ui):
 
     assert await _run_with(ui, lambda: gm.learn_group(a, [a, b])) == []
     assert gm.group_record(a) is None
+
+
+# --- learning again: a grouped client the record leaves out ---------------------------------
+
+
+async def _recorded_pair_and_one_more(ui, cached_names):
+    """A and B recorded by form_group, A leading; C made separately, ungrouped."""
+    a, b, c = (ui.make_client(n) for n in _FOUR[:3])
+    await _run_with(ui, lambda: gm.form_group([a, b], _FOUR[:2]))
+    cached_names(a, b, c)
+    ui.menu_clicks.clear()
+    ui.social_button_clicks.clear()
+    return a, b, c
+
+
+async def test_a_wizard_added_to_the_group_by_hand_is_learned_once(ui, cached_names):
+    a, b, c = await _recorded_pair_and_one_more(ui, cached_names)
+    ui.put_in_group(a, c)  # by hand, after the record was written
+
+    assert await _run_with(ui, lambda: gm.learn_group(a, [a, b, c])) == [b, c]
+    assert ui.menu_clicks == [a, a] and _visits(ui) == [a], "one menu read and one roster read"
+    assert _members(gm.group_record(a)) == [a, b, c]
+
+
+async def test_a_wizard_in_another_group_is_learned_once_and_then_left_alone(ui, cached_names):
+    a, b, c = await _recorded_pair_and_one_more(ui, cached_names)
+    ui.put_in_foreign_group(c, "Stranger One")
+
+    assert await _run_with(ui, lambda: gm.learn_group(a, [a, b, c])) == [b]
+    assert _visits(ui) == [a]
+    ui.menu_clicks.clear()
+    ui.social_button_clicks.clear()
+
+    assert await _run_with(ui, lambda: gm.learn_group(a, [a, b, c])) == [b]
+    assert await _run_with(ui, lambda: gm.missing_from_record(a, [a, b, c], [b])) == []
+    assert ui.menu_clicks == [] and _visits(ui) == [], "the client outside the group made it learn again"
+
+
+async def test_a_wizard_seen_outside_that_leaves_and_joins_by_hand_is_learned_again(ui, cached_names):
+    a, b, c = await _recorded_pair_and_one_more(ui, cached_names)
+    ui.put_in_foreign_group(c, "Stranger One")
+    await _run_with(ui, lambda: gm.learn_group(a, [a, b, c]))
+    ui.remove_from_group(c)
+    await _run_with(ui, lambda: gm.hud_grouped(c))  # the HUD sees it leave the other group
+    ui.put_in_group(a, c)
+
+    assert await _run_with(ui, lambda: gm.learn_group(a, [a, b, c])) == [b, c]
+
+
+async def test_a_wizard_seen_outside_on_another_character_is_learned_again(ui, cached_names):
+    """A relog puts another character on the client, which is not the one seen in the other group."""
+    a, b, c = await _recorded_pair_and_one_more(ui, cached_names)
+    ui.put_in_foreign_group(c, "Stranger One")
+    await _run_with(ui, lambda: gm.learn_group(a, [a, b, c]))
+    ui.character_of[c] = 2
+
+    assert await _run_with(ui, lambda: gm.missing_from_record(a, [a, b, c], [b])) == [c]
+
+
+async def test_nothing_is_missing_without_a_record_or_a_grouped_client_left_out(ui, cached_names):
+    a, b, c = await _recorded_pair_and_one_more(ui, cached_names)
+
+    assert await _run_with(ui, lambda: gm.missing_from_record(a, [a, b, c], [b])) == [], "c is ungrouped"
+    assert await _run_with(ui, lambda: gm.missing_from_record(b, [a, b, c], [])) == [], "b leads no record"
+    ui.put_in_group(a, c)
+    c.in_battle.return_value = True
+    assert await _run_with(ui, lambda: gm.missing_from_record(a, [a, b, c], [b])) == [], "the HUD cannot tell"
+    assert ui.menu_clicks == [] and _visits(ui) == []
+
+
+async def test_a_client_recorded_in_another_group_of_ours_is_not_missing(ui, cached_names):
+    a, b, c = await _recorded_pair_and_one_more(ui, cached_names)
+    d = ui.make_client(_FOUR[3])
+    ui.put_in_group(c, d)
+    await _run_with(ui, lambda: gm._record(c, [d]))
+
+    assert await _run_with(ui, lambda: gm.missing_from_record(a, [a, b, c, d], [b])) == []
