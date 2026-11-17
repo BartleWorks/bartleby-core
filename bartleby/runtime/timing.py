@@ -565,7 +565,7 @@ FRIEND_TELEPORT_ATTEMPTS = 2
 GROUP_JOIN_HINT_TIMEOUT = 3.0
 # Ceiling on waiting for the game to open the social window by itself on an invited client
 # after it accepts. That auto-open is only a hint that the accept was processed — the
-# authoritative check is the Leave Group button — so this is short, and it is spent from
+# authoritative check is the HUD's group button — so this is short, and it is spent from
 # the same GROUP_VERIFY_TIMEOUT budget as that check rather than added to it. Its real job
 # is to keep our own HUD-button click from racing the game's open and toggling the window
 # straight back shut.

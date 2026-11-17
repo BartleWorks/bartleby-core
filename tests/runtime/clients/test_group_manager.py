@@ -1,8 +1,9 @@
 """Unit tests for the group formation engine.
 
-Group membership is read from the UI (the Leave Group button on the social window), not
-from memory — see the module docstring in bartleby/runtime/clients/group_manager.py for why. These tests
-therefore drive everything through a fake that models that UI.
+Group membership is read from the UI (the HUD's group button, and the social window's
+Leave Group button when the HUD cannot tell), not from memory — see the module docstring
+in bartleby/runtime/clients/group_manager.py for why. These tests therefore drive
+everything through a fake that models that UI.
 """
 
 import asyncio
@@ -16,14 +17,16 @@ from wizwalker import Keycode
 
 import bartleby.runtime.actions.node_helpers as nh
 import bartleby.runtime.clients.group_manager as gm
-from bartleby.runtime.game import dialog_captions
+from bartleby.runtime.game import dialog_captions, wizard_names
 from bartleby.runtime.paths import (
     ALREADY_IN_GROUP_DISMISS_PATH,
     CHARACTER_PROFILE_CLOSE_PATH,
     CHARACTER_PROFILE_PATH,
     CROWNS_SHOP_WINDOW_PATH,
     FRIENDS_LIST_PATH,
+    GROUP_HUD_BUTTON_PATH,
     GROUP_INVITE_ACCEPT_PATH,
+    GROUP_LEADER_TEXT_PATH,
     GROUP_ROSTER_LINES,
     GROUP_WINDOW_CLOSE_PATH,
     INVITE_TO_GROUP_BUTTON_PATH,
@@ -68,6 +71,15 @@ class FakeUI:
         # alone cannot see.
         self.group_of: dict[FakeClient, tuple[str, ...]] = {}
         self.name_of: dict[FakeClient, str] = {}
+        # Which of our clients lead their group, as the HUD's LeaderText shows. A group's
+        # first member leads it, and the leader changes only when the leader leaves, as in
+        # the game; a group with strangers is led by one of them.
+        self.leads: set[FakeClient] = set()
+        # The HUD's group button and LeaderText. False models paths a game update moved, so
+        # neither is in the window tree. `hud_shows` overrides the button per client, for a
+        # HUD that disagrees with the Leave Group button.
+        self.hud_present = True
+        self.hud_shows: dict[FakeClient, bool] = {}
         # Wraps every roster name in KI color markup, as the game does.
         self.roster_markup = True
         # The first EMPTY roster slot does not read blank. It is an invitation prompt, and
@@ -174,10 +186,13 @@ class FakeUI:
                 if member not in members:
                     members.append(member)
         roster = tuple(self.name_of[m] for m in members)
+        leader = next((m for m in members if m in self.leads), members[0])
         for member in members:
             self._members[member] = members
             self.group_of[member] = roster
             self.grouped[member] = True
+            self.leads.discard(member)
+        self.leads.add(leader)
 
     def remove_from_group(self, client: FakeClient) -> None:
         """Take a client out of its group, dissolving the group if one member would remain.
@@ -187,11 +202,15 @@ class FakeUI:
         """
         members = self._members.get(client, [client])
         remaining = [m for m in members if m is not client]
+        led = client in self.leads
         for gone in (client, *(remaining if len(remaining) <= 1 else ())):
             self.grouped[gone] = False
             self.group_of[gone] = ()
             self._members[gone] = [gone]
+            self.leads.discard(gone)
         if len(remaining) > 1:
+            if led:
+                self.leads.add(remaining[0])
             roster = tuple(self.name_of[m] for m in remaining)
             for member in remaining:
                 self._members[member] = remaining
@@ -206,6 +225,7 @@ class FakeUI:
         self._members[client] = [client]
         self.group_of[client] = (self.name_of[client], *strangers)
         self.grouped[client] = True
+        self.leads.discard(client)
 
     async def get_text_by_path(self, client, path) -> str:
         """Answer the roster reads, modelling the game's markup and self-first ordering.
@@ -303,6 +323,14 @@ class FakeUI:
         if path == ALREADY_IN_GROUP_DISMISS_PATH:
             return self.popup_showing.get(client, False)
         return False
+
+    async def visible_if_present(self, client, path) -> bool | None:
+        """The HUD's group button shows while grouped, and its LeaderText on the leader alone."""
+        if path == GROUP_HUD_BUTTON_PATH:
+            return self.hud_shows.get(client, self.grouped.get(client, False)) if self.hud_present else None
+        if path == GROUP_LEADER_TEXT_PATH:
+            return client in self.leads if self.hud_present else None
+        return await self.is_visible_by_path(client, path)
 
     async def is_enabled_by_path(self, client, path) -> bool:
         # Mirrors the real helper: True for any window that exists and is not grayed.
@@ -442,6 +470,7 @@ class FakeUI:
         """
         base = (
             patch.object(nh, "is_visible_by_path", new=AsyncMock(side_effect=self.is_visible_by_path)),
+            patch.object(nh, "visible_if_present", new=AsyncMock(side_effect=self.visible_if_present)),
             patch.object(nh, "is_enabled_by_path", new=AsyncMock(side_effect=self.is_enabled_by_path)),
             patch.object(nh, "is_named_window_visible", new=AsyncMock(side_effect=self._is_named_window_visible)),
             patch.object(nh, "click_by_path", new=AsyncMock(side_effect=self.click_by_path)),
@@ -576,11 +605,21 @@ async def test_the_friends_list_is_not_touched_when_it_is_already_closed(ui):
     closer.assert_not_called()
 
 
-async def test_is_in_group_false_when_the_window_never_opens(ui):
+async def test_is_in_group_false_when_the_window_never_opens_and_the_hud_cannot_tell(ui):
     client = ui.make_client(grouped=True)
+    client.in_battle.return_value = True
     ui.social_button_works = False  # the click lands but the window never appears
 
     assert await _run_with(ui, lambda: gm.is_in_group(client)) is False
+
+
+async def test_a_window_that_never_opens_leaves_the_huds_answer(ui):
+    client = ui.make_client(grouped=True)
+    ui.social_button_works = False
+
+    state = await _run_with(ui, lambda: gm.read_group_state(client))
+
+    assert state == gm.GroupState(grouped=True, roster=())
 
 
 async def test_is_in_group_never_raises(ui):
@@ -1041,7 +1080,7 @@ async def test_join_into_a_group_without_the_leader_is_not_confirmed(ui):
     """grouped=True is not the same as grouped WITH US.
 
     A target that accepts somebody else's invitation between our click and our read looks
-    joined to the Leave Group button. The roster is what catches it.
+    joined to the HUD. The roster is what catches it.
     """
     leader = ui.make_client("Alice Ashblade")
     joiner = ui.make_client("Bob Battlecaster")
@@ -1800,12 +1839,18 @@ async def test_an_ungrouped_survey_ends_as_soon_as_the_page_loads(ui):
 
     That is the case the fixed settle existed for: the Leave Group button is hidden both
     before the page loads and when ungrouped, so it cannot end the wait. The placeholder can.
+
+    In battle, so the HUD cannot tell and the window is visited: out of battle an ungrouped
+    client is not visited at all.
     """
     clients = [ui.make_client(), ui.make_client()]
+    for client in clients:
+        client.in_battle.return_value = True
 
     states, elapsed = await _timed(lambda: gm.read_group_states(clients), _with_settle(ui))
 
     assert [s.grouped for s in states] == [False, False]
+    assert ui.group_tab_clicks == clients, "the survey never reached the Group page"
     assert elapsed < _BUDGET, f"the survey slept through a fixed delay ({elapsed:.1f}s)"
 
 
@@ -2014,3 +2059,478 @@ async def test_an_invite_button_that_moves_under_the_click_is_warned_about(ui):
         "Invite to Group moved under the click for P2, from (439,133,464,158) to (439,199,464,224), "
         "so the click may have hit another button"
     ]
+
+
+# ---------------------------------------------------------------------------
+# Membership from the HUD
+#
+# The group menu button shows only while grouped and its LeaderText only on the leader, so
+# both answer with no window opened. Both hide in battle, and the HUD is not trusted while
+# loading, so a read then answers None and the social window decides as before.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def cached_names(ui):
+    """Cache each named client's wizard name, as a run's name detection would, and forget it after."""
+    remembered: list[FakeClient] = []
+
+    def remember(*clients: FakeClient) -> None:
+        for client in clients:
+            wizard_names.remember(client, ui.name_of[client])
+            remembered.append(client)
+
+    yield remember
+    for client in remembered:
+        wizard_names.forget(client)
+
+
+def _visits(ui) -> list[FakeClient]:
+    """The clients whose social window was opened, once per opening."""
+    return list(ui.social_button_clicks)
+
+
+async def test_hud_grouped_reads_the_group_button(ui):
+    alone = ui.make_client()
+    a = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+
+    assert await _run_with(ui, lambda: gm.hud_grouped(a)) is True
+    assert await _run_with(ui, lambda: gm.hud_grouped(alone)) is False
+    assert _visits(ui) == [], "a HUD read must open no window"
+
+
+async def test_hud_leads_is_true_on_the_leader_alone(ui):
+    leader = ui.make_client(grouped=True)
+    member = ui.make_client(grouped=True)
+    alone = ui.make_client()
+
+    assert await _run_with(ui, lambda: gm.hud_leads(leader)) is True
+    assert await _run_with(ui, lambda: gm.hud_leads(member)) is False
+    assert await _run_with(ui, lambda: gm.hud_leads(alone)) is False
+
+
+async def test_leader_text_is_not_trusted_once_the_group_button_has_hidden(ui):
+    """A child's visibility flag is its own, so LeaderText may still read visible on a client
+    that has just left. Only a grouped client is asked whether it leads."""
+    client = ui.make_client()
+    ui.leads.add(client)
+
+    assert await _run_with(ui, lambda: gm.hud_leads(client)) is False
+
+
+@pytest.mark.parametrize("state", ["in_battle", "is_loading"])
+async def test_the_hud_cannot_tell_in_battle_or_while_loading(ui, state):
+    """The menu hides in battle, so reading it then would call a grouped wizard ungrouped."""
+    client = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    getattr(client, state).return_value = True
+
+    with ExitStack() as stack:
+        for p in ui.patches():
+            stack.enter_context(p)
+        visible = AsyncMock(side_effect=ui.visible_if_present)
+        stack.enter_context(patch.object(nh, "visible_if_present", new=visible))
+        assert await gm.hud_grouped(client) is None
+        assert await gm.hud_leads(client) is None
+
+    visible.assert_not_called()
+
+
+async def test_a_hud_path_missing_from_the_tree_cannot_tell_and_is_warned_about(ui, caplog):
+    """Both windows are in the HUD's layout whatever they show, so a missing one has moved."""
+    client = ui.make_client(grouped=True)
+    ui.hud_present = False
+
+    with caplog.at_level(logging.WARNING, logger=gm.logger.name):
+        assert await _run_with(ui, lambda: gm.hud_grouped(client)) is None
+
+    assert "group button is not in the window tree" in caplog.text
+
+
+async def test_a_missing_hud_path_is_warned_about_once_per_client(ui, caplog):
+    """The leave and join polls read the HUD every poll, and would repeat the line each time."""
+    client = ui.make_client(grouped=True)
+    ui.hud_present = False
+
+    with caplog.at_level(logging.WARNING, logger=gm.logger.name):
+        for _ in range(3):
+            await _run_with(ui, lambda: gm.hud_grouped(client))
+
+    assert caplog.text.count("not in the window tree") == 1
+
+
+async def test_a_missing_leader_label_cannot_tell_who_leads(ui, caplog):
+    client = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    real = ui.visible_if_present
+
+    async def no_leader_text(c, path):
+        return None if path == GROUP_LEADER_TEXT_PATH else await real(c, path)
+
+    with caplog.at_level(logging.WARNING, logger=gm.logger.name), ExitStack() as stack:
+        for p in ui.patches():
+            stack.enter_context(p)
+        stack.enter_context(patch.object(nh, "visible_if_present", new=AsyncMock(side_effect=no_leader_text)))
+        assert await gm.hud_leads(client) is None
+        assert await gm.hud_grouped(client) is True
+
+    assert "leader label is not in the window tree" in caplog.text
+
+
+async def test_the_hud_reads_never_raise(ui):
+    client = ui.make_client(grouped=True)
+    client.is_loading.side_effect = RuntimeError("client gone")
+
+    assert await _run_with(ui, lambda: gm.hud_grouped(client)) is None
+    assert await _run_with(ui, lambda: gm.hud_leads(client)) is None
+
+
+# --- read_group_states opens the window only where there is a roster to read ----------------
+
+
+async def test_a_survey_skips_the_clients_the_hud_shows_ungrouped(ui):
+    a = ui.make_client("Alice A", grouped=True)
+    b = ui.make_client("Bob B", grouped=True)
+    alone = ui.make_client("Carol C")
+
+    states = await _run_with(ui, lambda: gm.read_group_states([a, b, alone]))
+
+    assert sorted(map(id, _visits(ui))) == sorted(map(id, [a, b])), "the ungrouped client's window was opened"
+    assert states[2] == gm.GroupState()
+    assert set(states[0].roster) == {"Alice A", "Bob B"}
+
+
+async def test_a_survey_with_nobody_grouped_opens_nothing(ui):
+    """Bot start: the common case, and the one that used to visit every window."""
+    clients = [ui.make_client() for _ in range(4)]
+
+    states = await _run_with(ui, lambda: gm.read_group_states(clients))
+
+    assert states == [gm.GroupState()] * 4
+    assert _visits(ui) == [] and ui.group_tab_clicks == []
+
+
+async def test_a_survey_records_who_leads_from_the_same_reads(ui):
+    """_choose_leader reads it from the survey, so it costs no window of its own."""
+    a = ui.make_client(grouped=True)
+    b = ui.make_client(grouped=True)
+    alone = ui.make_client()
+
+    states = await _run_with(ui, lambda: gm.read_group_states([a, b, alone]))
+
+    assert [s.leads for s in states] == [True, False, False]
+
+
+async def test_a_survey_in_battle_reads_the_social_window_as_before(ui):
+    """The HUD cannot tell, so the Leave Group button is what says who is grouped."""
+    a = ui.make_client(grouped=True)
+    b = ui.make_client(grouped=True)
+    alone = ui.make_client()
+    for client in (a, b, alone):
+        client.in_battle.return_value = True
+
+    states = await _run_with(ui, lambda: gm.read_group_states([a, b, alone]))
+
+    assert len(_visits(ui)) == 3, "a client the HUD could not read was skipped"
+    assert [s.grouped for s in states] == [True, True, False]
+
+
+async def test_membership_is_the_huds_when_it_can_tell(ui, caplog):
+    """The Leave Group button is still read, and only compared."""
+    a = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    real = ui.is_visible_by_path
+
+    async def leave_button_hidden(client, path):
+        return False if path == LEAVE_GROUP_BUTTON_PATH else await real(client, path)
+
+    with caplog.at_level(logging.WARNING, logger=gm.logger.name), ExitStack() as stack:
+        for p in ui.patches():
+            stack.enter_context(p)
+        stack.enter_context(patch.object(nh, "is_visible_by_path", new=AsyncMock(side_effect=leave_button_hidden)))
+        state = await gm.read_group_state(a)
+
+    assert state.grouped is True
+    assert "the Leave Group button says ungrouped" in caplog.text
+
+
+async def test_a_hud_that_disagrees_with_the_leave_group_button_is_warned_about(ui, caplog):
+    """The two read one fact from two windows, so one of their paths has moved."""
+    client = ui.make_client()
+    ui.hud_shows[client] = True
+
+    with caplog.at_level(logging.WARNING, logger=gm.logger.name), ExitStack() as stack:
+        for p in ui.patches():
+            stack.enter_context(p)
+        await gm.read_group_state(client)
+
+    assert "The HUD's group button says grouped but the Leave Group button says ungrouped" in caplog.text
+
+
+async def test_no_disagreement_is_reported_when_the_two_agree(ui, caplog):
+    a = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+
+    with caplog.at_level(logging.WARNING, logger=gm.logger.name):
+        await _run_with(ui, lambda: gm.read_group_state(a))
+
+    assert "paths has moved" not in caplog.text
+
+
+async def test_no_disagreement_is_reported_when_the_group_page_never_loaded(ui, caplog):
+    """The Leave Group button reads hidden until the page loads, which has its own warning."""
+    client = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    ui.tab_loads = False
+
+    with caplog.at_level(logging.WARNING, logger=gm.logger.name):
+        state = await _run_with(ui, lambda: gm.read_group_state(client))
+
+    assert state.grouped is True
+    assert "paths has moved" not in caplog.text
+
+
+# --- is_grouped: one leader's roster where the HUD makes it enough --------------------------
+
+
+async def test_is_grouped_is_false_without_a_window_when_the_hud_shows_anyone_ungrouped(ui):
+    a = ui.make_client(grouped=True)
+    b = ui.make_client(grouped=True)
+    alone = ui.make_client()
+
+    assert await _run_with(ui, lambda: gm.is_grouped([a, b, alone])) is False
+    assert _visits(ui) == []
+
+
+async def test_is_grouped_reads_only_the_leaders_roster(ui, cached_names):
+    clients = [ui.make_client(n, grouped=True) for n in _FOUR]
+    cached_names(*clients)
+
+    assert await _run_with(ui, lambda: gm.is_grouped(clients)) is True
+    assert _visits(ui) == [clients[0]], "more than the leader's window was opened"
+
+
+async def test_is_grouped_finds_the_leader_wherever_it_is(ui, cached_names):
+    clients = [ui.make_client(n) for n in _FOUR]
+    ui.put_in_group(clients[2], clients[0], clients[1], clients[3])
+    cached_names(*clients)
+
+    assert await _run_with(ui, lambda: gm.is_grouped(clients)) is True
+    assert _visits(ui) == [clients[2]]
+
+
+def _a_client_in_battle(ui, clients):
+    clients[1].in_battle.return_value = True
+
+
+def _led_by_a_stranger(ui, clients):
+    ui.leads.clear()
+
+
+def _a_name_not_yet_known(ui, clients):
+    wizard_names.forget(clients[3])
+
+
+def _two_groups_of_ours(ui, clients):
+    for client in clients:
+        ui.remove_from_group(client)
+    ui.put_in_group(clients[0], clients[1])
+    ui.put_in_group(clients[2], clients[3])
+
+
+def _one_of_ours_with_strangers(ui, clients):
+    ui.remove_from_group(clients[3])
+    ui.put_in_foreign_group(clients[3], "Stranger One")
+
+
+@pytest.mark.parametrize(
+    ("setup", "expected"),
+    [
+        (_a_client_in_battle, True),
+        (_led_by_a_stranger, True),
+        (_a_name_not_yet_known, True),
+        (_two_groups_of_ours, False),
+        (_one_of_ours_with_strangers, False),
+    ],
+    ids=["hud-cannot-tell", "no-leader-of-ours", "name-unknown", "several-leaders", "missing-from-roster"],
+)
+async def test_is_grouped_falls_back_to_the_full_survey(ui, cached_names, setup, expected):
+    """Anything short of one leader of ours listing every name is the survey as before.
+
+    Each window is still opened once at most: a leader read on the way is not visited again.
+    """
+    clients = [ui.make_client(n, grouped=True) for n in _FOUR]
+    cached_names(*clients)
+    setup(ui, clients)
+
+    assert await _run_with(ui, lambda: gm.is_grouped(clients)) is expected
+    visits = _visits(ui)
+    assert len(visits) == 4, f"the survey did not visit every client: {len(visits)} visits"
+    assert len(set(map(id, visits))) == 4, "a client's window was opened twice"
+
+
+async def test_is_grouped_keeps_the_unreadable_roster_fallback(ui, cached_names):
+    """A leader whose roster cannot be read sends it to the survey, and same_group's None
+    still reads as grouped, as before."""
+    a = ui.make_client("Wolf Deathblade", grouped=True)
+    b = ui.make_client("Iridian Spellthief", grouped=True)
+    cached_names(a, b)
+    ui.group_of[a] = ()
+    ui.group_of[b] = ()
+
+    assert await _run_with(ui, lambda: gm.is_grouped([a, b])) is True
+
+
+# --- _choose_leader prefers the client that actually leads ----------------------------------
+
+
+def _led(state: gm.GroupState, leads: bool) -> gm.GroupState:
+    return gm.GroupState(grouped=state.grouped, roster=state.roster, leads=leads)
+
+
+def test_the_actual_leader_is_preferred_over_leader_index():
+    pair = ("A", "B")
+    states = [_led(s, i == 1) for i, s in enumerate(_states(pair, pair, None))]
+    assert gm._choose_leader(states, leader_index=0) == 1
+
+
+def test_leader_index_still_picks_the_group_and_its_leader_sends_the_invitations():
+    """2+2: leader_index decides which group is kept, as before, and that group's leader invites."""
+    first = ("A", "B")
+    second = ("C", "D")
+    states = [_led(s, i in (0, 3)) for i, s in enumerate(_states(first, first, second, second))]
+    assert gm._choose_leader(states, leader_index=2) == 3
+
+
+def test_a_group_led_by_one_of_ours_wins_a_tie_leader_index_is_in_neither_of():
+    first = ("A", "Stranger One")
+    second = ("C", "Stranger Two")
+    states = [_led(s, i == 1) for i, s in enumerate(_states(first, second, None))]
+    assert gm._choose_leader(states, leader_index=2) == 1
+
+
+def test_the_largest_group_still_outranks_a_leader_in_a_smaller_one():
+    trio = ("A", "B", "C")
+    solo = ("D", "Stranger One")
+    states = [_led(s, i == 3) for i, s in enumerate(_states(trio, trio, trio, solo))]
+    assert gm._choose_leader(states, leader_index=3) == 0
+
+
+def test_a_leader_of_ours_is_preferred_when_the_rosters_are_unreadable():
+    states = [_led(s, i == 2) for i, s in enumerate(_states((), (), ()))]
+    assert gm._choose_leader(states, leader_index=0) == 2
+
+
+async def test_form_group_invites_from_the_client_that_leads(ui):
+    a = ui.make_client("Alice A")
+    b = ui.make_client("Bob B")
+    c = ui.make_client("Carol C")
+    ui.put_in_group(b, a)
+    lines: list[str] = []
+
+    result = await _run_with(
+        ui, lambda: gm.form_group([a, b, c], ["Alice A", "Bob B", "Carol C"], log=lambda m, _l: lines.append(m))
+    )
+
+    assert result.added == ["P3"]
+    assert "Rebuilding group: leader is P2" in lines
+    assert ui.profile_open.get(b) is False and a not in ui.profile_open, "the invitation was not sent from P2"
+
+
+# --- leave_group and the join confirmation watch the HUD ------------------------------------
+
+
+async def test_leaving_a_client_already_out_opens_no_window(ui):
+    client = ui.make_client()
+
+    assert await _run_with(ui, lambda: gm.leave_group(client)) is True
+    assert _visits(ui) == []
+    assert ui.leave_clicks == []
+
+
+async def test_a_leave_is_confirmed_by_the_hud_not_the_leave_group_button(ui):
+    """The button is inside the social window; one that kept reading visible once clicked
+    would have held the old poll to its timeout and failed the leave."""
+    a = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    real = ui.is_visible_by_path
+
+    async def leave_button_stays(client, path):
+        return True if path == LEAVE_GROUP_BUTTON_PATH else await real(client, path)
+
+    with ExitStack() as stack:
+        for p in ui.patches():
+            stack.enter_context(p)
+        stack.enter_context(patch.object(nh, "is_visible_by_path", new=AsyncMock(side_effect=leave_button_stays)))
+        assert await gm.leave_group(a) is True
+
+    assert ui.leave_clicks == [a]
+    assert ui.grouped[a] is False
+
+
+async def test_a_leave_the_game_ignored_is_not_confirmed(ui):
+    a = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    ui.leaving_works = False
+
+    assert await _run_with(ui, lambda: gm.leave_group(a)) is False
+
+
+async def test_a_leave_in_battle_is_confirmed_by_the_leave_group_button(ui):
+    a = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    a.in_battle.return_value = True
+
+    assert await _run_with(ui, lambda: gm.leave_group(a)) is True
+    assert ui.leave_clicks == [a]
+
+
+async def test_a_join_is_confirmed_by_the_hud(ui):
+    """A Leave Group button that never shows no longer fails the join: the HUD decides."""
+    leader = ui.make_client("Alice A")
+    joiner = ui.make_client("Bob B")
+    real = ui.is_visible_by_path
+
+    async def leave_button_never_shows(client, path):
+        return False if path == LEAVE_GROUP_BUTTON_PATH else await real(client, path)
+
+    with ExitStack() as stack:
+        for p in ui.patches():
+            stack.enter_context(p)
+        stack.enter_context(patch.object(nh, "is_visible_by_path", new=AsyncMock(side_effect=leave_button_never_shows)))
+        result = await gm.form_group([leader, joiner], ["Alice A", "Bob B"])
+
+    assert result.added == ["P2"]
+
+
+async def test_a_join_the_hud_cannot_see_is_confirmed_by_the_leave_group_button(ui):
+    leader = ui.make_client("Alice A")
+    joiner = ui.make_client("Bob B")
+    joiner.in_battle.return_value = True
+
+    result = await _run_with(ui, lambda: gm.form_group([leader, joiner], ["Alice A", "Bob B"]))
+
+    assert result.added == ["P2"]
+
+
+async def test_a_join_still_reads_the_roster_for_the_leader(ui):
+    """The HUD says grouped, not grouped with us; the roster the joined window shows does."""
+    leader = ui.make_client("Alice A")
+    joiner = ui.make_client("Bob B")
+
+    state = None
+    real_confirm = gm._confirm_joined
+
+    async def confirm(target):
+        nonlocal state
+        state = await real_confirm(target)
+        return state
+
+    with ExitStack() as stack:
+        for p in ui.patches():
+            stack.enter_context(p)
+        stack.enter_context(patch.object(gm, "_confirm_joined", new=confirm))
+        await gm.form_group([leader, joiner], ["Alice A", "Bob B"])
+
+    assert state is not None and set(state.roster) == {"Alice A", "Bob B"}
