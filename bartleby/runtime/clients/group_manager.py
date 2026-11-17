@@ -19,10 +19,13 @@ left. tools/probe_group_offsets.py demonstrates this and is kept for re-checking
 game patch.
 
 Until that is fixed upstream, membership is read from the HUD (hud_grouped, hud_leads).
-The group menu button is visible only while the player is in a group, and its LeaderText
-label only on the leader, so whether a client is grouped, and whether it leads, costs a
-read or two and opens no window: a survey at bot start, with nobody grouped, opens
-nothing. **The menu hides in battle**, and the HUD cannot be trusted while loading, so a
+The group menu button is visible only while the player is in a group, so whether a client
+is grouped costs a read and opens no window: a survey at bot start, with nobody grouped,
+opens nothing. Its LeaderText label shows only on the leader, and **only while that
+client's group menu is open**: its flag follows the screen, so a leader with its menu
+closed reads hidden, and hud_leads answers None then rather than False. read_leads opens
+the menu to find out, two clicks, and puts it back. **The menu hides in battle**, and the
+HUD cannot be trusted while loading, so a
 read then answers None, "cannot tell", and the caller falls back to the social window,
 which is how membership was read before: its Leave Group button is visible only while
 grouped (the game hides it when ungrouped rather than graying it, so enabled-ness says
@@ -48,10 +51,22 @@ to a player who is already in a group, so form_group dissolves every group excep
 largest one (see leave_group and _dissolve_other_groups) and then invites the freed
 clients into it — the same invite path any ungrouped client takes.
 
+Who leads which group, with which of a product's clients, is kept in **the group record**
+(group_record, members_led_by), the one place it is known, since reading it costs a menu
+opened and a social-window visit. form_group writes it on every way through that leaves a
+known leader, and learn_group writes it for a group the player formed by hand, from one
+menu read and, on a leader, one roster read. It is checked against the cheap reads before
+it answers, and thrown away when one contradicts it: the leader reading ungrouped, a
+member on another character (a relog drops a wizard from its group), or an open menu
+saying otherwise about who leads. A member reading ungrouped, or leaving by leave_group,
+is dropped from it, and a leader leaving takes it with it, since the game moves the lead.
+forget_group is for a caller that has seen it wrong.
+
 A group is also a way to port. port_to_group_member goes to a member through the Group
 tab's roster, and port_to_leader to the leader through the HUD's own Teleport to Leader,
 the fewest clicks of any port. On the leader that button summons the whole group instead,
-so teleport_to_leader clicks it only on a client the HUD shows grouped and not leading.
+so teleport_to_leader opens the menu first, reads who leads with it open, and clicks it
+only on a client that reads grouped and not leading.
 
 Deliberately free of Qt and FSM dependencies, so that any product's runtime can call it,
 and so it can be tested without either.
@@ -62,10 +77,11 @@ Requires every account to be mutually friended in-game — a one-time manual set
 import asyncio
 import logging
 import weakref
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from bartleby.runtime import run_trace
 from bartleby.runtime.actions import node_helpers
+from bartleby.runtime.actions.live_character import live_character_id
 from bartleby.runtime.game import wizard_names
 from bartleby.runtime.paths import (
     ALREADY_IN_GROUP_DISMISS_PATH,
@@ -158,8 +174,10 @@ class GroupState:
     be interpreted as one. See same_group.
 
     `leads` is whether the HUD showed this client leading its group, None when it could
-    not tell. It is a hint for choosing who sends the invitations (_choose_leader), read on
-    the same pass as everything else, and is left out of comparisons.
+    not tell, which it cannot while the client's group menu is closed (hud_leads), so it is
+    usually None. It is a hint for choosing who sends the invitations (_choose_leader), read
+    on the same pass as everything else, with the group record's leader filled in where the
+    HUD could not tell (_with_recorded_leads), and is left out of comparisons.
     """
 
     grouped: bool = False
@@ -421,14 +439,19 @@ async def _read_hud(client, *, leader: bool = False) -> _Hud:
     the HUD cannot be trusted while loading, so a read then would say "ungrouped" of a
     wizard in a group.
 
-    LeaderText is read only while the button shows. It is a child of the button, and a
-    child's visibility flag is its own (node_helpers.is_visible_by_path), so on a client
-    that has just left its group it may still read visible. A client that is not grouped
-    does not lead, so `leads` is then False without a read.
+    LeaderText is read only while the group menu is open. Its visibility flag follows the
+    screen, and the label is drawn only inside the open menu, so on a leader whose menu is
+    closed it reads hidden: `leads` is None then, not False. It is read only while the
+    button shows, too, since a child's visibility flag is its own
+    (node_helpers.is_visible_by_path). A client that is not grouped does not lead, so
+    `leads` is then False without a read.
 
     A path not in the window tree reads as None and is warned about (_warn_missing): both
     windows are in the HUD's layout whether or not they show, so a missing one is a path a
     game update moved, and taking it for "hidden" would call every client ungrouped.
+
+    Every answer is held against the group record (_observe), so a read that contradicts it
+    throws it away.
     """
     try:
         if await client.is_loading() or await client.in_battle():
@@ -438,16 +461,21 @@ async def _read_hud(client, *, leader: bool = False) -> _Hud:
             _warn_missing(client, "group button")
             return _HUD_SILENT
         if not leader:
-            return _Hud(grouped=grouped)
-        if not grouped:
-            return _Hud(grouped=False, leads=False)
-        leads = await node_helpers.visible_if_present(client, GROUP_LEADER_TEXT_PATH)
-        if leads is None:
-            _warn_missing(client, "group leader label")
-        return _Hud(grouped=True, leads=leads)
+            hud = _Hud(grouped=grouped)
+        elif not grouped:
+            hud = _Hud(grouped=False, leads=False)
+        elif not await _group_menu_open(client):
+            hud = _Hud(grouped=True)
+        else:
+            leads = await node_helpers.visible_if_present(client, GROUP_LEADER_TEXT_PATH)
+            if leads is None:
+                _warn_missing(client, "group leader label")
+            hud = _Hud(grouped=True, leads=leads)
     except Exception:
         logger.debug("Could not read the group HUD", exc_info=True)
         return _HUD_SILENT
+    _observe(client, hud)
+    return hud
 
 
 async def hud_grouped(client) -> bool | None:
@@ -462,11 +490,259 @@ async def hud_grouped(client) -> bool | None:
 async def hud_leads(client) -> bool | None:
     """Whether this client leads its group, by the HUD's LeaderText. None when it cannot tell.
 
-    False for a client the HUD shows ungrouped, since only a group has a leader. Otherwise
-    the same as hud_grouped: no window, None in battle, while loading or on a failed read,
-    and never raises. See _read_hud.
+    Opens nothing, so it can answer only while the client's group menu is already open:
+    LeaderText shows only inside the open menu, and reads hidden on a leader whose menu is
+    closed. None then, and in battle, while loading or on a failed read; never raises. False
+    for a client the HUD shows ungrouped, since only a group has a leader. read_leads opens
+    the menu to find out. See _read_hud.
     """
     return (await _read_hud(client, leader=True)).leads
+
+
+async def read_leads(client) -> bool | None:
+    """Whether this client leads its group, opening its group menu to read it if it is closed.
+
+    The menu is left as it was found: a closed one is opened, read and closed again, two
+    clicks on the group menu button, and an open one costs no click at all. Neither click
+    summons anyone: only the teleport button inside the menu does that on a leader.
+
+    None in battle, while loading, when the menu will not open, and on any failure; False
+    for a client the HUD shows ungrouped, with nothing clicked. Never raises. It takes no
+    lease: a caller holds one on the client, since it clicks.
+    """
+    try:
+        hud = await _read_hud(client)
+        if hud.grouped is not True:
+            return None if hud.grouped is None else False
+        opened = not await _group_menu_open(client)
+    except Exception:
+        logger.debug("Could not read the group menu", exc_info=True)
+        return None
+    try:
+        if opened:
+            # The menu button is a toggle, so it is clicked only while the menu reads closed.
+            if not await node_helpers.click_by_path(client, GROUP_HUD_BUTTON_PATH):
+                return None
+            if not await node_helpers.poll_until(
+                lambda: _group_menu_open(client), timeout=TRIGGER_TIMEOUT, poll_interval=POLL_INTERVAL
+            ):
+                logger.debug("The group menu did not open to read who leads")
+                return None
+        return (await _read_hud(client, leader=True)).leads
+    except Exception:
+        logger.debug("Could not read the group menu", exc_info=True)
+        return None
+    finally:
+        if opened:
+            await close_group_menu(client)
+
+
+# -- The group record ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class GroupRecord:
+    """Who leads one group, and which of a product's clients are in it, as last seen.
+
+    `leader` leads it, and `members` holds every client recorded in it, the leader first.
+    `names` are the wizard names its roster listed, where one was read, for comparing and
+    never for a log. Unchecked: members_led_by is what holds it against the HUD before
+    anything acts on it.
+    """
+
+    leader: object
+    members: tuple
+    names: tuple[str, ...] = ()
+
+
+class _Record:
+    """The record itself: the leader, each member's character id, the roster, all held weakly."""
+
+    def __init__(self, leader, characters: dict, names: tuple[str, ...]) -> None:
+        self.leader = weakref.ref(leader)
+        self.characters: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary(characters)
+        self.names = names
+
+    def leads(self, client) -> bool:
+        return self.leader() is client
+
+
+# Every client in a record, mapped to it. A wizard is in one group at most, so a client is in
+# one record at most. Keyed weakly, so a client gone with its window takes its entry along.
+_record_of: "weakref.WeakKeyDictionary[object, _Record]" = weakref.WeakKeyDictionary()
+
+
+def group_record(client) -> GroupRecord | None:
+    """The record of the group `client` is in, as last seen and unchecked, or None."""
+    record = _record_of.get(client)
+    leader = record.leader() if record is not None else None
+    if leader is None:
+        return None
+    members = (leader, *(c for c in list(record.characters) if c is not leader))
+    return GroupRecord(leader=leader, members=members, names=record.names)
+
+
+def forget_group(client) -> None:
+    """Throw away the record of the group `client` is in, whoever leads it.
+
+    For a caller that has seen it wrong: a port to the recorded leader that landed elsewhere,
+    or a leader-route port that did not go.
+    """
+    record = _record_of.get(client)
+    if record is not None:
+        _discard(record)
+
+
+def forget_all_groups() -> None:
+    """Throw away every record, as at the start of a test."""
+    _record_of.clear()
+
+
+def _discard(record: _Record) -> None:
+    for client in list(record.characters):
+        if _record_of.get(client) is record:
+            del _record_of[client]
+    record.characters.clear()
+
+
+def _drop(client) -> None:
+    """Take `client` out of its record: the whole record when it was the leader, whose leaving moves the lead."""
+    record = _record_of.get(client)
+    if record is None:
+        return
+    if record.leads(client) or record.leader() is None:
+        _discard(record)
+        return
+    record.characters.pop(client, None)
+    del _record_of[client]
+
+
+def _observe(client, hud: _Hud) -> None:
+    """Hold a HUD read against the record, throwing away what it contradicts.
+
+    A client the HUD shows ungrouped has left: a member is dropped, and a leader takes the
+    record with it. A leader read from an open menu that says otherwise than the record, of
+    the recorded leader or of anyone in its group, throws the record away.
+    """
+    if hud.grouped is False:
+        _drop(client)
+        return
+    record = _record_of.get(client)
+    if record is not None and hud.leads is not None and record.leads(client) != hud.leads:
+        logger.debug("A group menu disagreed with the group record; it is thrown away")
+        _discard(record)
+
+
+async def _character_id(client) -> int:
+    try:
+        return await live_character_id(client)
+    except Exception:
+        logger.debug("Could not read the character id", exc_info=True)
+        return wizard_names.NO_CHARACTER
+
+
+async def _record(leader, members, names=()) -> None:
+    """Record `leader` leading a group of `members`, each with the character it is on now.
+
+    Each client is taken out of any record it was in first, and a record one of them led
+    goes with it. Nothing is recorded for a group with none of the product's clients but the
+    leader.
+    """
+    clients = [leader, *(m for m in members if m is not leader)]
+    if len(clients) < 2:
+        return
+    characters = await asyncio.gather(*(_character_id(c) for c in clients))
+    for client in clients:
+        _drop(client)
+    record = _Record(leader, dict(zip(clients, characters)), tuple(names))
+    for client in clients:
+        _record_of[client] = record
+    logger.debug("Recorded a group of %d of the product's clients", len(clients))
+
+
+async def _on_same_character(record: _Record, client) -> bool:
+    """Whether `client` is still on the character it was recorded on; dropping it if not.
+
+    A relog drops a wizard from its group, so another character on the same client is not in
+    it. A client whose character cannot be read now, loading say, is not dropped, but is not
+    proven either. One recorded without an id takes the one it reads now.
+    """
+    now = await _character_id(client)
+    if now == wizard_names.NO_CHARACTER:
+        return False
+    was = record.characters.get(client, wizard_names.NO_CHARACTER)
+    if was == wizard_names.NO_CHARACTER:
+        record.characters[client] = now
+        return True
+    if was != now:
+        logger.debug("A recorded client is on another character now; it leaves the group record")
+        _drop(client)
+        return False
+    return True
+
+
+async def members_led_by(target, clients) -> list | None:
+    """The clients the record proves in a group `target` leads, checked by cheap reads first.
+
+    None when there is no record of `target` leading, or when a read has just contradicted it,
+    which throws it away: the answer learn_group needs to decide whether to learn. Otherwise
+    the clients among `clients` (`target` itself left out) that the record lists, the HUD
+    shows grouped, and are on the character they were recorded on, in `clients`' order; an
+    empty list when none is, as when `target` is in battle and the HUD cannot tell.
+
+    Opens no window and clicks nothing: the HUD's group button on each, and the leader's
+    LeaderText where its menu happens to be open, and each character id.
+    """
+    record = _record_of.get(target)
+    if record is None or not record.leads(target):
+        return None
+    hud = await _read_hud(target, leader=True)
+    if _record_of.get(target) is not record:
+        return None
+    if hud.grouped is not True:
+        return []
+    if not await _on_same_character(record, target):
+        return None if _record_of.get(target) is not record else []
+    listed = [c for c in clients if c is not target and c in record.characters]
+
+    async def proven(client) -> bool:
+        return (await _read_hud(client)).grouped is True and await _on_same_character(record, client)
+
+    found = await asyncio.gather(*(proven(c) for c in listed))
+    if _record_of.get(target) is not record:
+        return None
+    return [c for c, ok in zip(listed, found) if ok]
+
+
+async def learn_group(target, clients) -> list:
+    """members_led_by, learning the group first when there is no record of `target` leading one.
+
+    To learn, `target`'s group menu is read (read_leads: two clicks when it is closed, and it
+    is left as found). If `target` leads, its roster is read in one social-window visit
+    (read_group_state), and every client among `clients` whose cached wizard name it lists is
+    recorded in its group. If it does not lead, or cannot tell, nothing is recorded and no
+    client is proven.
+
+    How a group the player formed by hand is used without pressing Group. It clicks on
+    `target`, so the caller holds a lease on it.
+    """
+    known = await members_led_by(target, clients)
+    if known is not None:
+        return known
+    if await read_leads(target) is not True:
+        return []
+    state = await run_trace.traced(read_group_state(target), "group.read_state", client=target)
+    if not state.grouped or not state.roster:
+        return []
+    members = []
+    for client in clients:
+        name = wizard_names.cached_name(client)
+        if client is not target and name and _lists(state.roster, name):
+            members.append(client)
+    if not members:
+        return []
+    await _record(target, members, state.roster)
+    return await members_led_by(target, clients) or []
 
 
 async def read_group_state(client, confirm_grouped_timeout: float | None = None) -> GroupState:
@@ -664,8 +940,9 @@ async def is_grouped(clients: list) -> bool:
     read this falls back to the per-client yes/no, which cannot see a split.
 
     The HUD answers most of it with no window opened. Any client it shows ungrouped makes
-    this False at once. When it shows every client grouped and exactly one of ours leading,
-    that leader's roster is the only one read (leader_roster), and it is True when every
+    this False at once. When it shows every client grouped and the leader is known, by an
+    open group menu or the group record, that leader's roster is the only one read
+    (leader_roster), and it is True when every
     cached wizard name is on it: names cost a character-page open each, so a client with
     none yet goes to the survey without the visit. Anything less certain is the full
     survey: a client the HUD cannot read, no leader among ours or several, a wizard name not
@@ -691,12 +968,12 @@ async def is_grouped(clients: list) -> bool:
 
 @dataclass(frozen=True)
 class LeaderRoster:
-    """The one leader among some clients, as the HUD named it, and its Group tab from one visit.
+    """A leader among some clients, as an open group menu or the group record named it, and its Group tab.
 
     `index` is the leader's position in the clients that were passed, and `state` what
-    read_group_state read on it. A wizard is in one group at most, so every name the
-    roster lists (lists) is in the leader's group, and any other client the HUD showed
-    grouped is in a group none of those clients leads.
+    read_group_state read on it in one visit. A wizard is in one group at most, so every
+    name the roster lists (lists) is in the leader's group, and any other client is in
+    another group, or none.
     """
 
     index: int
@@ -713,10 +990,14 @@ class LeaderRoster:
 async def leader_roster(clients: list) -> LeaderRoster | None:
     """The one leader among these clients and its roster, read in a single social-window visit.
 
-    None, with no window opened, unless the HUD shows every client grouped and exactly one
-    of them leading (hud_grouped, hud_leads): a client it cannot read, in battle or loading,
-    one it shows ungrouped, no leader among them or several. The visit is read_group_state,
-    so it never raises, and an unreadable roster comes back empty, which lists nobody.
+    None, with no window opened, unless the HUD shows every client grouped and the leader is
+    known: exactly one of them leading by hud_leads, which can tell only where its group menu
+    is open, or else the group record has one leading all the others, checked by
+    members_led_by.
+    So it is None for a client the HUD cannot read, in battle or loading, one it shows
+    ungrouped, and a group no record holds with every menu closed. The visit is
+    read_group_state, so it never raises, and an unreadable roster comes back empty, which
+    lists nobody.
 
     What a product reads instead of every client's Group tab when it wants to know who is
     grouped with whom, as is_grouped does.
@@ -725,16 +1006,40 @@ async def leader_roster(clients: list) -> LeaderRoster | None:
 
 
 def _sole_leader(huds: list[_Hud]) -> int | None:
-    """The index of the one client leading, when the HUD shows every client grouped; else None."""
-    if any(hud.grouped is not True or hud.leads is None for hud in huds):
+    """The index of the one client the HUD shows leading, when it shows every client grouped; else None.
+
+    Only a client whose group menu is open can say it leads (hud_leads), so the others may
+    not be able to tell: one that can and does is enough to name the leader whose roster
+    to read, and two are two groups.
+    """
+    if any(hud.grouped is not True for hud in huds):
         return None
     leaders = [idx for idx, hud in enumerate(huds) if hud.leads]
     return leaders[0] if len(leaders) == 1 else None
 
 
+async def _recorded_leader(clients: list, huds: list[_Hud]) -> int | None:
+    """The index of the client the group record has leading every other one, checked; else None.
+
+    How leader_roster finds the leader when the HUD cannot name it, which is whenever the
+    leader's group menu is closed (hud_leads).
+    """
+    if any(hud.grouped is not True for hud in huds):
+        return None
+    for idx, client in enumerate(clients):
+        record = _record_of.get(client)
+        if record is None or not record.leads(client):
+            continue
+        proven = await members_led_by(client, clients)
+        return idx if proven is not None and len(proven) == len(clients) - 1 else None
+    return None
+
+
 async def _leader_roster(clients: list, huds: list[_Hud]) -> LeaderRoster | None:
     """leader_roster, given the HUD already read."""
     leader = _sole_leader(huds)
+    if leader is None:
+        leader = await _recorded_leader(clients, huds)
     if leader is None:
         return None
     client = clients[leader]
@@ -757,7 +1062,11 @@ async def leave_group(client) -> bool:
 
     The leave is confirmed by the HUD's group button hiding (_left_the_group), not by the
     Leave Group button, which is inside the social window and is read only while it shows.
+
+    The client leaves the group record first, whether or not the leave works: a leader takes
+    the record with it, since the game hands the lead to someone else.
     """
+    _drop(client)
     try:
         if await hud_grouped(client) is False:
             return True
@@ -917,6 +1226,36 @@ async def form_group(
         return await _form_group_locked(clients, names, leader_index, _log, None if contended else states, safety_delay)
 
 
+def _with_recorded_leads(clients: list, states: list[GroupState]) -> list[GroupState]:
+    """The survey, with each client the group record has leading marked as leading where the HUD could not tell.
+
+    A hint for _choose_leader and _find_leader, as the HUD's own is. The record has already
+    been held against the same survey's reads, which throw away whatever they contradict.
+    """
+    marked = []
+    for client, state in zip(clients, states):
+        record = _record_of.get(client)
+        if state.grouped and state.leads is None and record is not None and record.leads(client):
+            state = replace(state, leads=True)
+        marked.append(state)
+    return marked
+
+
+async def _find_leader(clients: list, states: list[GroupState], order: list[int]) -> int | None:
+    """The index of whichever client in `order` leads its group; None when none can be found.
+
+    The survey's hint first (GroupState.leads), and then each grouped client's group menu in
+    turn (read_leads), stopping at the first that leads: two clicks for each menu it opens.
+    """
+    for idx in order:
+        if states[idx].leads is True:
+            return idx
+    for idx in order:
+        if states[idx].grouped and states[idx].leads is None and await read_leads(clients[idx]) is True:
+            return idx
+    return None
+
+
 def _in_leader_group(state: GroupState, leader_state: GroupState) -> bool:
     """Whether this client is demonstrably in the leader's group, not merely in *a* group.
 
@@ -1027,14 +1366,33 @@ async def _form_group_locked(
     states: list[GroupState] | None,
     safety_delay: float,
 ) -> GroupResult:
-    """Body of form_group. Must only be called while _form_group_lock is held."""
+    """Body of form_group. Must only be called while _form_group_lock is held.
+
+    Every way through it that leaves a group of the product's clients with a known leader
+    writes the group record (_record): the leader it found already leading, by the record or
+    a group menu read (_find_leader), or the one whose invitation formed the group.
+    """
     if states is None:
         states = await read_group_states(clients)
+    states = _with_recorded_leads(clients, states)
+    order = [leader_index, *(idx for idx in range(len(clients)) if idx != leader_index)]
     if all(state.grouped for state in states) and same_group(states) is not False:
         _log("All clients are already in a group — nothing to do", logging.DEBUG)
+        if same_group(states):
+            found = await _find_leader(clients, states, order)
+            if found is not None:
+                await _record(clients[found], clients, states[found].roster)
         return GroupResult(success=True, states=list(states))
 
     leader_idx = _choose_leader(states, leader_index)
+    leads_known = not states[leader_idx].grouped or states[leader_idx].leads is True
+    if not leads_known:
+        # A group of ours kept as it is: whoever leads it is the leader to record, and the one
+        # to send the invitations, since the game cannot hand the lead to another player.
+        kept = [idx for idx in order if idx == leader_idx or _in_leader_group(states[idx], states[leader_idx])]
+        found = await _find_leader(clients, states, [leader_idx, *(idx for idx in kept if idx != leader_idx)])
+        if found is not None:
+            leader_idx, leads_known = found, True
     leader = clients[leader_idx]
     _log(f"Rebuilding group: leader is {slot_label(leader_idx)}")
 
@@ -1066,6 +1424,10 @@ async def _form_group_locked(
     if len(joined) < len(to_invite):
         result.success = False
     result.states = _final_states(states, leader_idx, joined, names)
+    final = result.states[leader_idx]
+    if leads_known and final.grouped:
+        members = [clients[idx] for idx, state in enumerate(result.states) if idx != leader_idx and state == final]
+        await _record(leader, members, final.roster)
 
     # Close the friends list once, after every invite — it is reused between them, so
     # closing per-invite would mean reopening and re-paginating it for each client.
@@ -1551,8 +1913,10 @@ async def _require_member(client) -> None:
     """Raise ValueError unless the HUD shows this client grouped, and not leading its group.
 
     The guard on the group menu's teleport button, which on the leader summons the whole group
-    (paths.GROUP_TELEPORT_BUTTON_PATH). A client the HUD cannot read, in battle, loading or with
-    the path moved, fails it too: only a plain False for leading lets the click through.
+    (paths.GROUP_TELEPORT_BUTTON_PATH). Read with the menu open, since LeaderText says nothing
+    while it is closed (hud_leads). A client the HUD cannot read, in battle, loading, with the
+    path moved or with its menu closed, fails it too: only a plain False for leading lets the
+    click through.
     """
     hud = await _read_hud(client, leader=True)
     if hud.grouped is not True:
@@ -1572,13 +1936,16 @@ async def teleport_to_leader(client) -> None:
     as a friends-list port does once it starts: the same refusals, no dialog of its own.
 
     On the leader that button is Ask Group to Teleport, a summon, so nothing is clicked
-    unless the HUD shows this client grouped and not leading (_require_member). The check is
-    read again just before the teleport click when the menu had to be opened first, and has
-    no way around it. A client the HUD cannot read, in battle or loading, is refused the
-    same way.
+    unless the HUD shows this client grouped and not leading (_require_member). Who leads can
+    be read only with the menu open, so the menu is opened first, on a client the HUD shows
+    grouped, and the check is read then, just before the teleport click, with no way around
+    it. A leader, or a client that cannot tell, is refused, and a menu opened for the check
+    is closed again. A client the HUD cannot read at all, in battle or loading, is refused
+    with nothing clicked.
 
-    The menu is left open, since it never closes by itself: port_to_leader closes it once
-    the port is over, and anything else calling this closes it with close_group_menu.
+    The menu is left open once the teleport is clicked, since it never closes by itself:
+    port_to_leader closes it once the port is over, and anything else calling this closes it
+    with close_group_menu.
 
     Waits out any form_group in progress first, as teleport_to_group_member does, though
     for another reason: form_group can change who leads (a leader leaving hands the group
@@ -1590,16 +1957,23 @@ async def teleport_to_leader(client) -> None:
         async with lock:
             pass
 
-    await _require_member(client)
-    if not await _group_menu_open(client):
-        # The menu button is a toggle, so it is clicked only while the menu reads closed.
-        if not await node_helpers.click_by_path(client, GROUP_HUD_BUTTON_PATH):
-            raise ValueError("the group menu button could not be clicked")
-        if not await node_helpers.poll_until(
-            lambda: _group_menu_open(client), timeout=TRIGGER_TIMEOUT, poll_interval=POLL_INTERVAL
-        ):
-            raise ValueError("the group menu did not open")
+    if (await _read_hud(client)).grouped is not True:
+        raise ValueError("the HUD does not show this client in a group")
+    opened = not await _group_menu_open(client)
+    try:
+        if opened:
+            # The menu button is a toggle, so it is clicked only while the menu reads closed.
+            if not await node_helpers.click_by_path(client, GROUP_HUD_BUTTON_PATH):
+                raise ValueError("the group menu button could not be clicked")
+            if not await node_helpers.poll_until(
+                lambda: _group_menu_open(client), timeout=TRIGGER_TIMEOUT, poll_interval=POLL_INTERVAL
+            ):
+                raise ValueError("the group menu did not open")
         await _require_member(client)
+    except BaseException:
+        if opened:
+            await close_group_menu(client)
+        raise
     if not await node_helpers.click_by_path(client, GROUP_TELEPORT_BUTTON_PATH):
         raise ValueError("the Teleport to Leader button could not be clicked")
 

@@ -28,6 +28,7 @@ from bartleby.runtime.paths import (
     GROUP_INVITE_ACCEPT_PATH,
     GROUP_LEADER_TEXT_PATH,
     GROUP_ROSTER_LINES,
+    GROUP_TELEPORT_BUTTON_PATH,
     GROUP_WINDOW_CLOSE_PATH,
     INVITE_TO_GROUP_BUTTON_PATH,
     LARGE_FRIENDS_LIST_PATH,
@@ -80,6 +81,14 @@ class FakeUI:
         # HUD that disagrees with the Leave Group button.
         self.hud_present = True
         self.hud_shows: dict[FakeClient, bool] = {}
+        # The HUD's group menu. Its button toggles it while the client is grouped, and
+        # LeaderText follows the screen: it reads visible only on a leader whose menu is open,
+        # as in the game. `menu_opens` False models a menu button whose click never lands.
+        self.menu_open: dict[FakeClient, bool] = {}
+        self.menu_clicks: list[FakeClient] = []
+        self.menu_opens = True
+        # Each client's character id, as live_character_id reads it; 1 unless a test relogs one.
+        self.character_of: dict[FakeClient, int] = {}
         # Wraps every roster name in KI color markup, as the game does.
         self.roster_markup = True
         # The first EMPTY roster slot does not read blank. It is an invitation prompt, and
@@ -205,6 +214,7 @@ class FakeUI:
         led = client in self.leads
         for gone in (client, *(remaining if len(remaining) <= 1 else ())):
             self.grouped[gone] = False
+            self.menu_open[gone] = False
             self.group_of[gone] = ()
             self._members[gone] = [gone]
             self.leads.discard(gone)
@@ -322,14 +332,19 @@ class FakeUI:
             return client in self._awaiting
         if path == ALREADY_IN_GROUP_DISMISS_PATH:
             return self.popup_showing.get(client, False)
+        if path == GROUP_TELEPORT_BUTTON_PATH:
+            # Hidden while the menu is closed, and with the HUD's group controls.
+            return self.menu_open.get(client, False) and self.grouped.get(client, False)
         return False
 
     async def visible_if_present(self, client, path) -> bool | None:
-        """The HUD's group button shows while grouped, and its LeaderText on the leader alone."""
+        """The HUD's group button shows while grouped, and its LeaderText on a leader whose menu is open."""
         if path == GROUP_HUD_BUTTON_PATH:
             return self.hud_shows.get(client, self.grouped.get(client, False)) if self.hud_present else None
         if path == GROUP_LEADER_TEXT_PATH:
-            return client in self.leads if self.hud_present else None
+            if not self.hud_present:
+                return None
+            return self.menu_open.get(client, False) and client in self.leads
         return await self.is_visible_by_path(client, path)
 
     async def is_enabled_by_path(self, client, path) -> bool:
@@ -340,6 +355,11 @@ class FakeUI:
 
     async def click_by_path(self, client, path) -> bool:
         if self.shop_open.get(client, False):
+            return True
+        if path == GROUP_HUD_BUTTON_PATH:
+            self.menu_clicks.append(client)
+            if self.menu_opens and self.grouped.get(client, False):
+                self.menu_open[client] = not self.menu_open.get(client, False)
             return True
         if path == INVITE_TO_GROUP_BUTTON_PATH and self.invite_misclicks:
             self.invite_misclicks -= 1
@@ -478,6 +498,7 @@ class FakeUI:
             patch.object(nh, "click_until_gone", new=AsyncMock(side_effect=self._fast_click_until_gone)),
             patch.object(nh, "press_key_until_gone", new=AsyncMock(side_effect=self._fast_press_key_until_gone)),
             patch.object(nh, "open_friend_profile", new=AsyncMock(side_effect=self.open_friend_profile)),
+            patch.object(gm, "live_character_id", new=AsyncMock(side_effect=lambda c: self.character_of.get(c, 1))),
         )
         if not real_friends_list_close:
             base += (patch.object(nh, "close_friends_list", new=AsyncMock(side_effect=self._stub_close_friends_list)),)
@@ -2100,14 +2121,94 @@ async def test_hud_grouped_reads_the_group_button(ui):
     assert _visits(ui) == [], "a HUD read must open no window"
 
 
-async def test_hud_leads_is_true_on_the_leader_alone(ui):
+async def test_hud_leads_cannot_tell_while_the_group_menu_is_closed(ui):
+    """LeaderText follows the screen: it reads hidden on a leader whose menu is closed."""
     leader = ui.make_client(grouped=True)
     member = ui.make_client(grouped=True)
     alone = ui.make_client()
 
+    assert await _run_with(ui, lambda: gm.hud_leads(leader)) is None
+    assert await _run_with(ui, lambda: gm.hud_leads(member)) is None
+    assert await _run_with(ui, lambda: gm.hud_leads(alone)) is False
+    assert ui.menu_clicks == [], "hud_leads opens nothing"
+
+
+async def test_hud_leads_is_true_on_the_leader_alone_with_the_menu_open(ui):
+    leader = ui.make_client(grouped=True)
+    member = ui.make_client(grouped=True)
+    ui.menu_open[leader] = ui.menu_open[member] = True
+
     assert await _run_with(ui, lambda: gm.hud_leads(leader)) is True
     assert await _run_with(ui, lambda: gm.hud_leads(member)) is False
-    assert await _run_with(ui, lambda: gm.hud_leads(alone)) is False
+    assert ui.menu_clicks == []
+
+
+# --- read_leads: the group menu opened to read who leads, and put back --------------------
+
+
+async def test_read_leads_opens_a_closed_menu_reads_it_and_closes_it_again(ui):
+    leader = ui.make_client(grouped=True)
+    member = ui.make_client(grouped=True)
+
+    assert await _run_with(ui, lambda: gm.read_leads(leader)) is True
+    assert await _run_with(ui, lambda: gm.read_leads(member)) is False
+    assert ui.menu_clicks == [leader, leader, member, member]
+    assert not ui.menu_open[leader] and not ui.menu_open[member]
+
+
+async def test_read_leads_leaves_an_open_menu_open_and_clicks_nothing(ui):
+    leader = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    ui.menu_open[leader] = True
+
+    assert await _run_with(ui, lambda: gm.read_leads(leader)) is True
+    assert ui.menu_clicks == []
+    assert ui.menu_open[leader] is True
+
+
+async def test_read_leads_clicks_nothing_on_an_ungrouped_client(ui):
+    alone = ui.make_client()
+
+    assert await _run_with(ui, lambda: gm.read_leads(alone)) is False
+    assert ui.menu_clicks == []
+
+
+@pytest.mark.parametrize("state", ["in_battle", "is_loading"])
+async def test_read_leads_cannot_tell_in_battle_or_while_loading_and_clicks_nothing(ui, state):
+    leader = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    getattr(leader, state).return_value = True
+
+    assert await _run_with(ui, lambda: gm.read_leads(leader)) is None
+    assert ui.menu_clicks == []
+
+
+async def test_read_leads_cannot_tell_when_the_menu_will_not_open(ui):
+    leader = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    ui.menu_opens = False
+
+    assert await _run_with(ui, lambda: gm.read_leads(leader)) is None
+    assert ui.menu_clicks == [leader], "a menu that never opened is not clicked again to close it"
+
+
+async def test_read_leads_never_raises_and_puts_the_menu_back(ui):
+    leader = ui.make_client(grouped=True)
+    ui.make_client(grouped=True)
+    real = ui.visible_if_present
+
+    async def broken_leader_text(c, path):
+        if path == GROUP_LEADER_TEXT_PATH:
+            raise RuntimeError("window tree unreadable")
+        return await real(c, path)
+
+    with ExitStack() as stack:
+        for p in ui.patches():
+            stack.enter_context(p)
+        stack.enter_context(patch.object(nh, "visible_if_present", new=AsyncMock(side_effect=broken_leader_text)))
+        assert await gm.read_leads(leader) is None
+
+    assert ui.menu_open[leader] is False
 
 
 async def test_leader_text_is_not_trusted_once_the_group_button_has_hidden(ui):
@@ -2163,6 +2264,7 @@ async def test_a_missing_hud_path_is_warned_about_once_per_client(ui, caplog):
 async def test_a_missing_leader_label_cannot_tell_who_leads(ui, caplog):
     client = ui.make_client(grouped=True)
     ui.make_client(grouped=True)
+    ui.menu_open[client] = True
     real = ui.visible_if_present
 
     async def no_leader_text(c, path):
@@ -2216,10 +2318,22 @@ async def test_a_survey_records_who_leads_from_the_same_reads(ui):
     a = ui.make_client(grouped=True)
     b = ui.make_client(grouped=True)
     alone = ui.make_client()
+    ui.menu_open[a] = ui.menu_open[b] = True
 
     states = await _run_with(ui, lambda: gm.read_group_states([a, b, alone]))
 
     assert [s.leads for s in states] == [True, False, False]
+
+
+async def test_a_survey_cannot_tell_who_leads_where_the_menus_are_closed(ui):
+    a = ui.make_client(grouped=True)
+    b = ui.make_client(grouped=True)
+    alone = ui.make_client()
+
+    states = await _run_with(ui, lambda: gm.read_group_states([a, b, alone]))
+
+    assert [s.leads for s in states] == [None, None, False]
+    assert ui.menu_clicks == []
 
 
 async def test_a_survey_in_battle_reads_the_social_window_as_before(ui):
@@ -2303,17 +2417,24 @@ async def test_is_grouped_is_false_without_a_window_when_the_hud_shows_anyone_un
     assert _visits(ui) == []
 
 
-async def test_is_grouped_reads_only_the_leaders_roster(ui, cached_names):
+@pytest.mark.parametrize("known_by", ["open-menu", "record"])
+async def test_is_grouped_reads_only_the_leaders_roster(ui, cached_names, known_by):
     clients = [ui.make_client(n, grouped=True) for n in _FOUR]
     cached_names(*clients)
+    if known_by == "open-menu":
+        ui.menu_open[clients[0]] = True
+    else:
+        await _run_with(ui, lambda: gm._record(clients[0], clients))
 
     assert await _run_with(ui, lambda: gm.is_grouped(clients)) is True
     assert _visits(ui) == [clients[0]], "more than the leader's window was opened"
+    assert ui.menu_clicks == []
 
 
 async def test_is_grouped_finds_the_leader_wherever_it_is(ui, cached_names):
     clients = [ui.make_client(n) for n in _FOUR]
     ui.put_in_group(clients[2], clients[0], clients[1], clients[3])
+    ui.menu_open[clients[2]] = True
     cached_names(*clients)
 
     assert await _run_with(ui, lambda: gm.is_grouped(clients)) is True
@@ -2344,6 +2465,10 @@ def _one_of_ours_with_strangers(ui, clients):
     ui.put_in_foreign_group(clients[3], "Stranger One")
 
 
+def _every_menu_closed(ui, clients):
+    ui.menu_open.clear()
+
+
 @pytest.mark.parametrize(
     ("setup", "expected"),
     [
@@ -2352,16 +2477,27 @@ def _one_of_ours_with_strangers(ui, clients):
         (_a_name_not_yet_known, True),
         (_two_groups_of_ours, False),
         (_one_of_ours_with_strangers, False),
+        (_every_menu_closed, True),
     ],
-    ids=["hud-cannot-tell", "no-leader-of-ours", "name-unknown", "several-leaders", "missing-from-roster"],
+    ids=[
+        "hud-cannot-tell",
+        "no-leader-of-ours",
+        "name-unknown",
+        "several-leaders",
+        "missing-from-roster",
+        "menus-closed-no-record",
+    ],
 )
 async def test_is_grouped_falls_back_to_the_full_survey(ui, cached_names, setup, expected):
     """Anything short of one leader of ours listing every name is the survey as before.
 
     Each window is still opened once at most: a leader read on the way is not visited again.
+    Every menu is open first, so that the setup is what sends it to the survey.
     """
     clients = [ui.make_client(n, grouped=True) for n in _FOUR]
     cached_names(*clients)
+    for client in clients:
+        ui.menu_open[client] = True
     setup(ui, clients)
 
     assert await _run_with(ui, lambda: gm.is_grouped(clients)) is expected
@@ -2388,6 +2524,7 @@ async def test_is_grouped_keeps_the_unreadable_roster_fallback(ui, cached_names)
 async def test_leader_roster_reads_only_the_one_leaders_group_tab(ui):
     clients = [ui.make_client(n) for n in _FOUR]
     ui.put_in_group(clients[2], clients[0], clients[1], clients[3])
+    ui.menu_open[clients[2]] = True
 
     found = await _run_with(ui, lambda: gm.leader_roster(clients))
 
@@ -2401,6 +2538,7 @@ async def test_leader_roster_lists_only_the_leaders_group(ui):
     clients = [ui.make_client(n, grouped=True) for n in _FOUR[:3]]
     elsewhere = ui.make_client(_FOUR[3])
     ui.put_in_foreign_group(elsewhere, "Stranger One")
+    ui.menu_open[clients[0]] = True
 
     found = await _run_with(ui, lambda: gm.leader_roster([*clients, elsewhere]))
 
@@ -2431,11 +2569,13 @@ def _no_leader_of_ours(ui, clients):
 
 @pytest.mark.parametrize(
     "setup",
-    [_hud_cannot_tell, _one_ungrouped, _no_leader_of_ours, _two_groups_of_ours],
-    ids=["hud-cannot-tell", "one-ungrouped", "no-leader-of-ours", "several-leaders"],
+    [_hud_cannot_tell, _one_ungrouped, _no_leader_of_ours, _two_groups_of_ours, _every_menu_closed],
+    ids=["hud-cannot-tell", "one-ungrouped", "no-leader-of-ours", "several-leaders", "menus-closed-no-record"],
 )
 async def test_leader_roster_is_none_without_a_window_unless_the_hud_names_one_leader(ui, setup):
     clients = [ui.make_client(n, grouped=True) for n in _FOUR]
+    for client in clients:
+        ui.menu_open[client] = True
     setup(ui, clients)
 
     assert await _run_with(ui, lambda: gm.leader_roster(clients)) is None
@@ -2594,3 +2734,264 @@ async def test_a_join_still_reads_the_roster_for_the_leader(ui):
         await gm.form_group([leader, joiner], ["Alice A", "Bob B"])
 
     assert state is not None and set(state.roster) == {"Alice A", "Bob B"}
+
+
+# --- the group record: who leads, with which of ours ----------------------------------------
+
+
+def _members(record: gm.GroupRecord | None) -> list:
+    return list(record.members) if record is not None else []
+
+
+async def test_forming_a_group_records_its_leader_and_who_joined(ui):
+    a, b, c = (ui.make_client(n) for n in _FOUR[:3])
+
+    result = await _run_with(ui, lambda: gm.form_group([a, b, c], _FOUR[:3]))
+
+    assert result.success
+    record = gm.group_record(b)
+    assert record is not None and record.leader is a
+    assert _members(record) == [a, b, c]
+    assert {n.casefold() for n in record.names} == {n.casefold() for n in _FOUR[:3]}
+    assert gm.group_record(a) == record, "every member finds the same record"
+
+
+async def test_forming_a_group_from_the_source_records_the_source_leading(ui):
+    a, b = ui.make_client(_FOUR[0]), ui.make_client(_FOUR[1])
+
+    await _run_with(ui, lambda: gm.form_group([a, b], _FOUR[:2], leader_index=1))
+
+    assert gm.group_record(a).leader is b
+
+
+async def test_a_group_already_formed_is_recorded_by_reading_a_group_menu(ui):
+    """Nobody's menu is open, so who leads is learned by one menu read, put back after."""
+    a, b, c = (ui.make_client(n) for n in _FOUR[:3])
+    ui.put_in_group(b, a, c)
+
+    result = await _run_with(ui, lambda: gm.form_group([a, b, c], _FOUR[:3]))
+
+    assert result.success and result.added == []
+    assert gm.group_record(a).leader is b
+    assert set(ui.menu_clicks) <= {a, b} and ui.menu_clicks.count(b) == 2
+    assert not any(ui.menu_open.values()), "a menu read left a menu open"
+
+
+async def test_a_group_already_led_by_a_stranger_is_not_recorded(ui):
+    a, b = ui.make_client(_FOUR[0]), ui.make_client(_FOUR[1])
+    ui.put_in_group(a, b)
+    ui.leads.clear()
+
+    await _run_with(ui, lambda: gm.form_group([a, b], _FOUR[:2]))
+
+    assert gm.group_record(a) is None
+
+
+async def test_a_rebuild_into_a_group_of_ours_records_the_leader_it_learned(ui):
+    a, b, c = (ui.make_client(n) for n in _FOUR[:3])
+    ui.put_in_group(b, a)
+
+    result = await _run_with(ui, lambda: gm.form_group([a, b, c], _FOUR[:3]))
+
+    assert result.added == ["P3"]
+    assert gm.group_record(c).leader is b
+    assert _members(gm.group_record(c)) == [b, a, c]
+
+
+async def test_a_valid_record_answers_with_no_click_and_no_window(ui):
+    a, b, c = (ui.make_client(n) for n in _FOUR[:3])
+    await _run_with(ui, lambda: gm.form_group([a, b, c], _FOUR[:3]))
+    ui.menu_clicks.clear()
+    ui.social_button_clicks.clear()
+
+    proven = await _run_with(ui, lambda: gm.members_led_by(a, [a, b, c]))
+
+    assert proven == [b, c]
+    assert ui.menu_clicks == [] and _visits(ui) == []
+
+
+async def test_members_led_by_is_none_without_a_record_of_that_leader(ui):
+    a, b = ui.make_client(_FOUR[0]), ui.make_client(_FOUR[1])
+    await _run_with(ui, lambda: gm.form_group([a, b], _FOUR[:2]))
+
+    assert await _run_with(ui, lambda: gm.members_led_by(b, [a, b])) is None
+    assert await _run_with(ui, lambda: gm.members_led_by(ui.make_client(), [a, b])) is None
+
+
+async def test_a_leader_in_battle_proves_no_one_and_keeps_its_record(ui):
+    """The HUD hides in battle: it cannot confirm the record, nor contradict it."""
+    a, b = ui.make_client(_FOUR[0]), ui.make_client(_FOUR[1])
+    await _run_with(ui, lambda: gm.form_group([a, b], _FOUR[:2]))
+    a.in_battle.return_value = True
+
+    assert await _run_with(ui, lambda: gm.members_led_by(a, [a, b])) == []
+    a.in_battle.return_value = False
+    assert await _run_with(ui, lambda: gm.members_led_by(a, [a, b])) == [b]
+
+
+async def _recorded_trio(ui):
+    a, b, c = (ui.make_client(n) for n in _FOUR[:3])
+    await _run_with(ui, lambda: gm.form_group([a, b, c], _FOUR[:3]))
+    return a, b, c
+
+
+async def test_a_leader_the_hud_shows_ungrouped_takes_its_record_with_it(ui):
+    a, b, c = await _recorded_trio(ui)
+    ui.remove_from_group(a)  # the game hands the lead on
+
+    assert await _run_with(ui, lambda: gm.members_led_by(a, [a, b, c])) is None
+    assert gm.group_record(b) is None
+
+
+async def test_a_member_the_hud_shows_ungrouped_is_dropped(ui):
+    a, b, c = await _recorded_trio(ui)
+    ui.remove_from_group(c)
+
+    assert await _run_with(ui, lambda: gm.members_led_by(a, [a, b, c])) == [b]
+    assert _members(gm.group_record(a)) == [a, b]
+    ui.put_in_foreign_group(c, "Stranger One")
+    assert await _run_with(ui, lambda: gm.members_led_by(a, [a, b, c])) == [b], "rejoining is not trusted"
+
+
+async def test_a_member_on_another_character_is_dropped(ui):
+    a, b, c = await _recorded_trio(ui)
+    ui.character_of[c] = 2  # a relog, which the HUD might not have seen
+
+    assert await _run_with(ui, lambda: gm.members_led_by(a, [a, b, c])) == [b]
+    assert c not in _members(gm.group_record(a))
+
+
+async def test_a_leader_on_another_character_takes_the_record_with_it(ui):
+    a, b, c = await _recorded_trio(ui)
+    ui.character_of[a] = 2
+
+    assert await _run_with(ui, lambda: gm.members_led_by(a, [a, b, c])) is None
+    assert gm.group_record(b) is None
+
+
+async def test_a_member_whose_character_cannot_be_read_is_not_proven_nor_dropped(ui):
+    a, b, c = await _recorded_trio(ui)
+    ui.character_of[c] = wizard_names.NO_CHARACTER
+
+    assert await _run_with(ui, lambda: gm.members_led_by(a, [a, b, c])) == [b]
+    ui.character_of[c] = 1
+    assert await _run_with(ui, lambda: gm.members_led_by(a, [a, b, c])) == [b, c]
+
+
+@pytest.mark.parametrize("read_on", ["leader", "member"])
+async def test_an_open_menu_that_disagrees_throws_the_record_away(ui, read_on):
+    a, b, c = await _recorded_trio(ui)
+    ui.leads = {b}  # the record says a leads; the game says otherwise
+    client = a if read_on == "leader" else b
+    ui.menu_open[client] = True
+
+    await _run_with(ui, lambda: gm.hud_leads(client))
+
+    assert gm.group_record(a) is None
+
+
+async def test_an_open_menu_that_agrees_keeps_the_record(ui):
+    a, b, c = await _recorded_trio(ui)
+    ui.menu_open[a] = ui.menu_open[b] = True
+
+    await _run_with(ui, lambda: gm.hud_leads(a))
+    await _run_with(ui, lambda: gm.hud_leads(b))
+
+    assert gm.group_record(c).leader is a
+
+
+async def test_a_member_leaving_the_group_leaves_the_record(ui):
+    a, b, c = await _recorded_trio(ui)
+
+    assert await _run_with(ui, lambda: gm.leave_group(c))
+
+    assert _members(gm.group_record(a)) == [a, b]
+    assert gm.group_record(c) is None
+
+
+async def test_the_leader_leaving_the_group_takes_the_record_with_it(ui):
+    a, b, c = await _recorded_trio(ui)
+
+    assert await _run_with(ui, lambda: gm.leave_group(a))
+
+    assert gm.group_record(b) is None
+
+
+async def test_forget_group_throws_the_record_away_from_any_member(ui):
+    a, b, c = await _recorded_trio(ui)
+
+    gm.forget_group(c)
+
+    assert gm.group_record(a) is None and gm.group_record(b) is None
+
+
+async def test_recording_a_new_group_takes_its_clients_out_of_the_old_one(ui):
+    a, b, c = await _recorded_trio(ui)
+    d = ui.make_client(_FOUR[3])
+
+    await _run_with(ui, lambda: gm._record(d, [c]))
+
+    assert _members(gm.group_record(a)) == [a, b]
+    assert gm.group_record(c).leader is d
+
+
+# --- learn_group: a group the player formed by hand ------------------------------------------
+
+
+async def test_learning_a_hand_formed_group_reads_one_menu_and_one_roster(ui, cached_names):
+    a, b, c = (ui.make_client(n) for n in _FOUR[:3])
+    ui.put_in_group(a, b, c)  # by hand: no form_group, no record
+    cached_names(a, b, c)
+
+    proven = await _run_with(ui, lambda: gm.learn_group(a, [a, b, c]))
+
+    assert proven == [b, c]
+    assert ui.menu_clicks == [a, a], "one menu read, put back"
+    assert _visits(ui) == [a], "one roster read, on the leader"
+    assert not ui.menu_open.get(a)
+    assert gm.group_record(b).leader is a
+
+    ui.menu_clicks.clear()
+    ui.social_button_clicks.clear()
+    assert await _run_with(ui, lambda: gm.learn_group(a, [a, b, c])) == [b, c]
+    assert ui.menu_clicks == [] and _visits(ui) == [], "a group learned once is not learned again"
+
+
+async def test_learning_leaves_out_a_client_in_another_group(ui, cached_names):
+    a, b = ui.make_client(_FOUR[0]), ui.make_client(_FOUR[1])
+    stranger_grouped = ui.make_client(_FOUR[2])
+    ui.put_in_group(a, b)
+    ui.put_in_foreign_group(stranger_grouped, "Stranger One")
+    cached_names(a, b, stranger_grouped)
+
+    assert await _run_with(ui, lambda: gm.learn_group(a, [a, b, stranger_grouped])) == [b]
+
+
+async def test_learning_on_a_client_that_does_not_lead_records_nothing(ui, cached_names):
+    a, b = ui.make_client(_FOUR[0]), ui.make_client(_FOUR[1])
+    ui.put_in_group(a, b)
+    cached_names(a, b)
+
+    assert await _run_with(ui, lambda: gm.learn_group(b, [a, b])) == []
+
+    assert ui.menu_clicks == [b, b]
+    assert _visits(ui) == [], "no roster is read for a group the target does not lead"
+    assert gm.group_record(a) is None
+
+
+async def test_learning_in_battle_clicks_nothing(ui, cached_names):
+    a, b = ui.make_client(_FOUR[0]), ui.make_client(_FOUR[1])
+    ui.put_in_group(a, b)
+    cached_names(a, b)
+    a.in_battle.return_value = True
+
+    assert await _run_with(ui, lambda: gm.learn_group(a, [a, b])) == []
+    assert ui.menu_clicks == [] and _visits(ui) == []
+
+
+async def test_learning_needs_the_members_cached_names(ui):
+    a, b = ui.make_client(_FOUR[0]), ui.make_client(_FOUR[1])
+    ui.put_in_group(a, b)
+
+    assert await _run_with(ui, lambda: gm.learn_group(a, [a, b])) == []
+    assert gm.group_record(a) is None

@@ -8,10 +8,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from bartleby.runtime.actions import helpers, live_character
-from bartleby.runtime.actions.helpers import AutoDialogue, Member, RosterMemo, SpeedBoost
+from bartleby.runtime.actions.helpers import AutoDialogue, Member, SpeedBoost
 from bartleby.runtime.actions.node_helpers import PortToFriendResult
 from bartleby.runtime.arbiter import Arbiter, Owner
-from bartleby.runtime.clients.group_manager import GroupResult, GroupState
+from bartleby.runtime.clients.group_manager import GroupResult
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.testing.sim_client import SimClient
 
@@ -302,21 +302,23 @@ NAMES = ["Alice Ashblade", "Bob Battlecaster", "Carol Cloudrider", "Dave Dawnwhi
 
 
 class GatherWorld:
-    """What Gather reads and ports through, faked: each client's HUD, names and roster.
+    """group_manager as Gather sees it, faked: the group record, the HUD and both ports.
 
-    *leads* is the source's HUD; *grouped* each other client's, by client. *roster* is what
-    a social-window visit on the source reads. The ports record the clients handed to them,
-    and the owner each one was held by at the time.
+    *record* is what members_led_by proves, the clients in a group the source leads, or None
+    for no record of the source leading. *grouped* is each client's HUD, the source's
+    included. *learned* is what learn_group finds, and becomes the record. The ports record
+    the clients handed to them, and the owner each one was held by at the time.
     """
 
-    def __init__(self, arbiter, clients, *, leads=True, grouped=None, roster=()):
+    def __init__(self, arbiter, clients, *, record=None, grouped=None, learned=()):
         self.arbiter = arbiter
-        self.leads = leads
+        self.record = record
         self.grouped = dict(grouped or {})
-        self.roster = tuple(roster)
+        self.learned = list(learned)
         self.names = dict(zip(clients, NAMES))
-        self.roster_reads = 0
+        self.learns = 0
         self.source_held_by = []
+        self.forgotten = []
         self.by_leader: list[list] = []
         self.by_friend: list[list] = []
         self.holders: list = []
@@ -324,16 +326,23 @@ class GatherWorld:
         self.port_to_leader = self._port_to_leader
         self.port_to_friend = self._port_to_friend
 
-    async def hud_leads(self, client):
-        return self.leads
+    async def members_led_by(self, target, clients):
+        if self.record is None:
+            return None
+        return [c for c in clients if c in self.record]
+
+    async def learn_group(self, target, clients):
+        self.learns += 1
+        self.source_held_by.append(self.arbiter.holder(target).owner)
+        self.record = list(self.learned)
+        return [c for c in clients if c in self.learned]
 
     async def hud_grouped(self, client):
         return self.grouped.get(client)
 
-    async def read_group_state(self, client):
-        self.roster_reads += 1
-        self.source_held_by.append(self.arbiter.holder(client).owner)
-        return GroupState(grouped=bool(self.roster), roster=self.roster)
+    def forget_group(self, client):
+        self.forgotten.append(client)
+        self.record = None
 
     async def _port_to_leader(self, clients):
         self.by_leader.append(list(clients))
@@ -357,13 +366,15 @@ class GatherWorld:
 
     @contextlib.contextmanager
     def patched(self):
+        gm = helpers.group_manager
         with (
             patch.object(helpers.wizard_names, "cached_name", side_effect=lambda c: self.names.get(c)),
             patch.object(helpers.wizard_names, "read_name_from_memory", AsyncMock(return_value=None)),
-            patch.object(helpers.group_manager, "hud_leads", side_effect=self.hud_leads),
-            patch.object(helpers.group_manager, "hud_grouped", side_effect=self.hud_grouped),
-            patch.object(helpers.group_manager, "read_group_state", side_effect=self.read_group_state),
-            patch.object(helpers.group_manager, "port_to_leader", side_effect=self._leader_port),
+            patch.object(gm, "members_led_by", side_effect=self.members_led_by),
+            patch.object(gm, "learn_group", side_effect=self.learn_group),
+            patch.object(gm, "hud_grouped", side_effect=self.hud_grouped),
+            patch.object(gm, "forget_group", side_effect=self.forget_group),
+            patch.object(gm, "port_to_leader", side_effect=self._leader_port),
             patch.object(helpers.node_helpers, "port_to_friend", side_effect=self._friend_port),
         ):
             yield self
@@ -374,27 +385,84 @@ def world(arbiter, count=3, **kwargs):
     return GatherWorld(arbiter, clients, **kwargs), team(*clients)
 
 
-async def test_gather_takes_teleport_to_leader_for_a_mover_proven_in_the_sources_group(arbiter, caplog):
-    w, members = world(arbiter, roster=NAMES[:3])
-    w.grouped = {members[1].client: True, members[2].client: True}
+def everyone_grouped(members):
+    return {m.client: True for m in members}
+
+
+async def test_gather_takes_teleport_to_leader_for_a_mover_the_record_proves(arbiter, caplog):
+    w, members = world(arbiter)
+    w.record = [members[1].client, members[2].client]
     caplog.set_level(logging.INFO, logger=helpers.__name__)
     with w.patched():
         went = await helpers.gather(arbiter, members[0], members)
     assert [m.slot for m in went] == [2, 3]
     assert w.by_leader == [[members[1].client, members[2].client]]
     assert w.by_friend == []
-    assert w.roster_reads == 1
-    assert w.source_held_by == [Owner.HOTKEY]
+    assert w.learns == 0, "a valid record is enough: nothing is clicked on the source"
     assert w.holders == [Owner.HOTKEY, Owner.HOTKEY]
     assert all(arbiter.holder(m.client) is None for m in members)
     assert "Gather: P2, P3 by Teleport to Leader" in caplog.messages
     assert not any(name in message for name in NAMES for message in caplog.messages)
 
 
+async def test_gather_learns_the_sources_group_under_its_lease_when_there_is_no_record(arbiter):
+    w, members = world(arbiter)
+    w.grouped = everyone_grouped(members)
+    w.learned = [members[1].client, members[2].client]
+    with w.patched():
+        went = await helpers.gather(arbiter, members[0], members)
+    assert [m.slot for m in went] == [2, 3]
+    assert w.learns == 1
+    assert w.source_held_by == [Owner.HOTKEY]
+    assert w.by_leader == [[members[1].client, members[2].client]]
+
+
+async def test_a_learned_group_is_not_learned_again(arbiter):
+    w, members = world(arbiter)
+    w.grouped = everyone_grouped(members)
+    w.learned = [members[1].client, members[2].client]
+    with w.patched():
+        await helpers.gather(arbiter, members[0], members)
+        await helpers.gather(arbiter, members[0], members)
+    assert w.learns == 1
+    assert len(w.by_leader) == 2
+
+
+@pytest.mark.parametrize("source_grouped", [False, None], ids=["source-ungrouped", "cannot-tell-in-battle"])
+async def test_nothing_is_learned_on_a_source_that_does_not_read_grouped(arbiter, source_grouped):
+    w, members = world(arbiter)
+    w.grouped = {**everyone_grouped(members), members[0].client: source_grouped}
+    with w.patched():
+        went = await helpers.gather(arbiter, members[0], members)
+    assert [m.slot for m in went] == [2, 3]
+    assert w.learns == 0
+    assert w.by_leader == []
+    assert w.by_friend == [[members[1].client, members[2].client]]
+
+
+async def test_nothing_is_learned_when_no_mover_reads_grouped(arbiter):
+    w, members = world(arbiter)
+    w.grouped = {members[0].client: True, members[1].client: False}
+    with w.patched():
+        await helpers.gather(arbiter, members[0], members)
+    assert w.learns == 0
+    assert w.by_friend == [[members[1].client, members[2].client]]
+
+
+async def test_a_record_proving_no_one_sends_everyone_through_the_friends_list_without_learning(arbiter):
+    """As in battle, where the record stands but the HUD cannot confirm it."""
+    w, members = world(arbiter, record=[])
+    w.grouped = everyone_grouped(members)
+    with w.patched():
+        await helpers.gather(arbiter, members[0], members)
+    assert w.learns == 0
+    assert w.by_friend == [[members[1].client, members[2].client]]
+
+
 async def test_gather_sends_a_mover_in_another_group_through_the_friends_list(arbiter):
-    # P3 reads grouped, but the source's roster doesn't list it: it is in a stranger's group.
-    w, members = world(arbiter, roster=(NAMES[0], NAMES[1], "Stranger One"))
-    w.grouped = {members[1].client: True, members[2].client: True}
+    # P3 reads grouped, but the record doesn't prove it in the source's group.
+    w, members = world(arbiter)
+    w.record = [members[1].client]
     with w.patched():
         went = await helpers.gather(arbiter, members[0], members)
     assert [m.slot for m in went] == [2, 3]
@@ -402,22 +470,9 @@ async def test_gather_sends_a_mover_in_another_group_through_the_friends_list(ar
     assert w.by_friend == [[members[2].client]]
 
 
-@pytest.mark.parametrize("leads", [False, None], ids=["not-leading", "cannot-tell-in-battle"])
-async def test_a_source_that_does_not_read_leading_sends_everyone_through_the_friends_list(arbiter, leads):
-    w, members = world(arbiter, leads=leads, roster=NAMES[:3])
-    w.grouped = {members[1].client: True, members[2].client: True}
-    with w.patched():
-        went = await helpers.gather(arbiter, members[0], members)
-    assert [m.slot for m in went] == [2, 3]
-    assert w.by_leader == []
-    assert w.by_friend == [[members[1].client, members[2].client]]
-    assert w.roster_reads == 0
-
-
 async def test_a_mixed_team_splits_into_the_two_routes_ported_at_once(arbiter, caplog):
-    # P2 proven, P3 ungrouped, P4 grouped but not on the roster.
-    w, members = world(arbiter, count=4, roster=NAMES[:2])
-    w.grouped = {members[1].client: True, members[2].client: False, members[3].client: True}
+    w, members = world(arbiter, count=4, record=[])
+    w.record = [members[1].client]
     both_started = asyncio.Event()
     started = []
 
@@ -444,9 +499,9 @@ async def test_a_mixed_team_splits_into_the_two_routes_ported_at_once(arbiter, c
 
 
 async def test_an_unknown_source_name_still_lets_proven_movers_take_the_leader_route(arbiter, caplog):
-    w, members = world(arbiter, roster=NAMES[:2])
+    w, members = world(arbiter)
+    w.record = [members[1].client]
     w.names[members[0].client] = None
-    w.grouped = {members[1].client: True, members[2].client: False}
     with w.patched():
         went = await helpers.gather(arbiter, members[0], members)
     assert [m.slot for m in went] == [2]
@@ -456,123 +511,86 @@ async def test_an_unknown_source_name_still_lets_proven_movers_take_the_leader_r
     assert "Gather: P3 cannot port to P1 through the friends list" in caplog.messages
 
 
-async def test_a_mover_without_a_cached_name_cannot_be_proven(arbiter):
-    w, members = world(arbiter, count=2, roster=NAMES[:2])
-    w.names[members[1].client] = None
-    w.grouped = {members[1].client: True}
-    with w.patched():
-        await helpers.gather(arbiter, members[0], members)
-    assert w.by_leader == []
-    assert w.by_friend == [[members[1].client]]
-
-
-async def test_a_failed_roster_read_proves_no_one(arbiter):
-    w, members = world(arbiter, count=2, roster=())
-    w.grouped = {members[1].client: True}
-    with w.patched():
-        went = await helpers.gather(arbiter, members[0], members)
-    assert [m.slot for m in went] == [2]
-    assert w.by_leader == []
-    assert w.by_friend == [[members[1].client]]
-
-
-async def test_a_second_gather_reuses_the_roster_the_first_read(arbiter):
-    w, members = world(arbiter, roster=NAMES[:3])
-    w.grouped = {members[1].client: True, members[2].client: True}
-    memo = RosterMemo()
-    with w.patched():
-        await helpers.gather(arbiter, members[0], members, memo)
-        await helpers.gather(arbiter, members[0], members, memo)
-    assert w.roster_reads == 1
-    assert len(w.by_leader) == 2
-
-
-async def test_gather_without_a_memo_reads_the_roster_each_time(arbiter):
-    w, members = world(arbiter, roster=NAMES[:3])
-    w.grouped = {members[1].client: True, members[2].client: True}
-    with w.patched():
-        await helpers.gather(arbiter, members[0], members)
-        await helpers.gather(arbiter, members[0], members)
-    assert w.roster_reads == 2
-
-
-async def test_gather_reuses_the_roster_group_left_and_reads_none(arbiter):
-    w, members = world(arbiter, roster=())
-    w.grouped = {members[1].client: True, members[2].client: True}
-    roster = GroupState(grouped=True, roster=tuple(NAMES[:3]))
-    memo = RosterMemo()
-    with (
-        w.patched(),
-        patch.object(helpers.wizard_names, "resolve_names", AsyncMock(return_value=NAMES[:3])),
-        patch.object(
-            helpers.group_manager,
-            "form_group",
-            AsyncMock(return_value=GroupResult(success=True, states=[roster, roster, roster])),
-        ),
-    ):
-        assert await helpers.group(arbiter, members[0], members, memo)
-        went = await helpers.gather(arbiter, members[0], members, memo)
-    assert [m.slot for m in went] == [2, 3]
-    assert w.by_leader == [[members[1].client, members[2].client]]
-    assert w.roster_reads == 0
-
-
-async def test_a_group_that_read_nothing_leaves_no_memo():
-    clients = [SimClient(), SimClient()]
-    memo = RosterMemo()
-    memo.record(clients[0], NAMES[:2])
-    with patch.object(helpers.wizard_names, "cached_name", side_effect=dict(zip(clients, NAMES)).get):
-        assert memo.lists(clients[0], clients[1])
-        memo.record_group(clients, clients[0], None)
-        assert not memo.lists(clients[0], clients[1])
-
-
-async def test_a_memo_proves_nothing_for_another_source():
-    clients = [SimClient(), SimClient(), SimClient()]
-    memo = RosterMemo()
-    memo.record(clients[0], NAMES[:3])
-    with patch.object(helpers.wizard_names, "cached_name", side_effect=dict(zip(clients, NAMES)).get):
-        assert not memo.lists(clients[1], clients[2])
-
-
-async def test_the_memo_is_forgotten_once_the_source_no_longer_leads(arbiter):
-    w, members = world(arbiter, roster=NAMES[:3])
-    w.grouped = {members[1].client: True, members[2].client: True}
-    memo = RosterMemo()
-    with w.patched():
-        await helpers.gather(arbiter, members[0], members, memo)
-        w.leads = None  # in battle: it cannot tell, so the memo is not trusted after it either
-        await helpers.gather(arbiter, members[0], members, memo)
-        w.leads = True
-        await helpers.gather(arbiter, members[0], members, memo)
-    assert w.roster_reads == 2
-    assert len(w.by_friend) == 1
-
-
-async def test_a_mover_that_no_longer_reads_grouped_is_dropped_from_the_memo(arbiter):
-    w, members = world(arbiter, roster=NAMES[:3])
-    w.grouped = {members[1].client: True, members[2].client: True}
-    memo = RosterMemo()
-    with w.patched():
-        await helpers.gather(arbiter, members[0], members, memo)
-        w.grouped[members[2].client] = False  # P3 left
-        await helpers.gather(arbiter, members[0], members, memo)
-        assert w.roster_reads == 1
-        # P3 grouped again, here in another group: the roster is read again, not trusted.
-        w.grouped[members[2].client] = True
-        w.roster = (NAMES[0], NAMES[1])
-        await helpers.gather(arbiter, members[0], members, memo)
-    assert w.roster_reads == 2
-    assert w.by_leader[-1] == [members[1].client]
-    assert w.by_friend[-1] == [members[2].client]
-
-
-async def test_a_leader_port_that_fails_forgets_the_memo(arbiter):
-    w, members = world(arbiter, count=2, roster=NAMES[:2])
-    w.grouped = {members[1].client: True}
+async def test_a_leader_port_that_fails_forgets_the_record(arbiter):
+    w, members = world(arbiter, count=2)
+    w.record = [members[1].client]
     w.leader_result = PortToFriendResult(seen_loading=set(), unstarted=frozenset({0}))
-    memo = RosterMemo()
     with w.patched():
-        assert await helpers.gather(arbiter, members[0], members, memo) == []
-        await helpers.gather(arbiter, members[0], members, memo)
-    assert w.roster_reads == 2
+        assert await helpers.gather(arbiter, members[0], members) == []
+    assert w.forgotten == [members[0].client]
+
+
+async def test_a_leader_port_that_goes_keeps_the_record(arbiter):
+    w, members = world(arbiter, count=2)
+    w.record = [members[1].client]
+    with w.patched():
+        await helpers.gather(arbiter, members[0], members)
+    assert w.forgotten == []
+
+
+# -- Gather against the group manager itself, over its tests' FakeUI --------------------------
+
+
+@pytest.fixture
+def ui():
+    from tests.runtime.clients.test_group_manager import FakeUI
+
+    return FakeUI()
+
+
+@contextlib.contextmanager
+def _over(ui, clients):
+    """FakeUI's window layer, each client's wizard name cached, and both ports recorded."""
+    ported = {"leader": [], "friend": []}
+
+    async def port_to_leader(movers):
+        ported["leader"].append(list(movers))
+        return PortToFriendResult(seen_loading=set(range(len(movers))))
+
+    async def port_to_friend(movers, _name):
+        ported["friend"].append(list(movers))
+        return PortToFriendResult(seen_loading=set(range(len(movers))))
+
+    with contextlib.ExitStack() as stack:
+        for p in ui.patches():
+            stack.enter_context(p)
+        stack.enter_context(patch.object(helpers.group_manager, "port_to_leader", side_effect=port_to_leader))
+        stack.enter_context(patch.object(helpers.node_helpers, "port_to_friend", side_effect=port_to_friend))
+        for client in clients:
+            helpers.wizard_names.remember(client, ui.name_of[client])
+        try:
+            yield ported
+        finally:
+            for client in clients:
+                helpers.wizard_names.forget(client)
+
+
+async def test_gather_from_a_leader_whose_menu_is_closed_learns_its_group_and_takes_the_leader_route(arbiter, ui):
+    """The game showed it: LeaderText reads hidden on a closed menu, so this went by the friends list."""
+    clients = [ui.make_client(n) for n in NAMES[:3]]
+    ui.put_in_group(*clients)  # formed by hand: no Group pressed, no record
+    members = team(*clients)
+
+    with _over(ui, clients) as ported:
+        went = await helpers.gather(arbiter, members[0], members)
+
+    assert [m.slot for m in went] == [2, 3]
+    assert ported == {"leader": [clients[1:]], "friend": []}
+    assert ui.menu_clicks == [clients[0], clients[0]], "one menu read on the source, put back"
+    assert not ui.menu_open.get(clients[0])
+    assert ui.social_button_clicks == [clients[0]], "one roster read, on the source"
+
+
+async def test_gather_after_group_clicks_nothing_on_the_source(arbiter, ui):
+    clients = [ui.make_client(n) for n in NAMES[:3]]
+    members = team(*clients)
+
+    with _over(ui, clients) as ported:
+        assert await helpers.group(arbiter, members[0], members)
+        ui.menu_clicks.clear()
+        ui.social_button_clicks.clear()
+        went = await helpers.gather(arbiter, members[0], members)
+
+    assert [m.slot for m in went] == [2, 3]
+    assert ported == {"leader": [clients[1:]], "friend": []}
+    assert ui.menu_clicks == [] and ui.social_button_clicks == []

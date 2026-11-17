@@ -16,7 +16,27 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   a client is in a group, and whether it leads one, read off the HUD's group menu button
   and its `LeaderText` with no window opened. None in battle, where the menu hides, while
   loading, when the path is not in the window tree, or on a failed read; neither raises.
-  Their paths are `paths.GROUP_HUD_BUTTON_PATH` and `GROUP_LEADER_TEXT_PATH`.
+  `hud_leads` is None too whenever the client's group menu is closed, since `LeaderText`
+  shows only inside the open menu. Their paths are `paths.GROUP_HUD_BUTTON_PATH` and
+  `GROUP_LEADER_TEXT_PATH`.
+- `group_manager.read_leads(client) -> bool | None`, whether a client leads, opening its
+  group menu to read it where it is closed and closing it again: two clicks for a closed
+  menu, none for an open one. None in battle, while loading, when the menu will not open or
+  on a failure; never raises. It takes no lease, so a caller holds one.
+- The group record in `group_manager`, the one place that says who leads a group and which
+  of a product's clients are in it, with each one's character id, held weakly by client.
+  `group_record(client) -> GroupRecord | None` reads it unchecked (`leader`, `members` with
+  the leader first, `names`). `members_led_by(target, clients) -> list | None` checks it with
+  the cheap reads (the HUD's group button, each character id) and answers the clients it
+  proves in a group `target` leads, or None for no record of `target` leading.
+  `learn_group(target, clients) -> list` learns a group with no record, as one the player
+  formed by hand: one `read_leads` on `target` and, if it leads, one `read_group_state`.
+  `forget_group(client)` throws a record away, and `forget_all_groups()` every one.
+  `form_group` writes it on every way through that leaves a known leader, already grouped
+  included, learning the leader by `read_leads` where nothing else says. A cheap read that
+  contradicts it throws it away: the leader reading ungrouped or on another character, or an
+  open menu disagreeing about who leads. A member reading ungrouped, on another character,
+  or leaving by `leave_group` is dropped from it; a leader leaving takes it along.
 - `GroupState.leads`, the HUD's answer for that client, read on the same survey and left
   out of comparisons, so `GroupState(grouped, roster)` builds and compares as before.
 - `node_helpers.visible_if_present(client, path)`, `is_visible_by_path` with None for a
@@ -25,30 +45,29 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   to the group's leader by the HUD's own Teleport to Leader, driven by `port_clients` as
   `port_to_group_member` is, with the same arguments and result. It closes the group menu
   on every client once the loading screens clear. Its starter is
-  `teleport_to_leader(client)`, which raises ValueError unless the HUD shows the client
-  grouped and not leading, since on the leader the same button summons the whole group; a
-  leader passed in is left out as unstarted. `close_group_menu(client)` closes the menu
+  `teleport_to_leader(client)`, which opens the menu on a client the HUD shows grouped,
+  reads who leads with it open, and raises ValueError, closing the menu it opened, unless
+  the client reads not leading, since on the leader the same button summons the whole
+  group; a leader passed in is left out as unstarted. `close_group_menu(client)` closes the menu
   where it is open and never raises. The button's path is `paths.GROUP_TELEPORT_BUTTON_PATH`.
 - `group_manager.leader_roster(clients) -> LeaderRoster | None`: when the HUD shows every
-  client grouped and exactly one leading, that leader's index and its `read_group_state`,
+  client grouped and the leader is known, by its open group menu or by the group record
+  proving every other client in its group, that leader's index and its `read_group_state`,
   from one social-window visit; None, with no window opened, otherwise. `LeaderRoster.lists(name)`
   says whether a wizard is in the leader's group by its roster, case-insensitively, and is
   False for no name or a leader the visit found ungrouped. `is_grouped`'s one-leader path
   is built on it.
-- `helpers.RosterMemo`, the last roster known for the source's group, which `helpers.gather`
-  and `helpers.group` both take as an optional `memo` and a product keeps for its session:
-  `group` records the source's group as `form_group` left it (`GroupResult.states`), and
-  `gather` the roster it read. Without one, `gather` reads the roster each time it needs it.
 
 ### Changed
 
-- `helpers.gather` ports each mover by Teleport to Leader (`port_to_leader`) when the
-  source's HUD shows it leading, the mover's shows it grouped, and the source's roster lists
-  the mover's cached wizard name, since a mover in a stranger's group reads grouped too.
-  The roster comes from the memo while those HUD reads still hold, and is otherwise read in
-  one social-window visit on the source, under a lease on it. Every other mover goes through
-  the friends list as before, and both batches port at once. A source whose name is not
-  known still sends its proven movers by the leader route. Each slot's route is logged.
+- `helpers.gather` ports each mover by Teleport to Leader (`port_to_leader`) when the group
+  record proves it in a group the source leads (`members_led_by`), since a mover in a
+  stranger's group reads grouped too. With no record of the source leading, and a grouped
+  mover, it learns the source's group (`learn_group`) under a lease on the source: one group
+  menu read, put back, and a roster read only on a leader. A valid record clicks nothing on
+  the source, and a leader-route mover that does not go forgets it. Every other mover goes
+  through the friends list as before, and both batches port at once. A source whose name is
+  not known still sends its proven movers by the leader route. Each slot's route is logged.
 - Group membership comes from the HUD, and the social window is opened only to tell which
   group. `read_group_states` skips every client the HUD shows ungrouped, so a survey at bot
   start opens nothing. `is_grouped` is False with no window when any client reads
@@ -57,7 +76,8 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   as before. `leave_group` and an invite's join confirmation watch the HUD instead of the
   Leave Group button, and a client in battle or loading falls back to that button.
 - `form_group` sends the invitations from the client that actually leads the group it
-  keeps, when one of the product's clients does, ahead of `leader_index`.
+  keeps, when one of the product's clients does, ahead of `leader_index`: the survey's or
+  the record's leader, or else the first of that group whose group menu reads leading.
 - `read_group_state` returns the HUD's answer, with no roster, when the social window does
   not open, where it returned a blank state; and it logs a warning when the HUD and the
   Leave Group button disagree on a loaded Group page.

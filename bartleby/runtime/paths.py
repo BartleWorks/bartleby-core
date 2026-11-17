@@ -435,7 +435,10 @@ GROUP_WINDOW_CLOSE_PATH = ["WorldView", "SocialSystemsWindow", "CloseSocialSyste
 # window opened (group_manager.hud_grouped and hud_leads):
 #   * GROUP_HUD_BUTTON_PATH, the group menu button, is VISIBLE only while the player is in a
 #     group.
-#   * GROUP_LEADER_TEXT_PATH, a label on that button, is VISIBLE only on the group's leader.
+#   * GROUP_LEADER_TEXT_PATH, a label on that button, is VISIBLE only on the group's leader,
+#     and ONLY WHILE THAT CLIENT'S GROUP MENU IS OPEN: its flag follows the screen, so on a
+#     leader with its menu closed it reads hidden, as on a member (2026-11-17). So it says
+#     nothing with the menu closed, and group_manager.read_leads opens the menu to read it.
 #     HUDWindow.gui puts it directly under GroupSystemButton, beside FollowingText and the
 #     GroupButtonLayout that holds GroupTeleportButton, GroupRosterButton and
 #     GroupFollowButton. Being a child, its own flag says nothing once the button has hidden
