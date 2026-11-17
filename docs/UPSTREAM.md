@@ -168,7 +168,12 @@ forks' scheme alone: core has releases, tagged `vX.Y.Z` (*Core's releases*, belo
 
 Current pins, both on `main`:
 
-- **wizwalker `78929a9`** (`bartlebot-pin-20261116b`): the video manager's `_FRAME_PATTERN` on
+- **wizwalker `a1559cf`** (`bartlebot-pin-20261116c`): `wizwalker.login.memory_login`, which
+  logs a client in from its login screen through the game's own login command, as Deimos'
+  wizlaunch does, since r813697's login window moved the focus and tab order the typed
+  `instance_login` relied on. A stub on `RootWindowHook`'s site makes the call once on the main
+  thread, so the client must not be hooked meanwhile (`launcher/login_gate.py`). On top of
+  `78929a9` (`bartlebot-pin-20261116b`): the video manager's `_FRAME_PATTERN` on
   r813697, which split `GamebryoClient::VidRestart` out of the frame function where the old
   pattern matched; the pattern is now VidRestart's own body, and a running client resizes again
   (BartleBuddy #30). On top of `6a64fcf` (`bartlebot-pin-20261116`): Ahmarra's live build,
