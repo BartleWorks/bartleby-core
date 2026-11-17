@@ -431,18 +431,34 @@ GROUP_WINDOW_CLOSE_PATH = ["WorldView", "SocialSystemsWindow", "CloseSocialSyste
 #     contradict this: it clicked the Group tab first, so every tab it sampled after that
 #     showed the already-loaded page.
 
-# Whether this wizard is in a group is read from the Leave Group button: the game HIDES it
-# when ungrouped rather than graying it, so check visibility, not enabled-ness. Verified
-# with tools/probe_group_ui.py.
+# Whether this wizard is in a group, and whether it leads one, read off the HUD with no
+# window opened (group_manager.hud_grouped and hud_leads):
+#   * GROUP_HUD_BUTTON_PATH, the group menu button, is VISIBLE only while the player is in a
+#     group.
+#   * GROUP_LEADER_TEXT_PATH, a label on that button, is VISIBLE only on the group's leader.
+#     HUDWindow.gui puts it directly under GroupSystemButton, beside FollowingText and the
+#     GroupButtonLayout that holds GroupTeleportButton, GroupRosterButton and
+#     GroupFollowButton. Being a child, its own flag says nothing once the button has hidden
+#     (see node_helpers.is_visible_by_path), so it is read only while the button shows.
+# BOTH HIDE IN BATTLE, with the rest of the menu, and the HUD cannot be trusted while
+# loading either, so neither says anything about the group then. Established in game on
+# r813697 (2026-11-17).
+GROUP_HUD_BUTTON_PATH = ["WorldView", "windowHUD", "GroupSystemButton"]
+GROUP_LEADER_TEXT_PATH = ["WorldView", "windowHUD", "GroupSystemButton", "LeaderText"]
+
+# The Leave Group button: the game HIDES it when ungrouped rather than graying it, so check
+# visibility, not enabled-ness. Verified with tools/probe_group_ui.py. It was the membership
+# read until the HUD's above, and is still what leave_group clicks and what a social-window
+# read checks the HUD against.
 #
-# This is the UI replacement for SocialSystemsManager.group_gid(), which reads a dead
-# object on the current game build (see tools/probe_group_offsets.py).
+# Both replace SocialSystemsManager.group_gid(), which reads a dead object on the current
+# game build (see tools/probe_group_offsets.py).
 LEAVE_GROUP_BUTTON_PATH = ["WorldView", "SocialSystemsWindow", "LeftButtonLayout", "LeavePartyButton"]
 
 # Group roster on the Group tab: one line per member, each carrying a NameText label.
 #
-# This is what makes "are these clients in the SAME group?" answerable at all. The Leave
-# Group button above is a per-client yes/no and two clients in two different groups both
+# This is what makes "are these clients in the SAME group?" answerable at all. The group
+# button and the Leave Group button above are each a per-client yes/no and two clients in two different groups both
 # read True, so membership alone cannot distinguish one group from two.
 #
 # GROUP_ROSTER_LINES is Wizard101's group cap. Reading a line beyond it simply returns no

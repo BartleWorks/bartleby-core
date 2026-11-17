@@ -179,6 +179,22 @@ async def test_find_windows_returns_empty_list_when_nothing_matches():
     assert await find_windows_by_path(root, ["wndMenu", "Missing"]) == []
 
 
+@pytest.mark.parametrize("shown", [True, False])
+async def test_visible_if_present_reads_a_window_that_is_there(shown):
+    button = _make_window("GroupSystemButton")
+    button.is_visible = AsyncMock(return_value=shown)
+    client = _client_with(_make_window("root", [_make_window("windowHUD", [button])]))
+
+    assert await nh.visible_if_present(client, ["windowHUD", "GroupSystemButton"]) is shown
+
+
+async def test_visible_if_present_is_none_for_a_path_not_in_the_tree():
+    """A missing window is a wrong path, never a hidden one."""
+    client = _client_with(_make_window("root", [_make_window("windowHUD")]))
+
+    assert await nh.visible_if_present(client, ["windowHUD", "GroupSystemButton"]) is None
+
+
 async def test_get_window_still_takes_the_first_of_several_matches():
     """The single-result walker is unchanged by the multi-match resolver."""
     root, rows = _row_menu()

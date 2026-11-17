@@ -287,6 +287,19 @@ async def is_visible_by_path(client, path: list[str]) -> bool:
     return await window.is_visible()
 
 
+async def visible_if_present(client, path: list[str]) -> bool | None:
+    """is_visible_by_path, but None when the path does not resolve to any window.
+
+    For a window that is always in the tree and only shown or hidden, such as a HUD button:
+    there, a missing window means the path is wrong (a game update moved it), which must
+    read as "cannot tell" rather than as "hidden".
+    """
+    window = await _get_window_from_path(client.root_window, path)
+    if window is None:
+        return None
+    return await window.is_visible()
+
+
 async def iter_windows_by_path(parent, path: list[str]):
     """Yield every window reachable from parent by this sequence of child names, in tree order.
 

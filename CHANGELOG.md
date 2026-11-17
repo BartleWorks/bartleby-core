@@ -8,6 +8,35 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+### Added
+
+- `group_manager.hud_grouped(client)` and `hud_leads(client)`, each `-> bool | None`: whether
+  a client is in a group, and whether it leads one, read off the HUD's group menu button
+  and its `LeaderText` with no window opened. None in battle, where the menu hides, while
+  loading, when the path is not in the window tree, or on a failed read; neither raises.
+  Their paths are `paths.GROUP_HUD_BUTTON_PATH` and `GROUP_LEADER_TEXT_PATH`.
+- `GroupState.leads`, the HUD's answer for that client, read on the same survey and left
+  out of comparisons, so `GroupState(grouped, roster)` builds and compares as before.
+- `node_helpers.visible_if_present(client, path)`, `is_visible_by_path` with None for a
+  path that resolves to no window.
+
+### Changed
+
+- Group membership comes from the HUD, and the social window is opened only to tell which
+  group. `read_group_states` skips every client the HUD shows ungrouped, so a survey at bot
+  start opens nothing. `is_grouped` is False with no window when any client reads
+  ungrouped, and reads the one leader's roster alone when exactly one of a product's clients
+  leads and every cached wizard name is on it; anything less certain is the full survey,
+  as before. `leave_group` and an invite's join confirmation watch the HUD instead of the
+  Leave Group button, and a client in battle or loading falls back to that button.
+- `form_group` sends the invitations from the client that actually leads the group it
+  keeps, when one of the product's clients does, ahead of `leader_index`.
+- `read_group_state` returns the HUD's answer, with no roster, when the social window does
+  not open, where it returned a blank state; and it logs a warning when the HUD and the
+  Leave Group button disagree on a loaded Group page.
+
 ## 0.5.0
 
 Launching on the 2026-11-16 build: the login sent through the client's memory, and Space for

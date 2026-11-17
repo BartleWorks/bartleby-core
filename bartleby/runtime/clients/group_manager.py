@@ -16,15 +16,32 @@ SocialSystemsManager.group_gid(), which looks like the obvious source, but on th
 game build the library resolves that object to a dead instance: player_gid — which is
 never zero for a logged-in wizard — reads 0, and no field moves when a group is created or
 left. tools/probe_group_offsets.py demonstrates this and is kept for re-checking after a
-game patch. Until that is fixed upstream, membership is read from the Leave Group button
-in the social window, which is *visible* only while grouped — the game hides it when
-ungrouped rather than graying it, so enabled-ness says nothing.
+game patch.
 
-That button answers "am I in a group?" but not "which group?", and two clients in two
-different groups both read True. The Group tab's roster closes that gap: it lists the
-member names, and since a wizard belongs to at most one group, two clients showing the
-same member set are necessarily in the same group. The roster is read on the same window
-visit as the button, so it costs a handful of memory reads rather than a second survey.
+Until that is fixed upstream, membership is read from the HUD (hud_grouped, hud_leads).
+The group menu button is visible only while the player is in a group, and its LeaderText
+label only on the leader, so whether a client is grouped, and whether it leads, costs a
+read or two and opens no window: a survey at bot start, with nobody grouped, opens
+nothing. **The menu hides in battle**, and the HUD cannot be trusted while loading, so a
+read then answers None, "cannot tell", and the caller falls back to the social window,
+which is how membership was read before: its Leave Group button is visible only while
+grouped (the game hides it when ungrouped rather than graying it, so enabled-ness says
+nothing). The same None answers a HUD path that is not in the window tree, as after a game
+update that moved it.
+
+A control inside a hidden window still reports visible (node_helpers.is_visible_by_path),
+which is why the Leave Group button is read only while the social window is open. The HUD's
+group button is not inside that window, so its flag is its own whether the window is open
+or not; LeaderText is inside the group button, and is read only while the button shows.
+
+The HUD answers "am I in a group?" but not "which group?", and two clients in two
+different groups both read True. So the social window is read only to tell which group,
+and only on a client the HUD does not call ungrouped. The Group tab's roster lists the
+member names, and since a wizard belongs to at most one group, two clients showing the same
+member set are necessarily in the same group. When every client is grouped and exactly one
+of ours leads, its roster alone settles it: if it lists each of our wizards, they are all
+in its group (is_grouped). A visit still reads the Leave Group button, and a disagreement
+with the HUD is logged, so a path a game update moves shows up in the log.
 
 Knowing the shape of a split is also what makes it repairable. The game refuses an invite
 to a player who is already in a group, so form_group dissolves every group except the
@@ -53,7 +70,9 @@ from bartleby.runtime.paths import (
     FRIENDLY_PLAYER_GO_TO_BUTTON_PATH,
     FRIENDLY_PLAYER_MENU_PATH,
     FRIENDS_LIST_PATHS,
+    GROUP_HUD_BUTTON_PATH,
     GROUP_INVITE_ACCEPT_PATH,
+    GROUP_LEADER_TEXT_PATH,
     GROUP_ROSTER_LINES,
     GROUP_WINDOW_CLOSE_PATH,
     INVITE_TO_GROUP_BUTTON_PATH,
@@ -131,10 +150,15 @@ class GroupState:
     `roster` holds the wizard names the Group tab lists, in line order, and is empty when
     the roster could not be read — which is not the same as an empty group, so it must not
     be interpreted as one. See same_group.
+
+    `leads` is whether the HUD showed this client leading its group, None when it could
+    not tell. It is a hint for choosing who sends the invitations (_choose_leader), read on
+    the same pass as everything else, and is left out of comparisons.
     """
 
     grouped: bool = False
     roster: tuple[str, ...] = ()
+    leads: bool | None = field(default=None, compare=False)
 
 
 def slot_label(idx: int) -> str:
@@ -216,9 +240,10 @@ async def _open_social_window(client, ready=None, ready_timeout: float = 0.0, fo
     that case, and only in that case.
 
     `ready` replaces the load poll for the caller with something more specific to wait
-    for. Confirming a join waits for "grouped" only, and its arrival is proof the page has
-    populated, so that caller passes the Leave Group button and returns as soon as it
-    appears. Absence for the whole `ready_timeout` is then the answer too.
+    for. Confirming a join while the HUD cannot tell waits for "grouped" only, and its
+    arrival is proof the page has populated, so that caller passes the Leave Group button
+    and returns as soon as it appears. Absence for the whole `ready_timeout` is then the
+    answer too.
     """
     if not await node_helpers.is_visible_by_path(client, SOCIAL_WINDOW_PATH):
         # An open friends list covers the social HUD button, so the click lands on the list
@@ -250,9 +275,10 @@ async def _open_social_window(client, ready=None, ready_timeout: float = 0.0, fo
         timeout=GROUP_TAB_LOAD_TIMEOUT,
         poll_interval=POLL_INTERVAL,
     ):
-        # Carry on and read anyway, as the fixed settle did: the Leave Group button may still
-        # answer, and an empty roster already reads as "cannot tell". But say so, because a
-        # page that never loads is most likely a game update having moved the roster path.
+        # Carry on and read anyway, as the fixed settle did: the HUD and the Leave Group
+        # button may still answer, and an empty roster already reads as "cannot tell". But
+        # say so, because a page that never loads is most likely a game update having moved
+        # the roster path.
         logger.warning(
             "Group tab did not load within %.0fs — reading it anyway (see tools/probe_group_roster.py)",
             GROUP_TAB_LOAD_TIMEOUT,
@@ -354,33 +380,120 @@ async def _roster_lines(client) -> list[tuple[int, str]]:
 _ROSTER_PLACEHOLDERS = frozenset({"left"})
 
 
-async def read_group_state(client, confirm_grouped_timeout: float | None = None) -> GroupState:
-    """Return this client's membership flag and group roster in one social-window visit.
+@dataclass(frozen=True)
+class _Hud:
+    """What the HUD's group menu says about one client. None in a field means cannot tell."""
 
-    Membership is read from the *visibility* of the Leave Group button on the social
-    window's Group tab. The game hides that button when you are not in a group rather than
-    graying it, so visibility is the discriminator — confirmed with tools/probe_group_ui.py.
+    grouped: bool | None = None
+    leads: bool | None = None
+
+
+_HUD_SILENT = _Hud()
+
+# (window handle, label) pairs already warned about by _warn_missing.
+_missing_warned: set[tuple[object, str]] = set()
+
+
+def _warn_missing(client, label: str) -> None:
+    """Warn that a HUD window is not in this client's tree, once per client and window.
+
+    Once, because the polls in leave_group and _confirm_joined read the HUD every
+    POLL_INTERVAL, and a moved path would otherwise fill the log with the same line.
+    """
+    key = (getattr(client, "window_handle", id(client)), label)
+    if key in _missing_warned:
+        logger.debug("The HUD's %s is still not in the window tree", label)
+        return
+    _missing_warned.add(key)
+    logger.warning("The HUD's %s is not in the window tree — has a game update moved it? (paths.py)", label)
+
+
+async def _read_hud(client, *, leader: bool = False) -> _Hud:
+    """Read the group menu button, and with `leader` its LeaderText too. Never raises.
+
+    Nothing is read while the client is in battle or loading: the menu hides in battle, and
+    the HUD cannot be trusted while loading, so a read then would say "ungrouped" of a
+    wizard in a group.
+
+    LeaderText is read only while the button shows. It is a child of the button, and a
+    child's visibility flag is its own (node_helpers.is_visible_by_path), so on a client
+    that has just left its group it may still read visible. A client that is not grouped
+    does not lead, so `leads` is then False without a read.
+
+    A path not in the window tree reads as None and is warned about (_warn_missing): both
+    windows are in the HUD's layout whether or not they show, so a missing one is a path a
+    game update moved, and taking it for "hidden" would call every client ungrouped.
+    """
+    try:
+        if await client.is_loading() or await client.in_battle():
+            return _HUD_SILENT
+        grouped = await node_helpers.visible_if_present(client, GROUP_HUD_BUTTON_PATH)
+        if grouped is None:
+            _warn_missing(client, "group button")
+            return _HUD_SILENT
+        if not leader:
+            return _Hud(grouped=grouped)
+        if not grouped:
+            return _Hud(grouped=False, leads=False)
+        leads = await node_helpers.visible_if_present(client, GROUP_LEADER_TEXT_PATH)
+        if leads is None:
+            _warn_missing(client, "group leader label")
+        return _Hud(grouped=True, leads=leads)
+    except Exception:
+        logger.debug("Could not read the group HUD", exc_info=True)
+        return _HUD_SILENT
+
+
+async def hud_grouped(client) -> bool | None:
+    """Whether this client is in a group, by the HUD's group menu button. None when it cannot tell.
+
+    One read, and no window opened. None while the client is in battle or loading, when the
+    button is not in the window tree, and when the read fails; never raises. See _read_hud.
+    """
+    return (await _read_hud(client)).grouped
+
+
+async def hud_leads(client) -> bool | None:
+    """Whether this client leads its group, by the HUD's LeaderText. None when it cannot tell.
+
+    False for a client the HUD shows ungrouped, since only a group has a leader. Otherwise
+    the same as hud_grouped: no window, None in battle, while loading or on a failed read,
+    and never raises. See _read_hud.
+    """
+    return (await _read_hud(client, leader=True)).leads
+
+
+async def read_group_state(client, confirm_grouped_timeout: float | None = None) -> GroupState:
+    """Return this client's membership and group roster in one social-window visit.
+
+    Membership is the HUD's (hud_grouped) whenever it can tell. When it cannot, in battle,
+    while loading or with its path moved, it is the *visibility* of the Leave Group button on
+    the social window's Group tab, as it was before the HUD was read. The game hides that
+    button when you are not in a group rather than graying it, so visibility is the
+    discriminator — confirmed with tools/probe_group_ui.py.
 
     Visibility specifically, not is_enabled_by_path: that helper returns True for any
     window that merely exists and is not grayed, and the whole SocialSystemsWindow subtree
     exists in the UI tree whether or not the window is open. Using it here reported every
     client as grouped, always.
 
-    The roster is read on the same visit because the expensive part is getting the window
-    open and the Group page loaded, and the roster adds only a handful of memory reads on
-    top of a window that is already showing. Reading it separately would double the cost of
-    the slowest and most failure-prone step for no benefit.
+    The button is read on every visit, whether the HUD answers or not, so that the two are
+    compared (_warn_on_hud_disagreement). The roster is read on the same visit because the
+    expensive part is getting the window open and the Group page loaded, and the roster
+    adds only a handful of memory reads on top of a window that is already showing.
 
     `confirm_grouped_timeout` says "I am expecting this client to be grouped, wait up to
     this long for it". It replaces the wait for the page to load with a poll for the Leave
-    Group button — see _open_social_window. Leave it None for a survey, where the answer is
-    genuinely unknown and the page loading is what to wait for. Zero is distinct from None
-    and still means poll the button: it is what a caller whose deadline has run out passes.
+    Group button — see _open_social_window. _confirm_joined passes it only when the HUD
+    cannot tell. Leave it None for a survey, where the answer is genuinely unknown and the
+    page loading is what to wait for. Zero is distinct from None and still means poll the
+    button: it is what a caller whose deadline has run out passes.
 
     Returns a blank state on any failure: the caller's next move is the same either way
     (try to add this client), and one unreadable client must not abort a regroup for the
-    rest.
+    rest. A window that does not open leaves the HUD's answer, with no roster.
     """
+    hud = _HUD_SILENT
     try:
         ready = None
         if confirm_grouped_timeout is not None:
@@ -389,21 +502,28 @@ async def read_group_state(client, confirm_grouped_timeout: float | None = None)
                 return await node_helpers.is_visible_by_path(client, LEAVE_GROUP_BUTTON_PATH)
 
         if not await _open_social_window(client, ready=ready, ready_timeout=confirm_grouped_timeout or 0.0):
-            logger.debug("Social window did not open; treating client as ungrouped")
-            return GroupState()
-        grouped = await node_helpers.is_visible_by_path(client, LEAVE_GROUP_BUTTON_PATH)
-        state = GroupState(grouped=grouped, roster=await _read_roster(client))
+            hud = await _read_hud(client, leader=True)
+            logger.debug("Social window did not open; membership is the HUD's alone (%s)", hud.grouped)
+            return GroupState(grouped=hud.grouped is True, leads=hud.leads)
+        button = await node_helpers.is_visible_by_path(client, LEAVE_GROUP_BUTTON_PATH)
+        roster = await _read_roster(client)
+        # Read after the button rather than before the visit, so that a join or a leave the
+        # window was opened to confirm is not answered by a read taken before it.
+        hud = await _read_hud(client, leader=True)
+        state = GroupState(grouped=button if hud.grouped is None else hud.grouped, roster=roster, leads=hud.leads)
         _warn_on_disagreement(state)
+        if hud.grouped is not None and hud.grouped != button:
+            await _warn_on_hud_disagreement(client, hud.grouped, button)
         return state
     except Exception:
         logger.debug("Could not read group membership", exc_info=True)
-        return GroupState()
+        return GroupState(grouped=hud.grouped is True, leads=hud.leads)
     finally:
         await close_social_window(client)
 
 
 def _warn_on_disagreement(state: GroupState) -> None:
-    """Log when the Leave Group button and the roster tell different stories.
+    """Log when the membership read and the roster tell different stories.
 
     They are independent reads of the same fact, so a disagreement means one of them has
     stopped working — most likely a game update moved a path. Neither is trusted over the
@@ -412,16 +532,33 @@ def _warn_on_disagreement(state: GroupState) -> None:
     """
     if state.grouped and len(state.roster) < 2:
         logger.warning(
-            "Leave Group button says grouped but the roster lists %d member(s) — "
+            "Membership says grouped but the roster lists %d member(s) — "
             "one of those reads is broken (see tools/probe_group_roster.py)",
             len(state.roster),
         )
     elif not state.grouped and len(state.roster) > 1:
         logger.warning(
-            "Roster lists %d members but the Leave Group button says ungrouped — "
+            "Roster lists %d members but membership says ungrouped — "
             "one of those reads is broken (see tools/probe_group_roster.py)",
             len(state.roster),
         )
+
+
+async def _warn_on_hud_disagreement(client, hud: bool, button: bool) -> None:
+    """Log when the HUD's group button and the Leave Group button disagree.
+
+    The two answer the same question from two windows, so one of their paths has most
+    likely moved in a game update. Not said when the Group page never loaded, since the
+    Leave Group button reads hidden until it has, and _open_social_window warns of that.
+    """
+    if not await _group_tab_loaded(client):
+        return
+    logger.warning(
+        "The HUD's group button says %s but the Leave Group button says %s — "
+        "one of those paths has moved (see paths.GROUP_HUD_BUTTON_PATH)",
+        "grouped" if hud else "ungrouped",
+        "grouped" if button else "ungrouped",
+    )
 
 
 async def is_in_group(client) -> bool:
@@ -435,6 +572,11 @@ async def is_in_group(client) -> bool:
 async def read_group_states(clients: list) -> list[GroupState]:
     """Return each client's group state, positionally aligned with `clients`.
 
+    The HUD is read first, and the social window opened only on a client it does not call
+    ungrouped: an ungrouped client has no roster to read, so it gets a blank GroupState with
+    no visit. At bot start, with nobody grouped, nothing opens. A client the HUD cannot read,
+    in battle or loading, is visited as before.
+
     Checked concurrently. Every input this sends is addressed to one window handle —
     _open_social_window clicks the HUD button rather than pressing Ctrl+A, and
     click_by_path goes through client.mouse_handler, whose mouseless hook writes into that
@@ -446,12 +588,30 @@ async def read_group_states(clients: list) -> list[GroupState]:
     close_social_window. Those overlap perfectly; only the ReadProcessMemory calls
     serialize on the loop thread.
 
-    No return_exceptions is needed — read_group_state already absorbs every failure and
-    answers a blank state, so one unreadable client cannot cancel the survey for the rest.
+    No return_exceptions is needed — the HUD read and read_group_state both absorb every
+    failure, so one unreadable client cannot cancel the survey for the rest.
     """
-    return list(
-        await asyncio.gather(*(run_trace.traced(read_group_state(c), "group.read_state", client=c) for c in clients))
-    )
+    return await _read_group_states(clients, await _read_huds(clients))
+
+
+async def _read_huds(clients: list) -> list[_Hud]:
+    """Every client's HUD, the leader label included, positionally aligned with `clients`."""
+    return list(await asyncio.gather(*(_read_hud(c, leader=True) for c in clients)))
+
+
+async def _read_group_states(
+    clients: list, huds: list[_Hud], known: dict[int, GroupState] | None = None
+) -> list[GroupState]:
+    """read_group_states, given the HUD already read, and the states of any client already visited."""
+
+    async def one(idx: int, client) -> GroupState:
+        if known and idx in known:
+            return known[idx]
+        if huds[idx].grouped is False:
+            return GroupState(leads=False)
+        return await run_trace.traced(read_group_state(client), "group.read_state", client=client)
+
+    return list(await asyncio.gather(*(one(idx, c) for idx, c in enumerate(clients))))
 
 
 async def read_group_flags(clients: list) -> list[bool]:
@@ -496,13 +656,49 @@ async def is_grouped(clients: list) -> bool:
     A split group (everyone grouped, but not with each other) reads as False, so callers
     that use this to decide whether to regroup will act on it. When the rosters cannot be
     read this falls back to the per-client yes/no, which cannot see a split.
+
+    The HUD answers most of it with no window opened. Any client it shows ungrouped makes
+    this False at once. When it shows every client grouped and exactly one of ours leading,
+    that leader's roster is the only one read (_leader_lists_everyone). Anything less
+    certain is the full survey: a client the HUD cannot read, no leader among ours or
+    several, a wizard name not yet known, or a roster missing one of them.
     """
     if len(clients) < 2:
         return False
-    states = await read_group_states(clients)
+    huds = await _read_huds(clients)
+    if any(hud.grouped is False for hud in huds):
+        return False
+    known: dict[int, GroupState] = {}
+    if await _leader_lists_everyone(clients, huds, known):
+        return True
+    states = await _read_group_states(clients, huds, known)
     if not all(state.grouped for state in states):
         return False
     return same_group(states) is not False
+
+
+async def _leader_lists_everyone(clients: list, huds: list[_Hud], known: dict[int, GroupState]) -> bool:
+    """Whether the one leader among our clients lists every one of them, read in one visit.
+
+    Only tried when the HUD shows every client grouped and exactly one of them leading: a
+    wizard belongs to at most one group, so every one of our names on the leader's roster
+    puts all of them in its group. Names are the cached ones (wizard_names.cached_name),
+    since finding one costs a character-page open; a client with none yet sends this back
+    to the full survey. The leader's state goes into `known`, so that a survey after a
+    False does not visit it again.
+    """
+    if any(hud.grouped is not True or hud.leads is None for hud in huds):
+        return False
+    leaders = [idx for idx, hud in enumerate(huds) if hud.leads]
+    if len(leaders) != 1:
+        return False
+    names = [wizard_names.cached_name(client) for client in clients]
+    if not all(names):
+        return False
+    leader = leaders[0]
+    state = await run_trace.traced(read_group_state(clients[leader]), "group.read_state", client=clients[leader])
+    known[leader] = state
+    return state.grouped and all(_lists(state.roster, name) for name in names)
 
 
 async def leave_group(client) -> bool:
@@ -511,13 +707,19 @@ async def leave_group(client) -> bool:
     Used to repair a split: the game refuses an invitation to a player who is already in a
     group, so one of the two groups has to be dissolved before anyone can be moved.
 
-    Finding the button already gone is success, not failure. Wizard101 dissolves a
+    Finding the client already out is success, not failure. Wizard101 dissolves a
     two-player group when *either* player leaves, so in the common case of two pairs only
     one client actually clicks anything and its partner is already out by the time this
     reaches it. That is also why membership is re-read here rather than assumed from the
-    survey: the click that frees this client may have been made on a different one.
+    survey: the click that frees this client may have been made on a different one. The
+    HUD says so with no window opened; the Leave Group button says it when the HUD cannot.
+
+    The leave is confirmed by the HUD's group button hiding (_left_the_group), not by the
+    Leave Group button, which is inside the social window and is read only while it shows.
     """
     try:
+        if await hud_grouped(client) is False:
+            return True
         if not await _open_social_window(client, for_input=True):
             logger.debug("Social window did not open; cannot leave the group")
             return False
@@ -525,7 +727,7 @@ async def leave_group(client) -> bool:
             return True
 
         clicked = await node_helpers.click_by_path(client, LEAVE_GROUP_BUTTON_PATH)
-        # Leaving is a server round-trip, so the button does not vanish on the click.
+        # Leaving is a server round-trip, so membership does not change on the click.
         left = await node_helpers.poll_until(
             lambda: _left_the_group(client),
             timeout=GROUP_VERIFY_TIMEOUT,
@@ -533,7 +735,7 @@ async def leave_group(client) -> bool:
         )
         if not left:
             logger.debug(
-                "Leave Group button still showing %.0fs after the click (click sent: %s)", GROUP_VERIFY_TIMEOUT, clicked
+                "Still grouped %.0fs after the Leave Group click (click sent: %s)", GROUP_VERIFY_TIMEOUT, clicked
             )
         return left
     except Exception:
@@ -544,8 +746,15 @@ async def leave_group(client) -> bool:
 
 
 async def _left_the_group(client) -> bool:
-    """Whether the Leave Group button has gone, i.e. this client is no longer grouped."""
-    return not await node_helpers.is_visible_by_path(client, LEAVE_GROUP_BUTTON_PATH)
+    """Whether this client is no longer grouped: the HUD's group button has hidden.
+
+    The Leave Group button decides only when the HUD cannot tell. leave_group reads it with
+    the social window open, the one time a control inside that window says anything.
+    """
+    grouped = await hud_grouped(client)
+    if grouped is None:
+        return not await node_helpers.is_visible_by_path(client, LEAVE_GROUP_BUTTON_PATH)
+    return not grouped
 
 
 def _group_members(states: list[GroupState]) -> dict[frozenset[str], list[int]]:
@@ -569,6 +778,12 @@ def _choose_leader(states: list[GroupState], leader_index: int) -> int:
     split would make three wizards leave and rejoin instead of one. `leader_index` wins
     ties, so the caller's preference still decides when the choice is free.
 
+    Within the group kept, the client that actually leads it, as the HUD showed it
+    (GroupState.leads), is preferred over `leader_index`: it is the group's leader whoever
+    sends the invitations, and the game has no way to hand leadership to another player. The
+    same holds with the rosters unreadable, so a grouped client of ours that leads comes
+    first. Read on the survey that produced `states`, so it costs no window visit.
+
     Falls back to the first client in any group when rosters are unreadable, and to
     `leader_index` when nobody is grouped (at bot start, or when the leader crashed and the
     group dissolved with it).
@@ -577,11 +792,18 @@ def _choose_leader(states: list[GroupState], leader_index: int) -> int:
     if groups:
         largest = max(len(members) for members in groups.values())
         contenders = [members for members in groups.values() if len(members) == largest]
-        for members in contenders:
-            if leader_index in members:
-                return leader_index
-        return contenders[0][0]
+        kept = next(
+            (members for members in contenders if leader_index in members),
+            next((members for members in contenders if any(states[i].leads for i in members)), contenders[0]),
+        )
+        leading = next((idx for idx in kept if states[idx].leads), None)
+        if leading is not None:
+            return leading
+        return leader_index if leader_index in kept else kept[0]
 
+    leading = [idx for idx, state in enumerate(states) if state.grouped and state.leads]
+    if leading:
+        return leader_index if leader_index in leading else leading[0]
     if states[leader_index].grouped:
         return leader_index
     for idx, state in enumerate(states):
@@ -678,9 +900,9 @@ def _final_states(
 
     `states` is the survey as _dissolve_other_groups left it. The leader's group is the
     leader, the clients already in it, and the ones that joined — each join was confirmed
-    by the Leave Group button and a roster listing the leader, so nothing here is a guess
-    that the regroup did not check. They share one roster: the leader's as surveyed, plus
-    our own clients' names. That can miss a stranger who joined in the meantime, but the
+    by the HUD (or the Leave Group button) and a roster listing the leader, so nothing here
+    is a guess that the regroup did not check. They share one roster: the leader's as
+    surveyed, plus our own clients' names. That can miss a stranger who joined in the meantime, but the
     port map, the one reader, keeps only pairs of our own clients.
 
     Everyone else keeps the state already read for them: a client freed by a dissolve reads
@@ -1039,7 +1261,7 @@ async def _accept_invite(target, label: str, log, leader_name: str | None) -> bo
             return False
         await node_helpers.click_by_path(target, GROUP_INVITE_ACCEPT_PATH)
 
-        # Authoritative check: the Leave Group button is only visible when actually grouped.
+        # Authoritative check: the HUD's group button shows only when actually grouped.
         state = await _confirm_joined(target)
         if not state.grouped:
             return False
@@ -1108,11 +1330,15 @@ async def _confirm_joined(target) -> GroupState:
       * the game opens the social window by itself on joining, which is the first sign the
         accept was processed. Only a hint — but waiting for it also keeps our own HUD-button
         click from racing the game's open and toggling the window straight back shut.
-      * the Leave Group button, which is authoritative.
+      * the HUD's group button, which is authoritative (hud_grouped). When the HUD cannot
+        tell, the Leave Group button decides instead, as it did before the HUD was read.
 
     They share one GROUP_VERIFY_TIMEOUT budget rather than taking one each, so an accept
     that never went through still costs a single timeout. The hint takes a short slice of it
     (GROUP_JOIN_HINT_TIMEOUT) and hands the remainder to the check that decides.
+
+    Once joined, the roster is read for _accept_invite's check that the leader is on it.
+    That costs little: the window the game opened is already showing.
     """
     loop = asyncio.get_event_loop()
     deadline = loop.time() + GROUP_VERIFY_TIMEOUT
@@ -1121,7 +1347,19 @@ async def _confirm_joined(target) -> GroupState:
         timeout=min(GROUP_JOIN_HINT_TIMEOUT, GROUP_VERIFY_TIMEOUT),
         poll_interval=POLL_INTERVAL,
     )
-    return await read_group_state(target, confirm_grouped_timeout=max(deadline - loop.time(), 0.0))
+    hud: bool | None = None
+
+    async def settled() -> bool:
+        nonlocal hud
+        hud = await hud_grouped(target)
+        return hud is not False
+
+    await node_helpers.poll_until(settled, timeout=max(deadline - loop.time(), 0.0), poll_interval=POLL_INTERVAL)
+    if hud is None:
+        return await read_group_state(target, confirm_grouped_timeout=max(deadline - loop.time(), 0.0))
+    if not hud:
+        return GroupState()
+    return await read_group_state(target)
 
 
 def _lists(roster: tuple[str, ...], name: str) -> bool:
