@@ -8,7 +8,11 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
-## Unreleased
+## 0.5.1
+
+Groups read off the HUD, and Teleport to Leader: membership from the group menu button, who
+leads from the menu opened, and a group record that says who leads which of a product's
+clients, used by Gather and by a product's own ports. A patch release: Breaking is empty.
 
 ### Added
 
