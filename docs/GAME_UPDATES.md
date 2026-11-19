@@ -90,8 +90,16 @@ landing on a different block's `je`. So for every hook whose other patterns brok
 any pattern used with an offset (`+15`, `+24`) or whose overwritten bytes are replayed from
 the bytecode, look at the code around the match on both builds.
 
-`AUTOBOT_PATTERN` (`memory/handler.py`) is the one to look at first: it finds the code cave
+`AUTOBOT_PATTERNS` (`memory/handler.py`) is the one to look at first: it finds the code cave
 every `SimpleHook` is written into, so when it breaks, every such hook does too.
+
+**KingsIsle builds the client with two compilers, and has switched between them both ways**:
+the old one for r806919, r812087 and r814353, the new one for r811339 and r813697. The two
+share almost no prologue, so a hook whose site each compiles differently keeps a pattern for
+each: `AUTOBOT_PATTERNS` holds two, tried in turn, and a `SimpleHook` lists one `HookSite` per
+shape in `sites` (the drops hook does), whose bytecode then replays what the jump overwrote by
+reading it from the site. **Keep the pattern for the build that just went away**: the next
+update may bring its compiler back, as r814353 did two days after r813697.
 
 **`VideoManager`'s two patterns** (`memory/memory_objects/video_manager.py`) find no hook site,
 so a broken one costs resizing and nothing else: it raises before anything is written, and the
@@ -114,9 +122,10 @@ PreRender's test captures and resizes there and back.
 **The login** (`wizwalker/login.py`) has one pattern of its own, `LOGIN_CALL_PATTERN`, the
 login window's call to the game's command dispatcher, and borrows `RootWindowHook`'s site. A
 broken one costs nothing but the way in: the launcher types the login instead, as every launch
-did before 2026-11-16, and logs why. The pattern matches twice, and the two copies must resolve to
-the same client global and dispatcher, read at fixed distances from the match (`+13` and `+18`),
-or it refuses; look at both when it changes count.
+did before 2026-11-16, and logs why. The pattern matches twice on the new compiler's builds and
+once on the old one's, and every copy must resolve to the same client global and dispatcher,
+read at fixed distances from the match (`+13` and `+18`), or it refuses; look at each when it
+changes count.
 
 **The config nodes** a resize writes are found by name, not by a pattern, so no scan here reports
 them. `client_resizer.find_config_nodes` checks the object around each name at fixed offsets. If
@@ -179,6 +188,28 @@ list entries), and BartleBot's own offsets, which are not in classes named for t
 `bartlebot/combat/deck_io.py` (the deck lists, a raw gap of `DeckListControl`). Check
 those by hand with `typedump.py at` on both dumps, and the probes `tools/README.md` lists
 under *Probes to rerun after a game patch*. wizsprinter reads no offsets of its own.
+
+`stale` only sees what moved between the two dumps it is given, so **an offset a move once
+missed stays wrong through every dump after it**. `is_monster` was one: r811339 moved it with
+the rest of `CombatParticipant` and `--fix` passed it by, so it read `m_curMaxHP` until
+r814353. `misnamed` checks every offset against the new dump alone, and reports each whose
+property is not the one its accessor is named for:
+
+```bash
+uv run python tools/typedump.py misnamed ../wizwalker/wizwalker/memory
+```
+
+It should report nothing. A finding is a wrong offset, or an accessor named for the same
+thing in other words, which goes on its `_ACCEPTED_NAMES` once checked.
+
+**`GameClient`, which has no reflected class**, is checked another way. Most of its fields are
+found by patterns over the client's code that read the offset out of an instruction: the
+camera fields from the client's own camera switches, which the patterns name none of, so they
+follow a move. The rest are fixed offsets, checked in a live client against what else knows
+them: the root object is the top of the player's `parent()` chain, `player_gid` is the
+player's global id, `character_registry` is what `Client.character_registry`'s pattern finds.
+Each says how it was checked beside it. Look for the code that uses a fixed offset (an
+instruction whose displacement it is), and the strings it names, before trusting it.
 
 ## 5. Replacing a broken pattern
 
@@ -372,3 +403,48 @@ Live on 2026-11-16, read against the Test realm's r812087, since no copy of r806
 - **Tools:** `dump_zone_names.py` cannot read the new zone records with the r806919 dump as
   its type list, and reads them with r813697's, which is why the new build's dump goes into
   `game/data/` before the snapshots are regenerated.
+
+## Record: r814353
+
+Live on 2026-11-19, three days after r813697, with no Test realm build ahead of it. Read
+against the Test realm's r812087, since no copy of r813697 was kept.
+
+- **The old compiler is back.** Every wizwalker pattern matches r814353 as often as r812087,
+  and the old compiler's autobot, drops, client and teleport sites are there again;
+  `AutobotManager::Initialize` is 4,188 bytes, as on r806919. The new compiler's patterns,
+  which r813697 needed, match nothing. The autobot's failing took every `SimpleHook` with it,
+  and so the first visible break was the launcher: with no root window hook the UI tree never
+  read, and auto-select could not tell a loading screen from character select. The fix keeps
+  both compilers' patterns (section 3). The login through memory was unaffected: its own
+  patterns held, and it uses no autobot.
+- **Every hook site and replay checked by hand on both old-compiler builds:** the bytes the
+  player, stat, quest, client and render context hooks replay are the bytes at their sites,
+  the root window hook reads `r13` again, and the teleport site, its collision `je` and its
+  dispatch are r812087's.
+- **The mouseless cursor's flag clear** moved the window into `r14` and zeroes `esi`
+  (`41 C6 86 90 01 00 00 00 33 F6`), so its pattern broke and clicks sent while the real
+  cursor was elsewhere were dropped. That came with r812087's code, not the compiler: r812087
+  has it too. Both forms are kept. The looser `C6 86 ... 33 FF` finds the mouse-look flag on
+  r814353 instead, and forcing that on drops every click.
+- **Type layout:** no class changed from r813697. The dump showed `is_monster` wrong since
+  r811339 (420, `m_curMaxHP`; it is at 428), and `misnamed` (section 4), written for it, found
+  four older ones: `ReqHangingEffectType`'s four fields 4 low, `SpellEffect.rank` on
+  `m_shadowPactCasterSC`, and a `Duel.duel` bool inside `m_maxArchmasteryTeam0`, now
+  `max_archmastery_team0`/`_team1`.
+- **`GameClient`**, checked statically and in a live client: the camera controllers are
+  shared pointers from 0x222D0 (elastic 0x222D0, free 0x222E0, selected 0x22300, the freecam
+  flag 0x22318), 8 past where wizwalker read them since May, and the call that selects one is
+  vtable slot 0x498, not 0x478, so freecam set its flag and never switched. Every camera
+  pattern was dead, each naming an offset of years ago in its bytes; the new ones are anchored
+  on the client's camera switches and read the slot too. Also wrong and fixed: the frame rate
+  (0x21A7C), account permissions (0x21DC4), membership (0x21DC8), the presenter's fallback,
+  the fishing manager (0x231D0; 0x231A8 is an id), the root object (0x21378), `player_gid`
+  (0x213A8), `machine_id` (0x21508) and the character registry (0x227A0). `user_id`
+  (0x21258), which core's account identity reads, was right.
+- **In game:** `smoke_test_client.py` passed every check on a live client, and a freecam round
+  trip switched the camera and back.
+- **Game data:** one Beastmoon spell renamed (`Quick Recovery` to `Steady Recovery`), seven
+  Ahmarra NPCs, three cages named, two Arcanum interiors. Core's snapshots are unchanged.
+- **The chat and social systems manager patterns:** the manager's constructor matches once
+  again; the chat hook's patterns match 10 and 4 times, their sites unchecked. Nothing of ours
+  activates either.
