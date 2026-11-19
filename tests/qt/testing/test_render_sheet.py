@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 
+import pytest
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QImage, QPainter
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
@@ -43,6 +44,9 @@ def test_a_sheet_is_drawn_once_per_theme(qapp, tmp_path):
     assert not any(is_blank(p) for p in written)
 
 
+# A known flake (BartleWorks/bartleby-core#20): under -n auto the two runs' dark renders
+# can differ, and it passes alone. See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 def test_two_runs_on_one_tree_compare_identical(qapp, tmp_path):
     render(SHEET, tmp_path / "a")
     render(SHEET, tmp_path / "b")
