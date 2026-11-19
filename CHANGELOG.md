@@ -8,6 +8,30 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Hooking the 2026-11-19 build, r814353, which KingsIsle built with the old compiler again. A
+minor release for its wizwalker pin, which a product that pins wizwalker moves too.
+
+### Breaking
+
+- **wizwalker is pinned at `991c257`** (`bartlebot-pin-20261119`), where it was `a1559cf`. A
+  product that pins wizwalker itself pins the same commit. wizwalker's `HookHandler.AUTOBOT_PATTERN`
+  is now `AUTOBOT_PATTERNS`, one per compiler, and `Duel.duel`/`write_duel` are gone, replaced
+  by `max_archmastery_team0`/`_team1`; nothing in core used any of them.
+
+### Fixed
+
+- Every client hooks again on r814353, so the launcher's auto-select reads the screen and skips
+  the loading screens, and clicks sent through the mouseless cursor land. With no hook, a
+  launched client never reached `ClientManager.clients` and auto-select fell back to blind
+  keys, or with auto-select off left the loading screens to the user.
+
+### Docs
+
+- `docs/GAME_UPDATES.md`: the two compilers and keeping both's patterns, `typedump.py misnamed`
+  for an offset `stale` missed once, how `GameClient`'s fields are checked, and *Record: r814353*.
+
 ## 0.5.1
 
 Groups read off the HUD, and Teleport to Leader: membership from the group menu button, who
