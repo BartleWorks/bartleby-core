@@ -14,7 +14,8 @@ that each product builds its own buttons from the list (:data:`HELPERS`):
   Speed is this class too.
 * **Gather** ports every other client to the source: by the game's own Teleport to Leader
   where the source leads a group the client is shown to be in, by group_manager's group
-  record, and through the friends list for the rest (:func:`gather`).
+  record, and through the friends list for the rest (:func:`gather`). A follower that falls
+  back on a port takes the same routes for itself alone (:func:`port_to`).
 * **Group** forms one in-game group around the source (``clients/group_manager.py``).
 
 No helper writes a position. Gather moves a wizard by the game's own ports, and keeping up
@@ -413,19 +414,49 @@ async def _leader_route(arbiter: Arbiter, source: Member, movers: Sequence[Membe
     return [m for m in movers if any(m.client is c for c in proven)]
 
 
-async def _port(movers: Sequence[Member], source: Member, route: str, port) -> list[Member]:
-    """Port *movers* by *port*, which takes their clients; the members that went."""
+async def _port(movers: Sequence[Member], source: Member, route: str, port, what: str = "Gather") -> list[Member]:
+    """Port *movers* by *port*, which takes their clients; the members that went. *what* opens each log line."""
     if not movers:
         return []
     try:
         result = await port([m.client for m in movers])
     except ValueError as e:
-        logger.warning("Gather: no one could port to %s %s: %s", source.label, route, e)
+        logger.warning("%s: no one could port to %s %s: %s", what, source.label, route, e)
         return []
     missing = set(result.missing(len(movers)))
     if missing:
-        logger.warning("Gather: %s did not port to %s %s", _labels([movers[i] for i in missing]), source.label, route)
+        logger.warning("%s: %s did not port to %s %s", what, _labels([movers[i] for i in missing]), source.label, route)
     return [m for i, m in enumerate(movers) if i not in missing]
+
+
+async def port_to(source: Member, mover: Member, *, what: str) -> bool:
+    """Port *mover* to *source* by Gather's routes, clicking nothing on *source*. True when it went.
+
+    For a follower's fallback, which no one pressed for: Teleport to Leader where
+    group_manager's group record proves *mover* in a group *source* leads
+    (``members_led_by``), and the friends list otherwise. Unlike :func:`gather`, it never
+    learns a group it has no record of, since that opens the source's group menu, and the
+    source is usually the game the player is playing; Group writes the record. A mover
+    Teleport to Leader did not take makes the record forgotten, as in Gather, so the next
+    try is by the friends list. The caller holds *mover*'s lease; *what* opens each log line.
+    """
+    proven = await group_manager.members_led_by(source.client, [mover.client])
+    if proven:
+        logger.info("%s: %s by Teleport to Leader", what, mover.label)
+        went = await _port([mover], source, "by Teleport to Leader", group_manager.port_to_leader, what)
+        if not went:
+            group_manager.forget_group(source.client)
+        return bool(went)
+    name = wizard_names.cached_name(source.client) or await wizard_names.read_name_from_memory(source.client)
+    if not name:
+        logger.warning("%s: %s's wizard name is not known yet", what, source.label)
+        return False
+    logger.info("%s: %s through the friends list", what, mover.label)
+
+    async def by_friend(clients):
+        return await node_helpers.port_to_friend(clients, name.lower())
+
+    return bool(await _port([mover], source, "through the friends list", by_friend, what))
 
 
 async def group(arbiter: Arbiter, source: Member, members: Sequence[Member]) -> bool:

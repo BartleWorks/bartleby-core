@@ -19,6 +19,12 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   Gather alone did not keep a team together: a solo zone refuses the port, a short port costs a
   loading screen, and a ported wizard was not seen to join the leader's fight. Walking routes
   and `docs/WALKING.md` stay on `walking-shelf`.
+- `helpers.port_to(source, mover, *, what) -> bool`: one mover ported by Gather's routes, for a
+  follower's fallback. Teleport to Leader where the group record proves the mover in a group
+  the source leads, and the friends list otherwise; unlike `gather`, it never learns a group it
+  has no record of, so it clicks nothing on the source. The caller holds the mover's lease.
+- A `Follower` logs each walk into the leader's fight, as it starts and as it ends: joined
+  after how long, or not, and why (`follow.JOINING_FIGHT` is the step's reason).
 
 ## 0.6.0
 

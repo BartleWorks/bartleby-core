@@ -18,8 +18,11 @@ reading the position back every tick, and a stall backed off from.
   take it, a stall it cannot back out of, or a leader somewhere the trail does not reach.
 * **Spacing.** Each follower stops at its own gap behind a moving leader, and takes its own
   place around a leader standing still (:func:`spacing_for`).
-* **Fights.** A fight the leader is in is joined by walking into it; once the follower is in
-  one itself it does nothing, since a fight is combat's.
+* **Fights.** A fight the leader is in is joined by walking into it, at 2.0x and straight at
+  the leader, never by a port: stepping on an active duel circle pulls a wizard in, and a
+  wizard ported beside one was not seen to join (``docs/WIZARD101.md``). Once the follower is
+  in one itself it does nothing, since a fight is combat's. Each walk in is logged as it
+  starts and as it ends, joined or not, with how long it took.
 * **Waiting for the leader to move**, when asked to (``wait_for_move``): nothing until the
   leader has passed :data:`STILL`, changed zone or entered a fight. A product that picks a
   new leader for the player, as BartleBuddy's swap does, uses it so that looking at a
@@ -99,6 +102,8 @@ PLACE_DIRECT = 600.0
 AWAITING_MOVE = "waiting for the leader to move"
 #: Why a held follower stands.
 HELD = "held where it is"
+#: Why a follower walks straight at the leader: the leader is in a fight.
+JOINING_FIGHT = "joining the fight"
 
 
 class StepKind(StrEnum):
@@ -197,6 +202,7 @@ class Follower:
         self._port_when_far = port_when_far
         self._far_check = port_when_far
         self._walking = False
+        self._joining_since: float | None = None
 
     # -- deciding -----------------------------------------------------------------------
 
@@ -241,7 +247,7 @@ class Follower:
                 return Step(StepKind.PORT, reason="far from the leader")
             self._far_check = False
         if leader.in_battle:
-            return Step(StepKind.WALK, leader.position, fast=True, reason="joining the fight")
+            return Step(StepKind.WALK, leader.position, fast=True, reason=JOINING_FIGHT)
 
         point = self._advance(position, me.zone)
         if point is not None and point.mark is Mark.JUMP and flat_distance(position, point.position) <= ARRIVE:
@@ -379,8 +385,28 @@ class Follower:
 
     async def _next_step(self) -> Step:
         await self._read_position()
-        self.last_step = self.plan(self.me.latest, self.position, self.leader.latest, self._clock())
+        me, leader, now = self.me.latest, self.leader.latest, self._clock()
+        self.last_step = self.plan(me, self.position, leader, now)
+        self._note_fight(self.last_step, me, leader, now)
         return self.last_step
+
+    def _note_fight(self, step: Step, me: Snapshot, leader: Snapshot, now: float) -> None:
+        """Log a walk into the leader's fight as it starts, and how it ended: in the fight or not.
+
+        Whether walking in joins a fight, where a port beside it did not, is a question a
+        session's log has to answer, so each walk says how long it took or why it stopped.
+        """
+        joining = step.reason == JOINING_FIGHT
+        if joining and self._joining_since is None:
+            self._joining_since = now
+            logger.info("%s walks into the leader's fight", self.label)
+        elif not joining and self._joining_since is not None:
+            elapsed, self._joining_since = now - self._joining_since, None
+            if me.in_battle:
+                logger.info("%s joined the leader's fight after %.1f s", self.label, elapsed)
+            else:
+                why = step.reason if leader.in_battle else "the fight ended first"
+                logger.info("%s did not join the leader's fight after %.1f s: %s", self.label, elapsed, why)
 
     async def _drive(self, lease: Lease, step: Step) -> None:
         keys = lease.input
