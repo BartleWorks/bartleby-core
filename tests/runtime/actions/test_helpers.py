@@ -470,6 +470,55 @@ async def test_gather_sends_a_mover_in_another_group_through_the_friends_list(ar
     assert w.by_friend == [[members[2].client]]
 
 
+# -- one mover by Gather's routes, for a follower ----------------------------------------------
+
+
+async def _port_to(arbiter, w, source, mover) -> bool:
+    """port_to under the mover's movement lease, as a follower's fallback calls it."""
+    with w.patched():
+        async with arbiter.acquire(mover.client, Owner.MOVEMENT, detail="follow"):
+            return await helpers.port_to(source, mover, what="Follow")
+
+
+async def test_port_to_takes_teleport_to_leader_for_a_mover_the_record_proves(arbiter, caplog):
+    w, members = world(arbiter, record=[])
+    w.record = [members[1].client]
+    caplog.set_level(logging.INFO, logger=helpers.__name__)
+    assert await _port_to(arbiter, w, members[0], members[1])
+    assert w.by_leader == [[members[1].client]]
+    assert w.by_friend == []
+    assert w.holders == [Owner.MOVEMENT], "under the follower's own lease"
+    assert "Follow: P2 by Teleport to Leader" in caplog.messages
+
+
+async def test_port_to_never_learns_a_group_and_takes_the_friends_list_without_a_record(arbiter):
+    """Gather would open the source's group menu here; a fallback no one pressed for doesn't."""
+    w, members = world(arbiter)
+    w.grouped = everyone_grouped(members)
+    w.learned = [members[1].client]
+    assert await _port_to(arbiter, w, members[0], members[1])
+    assert w.learns == 0
+    assert w.by_leader == []
+    assert w.by_friend == [[members[1].client]]
+
+
+async def test_a_teleport_to_leader_that_fails_forgets_the_record_so_the_next_try_is_the_friends_list(arbiter):
+    w, members = world(arbiter)
+    w.record = [members[1].client]
+    w.leader_result = PortToFriendResult(seen_loading=set())
+    assert not await _port_to(arbiter, w, members[0], members[1])
+    assert w.forgotten == [members[0].client]
+    assert await _port_to(arbiter, w, members[0], members[1])
+    assert w.by_friend == [[members[1].client]]
+
+
+async def test_port_to_without_the_sources_name_ports_nobody(arbiter):
+    w, members = world(arbiter)
+    w.names = {}
+    assert not await _port_to(arbiter, w, members[0], members[1])
+    assert w.by_friend == [] and w.by_leader == []
+
+
 async def test_a_mixed_team_splits_into_the_two_routes_ported_at_once(arbiter, caplog):
     w, members = world(arbiter, count=4, record=[])
     w.record = [members[1].client]

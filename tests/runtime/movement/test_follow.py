@@ -203,6 +203,63 @@ def test_a_follower_that_stalled_or_waits_to_port_again_says_it_is_stalled():
     assert f.stalled
 
 
+class _Clock:
+    def __init__(self) -> None:
+        self.now = 0.0
+
+    def __call__(self) -> float:
+        return self.now
+
+
+def _fight(clock: _Clock) -> Follower:
+    """P2, near a leader that is in a fight."""
+    client, leader = SimClient(), SimClient(position=(120.0, 0.0, 0.0))
+    f = Follower(
+        client,
+        StateReader(client),
+        StateReader(leader),
+        Trail(),
+        Arbiter(),
+        spacing=spacing_for(0),
+        label="P2",
+        clock=clock,
+    )
+    f.me.publish(position=client.position, zone=client.zone, loading=False)
+    f.leader.publish(position=leader.position, yaw=0.0, zone=client.zone, loading=False, in_battle=True)
+    return f
+
+
+async def test_a_walk_into_the_leaders_fight_is_logged_as_it_starts_and_as_it_joins(caplog):
+    clock = _Clock()
+    f = _fight(clock)
+    with caplog.at_level("INFO", logger=follow.__name__):
+        assert (await f._next_step()).reason == follow.JOINING_FIGHT
+        await f._next_step()
+        clock.now = 1.5
+        f.me.publish(in_battle=True)
+        assert (await f._next_step()).kind is StepKind.WAIT
+    assert caplog.messages == ["P2 walks into the leader's fight", "P2 joined the leader's fight after 1.5 s"]
+
+
+@pytest.mark.parametrize(
+    "ends, why",
+    [
+        ({"in_battle": False}, "the fight ended first"),
+        ({"zone": "Elsewhere"}, "the leader is in another zone the trail does not reach"),
+    ],
+    ids=["the fight ended", "the leader left"],
+)
+async def test_a_walk_into_the_leaders_fight_that_does_not_join_says_why(caplog, ends, why):
+    clock = _Clock()
+    f = _fight(clock)
+    with caplog.at_level("INFO", logger=follow.__name__):
+        await f._next_step()
+        clock.now = 4.0
+        f.leader.publish(**ends)
+        await f._next_step()
+    assert caplog.messages[-1] == f"P2 did not join the leader's fight after 4.0 s: {why}"
+
+
 @pytest.fixture
 def quick(monkeypatch):
     """A follower's waits, shortened so a chase runs in well under a second of real time."""
