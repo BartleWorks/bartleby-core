@@ -43,6 +43,15 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   no zone change. New: `StepKind.CANCEL`, `Follower.at_sigil` and `.entering`, the `SIGIL_*`
   timing constants. Without `sigil_prompts` nothing changes and no prompt is read.
 
+### Fixed
+
+- **wizwalker is pinned at `0857de9`** (`bartlebot-pin-20261120`), where it was `991c257`. A
+  product that pins wizwalker itself pins the same commit. A click cut short while the
+  mouseless hook was being written could leave its jump at `GetCursorPos`, and every click by
+  hand on that client missed until it was relaunched; wizwalker now writes nothing until its
+  lookups are done and takes user32's originals from a clean copy, so a leftover from before is
+  put right on the next click.
+
 ## 0.6.0
 
 Hooking the 2026-11-19 build, r814353, which KingsIsle built with the old compiler again. A
