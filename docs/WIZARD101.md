@@ -52,8 +52,8 @@ lets the client claim has changed twice in 2026:
   to the leader as a friend or roster port does, in fewer clicks and with no confirmation, so
   between zones it is the fastest of the three ways, and within a zone close to a written
   position. **Follow Leader** walks the leader's path and ports when it falls behind, worse
-  than our own follower did at zone changes and on winding paths (both tried by hand on
-  2026-11-16). The client asks for it with `MSG_RequestGroupFollow`; `GroupMember` has
+  than our own follower (`bartleby.runtime.movement.follow`) at zone changes and on winding
+  paths (both tried by hand on 2026-11-16). The client asks for it with `MSG_RequestGroupFollow`; `GroupMember` has
   `m_followingLeader`. The group menu button (`windowHUD/GroupSystemButton`) shows only
   while the player is in a group, so the HUD says who is grouped with no window opened. Its
   `LeaderText` label shows only on the leader, and **only while that client's group menu is
@@ -68,11 +68,16 @@ lets the client claim has changed twice in 2026:
   leader cannot be reached, and otherwise lands on the leader's exact position, as a
   friends-list port does (all checked on r813697, 2026-11-17). Leadership cannot be handed on: the leader changes only when the leader
   leaves the group or logs off.
+- **A port is no substitute for walking with the leader**, even with long teleports holding
+  (BartleBuddy's testing, 2026-11-20): a solo zone refuses a port to someone inside it, a port
+  over a short distance costs a loading screen that walking it doesn't, and a wizard ported
+  beside a fight was not seen to join it. So following the leader's trail by keys
+  (`bartleby.runtime.movement.follow`), shelved on 2026-11-16, is back, porting only as its
+  fallback.
 
-Walking routes, planned from a zone's own files, and following the leader by keys were
-built while long teleports were reset, and are shelved on the `walking-shelf` branches of
-core, BartleBot and BartleBuddy since 2026-11-16. Core's holds `docs/WALKING.md`, with every
-measurement and what was not done.
+Walking routes, planned from a zone's own files, were built while long teleports were reset,
+and are still shelved on the `walking-shelf` branches of core and BartleBot since 2026-11-16.
+Core's holds `docs/WALKING.md`, with every measurement and what was not done.
 
 ## Battles, the ghost window and wisps
 

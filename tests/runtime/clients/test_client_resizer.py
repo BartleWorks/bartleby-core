@@ -14,7 +14,12 @@ from bartleby.runtime.arbiter import Arbiter, Owner, Preempted
 from bartleby.runtime.clients import client_resizer
 from bartleby.runtime.clients.client_resizer import ClientResizer, ConfigNodes, find_config_nodes
 from bartleby.runtime.game.game_sizing import ui_size_for
+from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.launcher import launch_profile
+from bartleby.runtime.movement import follow
+from bartleby.runtime.movement.follow import Follower, spacing_for
+from bartleby.runtime.movement.trail import Trail
+from bartleby.runtime.state import StateReader
 from bartleby.runtime.testing.sim_client import COPY_VTABLE, DEFAULT_SETTINGS, SimClient
 
 _HUGE, _REGULAR, _MICRO = 4, 2, 5
@@ -283,6 +288,33 @@ async def test_a_higher_owner_arriving_before_the_apply_leaves_the_target_standi
     assert client.game_size == _SMALL_SIZE
 
 
+async def test_a_follower_moves_again_after_a_resize(resizer, arbiter, monkeypatch):
+    monkeypatch.setattr(follow, "FOLLOW_TICK", 0.01)
+    monkeypatch.setattr("bartleby.runtime.input.HELD_KEY_REPEAT", 0.01)
+    leader, client = SimClient(position=(2000.0, 0.0, 0.0)), SimClient()
+    leader_reader, me = StateReader(leader), StateReader(client)
+    leader_reader.publish(position=leader.position, yaw=0.0, zone=leader.zone, loading=False, speed=0)
+    me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
+    trail = Trail()
+    trail.note(leader_reader.latest)
+    follower = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0))
+    task = asyncio.create_task(follower.run())
+    try:
+        await _until(lambda: client.holding(GameAction.MOVE_FORWARD))
+        client.video_manager.apply_seconds = 0.03
+        resizer.resize(client, _SMALL_SIZE)
+        await _until(lambda: client.video_manager.pending)
+        assert not client.holding(GameAction.MOVE_FORWARD), "the lease it lost let go of its keys"
+        await _settled(resizer, client)
+        assert client.game_size == _SMALL_SIZE
+        before = client.position
+        await _until(lambda: client.holding(GameAction.MOVE_FORWARD))
+        await _until(lambda: client.position[0] > before[0] + 1)
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+
 # -- the latest target ----------------------------------------------------------------------
 
 
@@ -518,25 +550,51 @@ async def test_a_node_that_went_stale_is_found_again_before_any_write(resizer):
     assert client.ui_size == ui_size_for(_HUGE, _LARGE_SIZE)
 
 
-async def test_the_scan_holds_no_lease_and_another_owner_takes_one_during_it(resizer, arbiter):
-    """A resize finds its nodes before its lease, so nothing that moves a wizard waits on the scan.
+async def test_the_scan_holds_no_lease_and_a_follower_ticks_through_it(resizer, arbiter, monkeypatch):
+    """The steering path: a resize finds its nodes before its lease, so a follower walks through the scan.
 
-    What a real scan does to the loop is measured on a live client, by BartleBuddy's
-    tools/probe_resize_scan.py.
+    No tick goes past probe_follow_jitter's 250 ms, against two scans of 300 ms spent off the loop,
+    as wizwalker's are. What a real scan does to the loop is measured on a live client, by
+    BartleBuddy's tools/probe_resize_scan.py.
     """
-    client = SimClient()
+    monkeypatch.setattr(follow, "FOLLOW_TICK", 0.01)
+    monkeypatch.setattr("bartleby.runtime.input.HELD_KEY_REPEAT", 0.01)
+    leader, client = SimClient(position=(5000.0, 0.0, 0.0)), SimClient()
+    leader_reader, me = StateReader(leader), StateReader(client)
+    leader_reader.publish(position=leader.position, yaw=0.0, zone=leader.zone, loading=False, speed=0)
+    me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
+    trail = Trail()
+    trail.note(leader_reader.latest)
+    follower = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0))
     client.hook_handler.scan_seconds = 0.3
-    resizer.resize(client, _SMALL_SIZE)
-    entry = resizer._entries[client.window_handle]
-    await _until(lambda: entry.scan is not None)
-    assert not entry.scan.done()
-    assert arbiter.holder(client) is None
-    async with asyncio.timeout(0.1):
-        async with arbiter.acquire(client, Owner.MOVEMENT, detail="moving"):
-            assert not entry.scan.done(), "the lease came while the scan still ran"
-    await _settled(resizer, client)
-    assert client.hook_handler.scans == 2
-    assert client.game_size == _SMALL_SIZE
+
+    ticks: list[float] = []
+    plan = follower.plan
+
+    def timed(*args):
+        ticks.append(time.monotonic())
+        return plan(*args)
+
+    follower.plan = timed
+    task = asyncio.create_task(follower.run())
+    try:
+        await _until(lambda: client.holding(GameAction.MOVE_FORWARD))
+        ticks.clear()
+        resizer.resize(client, _SMALL_SIZE)
+        entry = resizer._entries[client.window_handle]
+        await _until(lambda: entry.scan is not None)
+        while not entry.scan.done():
+            assert arbiter.holder(client) is None or arbiter.holder(client).owner is Owner.MOVEMENT
+            await asyncio.sleep(0.01)
+        gaps = [b - a for a, b in zip(ticks, ticks[1:])]
+        assert client.hook_handler.scans == 2
+        await _settled(resizer, client)
+        assert client.game_size == _SMALL_SIZE
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+    assert gaps, "the follower ticked during the scan"
+    assert max(gaps) < 0.25
 
 
 # -- failing --------------------------------------------------------------------------------------

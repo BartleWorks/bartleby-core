@@ -11,8 +11,8 @@ the tiles have already changed shape, so a wait would leave a game cut off for t
 
 **A lease, below hotkeys.** It writes memory, so it holds ``Owner.DISPLAY``: movement and the
 quester are preempted and resume from their own state, and a hotkey, combat or recovery goes
-first. Finding the nodes is reads alone and takes seconds, so it happens before the lease, and
-nothing else waits on it.
+first. Finding the nodes is reads alone and takes seconds, so it happens before the lease, and a
+follower walks through it.
 
 **An apply can't be recalled.** The writes and the wait for the byte run as one task of their own
 that no cancel reaches, so Stop all can't land between the UI size and the byte, and whoever

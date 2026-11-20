@@ -1,6 +1,6 @@
 """A simulated client: a real client's interface, with no game behind it.
 
-The arbiter, the helpers and the resizer are where most bugs will be, and none of
+The arbiter, the helpers, following and the resizer are where most bugs will be, and none of
 them should need the game to test. A :class:`SimClient` answers the reads they make
 (position, yaw, zone, loading, battle, the speed field, the character, the interact prompt), takes the
 input they send (keys pressed and held, yaw and speed written), logs every input with the
