@@ -25,6 +25,32 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   has no record of, so it clicks nothing on the source. The caller holds the mover's lease.
 - A `Follower` logs each walk into the leader's fight, as it starts and as it ends: joined
   after how long, or not, and why (`follow.JOINING_FIGHT` is the step's reason).
+- `Follower(writes_speed=False)` never writes its speed field, 2.0x catch-up included, and
+  gives nothing back; `Follower.holds_speed` says whether the field is the follower's just now,
+  which is `walking` only for one that writes it.
+- **Followers at a dungeon sigil**, with `Follower(sigil_prompts=PromptReads())`, shared by a
+  leader's followers (`bartleby.runtime.movement.sigil`). With the leader standing at a sigil
+  with its prompt, or from its press of X through its walk to its seat and its countdown, a
+  follower with its own prompt stands, and one without walks at the leader until it has one. A
+  press is the arbiter's Interact lease (detail `Helper.INTERACT`) on the follower or the
+  leader, or for the leader its prompt going as it stood at the sigil. From the follower's own
+  press it sends nothing at all until it loads, its prompt comes back, or `SIGIL_COUNTDOWN_MAX`
+  passes; a prompt not seen gone within `SIGIL_PRESS_CONFIRM` of a press means the press did not
+  take. A leader that cancels (its prompt back, off the seat it stood still on for
+  `SIGIL_SEAT_SETTLE` after its press, its press not taken, or never seated) has it cancel too,
+  by a `SIGIL_CANCEL_TAP` of Move Left. From `SIGIL_COUNTDOWN` after a press, a prompt back or a
+  leader off its seat may be the countdown ending, so cancels only after `SIGIL_END_GRACE` with
+  no zone change. New: `StepKind.CANCEL`, `Follower.at_sigil` and `.entering`, the `SIGIL_*`
+  timing constants. Without `sigil_prompts` nothing changes and no prompt is read.
+
+### Fixed
+
+- **wizwalker is pinned at `0857de9`** (`bartlebot-pin-20261120`), where it was `991c257`. A
+  product that pins wizwalker itself pins the same commit. A click cut short while the
+  mouseless hook was being written could leave its jump at `GetCursorPos`, and every click by
+  hand on that client missed until it was relaunched; wizwalker now writes nothing until its
+  lookups are done and takes user32's originals from a clean copy, so a leftover from before is
+  put right on the next click.
 
 ## 0.6.0
 

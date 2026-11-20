@@ -5,12 +5,17 @@ import math
 
 import pytest
 
+from bartleby.runtime.actions import helpers
+from bartleby.runtime.actions.helpers import Member
+from bartleby.runtime.actions.speed_ledger import SpeedLedger
 from bartleby.runtime.arbiter import Arbiter, Lease, Owner
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.input import ClientInput
 from bartleby.runtime.movement import follow
+from bartleby.runtime.movement import sigil as sigil_module
 from bartleby.runtime.movement.follow import Follower, StepKind, spacing_for
 from bartleby.runtime.movement.geometry import flat_distance
+from bartleby.runtime.movement.sigil import PromptReads
 from bartleby.runtime.movement.trail import Trail
 from bartleby.runtime.state import Snapshot, StateReader
 from bartleby.runtime.testing.sim_client import SimClient
@@ -260,6 +265,187 @@ async def test_a_walk_into_the_leaders_fight_that_does_not_join_says_why(caplog,
     assert caplog.messages[-1] == f"P2 did not join the leader's fight after 4.0 s: {why}"
 
 
+# -- a dungeon sigil -----------------------------------------------------------------------------
+
+
+def _sigil_follower(*, held=False):
+    """A follower whose leader, at x=300, has stood at a sigil long enough to be at it."""
+    f = follower()
+    f._hold = lambda: held
+    for i in range(10):
+        f.sigil.note(i * 0.1, snap(0, 0), snap(300, 0), leader_prompt=True, my_prompt=None)
+    return f
+
+
+def _mine(f, showing, now=1.0, leader_prompt=True, **kw):
+    f.sigil.note(now, snap(0, 0), snap(300, 0), leader_prompt=leader_prompt, my_prompt=showing, **kw)
+
+
+def test_at_a_sigil_a_follower_with_its_prompt_stands_rather_than_take_its_place():
+    f = _sigil_follower()
+    _mine(f, True)
+    step = f.plan(snap(0, 0), (0, 0, 0), snap(300, 0), 1.0)
+    assert (step.kind, step.reason) == (StepKind.STOP, follow.AT_SIGIL)
+
+
+def test_at_a_sigil_a_follower_without_its_prompt_walks_at_the_leader_until_close():
+    f = _sigil_follower()
+    _mine(f, False)
+    step = f.plan(snap(0, 0), (0, 0, 0), snap(300, 0), 1.0)
+    assert (step.kind, step.reason, step.target) == (StepKind.WALK, follow.INTO_RANGE, (300, 0, 0.0))
+    assert f.plan(snap(0, 0), (260, 0, 0), snap(300, 0), 1.0).reason == follow.AT_SIGIL
+
+
+def test_at_a_sigil_a_held_follower_without_its_prompt_stands_held():
+    f = _sigil_follower(held=True)
+    _mine(f, False)
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(300, 0), 1.0).reason == follow.HELD
+
+
+def test_in_its_countdown_a_follower_sends_nothing_whatever_the_leader_does():
+    f = _sigil_follower()
+    _mine(f, True)
+    _mine(f, False, now=1.1, x_on_me=True)
+    assert f.entering
+    for leader in (snap(300, 0), snap(2500, 0), snap(300, 0, in_battle=True)):
+        assert (f.plan(snap(0, 0), (0, 0, 0), leader, 1.2).kind, f.last_step.kind) == (StepKind.WAIT, StepKind.WAIT)
+
+
+def test_a_cancel_comes_first_even_held():
+    f = _sigil_follower(held=True)
+    f.sigil._entering_since, f.sigil._entering_zone, f.sigil.cancel_pending = 1.0, ZONE, True
+    step = f.plan(snap(0, 0), (0, 0, 0), snap(300, 0), 1.2)
+    assert (step.kind, step.reason) == (StepKind.CANCEL, follow.CANCELLING)
+
+
+async def test_walking_its_prompt_going_is_walking_out_of_range_not_a_press():
+    shown = {}
+    leader, client = SimClient(position=(300.0, 0.0, 0.0)), SimClient()
+    f = Follower(
+        client,
+        StateReader(client),
+        StateReader(leader),
+        Trail(),
+        Arbiter(),
+        spacing=spacing_for(0),
+        sigil_prompts=PromptReads(lambda c: _shown(shown, c), interval=0),
+    )
+    f.position = (0.0, 0.0, 0.0)
+    me, lead = snap(0, 0), snap(300, 0)
+    shown.update({leader.window_handle: True, client.window_handle: True})
+    await f._read_sigil(me, lead)
+    f.last_step = follow.Step(StepKind.WALK, (300, 0, 0), reason="along the trail")
+    shown[client.window_handle] = False
+    await f._read_sigil(me, lead)
+    assert not f.entering
+
+
+def _sigil_team(shown, arbiter=None):
+    """A running follower's parts: its leader at x=300 and itself at 0, both with their prompts."""
+    leader, client = SimClient(position=(300.0, 0.0, 0.0), npc_range=True), SimClient(npc_range=True)
+    leader_reader, me = StateReader(leader), StateReader(client)
+    me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
+    leader_reader.publish(position=leader.position, yaw=0.0, zone=leader.zone, loading=False, speed=0)
+    shown.update({leader.window_handle: True, client.window_handle: True})
+    f = Follower(
+        client,
+        me,
+        leader_reader,
+        Trail(),
+        arbiter or Arbiter(),
+        spacing=spacing_for(0),
+        sigil_prompts=PromptReads(lambda c: _shown(shown, c), interval=0),
+    )
+    return f, leader, client, leader_reader
+
+
+async def test_interact_pressed_on_it_starts_its_countdown_before_any_reading_shows_it(quick, monkeypatch, caplog):
+    """The arbiter's Interact lease is the press: no prompt reading has to catch it first."""
+    monkeypatch.setattr(sigil_module, "SIGIL_SETTLE", 0.05)
+    shown, arbiter = {}, Arbiter()
+    f, leader, client, _ = _sigil_team(shown, arbiter)
+    task = asyncio.create_task(f.run())
+    try:
+        await _until(lambda: f.at_sigil)
+        with caplog.at_level("INFO", logger=follow.__name__):
+            await helpers.interact(arbiter, [Member(leader, 1), Member(client, 2)])
+            await _until(lambda: f.entering)
+        assert shown[client.window_handle], "its prompt still reads as showing"
+        assert [m for m in caplog.messages if m.endswith(" is entering the dungeon, and holds still for its countdown")]
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+
+async def test_it_holds_while_the_leader_walks_to_its_seat_though_its_own_reading_lags(quick, monkeypatch):
+    """In game, 2026-11-20: the leader's prompt read gone before the follower's, and it walked after it."""
+    monkeypatch.setattr(sigil_module, "SIGIL_SETTLE", 0.05)
+    shown, arbiter = {}, Arbiter()
+    f, leader, client, leader_reader = _sigil_team(shown, arbiter)
+    task = asyncio.create_task(f.run())
+    try:
+        await _until(lambda: f.at_sigil)
+        sent = len(client.inputs)
+        shown[leader.window_handle] = False
+        for x in range(360, 900, 60):
+            leader_reader.publish(position=(float(x), 0.0, 0.0))
+            await asyncio.sleep(0.03)
+        assert len(client.inputs) == sent, "nothing sent while the leader walks to its seat"
+        await helpers.interact(arbiter, [Member(client, 2)])
+        shown[client.window_handle] = False
+        await _until(lambda: f.entering)
+        assert [r.kind for r in client.inputs[sent:]] == ["press"], "Interact's press, and nothing of its own"
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+
+async def _shown(shown, client):
+    return shown[client.window_handle]
+
+
+async def test_through_a_countdown_it_sends_nothing_and_cancels_with_a_turn_when_the_leader_does(quick, monkeypatch):
+    monkeypatch.setattr(sigil_module, "SIGIL_SETTLE", 0.05)
+    monkeypatch.setattr(sigil_module, "SIGIL_SEAT_SETTLE", 0.05)
+    shown, arbiter = {}, Arbiter()
+    f, leader, client, leader_reader = _sigil_team(shown, arbiter)
+    task = asyncio.create_task(f.run())
+    try:
+        await _until(lambda: f.at_sigil)
+        await asyncio.sleep(0.05)
+        sent = len(client.inputs)
+        await asyncio.sleep(0.2)
+        assert len(client.inputs) == sent and not client.held, "standing at the sigil, nothing sent"
+
+        # X on both: the prompts go, and the game walks each to its seat.
+        await helpers.interact(arbiter, [Member(leader, 1), Member(client, 2)])
+        shown.update({leader.window_handle: False, client.window_handle: False})
+        await _until(lambda: f.entering)
+        sent = len(client.inputs)
+        client.place((120.0, 40.0, 0.0))
+        leader_reader.publish(position=(340.0, 0.0, 0.0))
+        await asyncio.sleep(0.3)
+        assert len(client.inputs) == sent, "no key, no facing, no speed through the countdown"
+        assert f.entering
+
+        # The leader steps off its seat: the follower turns once, to cancel its own.
+        leader_reader.publish(position=(340.0 + sigil_module.SEAT_MOVED + 20, 0.0, 0.0))
+        await _until(lambda: client.presses(GameAction.MOVE_LEFT) == 1)
+        await _until(lambda: not f.entering)
+        assert client.presses(GameAction.MOVE_LEFT) == 1
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+
+async def _until(predicate, timeout=2.0):
+    for _ in range(int(timeout / 0.01)):
+        if predicate():
+            return
+        await asyncio.sleep(0.01)
+    raise AssertionError("it never happened")
+
+
 @pytest.fixture
 def quick(monkeypatch):
     """A follower's waits, shortened so a chase runs in well under a second of real time."""
@@ -322,6 +508,47 @@ async def test_a_follower_runs_at_2x_to_catch_up_and_never_above(quick):
     await asyncio.gather(task, return_exceptions=True)
     speeds = [r.detail for r in client.inputs if r.kind == "speed"]
     assert 100 in speeds and max(speeds) == 100
+
+
+async def test_without_writes_speed_a_follower_catches_up_at_its_own_speed(quick):
+    arbiter = Arbiter()
+    leader, client = SimClient(), SimClient(speed=0)
+    leader_reader, me = StateReader(leader), StateReader(client)
+    me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
+    trail = Trail()
+    leader_reader.subscribe(trail.note)
+    f = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0), writes_speed=False)
+    task = asyncio.create_task(f.run())
+    await _drive_leader(leader, leader_reader, [(0, 0), (1500, 0)], speed=1500)
+    await asyncio.sleep(0.1)
+    assert f.walking and not f.holds_speed, "walking, but the field is not its own"
+    task.cancel()
+    await asyncio.gather(task, return_exceptions=True)
+    assert client.position[0] > 100, "it walked after the leader"
+    assert [r for r in client.inputs if r.kind == "speed"] == []
+    assert client.speed == 0
+
+
+async def test_without_writes_speed_a_follower_gives_back_nothing_another_writer_wrote():
+    client = SimClient(speed=10)
+    ledger = SpeedLedger()
+    f = Follower(
+        client,
+        StateReader(client),
+        StateReader(SimClient()),
+        Trail(),
+        Arbiter(),
+        spacing=spacing_for(0),
+        speed_ledger=ledger,
+        writes_speed=False,
+    )
+    # The Speed toggle's write, on the ledger the follower shares.
+    ledger.observe(client, client.character, 10)
+    client.speed = 50
+    ledger.wrote(client, client.character, 50)
+    await f.restore_speed(Lease(client, Owner.MOVEMENT, ClientInput(client)))
+    assert client.speed == 50
+    assert ledger.wrote_to(client, client.character), "the toggle's record is left as it was"
 
 
 def _speed_follower(client: SimClient) -> tuple[Follower, Lease]:

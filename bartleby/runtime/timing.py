@@ -804,6 +804,59 @@ FOLLOW_PORT_RETRY = 15.0
 # Seconds before a follower whose port failed tries the fallback again.
 
 # ---------------------------------------------------------------------------
+# Followers at a dungeon sigil (bartleby.runtime.movement.sigil)
+# ---------------------------------------------------------------------------
+
+SIGIL_READ_INTERVAL = 0.2
+# Seconds between two readings of one client's dungeon entrance prompt, shared by every
+# follower that asks. A reading walks the game's UI tree, so it is never taken every tick.
+
+SIGIL_SETTLE = 0.5
+# Seconds the leader stands still with its prompt showing before its followers treat it as
+# standing at the sigil.
+
+SIGIL_PRESS_CONFIRM = 1.0
+# Seconds after a press of X for the wizard's prompt to be seen gone. A prompt reading can be
+# from just before the press, so one still showing it means nothing until then; one still
+# showing it after this long means the press did not take.
+
+SIGIL_PRESS_LAG = 0.5
+# Seconds after the leader last stood at the sigil with its prompt within which its prompt going
+# counts as an X pressed by hand: the game's walk to its seat can start before a reading shows
+# the prompt gone, and the leader is no longer standing still by then.
+
+SIGIL_SEAT_SETTLE = 1.0
+# Seconds a leader whose prompt has gone stands still, counted from its press at the earliest,
+# before it counts as seated for its countdown. Counted from the press because the leader has
+# usually stood at the prompt for a while already, and the game's walk to the seat starts a
+# moment after the press: counted from before it, the spot it pressed from was taken for its
+# seat, and the walk to the real one for stepping off it (2026-11-20, in game).
+
+SIGIL_SEAT_WAIT = 5.0
+# Seconds after the leader's prompt goes for it to be seated. Pressing X walks a wizard to its
+# seat on the sigil and it stands there for the countdown; a leader still moving after this long
+# walked out of range instead. A press from the far edge of a sigil's range (1,438 units, in
+# docs/WIZARD101.md) is 2.4 s of walking at 600 units a second, then the seat's settle.
+
+SIGIL_COUNTDOWN = 10.0
+# The game's countdown on a dungeon sigil, in seconds. It starts no earlier than the press, so
+# a prompt back before this long after one is a cancel; from then on it may be the countdown
+# ending, since the game shows the prompt again for a moment before the loading screen (seen
+# 11.1 s after a press, gone 0.9 s later, 2026-11-20).
+
+SIGIL_END_GRACE = 3.0
+# Seconds a leader whose countdown may have ended, by its prompt back or its leaving its seat,
+# has to change zone before its followers take it for a late cancel and cancel too. A follower
+# whose own prompt came back that late waits as long before it follows again.
+
+SIGIL_COUNTDOWN_MAX = 20.0
+# Seconds a follower holds still for a countdown before giving up on it: the game's 10 s
+# countdown and a loading screen starting, with room to spare.
+
+SIGIL_CANCEL_TAP = 0.1
+# Seconds a follower holds Move Left to cancel its own countdown: any turn cancels one.
+
+# ---------------------------------------------------------------------------
 # Resizing a running client (bartleby.runtime.clients.client_resizer)
 # ---------------------------------------------------------------------------
 

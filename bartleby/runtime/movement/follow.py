@@ -11,13 +11,18 @@ reading the position back every tick, and a stall backed off from.
   most the engine allows; nearer, it walks at ``walking_speed``, or the leader's own speed
   field without one. A follower that shares its speed field with another writer, as with
   BartleBuddy's Speed toggle, shares a :class:`~bartleby.runtime.actions.speed_ledger.SpeedLedger`
-  with it, so neither gives back the other's value as the wizard's own.
+  with it, so neither gives back the other's value as the wizard's own. A follower made
+  without ``writes_speed`` never writes the field, and walks at whatever it holds.
 * **Shortcuts follow the trail.** At a jump it presses Interact; a trail ending at a gate
   takes it through after the leader.
 * **Ports are the fallback**, for a follower too far behind, a jump or gate that did not
   take it, a stall it cannot back out of, or a leader somewhere the trail does not reach.
 * **Spacing.** Each follower stops at its own gap behind a moving leader, and takes its own
   place around a leader standing still (:func:`spacing_for`).
+* **Dungeon sigils**, with ``sigil_prompts``: at a sigil the leader stands at, a follower stays
+  in range for the press, and from its press of X it sends nothing until it goes in or the
+  leader cancels, which it then does too (:mod:`bartleby.runtime.movement.sigil`). Each press
+  of Interact on it or on the leader is seen as the arbiter grants it, for as long as it runs.
 * **Fights.** A fight the leader is in is joined by walking into it, at 2.0x and straight at
   the leader, never by a port: stepping on an active duel circle pulls a wizard in, and a
   wizard ported beside one was not seen to join (``docs/WIZARD101.md``). Once the follower is
@@ -53,13 +58,15 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from enum import StrEnum
 
+from bartleby.runtime.actions.helpers import Helper
 from bartleby.runtime.actions.live_character import CharacterWatch, live_character_id
 from bartleby.runtime.actions.speed_ledger import SpeedLedger
-from bartleby.runtime.arbiter import Arbiter, Lease, Owner, Preempted, Revoked
+from bartleby.runtime.arbiter import Arbiter, Lease, Owner, Preempted, Revoked, client_key
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.game.wizard_names import NO_CHARACTER
 from bartleby.runtime.input import SPEED_VALUE_MAX
 from bartleby.runtime.movement.geometry import Point, flat_distance, heading_to, offset_from
+from bartleby.runtime.movement.sigil import PromptReads, SigilState
 from bartleby.runtime.movement.trail import Mark, Trail, TrailPoint
 from bartleby.runtime.state import Snapshot, StateReader
 from bartleby.runtime.timing import (
@@ -71,6 +78,7 @@ from bartleby.runtime.timing import (
     FOLLOW_STALL_WINDOW,
     FOLLOW_TICK,
     LEADER_SETTLE,
+    SIGIL_CANCEL_TAP,
 )
 
 logger = logging.getLogger(__name__)
@@ -104,14 +112,25 @@ AWAITING_MOVE = "waiting for the leader to move"
 HELD = "held where it is"
 #: Why a follower walks straight at the leader: the leader is in a fight.
 JOINING_FIGHT = "joining the fight"
+#: Units from the leader at a sigil within which a follower stops, with its prompt or not.
+SIGIL_CLOSE = 60.0
+#: Why a follower stands at a dungeon sigil: its prompt shows, so it stays in range for the press.
+AT_SIGIL = "at the sigil"
+#: Why a follower walks at the leader standing at a sigil: to come in range of it.
+INTO_RANGE = "into the sigil's range"
+#: Why a follower sends nothing at all: it is in its countdown into a dungeon.
+ENTERING = "entering the dungeon"
+#: Why a follower turns: to cancel its countdown, since the leader cancelled its own.
+CANCELLING = "cancelling its countdown"
 
 
 class StepKind(StrEnum):
-    WAIT = "wait"  # nothing to do for now: loading, in a fight, or nothing readable
+    WAIT = "wait"  # nothing to do for now: loading, in a fight, nothing readable, or a countdown
     STOP = "stop"  # in place
     WALK = "walk"
     INTERACT = "interact"
     PORT = "port"
+    CANCEL = "cancel"  # a short turn, which cancels a dungeon sigil's countdown
 
 
 @dataclass(frozen=True)
@@ -164,6 +183,8 @@ class Follower:
         port_when_far: bool = False,
         walking_speed: Callable[[], int | None] | None = None,
         speed_ledger: SpeedLedger | None = None,
+        writes_speed: bool = True,
+        sigil_prompts: PromptReads | None = None,
     ) -> None:
         """With *wait_for_move*, it stands until the leader has moved from where it first reads it.
 
@@ -172,7 +193,11 @@ class Follower:
         leader. *walking_speed* is the speed field's value to walk at when not catching up,
         or None for the leader's own; a follower given one stands at its own speed when it
         says None, since nothing else then holds the field. *speed_ledger* is shared with any other writer of the
-        field (:mod:`bartleby.runtime.actions.speed_ledger`).
+        field (:mod:`bartleby.runtime.actions.speed_ledger`). Without *writes_speed* it never
+        touches its speed field, catching up included, and walks at whatever the field holds.
+        With *sigil_prompts*, shared by the leader's followers, it stays still at a dungeon
+        sigil and through its countdown (:mod:`bartleby.runtime.movement.sigil`); without, it
+        never reads a prompt.
         """
         self.client = client
         self.me = me
@@ -194,6 +219,7 @@ class Follower:
         self._speed_watch = CharacterWatch()
         self._ledger = speed_ledger if speed_ledger is not None else SpeedLedger()
         self._walking_speed = walking_speed
+        self.writes_speed = writes_speed
         self.last_step = Step(StepKind.WAIT)
         self._awaiting_move = wait_for_move
         self._leader_from: Snapshot | None = None
@@ -203,6 +229,11 @@ class Follower:
         self._far_check = port_when_far
         self._walking = False
         self._joining_since: float | None = None
+        self._prompts = sigil_prompts
+        self.sigil = SigilState()
+        # Interact pressed on the follower and on the leader since the last tick.
+        self._x_on_me = False
+        self._x_on_leader = False
 
     # -- deciding -----------------------------------------------------------------------
 
@@ -212,6 +243,9 @@ class Follower:
             return Step(StepKind.WAIT, reason="not readable")
         if me.in_battle:
             return Step(StepKind.WAIT, reason="in a fight")
+        sigil = self._sigil_step(me, position, leader, now)
+        if sigil is not None:
+            return sigil
         held = self._hold()
         if held:
             self._held = True
@@ -269,6 +303,33 @@ class Follower:
             return Step(StepKind.WALK, leader.position, fast=fast, reason="toward the leader")
         return Step(StepKind.WALK, point.position, fast=fast, reason="along the trail", point=point)
 
+    def _sigil_step(self, me: Snapshot, position: Point, leader: Snapshot, now: float) -> Step | None:
+        """The step a dungeon sigil decides, or None to follow as usual.
+
+        A countdown comes first, held or not: a turn to cancel it once the leader has, and
+        otherwise nothing at all. With the leader standing at a sigil, a follower with its
+        prompt stands, and one without walks at the leader until it has one, unless it is held
+        or waits for the leader to move, which stand as they always do.
+        """
+        sigil = self.sigil
+        self._note_leader(leader, now)
+        if sigil.cancel_pending:
+            return Step(StepKind.CANCEL, reason=CANCELLING)
+        if sigil.entering:
+            return Step(StepKind.WAIT, reason=ENTERING)
+        if leader.zone != me.zone or leader.in_battle or not sigil.at_sigil(now):
+            return None
+        if sigil.my_prompt:
+            return Step(StepKind.STOP, reason=AT_SIGIL)
+        if self._hold() or self._awaiting_move:
+            return None
+        distance = flat_distance(position, leader.position)
+        if distance > RESYNC:
+            return None
+        if distance <= SIGIL_CLOSE:
+            return Step(StepKind.STOP, reason=AT_SIGIL)
+        return Step(StepKind.WALK, leader.position, reason=INTO_RANGE)
+
     def _advance(self, position: Point, zone: str) -> TrailPoint | None:
         """Move the cursor past every point already reached, and return the next one in *zone*."""
         ahead = [p for p in self.trail.after(self.cursor) if p.zone == zone][:LOOK_AHEAD]
@@ -321,9 +382,24 @@ class Follower:
         return self._walking
 
     @property
+    def holds_speed(self) -> bool:
+        """Whether its speed field is its own just now: it is walking, and it writes the field."""
+        return self._walking and self.writes_speed
+
+    @property
     def own_speed(self) -> int | None:
         """The speed field's value before it was written, the game's own, or None if never written."""
         return self._ledger.own_speed(self.client)
+
+    @property
+    def at_sigil(self) -> bool:
+        """Whether it stands at a dungeon sigil, or walks into its range, for the press of X."""
+        return self.last_step.reason in (AT_SIGIL, INTO_RANGE)
+
+    @property
+    def entering(self) -> bool:
+        """Whether it holds still in its countdown into a dungeon."""
+        return self.sigil.entering
 
     @property
     def awaiting_move(self) -> bool:
@@ -359,22 +435,36 @@ class Follower:
 
     async def run(self) -> None:
         """Follow until cancelled or revoked. Holds the movement lease only while moving."""
-        while True:
-            step = await self._next_step()
-            if step.kind in (StepKind.WAIT, StepKind.STOP):
-                await asyncio.sleep(FOLLOW_TICK)
-                continue
-            try:
-                async with self.arbiter.acquire(self.client, Owner.MOVEMENT, detail=self.label) as lease:
-                    self._walking = True
-                    try:
-                        await self._drive(lease, step)
-                    finally:
-                        self._walking = False
-            except Preempted:
-                await self.arbiter.wait_free(self.client)
-            except Revoked:
-                return
+        unsubscribe = self.arbiter.subscribe(self._on_lease) if self._prompts is not None else None
+        try:
+            while True:
+                step = await self._next_step()
+                if step.kind in (StepKind.WAIT, StepKind.STOP):
+                    await asyncio.sleep(FOLLOW_TICK)
+                    continue
+                try:
+                    async with self.arbiter.acquire(self.client, Owner.MOVEMENT, detail=self.label) as lease:
+                        self._walking = True
+                        try:
+                            await self._drive(lease, step)
+                        finally:
+                            self._walking = False
+                except Preempted:
+                    await self.arbiter.wait_free(self.client)
+                except Revoked:
+                    return
+        finally:
+            if unsubscribe is not None:
+                unsubscribe()
+
+    def _on_lease(self, key: int, lease: Lease | None) -> None:
+        """Note each press of Interact on the follower or its leader, for the sigil's next reading."""
+        if lease is None or lease.owner is not Owner.HOTKEY or lease.detail != Helper.INTERACT:
+            return
+        if key == client_key(self.client):
+            self._x_on_me = True
+        elif key == client_key(self.leader.client):
+            self._x_on_leader = True
 
     async def _read_position(self) -> None:
         try:
@@ -385,10 +475,52 @@ class Follower:
 
     async def _next_step(self) -> Step:
         await self._read_position()
-        me, leader, now = self.me.latest, self.leader.latest, self._clock()
+        me, leader = self.me.latest, self.leader.latest
+        await self._read_sigil(me, leader)
+        now = self._clock()
         self.last_step = self.plan(me, self.position, leader, now)
         self._note_fight(self.last_step, me, leader, now)
         return self.last_step
+
+    async def _read_sigil(self, me: Snapshot, leader: Snapshot) -> None:
+        """Read the dungeon entrance prompts this tick needs, and note them in :attr:`sigil`.
+
+        The leader's is read while the follower is near it in its zone, or while the leader is
+        at a sigil; the follower's own only while the leader is at one, or it is entering. Both
+        go through the shared :class:`PromptReads`, so a tick costs a UI walk only when the last
+        reading is older than its interval.
+        """
+        if self._prompts is None:
+            return
+        sigil = self.sigil
+        near = (
+            me.readable
+            and leader.readable
+            and leader.zone == me.zone
+            and not leader.in_battle
+            and self.position is not None
+            and flat_distance(self.position, leader.position) <= RESYNC
+        )
+        leader_prompt = await self._prompts.showing(self.leader.client) if near or sigil.near else None
+        mine = None
+        if sigil.wants_my_prompt() or leader_prompt:
+            mine = await self._prompts.showing(self.client)
+        x_on_me, x_on_leader = self._x_on_me, self._x_on_leader
+        self._x_on_me = self._x_on_leader = False
+        said = sigil.note(
+            self._clock(),
+            me,
+            leader,
+            leader_prompt=leader_prompt,
+            my_prompt=mine,
+            x_on_me=x_on_me,
+            x_on_leader=x_on_leader,
+        )
+        for seen in sigil.seen:
+            logger.debug("%s %s", self.label, seen)
+        sigil.seen.clear()
+        if said:
+            logger.info("%s %s", self.label, said)
 
     def _note_fight(self, step: Step, me: Snapshot, leader: Snapshot, now: float) -> None:
         """Log a walk into the leader's fight as it starts, and how it ended: in the fight or not.
@@ -419,6 +551,11 @@ class Follower:
             elif step.kind is StepKind.PORT:
                 await keys.release_all()
                 await self._port(lease, step.reason)
+            elif step.kind is StepKind.CANCEL:
+                # Any turn cancels a countdown; Move Left turns a wizard where it stands.
+                await keys.release_all()
+                await keys.press(GameAction.MOVE_LEFT, SIGIL_CANCEL_TAP)
+                self.sigil.cancelled()
             await asyncio.sleep(FOLLOW_TICK)
             step = await self._next_step()
         await keys.release_all()
@@ -495,7 +632,12 @@ class Follower:
             self._port_after = self._clock() + FOLLOW_PORT_RETRY
 
     async def _set_speed(self, lease: Lease, *, fast: bool) -> None:
-        """2.0x to catch up, else the walking speed it's given, or the leader's own. Never above 2.0x."""
+        """2.0x to catch up, else the walking speed it's given, or the leader's own. Never above 2.0x.
+
+        Nothing at all without ``writes_speed``.
+        """
+        if not self.writes_speed:
+            return
         want = SPEED_VALUE_MAX if fast else None
         if want is None and self._walking_speed is not None:
             want = self._walking_speed()
@@ -522,7 +664,13 @@ class Follower:
         self._ledger.wrote(self.client, character, want)
 
     async def restore_speed(self, lease: Lease) -> None:
-        """Give the follower its own speed back, if we changed it and the game has not since."""
+        """Give the follower its own speed back, if we changed it and the game has not since.
+
+        Without ``writes_speed`` there is nothing of its own to give back, and the shared ledger's
+        writes are another writer's, so it does nothing.
+        """
+        if not self.writes_speed:
+            return
         try:
             character = await live_character_id(self.client)
             if not self._ledger.wrote_to(self.client, character):
