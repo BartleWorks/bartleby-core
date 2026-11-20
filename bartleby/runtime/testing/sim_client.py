@@ -47,6 +47,18 @@ _STRING_TYPE, _INT_TYPE = 0x00, 0x02
 _PENDING_OFFSET = 0x2229B
 
 
+class SkippedWalk(list):
+    """A double's answer to ``heap_regions()`` that skipped regions, as ``heap_scan``'s own walk counts them.
+
+    Its ``(address, bytes)`` pairs are the regions read, and ``skipped`` how many changed under
+    the read, which makes the pass's hits ``incomplete``.
+    """
+
+    def __init__(self, regions=(), *, skipped: int) -> None:
+        super().__init__(regions)
+        self.skipped = skipped
+
+
 class SimClock:
     """A clock a test moves by hand. ``SimClock()()`` is the time now."""
 
@@ -126,7 +138,8 @@ class SimMemory:
     Holds the two live config nodes and the defaults' two, as every session has them, and
     ``place_node`` stages any other shape. ``scans`` counts the passes ``heap_scan`` makes over
     it, and ``scan_seconds`` is how long one takes, spent on an executor's thread as a real
-    pass is.
+    pass is. ``unsettled`` is how many passes still to come find the heap changing under the
+    read, as a client's does just after its hook: each skips it, one region, and finds nothing.
     """
 
     def __init__(self, sim: SimClient) -> None:
@@ -135,6 +148,7 @@ class SimMemory:
         self.next = 0x100
         self.scans = 0
         self.scan_seconds = 0.0
+        self.unsettled = 0
         self.process = SimpleNamespace(process_base=SimpleNamespace(lpBaseOfDll=_MODULE_BASE, SizeOfImage=_MODULE_SIZE))
         width, height = sim.game_size
         self.ui_size_node = self.place_node("UISize", marked=True, text=str(sim.ui_size), value=sim.ui_size)
@@ -202,10 +216,16 @@ class SimMemory:
         return bytes(self.data[address - _HEAP_BASE : address - _HEAP_BASE + size])
 
     def heap_regions(self) -> list[tuple[int, bytes]]:
-        """The heap as one region, for a pass of ``heap_scan``'s, which calls it on an executor's thread."""
+        """The heap as one region, for a pass of ``heap_scan``'s, which calls it on an executor's thread.
+
+        None, and one region skipped, while the client is ``unsettled``.
+        """
         self.scans += 1
         if self.scan_seconds:
             time.sleep(self.scan_seconds)
+        if self.unsettled:
+            self.unsettled -= 1
+            return SkippedWalk(skipped=1)
         return [(_HEAP_BASE, bytes(self.data))]
 
     async def read_bytes(self, address: int, size: int) -> bytes:

@@ -896,3 +896,11 @@ HEAP_SCAN_BACKGROUND_GRACE = 3.0
 # client is published, and the GUI asks for its size one to two seconds after that, so without
 # this the key map took the only place just before the resize asked and the resize waited a
 # whole pass. Nothing presses a key that soon after a hook.
+
+HEAP_SCAN_RETRY_DELAY = 1.0
+# Seconds a lookup waits before its one retry, when its pass skipped a region the game changed
+# under the read and found nothing usable. Regions change most as a client settles just after
+# its hook or a load, a burst of frees that a second outlasts, and the retry is a whole pass of
+# 2.2 to 2.5 s more on top: longer would add to a resize a player is waiting on, for a burst
+# already over, and none at all would read the same burst again. The wait holds no place in the
+# queue, so other clients' passes run meanwhile.

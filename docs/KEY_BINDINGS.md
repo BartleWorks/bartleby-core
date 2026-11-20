@@ -41,7 +41,8 @@ Interact to K and back left a list saying K. So the ring chosen is the one with 
 bindings, the player's whole set, and a ring with one is never taken for it.
 
 **A client that cannot be read gets the defaults.** `key_map()` never raises: a client whose
-list cannot be found presses the shipped default keys, with one warning, and is not scanned
+list cannot be found, a pass that skipped a region having been tried once more (below), presses
+the shipped default keys, with one warning, and is not scanned
 again until `key_map(refresh=True)`, which only a client's attach asks for. A run's start must
 not: live at r806919 has no list, so rescanning there held every run back about 8 s with four
 clients. The price is that a client whose attach scan fails on a build that has a list presses
@@ -135,7 +136,14 @@ so its passes are background ones, and a client's first resize is not held up by
 `HEAP_SCAN_BACKGROUND_GRACE` after the client's first request unless its resize comes first, and
 go along with that pass. In a traced four-client launch they finished about 25 s after the hooks,
 behind the resizes. A region the game frees while a pass reads it is skipped, so a client
-still settling after its load can miss its list and press the defaults until its next attach. A read
+still settling after its load can miss what a stage looks for. So a stage that finds nothing in a
+pass that skipped a region scans once more, after `HEAP_SCAN_RETRY_DELAY` (1 s), at the priority
+asked for then, and only a second empty answer, whole or not, means no list: the seed, the ring
+and the list are each retried on their own (`heap_scan.lookup`, traced as `heap_scan.retry` with
+the stage, `key_map.seed`, `key_map.ring` or `key_map.list`), and an unhook ends a retry still
+waiting. A stage that finds something is not retried: a seed pass that skipped the player's own
+binding but found one the bindings page left behind goes on, finds no whole set from it, and the
+client presses the defaults until its next attach. A read
 made while that scan is under way waits on it rather than starting a second, and promotes it:
 every caller but the warm-up asks at urgent (`key_map`'s `priority`), a follower starting to walk,
 a press, a run's pre-check, so the lookup's waiting request is raised to urgent with its grace

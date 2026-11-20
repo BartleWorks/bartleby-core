@@ -49,6 +49,18 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   raised request's span. `game_keys.key_map(..., priority=Priority.URGENT)` says how soon a scan
   for the list is wanted, and `find_binding_list(reader, priority=...)` takes a callable asked
   before each of its three scans, background unless given.
+- **`heap_scan.scan` returns `Hits`**, a `list` subclass, so every caller that unpacks or
+  compares its result works as it did: `hits.skipped` is how many regions the pass skipped as
+  the game changed them under the read, and `hits.incomplete` whether it skipped any.
+  **`heap_scan.lookup(reader, *patterns, priority=..., usable=..., caller=...)`** is a scan and
+  what an async `usable` makes of its hits; when that is nothing (falsy) and the pass was
+  incomplete, it waits `HEAP_SCAN_RETRY_DELAY` (1 s, new in `timing.py`), holding no place in
+  the queue, and scans once more, whose answer stands. *priority* may be a callable, asked
+  before each scan. `forget` ends a lookup waiting to retry with `ScanDropped`, and
+  `HeapScanner.retrying(reader)` counts those waiting. Traced as a `heap_scan.retry` mark with
+  the `caller`, slot, `hwnd`, `skipped` and `delay`. `SimMemory.unsettled` is how many passes
+  to come skip its heap and find nothing, and `testing.sim_client.SkippedWalk` is what a
+  double's `heap_regions()` returns for a pass that skipped regions.
 
 - **The run trace places a startup**, for BartleBuddy's slow first resize and late Team tab.
   `run_trace.mark(name, *, client=None, slot=None, **attrs)` writes a moment with no length, and
@@ -137,6 +149,18 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   lookup is under way promotes it, its waiting scan raised with its grace ended and its later
   scans asked at urgent, and it is still one lookup, scanned once. Its failure is as before: the
   defaults with one warning, until a refresh on attach.
+- **A lookup whose pass skipped a region tries once more before it fails.** An object in a
+  region the game changed under the read is not found, and both lookups took that for an
+  object not there: the resizer turned itself off for the client, and the key map pressed the
+  defaults, each until the next hook, for a condition that mostly lasts only while a client
+  settles after its hook. Now `find_config_nodes`, and each of `find_binding_list`'s three
+  stages on its own, scans once more after `HEAP_SCAN_RETRY_DELAY` when an incomplete pass gave
+  it nothing usable, at the priority asked for then, so a background warm-up's retry stays
+  background unless promoted meanwhile. A whole pass that finds nothing fails at once, and a
+  retry that is incomplete too fails as before. Both functions keep their signatures, so
+  BartleBot's `tools/probe_key_bindings.py` and BartleBuddy's `tools/probe_resize_scan.py`
+  call them unchanged, and get the retry. A product double of `heap_scan.scan` would need to
+  return `Hits`; neither product has one.
 - **`pymem` is a declared dependency of the `runtime` extra** (`>=1.13`), since
   `clients/heap_scan.py` imports it. It came only through wizwalker before.
 

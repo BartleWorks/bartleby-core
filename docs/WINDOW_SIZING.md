@@ -853,7 +853,12 @@ still equals the client size after every resize, so the 1:1 contract holds.
   loading or under a higher lease then is left as it is, with a warning. The files are `restore_ui_size` and
   `restore_game_prefs`, on quit and at the next start, so they run after the last apply.
 - **Any failure** is one warning, and no more is asked of that client until `forget(client)` and
-  it is hooked again.
+  it is hooked again. Finding no single node pair is a failure only once the scan is sure: a pass
+  that skipped a region the game changed under the read, as it does most just after a hook, may
+  have skipped the nodes, so the scan is made once more after `HEAP_SCAN_RETRY_DELAY` (1 s) first
+  (`heap_scan.lookup`), and only a second pass with no pair, whole or not, fails. A whole pass
+  with none fails at once. `forget(client)` ends a scan waiting to retry; `stop_all()` ends the
+  resize waiting on it, and the scan runs on, as any scan does, for the next resize to use.
 - **`stop_all()`** ends every resize still waiting. An apply under way finishes and reports first.
 
 The window's half is the product's two crossings around that:

@@ -16,20 +16,25 @@ from bartleby.runtime import run_trace
 from bartleby.runtime.clients import game_keys, heap_scan
 from bartleby.runtime.clients.client_resizer import find_config_nodes
 from bartleby.runtime.clients.heap_scan import HeapScanner, Priority, ScanDropped, find_all
-from bartleby.runtime.testing.sim_client import SimClient
+from bartleby.runtime.testing.sim_client import SimClient, SkippedWalk
 
 BASE = 0x1000_0000
 URGENT, BACKGROUND = Priority.URGENT, Priority.BACKGROUND
 
 
 class Memory:
-    """A process of a few regions. Its passes are logged in *log*, and wait for ``gate`` to open."""
+    """A process of a few regions. Its passes are logged in *log*, and wait for ``gate`` to open.
+
+    While ``unsettled``, a pass finds the first region changing under the read: it skips it,
+    and reads the rest.
+    """
 
     def __init__(self, name: str, log: list[str], *regions: bytes) -> None:
         self.name = name
         self.log = log
         self.regions = [(BASE + 0x10000 * i, data) for i, data in enumerate(regions or [b""])]
         self.scans = 0
+        self.unsettled = 0
         self.gate = threading.Event()
         self.gate.set()
         self.error: Exception | None = None
@@ -40,6 +45,9 @@ class Memory:
         assert self.gate.wait(5), "a test left a pass waiting"
         if self.error is not None:
             raise self.error
+        if self.unsettled:
+            self.unsettled -= 1
+            return SkippedWalk(self.regions[1:], skipped=1)
         return self.regions
 
     def hold(self) -> None:
@@ -50,6 +58,12 @@ class Memory:
 def no_grace(monkeypatch):
     """Background work starts at once, but in the tests of the grace, which give their own."""
     monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 0.0)
+
+
+@pytest.fixture(autouse=True)
+def quick_retry(monkeypatch):
+    """A lookup's wait before its retry, shortened. The tests of its end give their own."""
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 0.01)
 
 
 @pytest.fixture
@@ -450,6 +464,150 @@ async def test_a_pass_over_a_process_that_has_exited_fails_every_requester(monke
     assert [type(r) for r in results] == [heap_scan.ClientClosedError, heap_scan.ClientClosedError]
 
 
+async def test_a_pass_that_skipped_a_region_is_incomplete_for_each_requester_and_a_whole_one_is_not(monkeypatch):
+    process = Process(monkeypatch, _three_regions())
+    process.failures[0x10] = [_PARTIAL_COPY, _PARTIAL_COPY]
+    scanner, reader = HeapScanner(), Reader()
+    first, second = await asyncio.gather(
+        scanner.scan(reader, [b"<0>"], URGENT), scanner.scan(reader, [b"<20>"], BACKGROUND)
+    )
+    assert (first, second) == ([[0x0]], [[0x20]]), "still the lists they were"
+    assert (first.incomplete, first.skipped, second.incomplete, second.skipped) == (True, 1, True, 1)
+
+    whole = await scanner.scan(reader, [b"<10>"], URGENT)
+    assert whole == [[0x10]]
+    assert (whole.incomplete, whole.skipped) == (False, 0)
+
+
+async def test_a_double_s_regions_with_no_count_of_skips_are_a_whole_pass(memories):
+    hits = await HeapScanner().scan(memories("client", b"a"), [b"a"], URGENT)
+    assert hits == [[BASE]]
+    assert not hits.incomplete
+
+
+# -- a lookup's one retry -----------------------------------------------------------------------------------
+
+
+async def _first_pattern(hits: heap_scan.Hits) -> list[int]:
+    """What a lookup makes of its hits: the first pattern's, nothing if there are none."""
+    return hits[0]
+
+
+def _lookup(memory: Memory, pattern: bytes = b"x", priority=URGENT) -> asyncio.Task:
+    return asyncio.create_task(
+        heap_scan.lookup(memory, pattern, priority=priority, usable=_first_pattern, caller="test.lookup")
+    )
+
+
+@pytest.fixture
+def asked(monkeypatch) -> list[Priority]:
+    """The priority each scan was asked at, in order."""
+    asked: list[Priority] = []
+    real = heap_scan.scan
+
+    async def scan(reader, *patterns, priority):
+        asked.append(priority)
+        return await real(reader, *patterns, priority=priority)
+
+    monkeypatch.setattr(heap_scan, "scan", scan)
+    return asked
+
+
+def _end_retry_waits(memory: Memory) -> None:
+    """End *memory*'s waits before a retry now, as their delay would: a test's delay is a long one."""
+    for pause in list(heap_scan.scanner()._pausing.get(memory, ())):
+        heap_scan._end_pause(pause)
+
+
+async def test_a_lookup_that_found_nothing_in_an_incomplete_pass_scans_once_more(memories):
+    memory = memories("client", b"..x..")
+    memory.unsettled = 1
+    assert await _lookup(memory) == [BASE + 2]
+    assert memory.scans == 2
+
+
+async def test_a_lookup_that_found_nothing_in_a_whole_pass_concludes_at_once(memories, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = memories("client", b"nothing here")
+    assert await asyncio.wait_for(_lookup(memory), 5) == []
+    assert memory.scans == 1
+
+
+async def test_a_lookup_that_found_something_in_an_incomplete_pass_takes_it(memories, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = memories("client", b"the region that changed", b"x")
+    memory.unsettled = 1
+    assert await asyncio.wait_for(_lookup(memory), 5) == [BASE + 0x10000]
+    assert memory.scans == 1
+
+
+async def test_a_retry_that_is_incomplete_too_concludes(memories):
+    memory = memories("client", b"x")
+    memory.unsettled = 2
+    assert await _lookup(memory) == []
+    assert memory.scans == 2, "once more, never a third"
+
+
+async def test_a_retry_asks_at_the_priority_its_lookup_was_asked_at(memories, asked):
+    memory = memories("client", b"x")
+    memory.unsettled = 1
+    assert await _lookup(memory, priority=BACKGROUND) == [BASE]
+    assert asked == [BACKGROUND, BACKGROUND]
+
+
+async def test_a_lookup_raised_while_its_retry_waits_retries_at_urgent(memories, asked, monkeypatch):
+    """The priority is asked again before the retry, as the key map's raised lookup has it answer urgent."""
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = memories("client", b"x")
+    memory.unsettled = 1
+    now = [BACKGROUND]
+    lookup = asyncio.create_task(
+        heap_scan.lookup(memory, b"x", priority=lambda: now[0], usable=_first_pattern, caller="test.lookup")
+    )
+    await _until(lambda: heap_scan.scanner().retrying(memory) == 1)
+    now[0] = URGENT
+    _end_retry_waits(memory)
+    assert await asyncio.wait_for(lookup, 5) == [BASE]
+    assert asked == [BACKGROUND, URGENT]
+
+
+async def test_a_cancelled_lookup_s_wait_to_retry_ends_and_nothing_is_scanned_again(memories, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = memories("client", b"x")
+    memory.unsettled = 1
+    lookup = _lookup(memory)
+    await _until(lambda: heap_scan.scanner().retrying(memory) == 1)
+    lookup.cancel()
+    await asyncio.gather(lookup, return_exceptions=True)
+    assert lookup.cancelled()
+    assert heap_scan.scanner().retrying(memory) == 0
+    assert (memory.scans, heap_scan.scanner().waiting(memory)) == (1, 0)
+
+
+async def test_a_forgotten_client_s_wait_to_retry_ends_with_scan_dropped(memories, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = memories("client", b"x")
+    memory.unsettled = 1
+    lookup = _lookup(memory)
+    await _until(lambda: heap_scan.scanner().retrying(memory) == 1)
+    heap_scan.forget(memory)
+    with pytest.raises(ScanDropped):
+        await asyncio.wait_for(lookup, 5)
+    assert heap_scan.scanner().retrying(memory) == 0
+    assert memory.scans == 1
+
+
+async def test_a_wait_to_retry_holds_no_place_in_the_queue(memories, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    unsettled, other = memories("unsettled", b"x"), memories("other", b"y")
+    unsettled.unsettled = 1
+    lookup = _lookup(unsettled)
+    await _until(lambda: heap_scan.scanner().retrying(unsettled) == 1)
+    assert await asyncio.wait_for(heap_scan.scan(other, b"y", priority=URGENT), 5) == [[BASE]]
+    lookup.cancel()
+    await asyncio.gather(lookup, return_exceptions=True)
+
+
 # -- one place, and the grace ----------------------------------------------------------------------------
 
 
@@ -688,3 +846,25 @@ async def test_a_trace_shows_a_promotion(memories, tmp_path):
     assert (request["attrs"]["priority"], request["attrs"]["promoted"]) == ("background", True), "asked as, and raised"
     (pass_,) = [r for r in records if r.get("name") == "heap_scan.pass"]
     assert pass_["attrs"]["priority"] == "urgent"
+
+
+async def test_a_trace_shows_a_retry_and_both_of_its_passes(memories, tmp_path):
+    memory = memories("client", b"x")
+    memory.unsettled = 1
+    path = run_trace.start(lambda client: None, tmp_path)
+    try:
+        with run_trace.span("resize.find", slot=3, hwnd=77):
+            assert await _lookup(memory) == [BASE]
+    finally:
+        run_trace.stop()
+
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    (mark,) = [r for r in records if r["kind"] == "mark" and r["name"] == "heap_scan.retry"]
+    assert (mark["caller"], mark["slot"], mark["hwnd"], mark["skipped"]) == ("test.lookup", 3, 77, 1)
+    assert mark["delay"] == 0.01
+    passes = [r for r in records if r.get("name") == "heap_scan.pass"]
+    assert [p["attrs"]["skipped"] for p in passes] == [1, 0]
+    requests = [r for r in records if r.get("name") == "heap_scan.request"]
+    assert [r["attrs"]["pass_id"] for r in requests] == [p["attrs"]["pass_id"] for p in passes]
+    # Written as each ends: the first pass, then the retry's mark, then the second pass.
+    assert records.index(passes[0]) < records.index(mark) < records.index(passes[1])

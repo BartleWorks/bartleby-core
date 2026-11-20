@@ -38,6 +38,7 @@ def quick(monkeypatch):
     """A wait for a client to come free, shortened. Its reads count iterations, not seconds."""
     monkeypatch.setattr(client_resizer, "POLL_INTERVAL", 0.005)
     monkeypatch.setattr(client_resizer, "RESIZE_APPLY_POLL", 0.002)
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 0.01)
 
 
 @pytest.fixture
@@ -732,6 +733,82 @@ async def test_forgetting_a_client_takes_its_waiting_scan_out_of_the_queue(resiz
     assert client.hook_handler.scans == 0
 
 
+async def test_a_scan_that_skipped_a_region_and_found_no_pair_is_made_once_more_and_resizes(resizer, warnings):
+    """A client still settling after its hook: the region its nodes were in changed under the read."""
+    client = SimClient()
+    client.hook_handler.unsettled = 1
+    resizer.resize(client, _SMALL_SIZE)
+    await _settled(resizer, client)
+    assert client.hook_handler.scans == 2
+    assert client.game_size == _SMALL_SIZE
+    assert warnings() == []
+
+
+async def test_a_whole_scan_that_finds_no_pair_fails_at_once(resizer, warnings, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    client = SimClient()
+    client.hook_handler.forget_node(client.hook_handler.ui_size_node)
+    resizer.resize(client, _SMALL_SIZE)
+    await _settled(resizer, client)
+    assert client.hook_handler.scans == 1
+    assert len(warnings()) == 1
+
+
+async def test_a_retry_that_skips_a_region_too_fails_with_one_warning(resizer, warnings):
+    client = SimClient()
+    client.hook_handler.unsettled = 2
+    resizer.resize(client, _SMALL_SIZE)
+    await _settled(resizer, client)
+    assert client.hook_handler.scans == 2, "once more, never a third"
+    assert _writes(client) == []
+    assert len(warnings()) == 1
+
+    resizer.resize(client, _LARGE_SIZE)
+    await asyncio.sleep(0.01)
+    assert client.hook_handler.scans == 2
+    assert len(warnings()) == 1
+
+
+async def test_forgetting_a_client_ends_its_scan_s_wait_to_retry(resizer, warnings, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    client = SimClient()
+    client.hook_handler.unsettled = 1
+    resizer.resize(client, _SMALL_SIZE)
+    await _until(lambda: heap_scan.scanner().retrying(client.hook_handler) == 1)
+    scan = resizer._entries[client.window_handle].scan
+    await resizer.forget(client)
+    await asyncio.wait_for(asyncio.gather(scan, return_exceptions=True), 5)
+    assert scan.cancelled()
+    assert heap_scan.scanner().retrying(client.hook_handler) == 0
+    assert client.hook_handler.scans == 1
+    assert warnings() == []
+
+
+async def test_stop_all_ends_a_resize_waiting_on_a_retry_and_the_scan_runs_on(resizer, reports, monkeypatch):
+    """As for any scan: Stop all ends the resize waiting on it, and what the scan finds is kept for the next."""
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    client = SimClient()
+    client.hook_handler.unsettled = 1
+    resizer.resize(client, _SMALL_SIZE)
+    entry = resizer._entries[client.window_handle]
+    await _until(lambda: heap_scan.scanner().retrying(client.hook_handler) == 1)
+    worker = entry.task
+    await resizer.stop_all()
+    assert worker.done()
+    assert _writes(client) == []
+    assert not entry.scan.done(), "the scan is worth keeping"
+
+    for pause in list(heap_scan.scanner()._pausing[client.hook_handler]):
+        heap_scan._end_pause(pause)  # as its delay would
+    await asyncio.wait_for(entry.scan, 5)
+    assert entry.nodes is not None
+    assert (_writes(client), reports) == ([], [])
+    resizer.resize(client, _SMALL_SIZE)
+    await _settled(resizer, client)
+    assert client.hook_handler.scans == 2
+    assert client.game_size == _SMALL_SIZE
+
+
 async def test_forgetting_a_waiting_client_ends_its_wait(resizer, reports):
     client = SimClient(loading=True)
     resizer.resize(client, _SMALL_SIZE)
@@ -858,3 +935,27 @@ async def test_a_trace_places_each_part_of_a_resize(resizer, tmp_path):
     assert spans["heap_scan.pass"]["attrs"]["patterns"] == 2
     assert spans["resize.apply"]["parent"] == worker["id"]
     assert [r["name"] for r in records if r["kind"] == "mark"] == ["resize.leased"]
+
+
+async def test_a_trace_shows_the_scan_s_retry_inside_the_search_for_the_nodes(resizer, tmp_path):
+    client = SimClient()
+    client.hook_handler.unsettled = 1
+    path = run_trace.start(lambda c: 3 if c is client else None, tmp_path)
+    try:
+        resizer.resize(client, _SMALL_SIZE)
+        await _settled(resizer, client)
+    finally:
+        run_trace.stop()
+
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    (mark,) = [r for r in records if r["kind"] == "mark" and r["name"] == "heap_scan.retry"]
+    assert (mark["caller"], mark["slot"], mark["hwnd"], mark["skipped"]) == (
+        "resize.config_nodes",
+        3,
+        client.window_handle,
+        1,
+    )
+    (search,) = [r for r in records if r.get("name") == "resize.config_nodes"]
+    requests = [r for r in records if r.get("name") == "heap_scan.request"]
+    assert [r["parent"] for r in requests] == [search["id"]] * 2, "both requests are the one search's"
+    assert [r["attrs"]["skipped"] for r in records if r.get("name") == "heap_scan.pass"] == [1, 0]

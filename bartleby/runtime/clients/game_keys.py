@@ -20,7 +20,8 @@ asking while a background lookup is under way promotes it, its remaining scans i
 
 **Never a reason not to run.** A client whose bindings cannot be read gets the game's
 defaults for the actions BartleBot presses, with one warning, until ``key_map(refresh=True)``
-tries again: a client's attach does. A run's start does not, since a build with no list, as
+tries again: a client's attach does. Cannot be read means a lookup that is sure: a stage that
+found nothing in a pass that skipped a region the game changed under it scans once more first. A run's start does not, since a build with no list, as
 live was at r806919, would scan every client before every run, eight seconds with four.
 
 **Pressed by action.** ``press(client, GameAction.INTERACT)`` sends whatever key that client's
@@ -31,6 +32,7 @@ one out. ``docs/KEY_BINDINGS.md``.
 from __future__ import annotations
 
 import asyncio
+import functools
 import logging
 import struct
 from collections.abc import Callable
@@ -116,9 +118,9 @@ def _pointers_to(addresses) -> tuple[bytes, ...]:
     return tuple(struct.pack("<Q", a) for a in sorted(set(addresses)))
 
 
-async def _scan(reader, pattern: heap_scan.Pattern, priority: heap_scan.Priority) -> list[int]:
-    """The 8-aligned hits of one pass."""
-    (found,) = await heap_scan.scan(reader, pattern, priority=priority)
+def _aligned(hits: heap_scan.Hits) -> list[int]:
+    """The 8-aligned hits of a one-pattern pass."""
+    (found,) = hits
     return [a for a in found if a % 8 == 0]
 
 
@@ -158,6 +160,35 @@ async def _ring(reader, start_node: int, vtable: int) -> tuple[int, int] | None:
     return None
 
 
+async def _seeds(reader, hits: heap_scan.Hits) -> list[int]:
+    """The InputBindings holding "NPCInteract" among a pass's hits for it."""
+    return [s for s in (hit - ACTION for hit in _aligned(hits)) if await type_name(reader, s) == "InputBinding"]
+
+
+async def _whole_sets(reader, vtable: int, hits: heap_scan.Hits) -> dict[int, int]:
+    """Each ring of two or more bindings the hits' list nodes are on, by sentinel: its member count.
+
+    A ring of one is the bindings page's leftover, no whole set to read.
+    """
+    rings: dict[int, int] = {}
+    for hit in _aligned(hits):
+        try:
+            found = await _ring(reader, hit - NODE_VALUE, vtable)
+        except Exception:  # noqa: BLE001 - a pointer that is no list node leads into garbage
+            continue
+        if found is not None:
+            rings[found[0]] = found[1]
+    return {sentinel: members for sentinel, members in rings.items() if members >= 2}
+
+
+async def _list_at(reader, hits: heap_scan.Hits) -> int | None:
+    """The InputBindingList among a pass's hits for pointers to a sentinel, or None."""
+    for pointer in _aligned(hits):
+        if await type_name(reader, pointer - LIST_HEAD) == "InputBindingList":
+            return pointer - LIST_HEAD
+    return None
+
+
 async def find_binding_list(reader, priority: Callable[[], heap_scan.Priority] = _background) -> int | None:
     """The address of the client's InputBindingList, or None.
 
@@ -169,27 +200,35 @@ async def find_binding_list(reader, priority: Callable[[], heap_scan.Priority] =
     key bindings page leaves lists of its own behind, one binding each, inside an
     ``InputBindingData`` per row, and a row can still hold a key the player has since changed;
     so the ring chosen is the one with the most bindings, the player's whole set.
+
+    Each stage is a ``heap_scan.lookup``: a stage that finds nothing in a pass that skipped a
+    region the game changed under it scans once more after ``HEAP_SCAN_RETRY_DELAY``, at the
+    priority asked for then, and only then is the list not there.
     """
-    seeds = [hit - ACTION for hit in await _scan(reader, _SEED, priority())]
-    seeds = [s for s in seeds if await type_name(reader, s) == "InputBinding"]
+    seeds = await heap_scan.lookup(
+        reader, _SEED, priority=priority, usable=functools.partial(_seeds, reader), caller="key_map.seed"
+    )
     if not seeds:
         return None
     vtable = await _u64(reader, seeds[0])
-    rings: dict[int, int] = {}
-    for hit in await _scan(reader, _pointers_to(seeds), priority()):
-        try:
-            found = await _ring(reader, hit - NODE_VALUE, vtable)
-        except Exception:  # noqa: BLE001 - a pointer that is no list node leads into garbage
-            continue
-        if found is not None:
-            rings[found[0]] = found[1]
+    rings = await heap_scan.lookup(
+        reader,
+        _pointers_to(seeds),
+        priority=priority,
+        usable=functools.partial(_whole_sets, reader, vtable),
+        caller="key_map.ring",
+    )
     # Largest first, and only a ring a list still points at: a freed list can leave its ring.
     for sentinel in sorted(rings, key=rings.__getitem__, reverse=True):
-        if rings[sentinel] < 2:
-            break  # only the bindings page's leftovers: no whole set to read
-        for pointer in await _scan(reader, _pointers_to([sentinel]), priority()):
-            if await type_name(reader, pointer - LIST_HEAD) == "InputBindingList":
-                return pointer - LIST_HEAD
+        address = await heap_scan.lookup(
+            reader,
+            _pointers_to([sentinel]),
+            priority=priority,
+            usable=functools.partial(_list_at, reader),
+            caller="key_map.list",
+        )
+        if address is not None:
+            return address
     return None
 
 

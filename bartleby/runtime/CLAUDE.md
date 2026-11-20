@@ -276,12 +276,21 @@ other `key_map` caller (a press, a held key, a run's pre-check) asks at urgent, 
 still under way, its later stages included. A promoted request is still one request in one pass. A region that changes under the read (the game frees
 regions all the time as a client settles after a load) is read once more, then skipped and
 counted, never a failed pass; wizwalker's walk failed the whole scan on one, and cost a client its
-key map for the session. Only an exited process or a bad handle fails a pass. Ask for every
+key map for the session. Only an exited process or a bad handle fails a pass. **A lookup that finds
+nothing in a pass that skipped a region tries once more** before it concludes the object isn't
+there: `scan` returns `Hits`, a list that is `incomplete` when its pass skipped a region, and
+`heap_scan.lookup(reader, *patterns, priority=…, usable=…, caller=…)` scans, and if `usable` makes
+nothing of an incomplete pass, waits `HEAP_SCAN_RETRY_DELAY`, holding no place in the queue, and
+scans once more at the priority asked for then, whose answer stands. A requester that concludes
+anything from finding nothing goes through `lookup`, as `find_config_nodes` and each of the key
+map's three stages do, since concluding wrongly turns its feature off for the client until the next
+hook. The trace marks a retry `heap_scan.retry`, naming its `caller`. Ask for every
 pattern a step needs in one call, as `find_config_nodes` does for both names. A pattern is a
 literal or a set of literals, never a regex: the pass searches with `bytes.find`, since
 wizwalker's `regex` gives up and retakes the GIL constantly while it searches for an
 alternation, and beside one busy thread ran 240 times slower. An unhook or a closed window calls
-`heap_scan.forget`, which ends that client's waiting requests with `ScanDropped`. Module scans
+`heap_scan.forget`, which ends that client's waiting requests, and its lookups waiting to retry,
+with `ScanDropped`; a cancel ends a waiting retry too. Module scans
 (`module=`) are wizwalker's, and stay so.
 
 ## Comparing a zone a bot names with one a client is in

@@ -20,13 +20,16 @@ embeds the window hears how it ended, as the game has taken it out of its tile b
 before that task starts simply ends the resize.
 
 **Any failure means today's behavior.** One warning, the client keeps its last size, and nothing
-more is tried on it until :meth:`ClientResizer.forget` and it is hooked again.
+more is tried on it until :meth:`ClientResizer.forget` and it is hooked again. Finding no node
+pair is a failure only once the scan is sure: a pass that skipped a region the game changed under
+it is made once more first (:func:`find_config_nodes`).
 """
 
 from __future__ import annotations
 
 import asyncio
 import contextlib
+import functools
 import logging
 import struct
 import time
@@ -114,11 +117,23 @@ async def find_config_nodes(reader) -> ConfigNodes | None:
     second class's copies, some of them marked, hold no pointer.
 
     Both names are found in one pass over the process, urgent, since a player waits on it
-    (``heap_scan``).
+    (``heap_scan``). A pass that skipped a region the game changed under it, and found no
+    single pair, is made once more after ``HEAP_SCAN_RETRY_DELAY`` (``heap_scan.lookup``), so
+    a client still settling after its hook does not cost the resizer that client.
     """
-    ui_size_hits, resolution_hits = await heap_scan.scan(
-        reader, _UI_SIZE + b"\x00", _RESOLUTION + b"\x00", priority=heap_scan.Priority.URGENT
+    return await heap_scan.lookup(
+        reader,
+        _UI_SIZE + b"\x00",
+        _RESOLUTION + b"\x00",
+        priority=heap_scan.Priority.URGENT,
+        usable=functools.partial(_live_pair, reader),
+        caller="resize.config_nodes",
     )
+
+
+async def _live_pair(reader, hits: heap_scan.Hits) -> ConfigNodes | None:
+    """The one live pair among a pass's hits for the two names, or None."""
+    ui_size_hits, resolution_hits = hits
     ui_sizes = [n for n in await _nodes_at(reader, ui_size_hits) if n.marked and n.has_string]
     if len(ui_sizes) != 1:
         return None

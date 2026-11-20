@@ -14,6 +14,7 @@ from wizwalker.errors import MemoryReadError
 
 from bartleby.runtime.clients import game_keys, heap_scan
 from bartleby.runtime.game.key_bindings import PREFIX, Binding, GameAction, KeyMap
+from bartleby.runtime.testing.sim_client import SkippedWalk
 from tests.conftest import FakeClient
 
 BASE = 0x2000_0000
@@ -24,6 +25,8 @@ class FakeMemory:
     """One region of a process: objects placed in it, read and scanned as the game's would be.
 
     Class names, which the real reader finds through an object's vtable, are a table here.
+    The passes numbered in ``unsettled`` (the first is 1) find the region changing under the
+    read, as a client's does just after its hook: they skip it, and find nothing.
     """
 
     def __init__(self) -> None:
@@ -31,6 +34,7 @@ class FakeMemory:
         self.next = 0x100
         self.names: dict[int, str] = {}
         self.scans = 0
+        self.unsettled: set[int] = set()
         self.gate = threading.Event()
         self.gate.set()
 
@@ -92,6 +96,8 @@ class FakeMemory:
         """The region, for a pass of heap_scan's."""
         self.scans += 1
         assert self.gate.wait(5), "a test left a pass waiting"
+        if self.scans in self.unsettled:
+            return SkippedWalk(skipped=1)
         return [(BASE, bytes(self.data))]
 
 
@@ -109,6 +115,12 @@ class MemoryClient:
 def _no_grace(monkeypatch):
     """The key map's scans start at once: no resize here for them to wait on (heap_scan's grace)."""
     monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 0.0)
+
+
+@pytest.fixture(autouse=True)
+def _quick_retry(monkeypatch):
+    """A stage's wait before its retry, shortened. The tests of its end give their own."""
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 0.01)
 
 
 @pytest.fixture(autouse=True)
@@ -442,3 +454,97 @@ async def test_a_promoted_lookup_that_fails_keeps_the_defaults_with_one_warning(
     await game_keys.press(client, GameAction.INTERACT)
     assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
     assert memory.scans == 1, "no scan per press"
+
+
+# -- a pass that skipped a region ----------------------------------------------------------------------------
+
+
+@pytest.fixture
+def retried(monkeypatch) -> list[str]:
+    """The caller of each wait before a retry, in order: the stage that came up empty."""
+    retried: list[str] = []
+    real = heap_scan.HeapScanner.pause_before_retry
+
+    async def pause_before_retry(self, reader, caller, skipped):
+        retried.append(caller)
+        await real(self, reader, caller, skipped)
+
+    monkeypatch.setattr(heap_scan.HeapScanner, "pause_before_retry", pause_before_retry)
+    return retried
+
+
+def _end_retry_waits(memory: FakeMemory) -> None:
+    """End *memory*'s waits before a retry now, as their delay would: a test's delay is a long one."""
+    for pause in list(heap_scan.scanner()._pausing.get(memory, ())):
+        heap_scan._end_pause(pause)
+
+
+@pytest.mark.parametrize("stage, unsettled", [("seed", 1), ("ring", 2), ("list", 3)])
+async def test_a_stage_that_found_nothing_in_an_incomplete_pass_is_scanned_once_more(stage, unsettled, retried, caplog):
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    memory.unsettled = {unsettled}
+    keys = await game_keys.key_map(MemoryClient(memory))
+    assert keys.source == "memory"
+    assert keys.choose(GameAction.INTERACT).code == ord("K")
+    assert retried == [f"key_map.{stage}"]
+    assert memory.scans == 4, "that stage twice, the others once"
+    assert not [r for r in caplog.records if r.levelname == "WARNING"]
+
+
+async def test_a_stage_whose_retry_is_incomplete_too_gives_the_defaults_with_one_warning(retried, caplog):
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    memory.unsettled = {1, 2}
+    client = MemoryClient(memory)
+    assert (await game_keys.key_map(client)).source == "defaults"
+    assert retried == ["key_map.seed"]
+    assert memory.scans == 2, "once more, never a third"
+    assert (await game_keys.key_map(client)).source == "defaults"
+    assert memory.scans == 2
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
+
+
+async def test_a_whole_pass_that_finds_no_list_is_not_scanned_again(retried, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = FakeMemory()  # nothing in it
+    assert (await asyncio.wait_for(game_keys.key_map(MemoryClient(memory)), 5)).source == "defaults"
+    assert (memory.scans, retried) == (1, [])
+
+
+async def test_a_warm_up_s_retry_stays_in_the_background(asked):
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    memory.unsettled = {2}
+    assert (await _warm_up(MemoryClient(memory))).source == "memory"
+    assert asked == [BACKGROUND] * 4
+
+
+async def test_a_warm_up_promoted_while_its_retry_waits_retries_at_urgent(asked, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    memory.unsettled = {1}
+    client = MemoryClient(memory)
+    warm = _warm_up(client)
+    await _until(lambda: heap_scan.scanner().retrying(memory) == 1)
+    press = asyncio.create_task(game_keys.press(client, GameAction.INTERACT))
+    await asyncio.sleep(0)  # the press asks, raising the lookup, and waits on it
+    _end_retry_waits(memory)
+    await asyncio.wait_for(press, 5)
+    client.send_key.assert_awaited_once_with(Keycode.K, 0)
+    assert (await warm).source == "memory"
+    assert asked == [BACKGROUND, URGENT, URGENT, URGENT]
+
+
+async def test_forgetting_a_client_ends_its_key_map_s_wait_to_retry(monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    memory.unsettled = {1}
+    warm = _warm_up(MemoryClient(memory))
+    await _until(lambda: heap_scan.scanner().retrying(memory) == 1)
+    heap_scan.forget(memory)
+    assert (await asyncio.wait_for(warm, 5)).source == "defaults"
+    assert heap_scan.scanner().retrying(memory) == 0
+    assert memory.scans == 1

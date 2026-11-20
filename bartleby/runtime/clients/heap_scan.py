@@ -51,14 +51,24 @@ time, most of all as a client settles after a load, and a region freed between a
 and reading it fails the read. It is asked about and read once more, then skipped and counted
 (:class:`_ProcessRegions`), where wizwalker's walk failed the whole scan: in game, one such
 region cost a client its key map for the session. An object in a skipped region is simply not
-found, as if it weren't there.
+found, as if it weren't there, so the pass's :class:`Hits` say it was ``incomplete``.
+
+**A lookup that found nothing in an incomplete pass tries once more.** A requester that makes
+nothing usable of its hits cannot tell an object that isn't there from one in a region the
+pass skipped, and concluding the first is costly: the resizer turns itself off for the client,
+the key map presses the defaults, each until the next hook. :func:`lookup` is a scan and what
+its caller makes of the hits; when that is nothing and the pass was incomplete, it waits
+``HEAP_SCAN_RETRY_DELAY``, holding no place in the queue, and scans once more at the priority
+the caller asks for then, so a background lookup's retry stays background unless promoted
+meanwhile. Whatever the second makes of its hits is the answer, incomplete or not. A complete
+pass that finds nothing is the answer at once.
 
 **Cancelled, failed, forgotten.** A requester cancelled while it waits leaves the queue. A pass
 under way can't be stopped: it finishes, and serves the rest. A pass that raises, because the
 process has exited or its handle is bad, raises to each of its requesters, so each caller's
 failure handling holds.
 :func:`forget`, as a client is unhooked or its window closes, ends each of its waiting requests
-with :class:`ScanDropped`.
+with :class:`ScanDropped`, and each lookup waiting to retry, which a cancel ends too.
 
 **Traced.** Each pass is a ``heap_scan.pass`` span outside any caller's, since it serves several,
 with the first requester's slot and ``hwnd`` (the window an enclosing span of the caller names,
@@ -68,7 +78,9 @@ for a client not yet on a team), its number (``pass_id``), its ``priority``, how
 ``hwnd``, its ``wait`` in the queue and the ``pass_id`` that served it, so a request's span
 less its wait is its pass. A promotion is a ``heap_scan.promoted`` mark, with the client's slot
 and ``hwnd``, how many ``requests`` it raised and how long the first had ``waited``, and each
-request it raised has ``promoted`` set on its span.
+request it raised has ``promoted`` set on its span. A retry is a ``heap_scan.retry`` mark as its
+wait begins, with the ``caller`` (``resize.config_nodes``, or the key map's stage), the slot and
+``hwnd``, the regions the first pass ``skipped`` and the ``delay``; the retry's request follows.
 """
 
 from __future__ import annotations
@@ -82,7 +94,7 @@ import logging
 import math
 import time
 import weakref
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Awaitable, Callable, Iterable, Iterator
 from dataclasses import dataclass, field
 
 import pymem.exception
@@ -93,7 +105,7 @@ from wizwalker.memory.memory_reader import MemoryReader
 from wizwalker.utils import check_if_process_running
 
 from bartleby.runtime import run_trace
-from bartleby.runtime.timing import HEAP_SCAN_BACKGROUND_GRACE, HEAP_SCAN_PASSES
+from bartleby.runtime.timing import HEAP_SCAN_BACKGROUND_GRACE, HEAP_SCAN_PASSES, HEAP_SCAN_RETRY_DELAY
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +143,24 @@ class Priority(enum.IntEnum):
 
 class ScanDropped(Exception):
     """The client was unhooked or closed while the request waited, so no pass will serve it."""
+
+
+class Hits(list):
+    """Each pattern's hits, in the order asked: a list of lists, which also says whether its pass was whole.
+
+    A list, so a caller that unpacks or compares one is none the wiser; ``skipped`` is how many
+    regions the pass skipped as the game changed them under the read, any of which may have held
+    a hit.
+    """
+
+    def __init__(self, hits: Iterable[list[int]] = (), skipped: int = 0) -> None:
+        super().__init__(hits)
+        self.skipped = skipped
+
+    @property
+    def incomplete(self) -> bool:
+        """Whether the pass skipped a region: a hit not here may only have been in it."""
+        return self.skipped > 0
 
 
 def find_all(data: bytes, literals: tuple[bytes, ...]) -> list[int]:
@@ -249,13 +279,20 @@ class HeapScanner:
     """The queue of one event loop's heap scans. Use the module's :func:`scan` and :func:`forget`."""
 
     def __init__(
-        self, passes: int | None = None, background_passes: int | None = None, grace: float | None = None
+        self,
+        passes: int | None = None,
+        background_passes: int | None = None,
+        grace: float | None = None,
+        retry_delay: float | None = None,
     ) -> None:
         self.passes = HEAP_SCAN_PASSES if passes is None else passes
         # With one place, background work takes it when nothing urgent waits; with more, all but one.
         self.background_passes = max(1, self.passes - 1) if background_passes is None else background_passes
         self.grace = HEAP_SCAN_BACKGROUND_GRACE if grace is None else grace
+        self.retry_delay = HEAP_SCAN_RETRY_DELAY if retry_delay is None else retry_delay
         self._waiting: dict[object, list[_Request]] = {}
+        # Each client's lookups waiting out the delay before a retry, which forget ends.
+        self._pausing: dict[object, set[asyncio.Future]] = {}
         # When each client first asked (the loop's clock), and which have had an urgent pass.
         self._first_asked: dict[object, float] = {}
         self._had_urgent: set[object] = set()
@@ -276,7 +313,11 @@ class HeapScanner:
         """Requests waiting on *reader*'s next pass."""
         return len(self._waiting.get(reader, ()))
 
-    async def scan(self, reader, patterns: Iterable[Pattern], priority: Priority) -> list[list[int]]:
+    def retrying(self, reader) -> int:
+        """Lookups on *reader* waiting out the delay before their retry."""
+        return len(self._pausing.get(reader, ()))
+
+    async def scan(self, reader, patterns: Iterable[Pattern], priority: Priority) -> Hits:
         """Each pattern's hits in *reader*'s memory, from the next pass over it. See the module."""
         regions = _regions_of(reader)
         literals = tuple(_literals(p) for p in patterns)
@@ -309,15 +350,54 @@ class HeapScanner:
                     run_trace.note(wait=round(request.began - request.queued, 4), pass_id=request.pass_id)
 
     def forget(self, reader) -> None:
-        """End each request waiting on *reader* with :class:`ScanDropped`. A pass under way runs on.
+        """End each request waiting on *reader*, and each lookup waiting to retry, with :class:`ScanDropped`.
 
-        Hooked again, the client starts afresh, its background grace included.
+        A pass under way runs on. Hooked again, the client starts afresh, its background grace
+        included.
         """
         self._first_asked.pop(reader, None)
         self._had_urgent.discard(reader)
         for request in self._waiting.pop(reader, []):
             if not request.future.done():
                 request.future.set_exception(ScanDropped("the client is gone or unhooked"))
+        for pause in self._pausing.pop(reader, ()):
+            if not pause.done():
+                pause.set_exception(ScanDropped("the client is gone or unhooked"))
+
+    async def pause_before_retry(self, reader, caller: str, skipped: int) -> None:
+        """Wait ``retry_delay`` before *caller* scans *reader* again, holding no place in the queue.
+
+        Raises :class:`ScanDropped` if :meth:`forget` is told of the client first. *caller* and
+        *skipped*, the regions the first pass skipped, are for the trace and the log.
+        """
+        loop = asyncio.get_running_loop()
+        pause = loop.create_future()
+        timer = loop.call_later(self.retry_delay, _end_pause, pause)
+        pauses = self._pausing.setdefault(reader, set())
+        pauses.add(pause)
+        hwnd = run_trace.enclosing("hwnd")
+        run_trace.mark(
+            "heap_scan.retry",
+            slot=run_trace.current_slot(),
+            caller=caller,
+            skipped=skipped,
+            delay=self.retry_delay,
+            **({} if hwnd is None else {"hwnd": hwnd}),
+        )
+        logger.debug(
+            "%s found nothing in a pass that skipped %d region(s) (window %s); trying once more in %.1f s",
+            caller,
+            skipped,
+            hwnd,
+            self.retry_delay,
+        )
+        try:
+            await pause
+        finally:
+            timer.cancel()
+            pauses.discard(pause)
+            if not pauses and self._pausing.get(reader) is pauses:
+                del self._pausing[reader]
 
     def promote(self, reader) -> int:
         """Raise each background request waiting on *reader* to urgent, and end its grace. How many it raised.
@@ -455,7 +535,7 @@ class HeapScanner:
             by_pattern = dict(zip(patterns, hits))
             for request in requests:
                 if not request.future.done():
-                    request.future.set_result([list(by_pattern[p]) for p in request.patterns])
+                    request.future.set_result(Hits((list(by_pattern[p]) for p in request.patterns), skipped))
         self._finish(priority)
         self._dispatch()
 
@@ -463,6 +543,11 @@ class HeapScanner:
         self._running -= 1
         if priority is Priority.BACKGROUND:
             self._running_background -= 1
+
+
+def _end_pause(pause: asyncio.Future) -> None:
+    if not pause.done():
+        pause.set_result(None)
 
 
 # One per event loop: a scanner's futures and tasks belong to the loop that made them.
@@ -478,13 +563,42 @@ def scanner() -> HeapScanner:
     return found
 
 
-async def scan(reader, *patterns: Pattern, priority: Priority) -> list[list[int]]:
+async def scan(reader, *patterns: Pattern, priority: Priority) -> Hits:
     """Each of *patterns*' hits in the memory *reader* reads, in order, from one pass shared with whatever else waits.
 
     A pattern is a literal or a set of literals. Raises what the pass raised, or
     :class:`ScanDropped` if :func:`forget` was told of the client first. No hit is an empty list.
+    The :class:`Hits` say whether the pass was ``incomplete``, having skipped a region.
     """
     return await scanner().scan(reader, patterns, priority)
+
+
+async def lookup[T](
+    reader,
+    *patterns: Pattern,
+    priority: Priority | Callable[[], Priority],
+    usable: Callable[[Hits], Awaitable[T]],
+    caller: str,
+) -> T:
+    """What *usable* makes of a scan's hits, scanned once more if that is nothing and the pass was incomplete.
+
+    Nothing is anything falsy: None, or an empty list or dict. The retry waits
+    ``HEAP_SCAN_RETRY_DELAY`` first, holding no place in the queue, and whatever it makes of
+    its hits is the answer, incomplete or not. *priority* may be a callable, asked before each
+    scan, so a lookup promoted while it waits retries at urgent. *caller* names the lookup in
+    the trace's ``heap_scan.retry`` mark. Raises what :func:`scan` raises, and
+    :class:`ScanDropped` if the client is forgotten while the retry waits.
+    """
+
+    def now() -> Priority:
+        return priority() if callable(priority) else priority
+
+    hits = await scan(reader, *patterns, priority=now())
+    found = await usable(hits)
+    if found or not hits.incomplete:
+        return found
+    await scanner().pause_before_retry(reader, caller, hits.skipped)
+    return await usable(await scan(reader, *patterns, priority=now()))
 
 
 def promote(reader) -> int:

@@ -14,6 +14,7 @@ Wizard101 process.
 
 import asyncio
 import json
+import time
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -129,6 +130,23 @@ _TEST_INTERVAL = 0.01
 async def _tick(cycles: float = 4) -> None:
     """Let the loop run for a few of its detection cycles."""
     await asyncio.sleep(_TEST_INTERVAL * cycles)
+
+
+async def _until(condition, timeout: float = 5) -> None:
+    """Wait for *condition*, however many cycles a loaded machine takes to reach it.
+
+    For anything a test asserts the loop has done. A fixed ``_tick`` is only for a test
+    asserting something has *not* happened, which no wait can be sure of.
+    """
+    deadline = time.monotonic() + timeout
+    while not condition():
+        assert time.monotonic() < deadline, "it never happened"
+        await asyncio.sleep(0.002)
+
+
+def _passes(harness: "LoopHarness") -> int:
+    """How many passes the loop has made: each asks the titles to place its clients once."""
+    return harness._refresh_account_map.call_count
 
 
 @pytest.fixture(autouse=True)
@@ -426,9 +444,9 @@ async def test_a_trace_places_a_client_s_hooking_and_its_publishing(harness, tmp
     path = run_trace.start(lambda c: None, tmp_path)
     harness.start()
     try:
-        await _tick(2)
+        await _until(lambda: harness._activating_hwnds == {100})
         client.hooks_ready.set_result(None)
-        await _tick(3)
+        await _until(lambda: harness.published_hwnds == {100})
     finally:
         harness.stop()
         run_trace.stop()
@@ -483,14 +501,14 @@ async def test_a_titled_client_is_published_while_its_identity_is_still_being_re
     harness.start()
     try:
         client.hooks_ready.set_result(None)
-        await _tick(4)
-        assert harness.published_hwnds == {100}
+        await _until(lambda: harness.published_hwnds == {100} and client.game_client.user_id.await_count == 1)
+        passes = _passes(harness)
+        await _until(lambda: _passes(harness) >= passes + 3)
         assert client.game_client.user_id.await_count == 1, "begun once, and not again each pass"
         assert not _learned(harness, "alpha")
 
         read.set()
-        await _tick(2)
-        assert _learned(harness, "alpha")
+        await _until(lambda: _learned(harness, "alpha"))
     finally:
         read.set()
         harness.stop()
@@ -514,7 +532,7 @@ async def test_an_untitled_client_is_placed_by_its_identity_before_it_is_publish
     harness.start()
     try:
         client.hooks_ready.set_result(None)
-        await _tick(3)
+        await _until(lambda: published)
         assert published[0] == ({100: "alpha"}, ["alpha"])
     finally:
         harness.stop()
@@ -529,9 +547,8 @@ async def test_stop_cancels_a_read_learning_an_identity(harness, _fixed_key):
     harness._settings.accounts = [{"username": "alpha"}]
     harness.start()
     client.hooks_ready.set_result(None)
-    await _tick(3)
+    await _until(lambda: len(harness._identity_tasks) == 1)
     tasks = list(harness._identity_tasks.values())
-    assert len(tasks) == 1
 
     harness.stop()
     await asyncio.gather(*tasks, return_exceptions=True)
@@ -550,7 +567,10 @@ async def test_a_trace_shows_an_identity_learned_apart_from_the_pass(harness, _f
     harness.start()
     try:
         client.hooks_ready.set_result(None)
-        await _tick(5)
+        await _until(lambda: _learned(harness, "alpha"))
+        # Passes that have the id now, which must learn it without a read, and so without a span.
+        passes = _passes(harness)
+        await _until(lambda: _passes(harness) >= passes + 3)
     finally:
         harness.stop()
         run_trace.stop()
