@@ -1,8 +1,8 @@
 """Each client's own speed, kept once for every writer of its speed field.
 
-Two things wrote a wizard's speed field in BartleBuddy: the Speed toggle
-(:class:`~bartleby.runtime.actions.helpers.SpeedBoost`) and a follower walking, which is
-shelved on the ``walking-shelf`` branch with the rest of following. Each gives the field back when it's
+Two things write a wizard's speed field in BartleBuddy: the Speed toggle
+(:class:`~bartleby.runtime.actions.helpers.SpeedBoost`) and a follower walking
+(:class:`~bartleby.runtime.movement.follow.Follower`). Each gives the field back when it's
 done, to the value the game had put there, which it takes to be any value it didn't write
 itself. With two writers that's wrong: the boost would read a follower's 2.0x as the game's
 own and give it back as the wizard's speed. So the writers of one team share a ledger, which
