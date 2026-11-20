@@ -175,7 +175,7 @@ repo.
 | file | covers |
 |---|---|
 | `bartleby/qt/CLAUDE.md` | the family's GUI rules: theming, popup menus, the title bar, buttons, headings, account colors, parenting, game art, offscreen renders, qasync, task lifetime, window sizing, tile slots, the player card refresh, keyboard reordering |
-| `bartleby/runtime/CLAUDE.md` | the arbiter, timing, logging, pressing keys, cancellation, multi-client coordination, zones, closing windows, modal dialogs, NPC dialogue, UI paths |
+| `bartleby/runtime/CLAUDE.md` | the arbiter, timing, logging, pressing keys, cancellation, multi-client coordination, scanning a client's whole memory, zones, closing windows, modal dialogs, NPC dialogue, UI paths |
 | `tests/CLAUDE.md` | keeping a suite fast, CI-only failures, widget lifetime, one QApplication per worker |
 | `docs/ARCHITECTURE.md` | the tiers, what lives where, the three cuts, how a product takes core, how rules reach a session |
 | `docs/WIZARD101.md` | the game rules that shape design: characters, moving and what the server allows of it, battles, fleeing, level scaling, marks, Challenge Mode, sigils, banks, and combat as players fight it |

@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-import re
 import struct
 
 import pytest
 from wizwalker import Keycode
 from wizwalker.errors import MemoryReadError
 
-from bartleby.runtime.clients import game_keys
+from bartleby.runtime.clients import game_keys, heap_scan
 from bartleby.runtime.game.key_bindings import PREFIX, Binding, GameAction, KeyMap
 from tests.conftest import FakeClient
 
@@ -84,9 +83,10 @@ class FakeMemory:
             raise MemoryReadError(address)
         return bytes(self.data[address - BASE : address - BASE + size])
 
-    async def pattern_scan(self, pattern: bytes, *, module=None, return_multiple=False):
+    def heap_regions(self) -> list[tuple[int, bytes]]:
+        """The region, for a pass of heap_scan's."""
         self.scans += 1
-        return [BASE + m.start() for m in re.finditer(pattern, bytes(self.data), re.DOTALL)]
+        return [(BASE, bytes(self.data))]
 
 
 class MemoryClient:
@@ -96,6 +96,12 @@ class MemoryClient:
         MemoryClient._next += 1
         self.window_handle = MemoryClient._next
         self.hook_handler = memory
+
+
+@pytest.fixture(autouse=True)
+def _no_grace(monkeypatch):
+    """The key map's scans start at once: no resize here for them to wait on (heap_scan's grace)."""
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 0.0)
 
 
 @pytest.fixture(autouse=True)

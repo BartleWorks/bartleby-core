@@ -24,7 +24,12 @@ and a rebind saved in game changed the list in place, the same address, at once.
 at the list, so finding it takes a scan of the process: the `InputBinding` holding
 `NPCInteract`, whose name sits inside the object; the list nodes pointing at it; the ring
 they are on; the list pointing at the ring's sentinel. About 4 s on a fresh client, nearer 10
-once the game's key bindings page has been opened. The address is then kept per window and
+once the game's key bindings page has been opened. Each of the three is a background request to
+`clients/heap_scan.py`, so it waits behind any resize a player is waiting on and shares a pass
+with whatever else that client has waiting, the resizer's names above all. The pointers are
+searched as literals, one at a time: as a regex alternation, which wizwalker's scan made of them,
+the search gave up and retook the GIL constantly, which is likely why more seeds, the bindings
+page's, cost so much more. The address is then kept per window and
 every read goes through it, about 10 ms, which is what makes a rebind mid-session visible
 without another scan. An address that no longer holds a list is found again.
 
@@ -124,8 +129,12 @@ before the run, since the other action happens too and the player may wonder why
 
 **The scan is begun as a client arrives.** Finding a client's list takes seconds, so
 `ClientManager` starts it, as a task of its own, once the client's hooks are up: by then a
-character is in the world, and so are its bindings. A read made while that scan is under way
-waits on it rather than starting a second. A failure there is logged at DEBUG, and the pre-run
+character is in the world, and so are its bindings. Nothing waits on it until a key is pressed,
+so its passes are background ones, and a client's first resize is not held up by them: they wait
+`HEAP_SCAN_BACKGROUND_GRACE` after the client's first request unless its resize comes first, and
+go along with that pass. A region the game frees while a pass reads it is skipped, so a client
+still settling after its load can miss its list and press the defaults until its next attach. A read
+made while that scan is under way waits on it rather than starting a second. A failure there is logged at DEBUG, and the pre-run
 read takes its answer and warns.
 
 ## The authoring hotkeys' clash warning

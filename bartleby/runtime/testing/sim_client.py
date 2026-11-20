@@ -16,10 +16,8 @@ field's bonus.
 
 from __future__ import annotations
 
-import asyncio
 import itertools
 import math
-import re
 import struct
 import time
 from collections.abc import Callable
@@ -27,7 +25,7 @@ from dataclasses import dataclass, field
 from types import SimpleNamespace
 
 from wizwalker import XYZ
-from wizwalker.errors import MemoryReadError, PatternFailed
+from wizwalker.errors import MemoryReadError
 
 from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction, KeyMap
@@ -126,8 +124,9 @@ class SimMemory:
     """The part of a client's memory a resize touches, read and scanned as the game's would be.
 
     Holds the two live config nodes and the defaults' two, as every session has them, and
-    ``place_node`` stages any other shape. ``scan_seconds`` is how long a scan takes, spent on
-    an executor's thread as wizwalker's is.
+    ``place_node`` stages any other shape. ``scans`` counts the passes ``heap_scan`` makes over
+    it, and ``scan_seconds`` is how long one takes, spent on an executor's thread as a real
+    pass is.
     """
 
     def __init__(self, sim: SimClient) -> None:
@@ -202,14 +201,12 @@ class SimMemory:
             raise MemoryReadError(address)
         return bytes(self.data[address - _HEAP_BASE : address - _HEAP_BASE + size])
 
-    async def pattern_scan(self, pattern: bytes, *, module=None, return_multiple: bool = False):
+    def heap_regions(self) -> list[tuple[int, bytes]]:
+        """The heap as one region, for a pass of ``heap_scan``'s, which calls it on an executor's thread."""
         self.scans += 1
         if self.scan_seconds:
-            await asyncio.get_running_loop().run_in_executor(None, time.sleep, self.scan_seconds)
-        found = [_HEAP_BASE + m.start() for m in re.finditer(pattern, bytes(self.data), re.DOTALL)]
-        if not found:
-            raise PatternFailed(pattern)
-        return found if return_multiple else found[0]
+            time.sleep(self.scan_seconds)
+        return [(_HEAP_BASE, bytes(self.data))]
 
     async def read_bytes(self, address: int, size: int) -> bytes:
         return self._get(address, size)

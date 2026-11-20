@@ -801,9 +801,13 @@ embedded in a tile, it was 242 to 265 ms, so a swap is about 0.75 s with `RESIZE
 1. **The two nodes**: write the live `Resolution` node's string and the live `UISize` node's
    int32, in the game's config. The writes alone change nothing on screen. The nodes are among
    ~130,000 generic key/value objects, found once per client by a scan for their names, as the
-   key bindings are (`docs/KEY_BINDINGS.md`). Both names take about 2.5 s, off the event loop, and
-   its longest gap stays near 69 ms against 64 ms with nothing running: BartleBuddy's
-   `tools/probe_resize_scan.py` has the numbers. Each name has several
+   key bindings are (`docs/KEY_BINDINGS.md`). Both names took about 2.5 s as two scans, off the
+   event loop, and its longest gap stayed near 69 ms against 64 ms with nothing running:
+   BartleBuddy's `tools/probe_resize_scan.py` has the numbers. They are now one pass, an urgent
+   request to `clients/heap_scan.py`, which runs ahead of any key map's scan waiting and shares
+   the pass with whatever that client has waiting; one pass runs at a time, of 2.2 to 2.5 s. In
+   a four-client startup, run all at once beside the key maps' twelve, the scans took 16 to 17 s
+   each, and two passes at a time took twice as long as one each. Each name has several
    nodes: the live `UISize` is the one marked at `+0x45` with a pointer at `+0x18`, and the
    live `Resolution` the one with that pointer under the same parent. The string is an MSVC
    `std::string`, so its size field changes with its text.

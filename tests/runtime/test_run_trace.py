@@ -2,11 +2,13 @@
 
 import asyncio
 import json
+import threading
 import time
 from types import SimpleNamespace
 
 import pytest
 from wizwalker.client import Client
+from wizwalker.memory.handler import HookHandler
 from wizwalker.memory.memory_objects.window import Window
 from wizwalker.memory.memory_reader import MemoryReader
 from wizwalker.mouse_handler import MouseHandler
@@ -69,6 +71,17 @@ async def test_spans_nest_and_a_task_started_inside_one_belongs_to_it(dev, tmp_p
     assert spans["outer"]["slot"] is None
 
 
+async def test_the_innermost_span_naming_an_attribute_answers_it_and_its_player(dev, tmp_path, stopped):
+    """What a task handed work from another span reads of it: heap_scan's window and slot."""
+    run_trace.start(lambda c: None, tmp_path)
+    assert (run_trace.enclosing("hwnd"), run_trace.current_slot()) == (None, None)
+    with run_trace.span("find", slot=2, hwnd=77), run_trace.span("nodes"):
+        assert (run_trace.enclosing("hwnd"), run_trace.current_slot()) == (77, 2)
+        with run_trace.span("closer", hwnd=88):
+            assert run_trace.enclosing("hwnd") == 88
+    assert run_trace.enclosing("hwnd") is None
+
+
 async def test_reads_count_against_the_innermost_span(dev, tmp_path, stopped):
     path = run_trace.start(lambda c: None, tmp_path)
     reader = _reader()
@@ -84,12 +97,94 @@ async def test_reads_count_against_the_innermost_span(dev, tmp_path, stopped):
     assert spans["inner"]["reads"] == 3
 
 
+def _hooked() -> tuple:
+    return (
+        MemoryReader.read_bytes,
+        MemoryReader.__dict__["run_in_executor"],
+        HookHandler._wait_for_value,
+        Client.send_key,
+        MouseHandler.click,
+        Window.get_windows_with_name,
+    )
+
+
 async def test_stopping_puts_wizwalkers_own_methods_back(dev, tmp_path, stopped):
-    originals = (MemoryReader.read_bytes, Client.send_key, MouseHandler.click, Window.get_windows_with_name)
+    originals = _hooked()
     run_trace.start(lambda c: None, tmp_path)
-    assert MemoryReader.read_bytes is not originals[0]
+    assert all(now is not was for now, was in zip(_hooked(), originals, strict=True))
     run_trace.stop()
-    assert (MemoryReader.read_bytes, Client.send_key, MouseHandler.click, Window.get_windows_with_name) == originals
+    assert _hooked() == originals
+
+
+async def test_a_mark_from_another_thread_is_written(dev, tmp_path, stopped):
+    path = run_trace.start(lambda c: 4, tmp_path)
+    client = object()
+    run_trace.mark("on the loop", client=client, hwnd=7)
+    thread = threading.Thread(target=lambda: run_trace.mark("on the gui", slot=2, members=3))
+    thread.start()
+    thread.join()
+    run_trace.stop()
+
+    marks = {r["name"]: r for r in _records(path) if r["kind"] == "mark"}
+    assert (marks["on the loop"]["slot"], marks["on the loop"]["hwnd"]) == (4, 7)
+    assert (marks["on the gui"]["slot"], marks["on the gui"]["members"]) == (2, 3)
+
+
+async def test_a_mark_with_no_trace_running_does_nothing(stopped):
+    run_trace.mark("nobody listening", hwnd=1)
+
+
+async def test_an_executor_job_is_split_into_its_wait_and_its_run(dev, tmp_path, stopped):
+    def _scan_all():
+        time.sleep(0.05)
+        return [1]
+
+    # A function of this library's, as client_resizer's _nodes_called is.
+    namespace = {"__name__": "bartleby.runtime.sample", "MemoryReader": MemoryReader, "_scan_all": _scan_all}
+    exec("async def find():\n    return await MemoryReader.run_in_executor(_scan_all)\n", namespace)
+
+    path = run_trace.start(lambda c: None, tmp_path)
+    found = await namespace["find"]()
+    run_trace.stop()
+
+    (job,) = [r for r in _records(path) if r["kind"] == "executor"]
+    assert found == [1]
+    assert job["fn"] == "_scan_all"
+    assert job["caller"] == "runtime.sample.find:2"
+    assert job["run"] >= 0.04
+    assert job["wait"] < job["run"]
+    assert job["dur"] >= job["run"]
+
+
+async def test_an_executor_job_that_raises_is_still_written(dev, tmp_path, stopped):
+    def fails():
+        raise ValueError("no region")
+
+    path = run_trace.start(lambda c: None, tmp_path)
+    with pytest.raises(ValueError):
+        await MemoryReader.run_in_executor(fails)
+    run_trace.stop()
+
+    assert [r["fn"] for r in _records(path) if r["kind"] == "executor"] == ["fails"]
+
+
+async def test_a_wait_for_a_hook_address_is_a_span_named_by_that_address(dev, tmp_path, stopped, monkeypatch):
+    client = object()
+    handler = object.__new__(HookHandler)
+    handler.client = client
+    handler._base_addrs = {"player_struct": 0x10, "current_client": 0x20}
+
+    async def read_typed(self, address, kind):
+        return 0x1234  # written already, so the wait ends at its first read
+
+    monkeypatch.setattr(HookHandler, "read_typed", read_typed)
+    path = run_trace.start(lambda c: 2 if c is client else None, tmp_path)
+    await handler._wait_for_value(0x10)
+    run_trace.stop()
+
+    wait = _spans(_records(path))["hook.wait"]
+    assert wait["attrs"] == {"what": "player_struct"}
+    assert wait["slot"] == 2
 
 
 async def test_a_key_names_the_bartlebot_function_that_pressed_it(dev, tmp_path, stopped, monkeypatch):

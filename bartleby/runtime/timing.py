@@ -876,3 +876,23 @@ RESIZE_SETTLE = 0.5
 RESIZE_GIVE_BACK_TIMEOUT = 3.0
 # Seconds a client gets to go back to its launch size, waits included, as it leaves its tile.
 # Someone is leaving, and the app's shutdown waits on it.
+
+# ---------------------------------------------------------------------------
+# Scanning a client's heap (bartleby.runtime.clients.heap_scan)
+# ---------------------------------------------------------------------------
+
+HEAP_SCAN_PASSES = 1
+# Passes over a client's whole memory running at once, across every client. A pass is about
+# 1.1 GB and takes 2.2 to 2.5 s alone. Two at once bought nothing: in a traced four-client
+# launch (2026-11-20) two overlapping passes took 4.2 to 6.4 s each, about 4.8 s of solo work
+# in 4.4 s of wall time, so each requester waited twice as long, and a resize queued behind two
+# of them waited 7.8 to 9.4 s. With no limit at all, a startup ran about 16 at once, and the
+# first resize landed 17 s after it was asked for. Above 1, background passes take all but one
+# of the places, so one is always kept for a resize.
+
+HEAP_SCAN_BACKGROUND_GRACE = 3.0
+# Seconds a client's background scans (its key map's) wait after its first request, unless an
+# urgent pass over it comes first. The key map's scan begins at hook, about a second before the
+# client is published, and the GUI asks for its size one to two seconds after that, so without
+# this the key map took the only place just before the resize asked and the resize waited a
+# whole pass. Nothing presses a key that soon after a hook.

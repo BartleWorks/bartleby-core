@@ -28,15 +28,17 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
-import re
 import struct
+import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 from wizwalker.constants import Primitive
-from wizwalker.errors import PatternFailed, WizWalkerMemoryError
+from wizwalker.errors import WizWalkerMemoryError
 
+from bartleby.runtime import run_trace
 from bartleby.runtime.arbiter import Arbiter, Owner, Preempted, Revoked, client_key
+from bartleby.runtime.clients import heap_scan
 from bartleby.runtime.game.game_sizing import ui_size_for
 from bartleby.runtime.launcher import launch_profile
 from bartleby.runtime.timing import (
@@ -80,13 +82,9 @@ class _Node:
     parent: int
 
 
-async def _nodes_called(reader, name: bytes) -> list[_Node]:
-    """Every config node called *name*: a scan for the name, then a check of the object around it."""
+async def _nodes_at(reader, hits: list[int]) -> list[_Node]:
+    """The config nodes among a scan's *hits* for a name: a check of the object around each."""
     module = reader.process.process_base
-    try:
-        hits = await reader.pattern_scan(re.escape(name) + b"\x00", return_multiple=True)
-    except PatternFailed:
-        return []
     found = []
     for hit in hits:
         try:
@@ -114,12 +112,18 @@ async def find_config_nodes(reader) -> ConfigNodes | None:
     +0x45 with a pointer at +0x18. Its parent is the user's settings, so the live Resolution is
     the one with a pointer under that parent: the other parent holds the defaults, and the
     second class's copies, some of them marked, hold no pointer.
+
+    Both names are found in one pass over the process, urgent, since a player waits on it
+    (``heap_scan``).
     """
-    ui_sizes = [n for n in await _nodes_called(reader, _UI_SIZE) if n.marked and n.has_string]
+    ui_size_hits, resolution_hits = await heap_scan.scan(
+        reader, _UI_SIZE + b"\x00", _RESOLUTION + b"\x00", priority=heap_scan.Priority.URGENT
+    )
+    ui_sizes = [n for n in await _nodes_at(reader, ui_size_hits) if n.marked and n.has_string]
     if len(ui_sizes) != 1:
         return None
     parent = ui_sizes[0].parent
-    resolutions = [n for n in await _nodes_called(reader, _RESOLUTION) if n.has_string and n.parent == parent]
+    resolutions = [n for n in await _nodes_at(reader, resolution_hits) if n.has_string and n.parent == parent]
     if len(resolutions) != 1:
         return None
     return ConfigNodes(ui_sizes[0].address, resolutions[0].address)
@@ -225,17 +229,22 @@ class ClientResizer:
 
     async def _find(self, client, entry: _Entry) -> None:
         """Everything a resize reads once, or this client's one warning. Never raises."""
-        try:
-            video = client.video_manager
-            await video.read_base_address()
-            await video.pending_flag_offset()
-            nodes = await find_config_nodes(client.hook_handler)
-            if nodes is None:
-                raise _Refused("no single live UISize and Resolution node")
-        except Exception as exc:  # noqa: BLE001 - whatever it was, it means leaving this client alone
-            self._fail(client, entry, exc)
-            return
-        entry.nodes = nodes
+        with run_trace.span("resize.find", client=client, hwnd=client_key(client)):
+            try:
+                video = client.video_manager
+                with run_trace.span("resize.base_address"):
+                    await video.read_base_address()
+                with run_trace.span("resize.pending_flag"):
+                    await video.pending_flag_offset()
+                with run_trace.span("resize.config_nodes"):
+                    nodes = await find_config_nodes(client.hook_handler)
+                if nodes is None:
+                    raise _Refused("no single live UISize and Resolution node")
+            except Exception as exc:  # noqa: BLE001 - whatever it was, it means leaving this client alone
+                run_trace.note(failed=type(exc).__name__)
+                self._fail(client, entry, exc)
+                return
+            entry.nodes = nodes
 
     async def _nodes(self, client, entry: _Entry) -> ConfigNodes | None:
         """The nodes, checked again since an address can go stale, and found again if it has."""
@@ -257,22 +266,36 @@ class ClientResizer:
 
     async def _run(self, client, entry: _Entry, timeout: float) -> None:
         """Bring *client* to its latest target, until there is none."""
-        try:
-            while entry.target is not None:
-                if await self._in_the_way(client):
-                    await asyncio.sleep(POLL_INTERVAL)
-                elif await self._nodes(client, entry) is not None:
-                    await self._under_lease(client, entry, timeout)
-        except Exception as exc:  # noqa: BLE001 - a read that failed: the client may be going away
-            self._fail(client, entry, exc)
+        with run_trace.span("resize.worker", client=client, hwnd=client_key(client), target=entry.target):
+            loading = 0.0
+            try:
+                while entry.target is not None:
+                    if await self._in_the_way(client):
+                        await asyncio.sleep(POLL_INTERVAL)
+                        loading += POLL_INTERVAL
+                        run_trace.note(loading_s=round(loading, 2))
+                    else:
+                        with run_trace.span("resize.nodes"):
+                            nodes = await self._nodes(client, entry)
+                        if nodes is not None:
+                            await self._under_lease(client, entry, timeout)
+            except Exception as exc:  # noqa: BLE001 - a read that failed: the client may be going away
+                self._fail(client, entry, exc)
 
     @staticmethod
     async def _in_the_way(client) -> bool:
         return await client.is_loading()
 
     async def _under_lease(self, client, entry: _Entry, timeout: float) -> None:
+        asked = time.perf_counter()
         try:
             async with self._arbiter.acquire(client, Owner.DISPLAY):
+                run_trace.mark(
+                    "resize.leased",
+                    client=client,
+                    hwnd=client_key(client),
+                    waited=round(time.perf_counter() - asked, 4),
+                )
                 if entry.target is None or await self._in_the_way(client):
                     return
                 size, entry.target = entry.target, None
@@ -301,10 +324,11 @@ class ClientResizer:
         video = client.video_manager
         measured = None
         try:
-            measured = await video.read_device_size()
-            if measured != size:
-                await self._write_and_wait(client, entry, measured, size, timeout)
-                logger.info("Window %s now runs at %dx%d", client_key(client), *size)
+            with run_trace.span("resize.apply", client=client, hwnd=client_key(client), size=size):
+                measured = await video.read_device_size()
+                if measured != size:
+                    await self._write_and_wait(client, entry, measured, size, timeout)
+                    logger.info("Window %s now runs at %dx%d", client_key(client), *size)
         except Exception as exc:  # noqa: BLE001 - whatever it was, the client keeps its last size
             self._fail(client, entry, exc)
         if measured is None:

@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
 
 import pytest
 from wizwalker.errors import PatternFailed, VideoManagerError
 
-from bartleby.runtime import timing
+from bartleby.runtime import run_trace, timing
 from bartleby.runtime.arbiter import Arbiter, Owner, Preempted
-from bartleby.runtime.clients import client_resizer
+from bartleby.runtime.clients import client_resizer, heap_scan
 from bartleby.runtime.clients.client_resizer import ClientResizer, ConfigNodes, find_config_nodes
 from bartleby.runtime.game.game_sizing import ui_size_for
 from bartleby.runtime.game.key_bindings import GameAction
@@ -510,7 +511,7 @@ async def test_a_second_client_starts_each_client_s_scan_once(resizer):
         await resizer._entries[client.window_handle].scan
     resizer.prepare([first, second])
     await asyncio.sleep(0.01)
-    assert first.hook_handler.scans == second.hook_handler.scans == 2  # One for each name
+    assert first.hook_handler.scans == second.hook_handler.scans == 1  # Both names in one pass
     assert _writes(first) == _writes(second) == []
 
 
@@ -520,7 +521,7 @@ async def test_a_swap_after_prepare_does_not_scan_again(resizer):
     await resizer._entries[first.window_handle].scan
     resizer.resize(first, _SMALL_SIZE)
     await _settled(resizer, first)
-    assert first.hook_handler.scans == 2
+    assert first.hook_handler.scans == 1
     assert first.game_size == _SMALL_SIZE
 
 
@@ -530,7 +531,7 @@ async def test_a_resize_during_the_scan_waits_on_that_scan(resizer):
     resizer.prepare([first, second])
     resizer.resize(first, _SMALL_SIZE)
     await _settled(resizer, first)
-    assert first.hook_handler.scans == 2
+    assert first.hook_handler.scans == 1
     assert first.game_size == _SMALL_SIZE
 
 
@@ -539,13 +540,13 @@ async def test_a_node_that_went_stale_is_found_again_before_any_write(resizer):
     memory = client.hook_handler
     resizer.resize(client, _SMALL_SIZE)
     await _settled(resizer, client)
-    assert memory.scans == 2
+    assert memory.scans == 1
 
     memory.forget_node(memory.ui_size_node)
     memory.ui_size_node = memory.place_node("UISize", marked=True, text="5", value=_MICRO)
     resizer.resize(client, _LARGE_SIZE)
     await _settled(resizer, client)
-    assert memory.scans == 4
+    assert memory.scans == 2
     assert client.game_size == _LARGE_SIZE
     assert client.ui_size == ui_size_for(_HUGE, _LARGE_SIZE)
 
@@ -553,7 +554,7 @@ async def test_a_node_that_went_stale_is_found_again_before_any_write(resizer):
 async def test_the_scan_holds_no_lease_and_a_follower_ticks_through_it(resizer, arbiter, monkeypatch):
     """The steering path: a resize finds its nodes before its lease, so a follower walks through the scan.
 
-    No tick goes past probe_follow_jitter's 250 ms, against two scans of 300 ms spent off the loop,
+    No tick goes past probe_follow_jitter's 250 ms, against a pass of 300 ms spent off the loop,
     as wizwalker's are. What a real scan does to the loop is measured on a live client, by
     BartleBuddy's tools/probe_resize_scan.py.
     """
@@ -587,7 +588,7 @@ async def test_the_scan_holds_no_lease_and_a_follower_ticks_through_it(resizer, 
             assert arbiter.holder(client) is None or arbiter.holder(client).owner is Owner.MOVEMENT
             await asyncio.sleep(0.01)
         gaps = [b - a for a, b in zip(ticks, ticks[1:])]
-        assert client.hook_handler.scans == 2
+        assert client.hook_handler.scans == 1
         await _settled(resizer, client)
         assert client.game_size == _SMALL_SIZE
     finally:
@@ -713,6 +714,24 @@ async def test_it_can_try_again_once_hooked_again(resizer, warnings):
     assert client.game_size == _SMALL_SIZE
 
 
+async def test_forgetting_a_client_takes_its_waiting_scan_out_of_the_queue(resizer):
+    """The one place held by another client's pass, so its scan is still waiting when it is forgotten."""
+    busy = [SimClient(), SimClient()]
+    for other in busy:
+        other.hook_handler.scan_seconds = 0.1
+    resizer.prepare(busy)
+    await _until(lambda: heap_scan.scanner().running == 1)
+    client = SimClient()
+    resizer.resize(client, _SMALL_SIZE)
+    await _until(lambda: heap_scan.scanner().waiting(client.hook_handler) == 1)
+    await resizer.forget(client)
+    await asyncio.sleep(0)
+    assert heap_scan.scanner().waiting(client.hook_handler) == 0
+    for other in busy:
+        await resizer._entries[other.window_handle].scan
+    assert client.hook_handler.scans == 0
+
+
 async def test_forgetting_a_waiting_client_ends_its_wait(resizer, reports):
     client = SimClient(loading=True)
     resizer.resize(client, _SMALL_SIZE)
@@ -806,3 +825,36 @@ async def test_a_give_back_that_hangs_gives_one_warning(resizer, monkeypatch, wa
 
 async def test_giving_back_is_on_the_shorter_timeout():
     assert timing.RESIZE_GIVE_BACK_TIMEOUT < timing.RESIZE_APPLY_TIMEOUT
+
+
+# -- the trace ----------------------------------------------------------------------------------
+
+
+async def test_a_trace_places_each_part_of_a_resize(resizer, tmp_path):
+    """Where a resize's time went: the load it waited out, finding the nodes, the lease and the apply."""
+    client = SimClient(game_size=_LARGE_SIZE, loading=True)
+    path = run_trace.start(lambda c: 3 if c is client else None, tmp_path)
+    try:
+        resizer.resize(client, _SMALL_SIZE)
+        await asyncio.sleep(0.03)
+        client.loading = False
+        await _settled(resizer, client)
+    finally:
+        run_trace.stop()
+
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    spans = {r["name"]: r for r in records if r["kind"] == "span"}
+    worker = spans["resize.worker"]
+    assert worker["slot"] == 3
+    assert worker["attrs"]["target"] == list(_SMALL_SIZE)
+    assert worker["attrs"]["loading_s"] > 0
+    # The scan the worker had to start itself, as nothing prepared one, inside its wait for the nodes.
+    assert spans["resize.find"]["parent"] == spans["resize.nodes"]["id"]
+    assert spans["resize.config_nodes"]["parent"] == spans["resize.find"]["id"]
+    # Its request waited inside the search for the nodes; the pass served it from outside, as its player's.
+    assert spans["heap_scan.request"]["parent"] == spans["resize.config_nodes"]["id"]
+    assert spans["heap_scan.request"]["attrs"]["pass_id"] == spans["heap_scan.pass"]["attrs"]["pass_id"]
+    assert (spans["heap_scan.pass"]["slot"], spans["heap_scan.pass"]["parent"]) == (3, None)
+    assert spans["heap_scan.pass"]["attrs"]["patterns"] == 2
+    assert spans["resize.apply"]["parent"] == worker["id"]
+    assert [r["name"] for r in records if r["kind"] == "mark"] == ["resize.leased"]

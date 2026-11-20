@@ -13,8 +13,8 @@ the bot they serve stay in BartleBot, which subclasses this manager and answers
 client being brought back is still this manager's business, since the ordering is
 (``_pending_recovery``, which only such a product fills).
 
-Three rules carried over, each the cost of a bug (``bartleby/runtime/CLAUDE.md`` has them
-as rules):
+Three rules carried over, and one learned here, each the cost of a bug
+(``bartleby/runtime/CLAUDE.md`` has them as rules):
 
 * **Hooking runs in the background.** ``activate_hooks()`` waits for a character to be in
   the world, with no timeout, so a window at character select would stall the loop for
@@ -23,6 +23,10 @@ as rules):
   region, which a fresh attempt would zero out from under them.
 * **A failed read keeps the list as it was.** The next pass compares against it, and that
   comparison is what notices a client that died (#154).
+* **Publishing a client waits only on what places it.** A window its title placed is
+  published without its user id, which is learned in a task of its own
+  (:meth:`ClientManager._learn_identities`); only a window the title could not place is read
+  first, since its slot depends on the answer (:meth:`ClientManager._adopt_by_identity`).
 """
 
 from __future__ import annotations
@@ -37,7 +41,8 @@ from typing import Protocol
 from wizwalker.errors import MemoryReadError
 from wizwalker.utils import get_window_title
 
-from bartleby.runtime.clients import account_identity, game_keys
+from bartleby.runtime import run_trace
+from bartleby.runtime.clients import account_identity, game_keys, heap_scan
 from bartleby.runtime.clients.credentials import CredentialStore, account_label
 from bartleby.runtime.clients.launch_tracker import LaunchStage, LaunchTracker
 from bartleby.runtime.clients.tile_slots import TileSlot, build_tile_slots
@@ -59,7 +64,7 @@ class ClientSettings(Protocol):
     """What the client manager reads from an app's settings: the accounts it knows, and auto-select.
 
     The accounts are settable, because the manager writes an account's identity fingerprint
-    back the first time it sees a window it launched (see ``_refresh_account_identity``).
+    back the first time it sees a window it launched (see ``_learn_identities``).
     Both products' settings objects keep the accounts in the vendor's shared store
     (:mod:`bartleby.shared.account_store`), so a write lands there.
     """
@@ -201,6 +206,9 @@ class ClientManager:
         # good: retrying would re-prepare the autobot region the failed hooks jump into.
         self._failed_hook_hwnds: set[int] = set()
         self._activation_tasks: set[asyncio.Task] = set()
+        # The read learning each titled window's identity, by window, while one runs: see
+        # _learn_identities. One at a time per window, so a slow first read is not restarted.
+        self._identity_tasks: dict[int, asyncio.Task] = {}
         self._client_loop_task: asyncio.Task | None = None
 
     # ------------------------------------------------------------------
@@ -221,7 +229,7 @@ class ClientManager:
         self._client_loop_task = asyncio.create_task(self._client_loop())
 
     def stop(self) -> None:
-        """Cancel the detection loop and any in-flight hook activations.
+        """Cancel the detection loop, any in-flight hook activations and identity reads.
 
         Hook activation can block indefinitely (a client parked at character select never
         writes the player struct), so those tasks would otherwise outlive the manager.
@@ -232,6 +240,9 @@ class ClientManager:
         for task in list(self._activation_tasks):
             task.cancel()
         self._activation_tasks.clear()
+        for task in list(self._identity_tasks.values()):
+            task.cancel()
+        self._identity_tasks.clear()
         self._gated_clients.clear()
         self._activating_hwnds.clear()
         self._failed_hook_hwnds.clear()
@@ -385,9 +396,9 @@ class ClientManager:
         Two things a caller has to plan for:
 
         - **None is normal, especially early.** The map behind this is filled by
-          ``_refresh_account_identity`` from inside the client loop, so a client hooked a
-          moment ago has no account yet, and a game window this app did not launch may
-          never be identified at all.
+          ``_refresh_account_map`` and ``_adopt_by_identity`` from inside the client loop,
+          so a client hooked a moment ago may have no account yet, and a game window this
+          app did not launch may never be identified at all.
         - **Nothing signals the answer changing.** ``all_clients_changed`` fires when the
           set of hooked clients changes, not when an identity is merely *learned*, and a
           signal for that is more machinery than the answer needs. Re-ask on each refresh
@@ -484,6 +495,8 @@ class ClientManager:
         """Close hooks on *client* and move it from the active list to the unhooked list."""
         hwnd = client.window_handle
         self._unhooked_hwnds.add(hwnd)
+        # Its key map and resizer scans waiting for a pass are dropped: an unhooked client is read no more.
+        heap_scan.forget(getattr(client, "hook_handler", None))
 
         try:
             await client.close()
@@ -585,11 +598,17 @@ class ClientManager:
                     await asyncio.sleep(CLIENT_DETECT_INTERVAL_IDLE)
                     continue
 
+                # A window the title placed is published without waiting for its user id:
+                # its fingerprint is only learned, for a later session, so the read is a task
+                # of its own. Started outside the span below, so each traces on its own.
+                self._learn_identities(clients)
+
                 # Place whatever the titles could not: a window this app did not launch
                 # carries no account tag, and is identified by what it reports in memory
-                # instead. Runs before the comparison below so an adopted client is
+                # instead. Awaited before the comparison below so an adopted client is
                 # already placed when its slot is assigned.
-                await self._refresh_account_identity(clients)
+                with run_trace.span("client.identity", clients=len(clients)):
+                    await self._adopt_by_identity(clients)
 
                 # Compare by HWND set to detect additions and removals.
                 new_hwnd_set = {c.window_handle for c in clients}
@@ -618,6 +637,8 @@ class ClientManager:
                             self._place_account(username)
 
                     self._clients = self._build_ordered_clients(clients)
+                    for c in new_additions:
+                        run_trace.mark("client.published", hwnd=c.window_handle)
                     self.clients_changed.emit(self._clients)
                     self.all_clients_changed.emit(list(self._clients), list(self._unhooked_clients))
 
@@ -641,7 +662,8 @@ class ClientManager:
                 # newly appeared clients are only created by the sync above, so emitting
                 # first would announce names to tiles that do not exist yet — and the next
                 # tick would see no change and stay quiet.
-                await self._refresh_wizard_names(self._clients)
+                with run_trace.span("client.wizard_names", clients=len(self._clients)):
+                    await self._refresh_wizard_names(self._clients)
                 self._learn_character_roster(self._clients)
 
                 await asyncio.sleep(CLIENT_DETECT_INTERVAL)
@@ -699,7 +721,8 @@ class ClientManager:
 
         async def _activate() -> None:
             try:
-                await client.activate_hooks()
+                with run_trace.span("client.hook", hwnd=hwnd):
+                    await client.activate_hooks()
             except asyncio.CancelledError:
                 raise
             except Exception:
@@ -710,7 +733,9 @@ class ClientManager:
                 # are in memory now: find them here, a scan of a few seconds, rather than when
                 # the first run starts. A task of its own, so publishing the client never waits
                 # on it; the pre-run check takes its answer, and warns if they cannot be read.
-                warm = asyncio.create_task(game_keys.key_map(client, refresh=True, warn=False))
+                warm = asyncio.create_task(
+                    run_trace.traced(game_keys.key_map(client, refresh=True, warn=False), "client.key_map", hwnd=hwnd)
+                )
                 self._activation_tasks.add(warm)
                 warm.add_done_callback(self._activation_tasks.discard)
             finally:
@@ -812,27 +837,115 @@ class ClientManager:
             self._rosters[username] = roster
         return list(roster)
 
-    async def _refresh_account_identity(self, live_clients: list) -> None:
-        """Tie each client to an account by the user id it reports, learning or adopting.
+    def _learn_identities(self, live_clients: list) -> None:
+        """Write each titled client's fingerprint to its account, never holding up the pass.
 
-        Two directions, and which one runs depends on whether the title already placed
-        the client:
+        A client the title matched was launched by this app, so its account is certain — we
+        typed those credentials — and this is the only moment the association can be
+        established at all. Nothing in the pass depends on it: the client is placed already,
+        and the fingerprint is for a later session, to recognize a window this one launched.
 
-        - **Learn.** A client the title matched was launched by this app, so its account
-          is certain — we typed those credentials. Its fingerprint is written to that
-          account, which is the only moment the association can be established at all.
-        - **Adopt.** A client the title could not place is matched by fingerprint against
-          the configured accounts. This is what makes a window launched elsewhere and
-          adopted here recoverable.
+        So the read is a task of its own, one per window at a time, and the client is
+        published meanwhile. A window's first read resolves GameClient's base by a pattern
+        scan, about 0.2 s alone and up to 9 s at startup, when it shares the GIL with every
+        other scan; awaited in the pass, four clients' reads one after another held their
+        publishing back 12 s. A window whose user id is read already is learned here, inline,
+        since that costs no read and keeps the check of today's fingerprint each pass.
+        """
+        if not self._settings.accounts:
+            return
+        for client in live_clients:
+            hwnd = client.window_handle
+            username = self._hwnd_account_map.get(hwnd)
+            if not username or hwnd in self._identity_tasks:
+                continue
+            user_id = self._hwnd_user_ids.get(hwnd)
+            if user_id:
+                self._learn_fingerprint(username, user_id)
+                continue
+            task = asyncio.create_task(self._learn_identity(client, username))
+            self._identity_tasks[hwnd] = task
+            task.add_done_callback(lambda t, hwnd=hwnd: self._identity_task_done(hwnd, t))
+
+    def _identity_task_done(self, hwnd: int, task: asyncio.Task) -> None:
+        """Forget *hwnd*'s finished identity read, unless a newer one has taken its place."""
+        if self._identity_tasks.get(hwnd) is task:
+            del self._identity_tasks[hwnd]
+
+    async def _learn_identity(self, client, username: str) -> None:
+        """Read *client*'s user id and write its fingerprint to *username*, the account its title gave it.
+
+        A zero (not logged in yet) writes nothing, and a later pass tries again. The account
+        is asked again once the read is back, since the window may have been unhooked or
+        closed while it ran. Never raises: ``_read_user_id`` and ``_learn_fingerprint``
+        swallow their own failures, so a task left to itself logs nothing unhandled.
+        """
+        hwnd = client.window_handle
+        with run_trace.span("client.identity_learn", hwnd=hwnd):
+            user_id = await self._read_user_id(client)
+        if user_id and self._hwnd_account_map.get(hwnd) == username:
+            self._learn_fingerprint(username, user_id)
+
+    def _learn_fingerprint(self, username: str, user_id: int) -> None:
+        """Store *user_id*'s fingerprint as *username*'s, when it is not on file already. Never raises.
+
+        Read and written with no await between, so two windows learned at once cannot write
+        over each other's fingerprint. An account removed from the settings while its window
+        is open is left alone: there is no record to put the fingerprint on, and comparing
+        against one that is not there would write the accounts again every pass.
+        """
+        settings = self._settings
+        try:
+            accounts = settings.accounts
+            if not any(a.get("username") == username for a in accounts):
+                return
+            fp = account_identity.fingerprint(user_id, account_identity.account_key())
+            if account_identity.stored_fingerprint(accounts, username) == fp:
+                return
+            # The setter writes the shared account store through, so no explicit save
+            # follows. The association has to outlive the process: it exists so a later
+            # session can recognize a window this one launched.
+            settings.accounts = account_identity.with_fingerprint(accounts, username, fp)
+        except Exception:
+            logger.exception("Could not learn the identity of account '%s'", account_label(username))
+            return
+        logger.info(
+            "Learned the identity of account '%s' (user id %s) — clients adopted from "
+            "another launcher can now be recognized as this account",
+            account_label(username),
+            account_identity.mask(user_id),
+        )
+
+    async def _adopt_by_identity(self, live_clients: list) -> None:
+        """Tie each client the title could not place to an account, by the user id it reports.
+
+        It is matched by fingerprint against the configured accounts, which is what makes a
+        window launched elsewhere and adopted here recoverable. Awaited in the pass, before
+        the client list is compared, because the slot it is given depends on the answer.
+        Their reads run together, one per window, and are handled in the list's order, so
+        which of two windows reporting one account is adopted does not depend on which read
+        came back first.
+
+        A window whose learning read is still running (``_learn_identities``) waits for it to
+        end, rather than resolving the same base twice at once.
 
         Never raises: this runs inside the client loop, where an exception escaping here
         would cost the rest of the pass, the client list's update included.
         """
         settings = self._settings
-        accounts = settings.accounts
-        if not accounts:
+        if not settings.accounts:
             return
+        unplaced = [
+            c
+            for c in live_clients
+            if c.window_handle not in self._hwnd_account_map and c.window_handle not in self._identity_tasks
+        ]
+        if not unplaced:
+            return
+        user_ids = await asyncio.gather(*(self._read_user_id(c) for c in unplaced))
 
+        # Read after the reads, which a learning task may have written to meanwhile.
+        accounts = settings.accounts
         # An account already answering for a live window cannot also be another one's.
         # Checked against live clients rather than the account map: the map is pruned of
         # closed windows each tick (see _forget_closed_windows) but still names windows
@@ -841,33 +954,18 @@ class ClientManager:
             self._hwnd_account_map[c.window_handle] for c in live_clients if c.window_handle in self._hwnd_account_map
         }
 
-        for client in live_clients:
+        for client, user_id in zip(unplaced, user_ids):
             hwnd = client.window_handle
-            user_id = await self._read_user_id(client)
             if not user_id:
                 continue  # not logged in yet; nothing to identify it by
+            if hwnd in self._hwnd_account_map:
+                continue  # placed while the reads ran
 
             try:
                 fp = account_identity.fingerprint(user_id, account_identity.account_key())
             except Exception:
                 logger.exception("Could not fingerprint the user id for hwnd=%d", hwnd)
                 return  # the key is broken, so the whole pass is pointless
-
-            known = self._hwnd_account_map.get(hwnd)
-            if known:
-                if account_identity.stored_fingerprint(accounts, known) != fp:
-                    accounts = account_identity.with_fingerprint(accounts, known, fp)
-                    # The setter writes the shared account store through, so no explicit
-                    # save follows. The association has to outlive the process: it exists
-                    # so a later session can recognize a window this one launched.
-                    settings.accounts = accounts
-                    logger.info(
-                        "Learned the identity of account '%s' (user id %s) — clients adopted from "
-                        "another launcher can now be recognized as this account",
-                        account_label(known),
-                        account_identity.mask(user_id),
-                    )
-                continue
 
             username = account_identity.match_account(accounts, fp)
             if username is None:
@@ -897,7 +995,8 @@ class ClientManager:
         Zero means the client has not finished logging in; that is re-read every cycle
         until it resolves. A non-zero id cannot change without a new process, so it is
         read exactly once per window — the first read also resolves GameClient's base
-        address by pattern scan, which is far too expensive to repeat per second.
+        address by pattern scan, which is far too expensive to repeat per second. Never
+        raises but for a cancel, so several windows can be read with one ``gather``.
         """
         cached = self._hwnd_user_ids.get(client.window_handle)
         if cached:
@@ -987,6 +1086,9 @@ class ClientManager:
         clients back (BartleBot's recovery) holds the slot in ``_pending_recovery`` from
         there, before anything else can take it.
         """
+        for client in self._clients:
+            if client.window_handle in removed_hwnds:
+                heap_scan.forget(getattr(client, "hook_handler", None))
         removals: list[Removal] = []
         for hwnd in removed_hwnds:
             # Dropped first: nothing reports the user id.
@@ -1125,7 +1227,7 @@ class ClientManager:
         been shut down cannot be launched again.
 
         An adopted window this app has never launched is in here too, once
-        ``_refresh_account_identity`` has fingerprinted it. One belonging to an account
+        ``_adopt_by_identity`` has fingerprinted it. One belonging to an account
         with no fingerprint on file stays unidentified and so cannot be guarded -- the
         same known limitation ``account_identity`` documents, and the same fix: launching
         that account from here once teaches it permanently.

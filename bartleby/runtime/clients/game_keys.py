@@ -26,14 +26,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import re
 import struct
 from dataclasses import dataclass
 
 from wizwalker import Keycode
-from wizwalker.errors import PatternFailed
 from wizwalker.memory.memory_object import DynamicMemoryObject, PropertyClass
 
+from bartleby.runtime.clients import heap_scan
 from bartleby.runtime.game.key_bindings import ENCODING, Binding, GameAction, KeyMap, action_label
 
 logger = logging.getLogger(__name__)
@@ -103,16 +102,14 @@ async def _string(reader, address: int) -> str:
     return data.decode(ENCODING)
 
 
-def _pointers_to(addresses) -> bytes:
-    """One pattern for any of *addresses* stored as a pointer."""
-    return b"|".join(re.escape(struct.pack("<Q", a)) for a in sorted(set(addresses)))
+def _pointers_to(addresses) -> tuple[bytes, ...]:
+    """One pattern for any of *addresses* stored as a pointer: a literal for each."""
+    return tuple(struct.pack("<Q", a) for a in sorted(set(addresses)))
 
 
-async def _scan(reader, pattern: bytes) -> list[int]:
-    try:
-        found = await reader.pattern_scan(pattern, return_multiple=True)
-    except PatternFailed:
-        return []
+async def _scan(reader, pattern: heap_scan.Pattern) -> list[int]:
+    """The 8-aligned hits of one pass, in the background: nothing waits on a key map until a key is pressed."""
+    (found,) = await heap_scan.scan(reader, pattern, priority=heap_scan.Priority.BACKGROUND)
     return [a for a in found if a % 8 == 0]
 
 
@@ -153,11 +150,12 @@ async def find_binding_list(reader) -> int | None:
 
     The InputBinding holding "NPCInteract", then the list nodes pointing at it, then the rings
     those nodes are on, then the list pointing at the chosen ring's sentinel from 0x48: three
-    scans. The game's key bindings page leaves lists of its own behind, one binding each, inside
+    scans, each a background request to ``heap_scan``, so each may share its pass with whatever
+    else the client has waiting, the resizer's names above all. The game's key bindings page leaves lists of its own behind, one binding each, inside
     an ``InputBindingData`` per row, and a row can still hold a key the player has since
     changed; so the ring chosen is the one with the most bindings, the player's whole set.
     """
-    seeds = [hit - ACTION for hit in await _scan(reader, re.escape(_SEED))]
+    seeds = [hit - ACTION for hit in await _scan(reader, _SEED)]
     seeds = [s for s in seeds if await type_name(reader, s) == "InputBinding"]
     if not seeds:
         return None

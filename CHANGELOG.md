@@ -10,8 +10,46 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ## Unreleased
 
+### Breaking
+
+- **`ClientManager._refresh_account_identity` is gone**, split in two so publishing a client
+  waits only on what places it (under Changed): `_learn_identities`, which learns a titled
+  client's fingerprint in a task of its own, and `_adopt_by_identity`, which places an untitled
+  one. Private, but a test harness that binds it fails at collection: BartleBot's
+  `tests/clients/test_account_identity_storage.py` binds `_learn_identity`, `_learn_fingerprint`
+  and `_read_user_id` instead, and awaits `_learn_identity(client, username)` where it awaited
+  the pass.
+- **`SimMemory` answers `heap_regions()` instead of `pattern_scan`**, since every heap scan now
+  goes through `clients/heap_scan.py` (under Changed). `scans` counts its passes, and a resizer
+  finding its nodes makes one where it made two, so a product test asserting a count of two per
+  client asserts one. BartleBuddy's `test_session.py` asserts only none or some, and passes as it
+  is. A double of a reader of its own answers `heap_regions()` with `(address, bytes)` pairs.
+
 ### Added
 
+- **`clients/heap_scan.py`, one scanner for every scan of a client's whole memory.**
+  `heap_scan.scan(reader, *patterns, priority=Priority.URGENT | Priority.BACKGROUND)` returns
+  each pattern's hits, a pattern being a literal or a set of literals, from one pass shared by
+  every request waiting for that client; `heap_scan.forget(reader)` ends a client's waiting
+  requests with `ScanDropped`. `HEAP_SCAN_PASSES` (1) run at once across every client (above
+  one, background passes take all but one place), and a client's background requests wait
+  `HEAP_SCAN_BACKGROUND_GRACE` (3 s) from its first request unless an urgent pass over it comes
+  first. Traced as a `heap_scan.pass` span per pass, with the regions it `skipped`, and a
+  `heap_scan.request` span per request, with its `wait` in the queue, each with the `hwnd` an
+  enclosing span names. `run_trace.current_slot()` gives the innermost span's player, and
+  `run_trace.enclosing(name)` the innermost open span's attribute *name*.
+
+- **The run trace places a startup**, for BartleBuddy's slow first resize and late Team tab.
+  `run_trace.mark(name, *, client=None, slot=None, **attrs)` writes a moment with no length, and
+  is the one call safe from any thread, so a product's GUI can mark its side of a crossing. Each
+  job wizwalker runs on asyncio's default executor, every pattern scan among them, is an
+  `executor` record with its wait for a thread and its run apart, and each of wizwalker's waits
+  for a hook's address is a `hook.wait` span named by that address (`player_struct`). The client
+  manager traces each client's hooking (`client.hook`), its key-map scan (`client.key_map`), the
+  loop's identity and wizard-name passes, and marks each client as it is published
+  (`client.published`); the resizer traces its worker (`resize.worker`, with the load it waited
+  out), the scan for the nodes and each part of it (`resize.find`), the lease (`resize.leased`)
+  and the apply (`resize.apply`). Nothing changes while no trace runs.
 - **Following is back**, as it was before 0.4.0 shelved it: `bartleby.runtime.movement`
   (`Follower`, `spacing_for`, `Trail` and its geometry) and the timing constants only it
   reads, `FOLLOW_TICK`, `FOLLOW_STALL_WINDOW`, `FOLLOW_BACK_OFF`, `LEADER_SETTLE`,
@@ -51,6 +89,37 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   hand on that client missed until it was relaunched; wizwalker now writes nothing until its
   lookups are done and takes user32's originals from a clean copy, so a leftover from before is
   put right on the next click.
+
+### Changed
+
+- **`ClientManager` publishes a client its title placed without waiting for its user id.** That
+  id only teaches the account its fingerprint, for a later session, so it is read in a task of
+  its own, one per window at a time, which `stop()` cancels, and traced as
+  `client.identity_learn`. Each pass read every client's one after another before publishing
+  any, and a first read is a pattern scan: in a four-client launch the last two wizards reached
+  the list 15 s after their hooks. A window the title could not place is still identified
+  before its slot is assigned, its read now beside the others' rather than after them. An
+  account removed from the settings while its window is open is no longer written every pass.
+  The split this took is under Breaking.
+- **The resizer's and the key map's scans share passes, the resizer's first.** Each scanned
+  through wizwalker's `pattern_scan` on its own, so a four-client startup made twenty passes of
+  1.1 GB nearly all at once, sharing one GIL: the first resize landed 17 s after it was asked
+  for, the key maps took 20 to 24 s, and the event loop stalled for up to 1.6 s. Now
+  `find_config_nodes` asks for both names in one urgent request, each of the key map's three
+  steps is a background request, and a client's first pass takes everything it has waiting.
+  The search is `bytes.find`, one literal at a time, with the same hits as wizwalker's regex:
+  its search for an alternation, which the key map's pointer step is, gives up and retakes the
+  GIL constantly, and beside one busy thread ran 240 times slower. One pass runs at a time: in
+  a traced four-client launch two at once took 4.2 to 6.4 s each against 2.2 to 2.5 s alone, so
+  each requester waited twice as long. A region the game frees or changes between asking about
+  it and reading it (`ERROR_PARTIAL_COPY`, `ERROR_NOACCESS`, `ERROR_INVALID_ADDRESS`) is read
+  once more, then skipped, where wizwalker's walk failed the whole scan: in game one such region,
+  as a client settled after its load, cost it its key map for the session. An object in a
+  skipped region is not found. An exited process or a bad handle still fails the scan. A client
+  unhooked or closed has its waiting scans dropped, which the key map takes as unreadable, as
+  before, until its next attach.
+- **`pymem` is a declared dependency of the `runtime` extra** (`>=1.13`), since
+  `clients/heap_scan.py` imports it. It came only through wizwalker before.
 
 ## 0.6.0
 
