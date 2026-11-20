@@ -25,6 +25,9 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   has no record of, so it clicks nothing on the source. The caller holds the mover's lease.
 - A `Follower` logs each walk into the leader's fight, as it starts and as it ends: joined
   after how long, or not, and why (`follow.JOINING_FIGHT` is the step's reason).
+- `Follower(writes_speed=False)` never writes its speed field, 2.0x catch-up included, and
+  gives nothing back; `Follower.holds_speed` says whether the field is the follower's just now,
+  which is `walking` only for one that writes it.
 
 ## 0.6.0
 

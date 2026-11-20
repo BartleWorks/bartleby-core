@@ -5,6 +5,7 @@ import math
 
 import pytest
 
+from bartleby.runtime.actions.speed_ledger import SpeedLedger
 from bartleby.runtime.arbiter import Arbiter, Lease, Owner
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.input import ClientInput
@@ -322,6 +323,47 @@ async def test_a_follower_runs_at_2x_to_catch_up_and_never_above(quick):
     await asyncio.gather(task, return_exceptions=True)
     speeds = [r.detail for r in client.inputs if r.kind == "speed"]
     assert 100 in speeds and max(speeds) == 100
+
+
+async def test_without_writes_speed_a_follower_catches_up_at_its_own_speed(quick):
+    arbiter = Arbiter()
+    leader, client = SimClient(), SimClient(speed=0)
+    leader_reader, me = StateReader(leader), StateReader(client)
+    me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
+    trail = Trail()
+    leader_reader.subscribe(trail.note)
+    f = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0), writes_speed=False)
+    task = asyncio.create_task(f.run())
+    await _drive_leader(leader, leader_reader, [(0, 0), (1500, 0)], speed=1500)
+    await asyncio.sleep(0.1)
+    assert f.walking and not f.holds_speed, "walking, but the field is not its own"
+    task.cancel()
+    await asyncio.gather(task, return_exceptions=True)
+    assert client.position[0] > 100, "it walked after the leader"
+    assert [r for r in client.inputs if r.kind == "speed"] == []
+    assert client.speed == 0
+
+
+async def test_without_writes_speed_a_follower_gives_back_nothing_another_writer_wrote():
+    client = SimClient(speed=10)
+    ledger = SpeedLedger()
+    f = Follower(
+        client,
+        StateReader(client),
+        StateReader(SimClient()),
+        Trail(),
+        Arbiter(),
+        spacing=spacing_for(0),
+        speed_ledger=ledger,
+        writes_speed=False,
+    )
+    # The Speed toggle's write, on the ledger the follower shares.
+    ledger.observe(client, client.character, 10)
+    client.speed = 50
+    ledger.wrote(client, client.character, 50)
+    await f.restore_speed(Lease(client, Owner.MOVEMENT, ClientInput(client)))
+    assert client.speed == 50
+    assert ledger.wrote_to(client, client.character), "the toggle's record is left as it was"
 
 
 def _speed_follower(client: SimClient) -> tuple[Follower, Lease]:

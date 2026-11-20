@@ -11,7 +11,8 @@ reading the position back every tick, and a stall backed off from.
   most the engine allows; nearer, it walks at ``walking_speed``, or the leader's own speed
   field without one. A follower that shares its speed field with another writer, as with
   BartleBuddy's Speed toggle, shares a :class:`~bartleby.runtime.actions.speed_ledger.SpeedLedger`
-  with it, so neither gives back the other's value as the wizard's own.
+  with it, so neither gives back the other's value as the wizard's own. A follower made
+  without ``writes_speed`` never writes the field, and walks at whatever it holds.
 * **Shortcuts follow the trail.** At a jump it presses Interact; a trail ending at a gate
   takes it through after the leader.
 * **Ports are the fallback**, for a follower too far behind, a jump or gate that did not
@@ -164,6 +165,7 @@ class Follower:
         port_when_far: bool = False,
         walking_speed: Callable[[], int | None] | None = None,
         speed_ledger: SpeedLedger | None = None,
+        writes_speed: bool = True,
     ) -> None:
         """With *wait_for_move*, it stands until the leader has moved from where it first reads it.
 
@@ -172,7 +174,8 @@ class Follower:
         leader. *walking_speed* is the speed field's value to walk at when not catching up,
         or None for the leader's own; a follower given one stands at its own speed when it
         says None, since nothing else then holds the field. *speed_ledger* is shared with any other writer of the
-        field (:mod:`bartleby.runtime.actions.speed_ledger`).
+        field (:mod:`bartleby.runtime.actions.speed_ledger`). Without *writes_speed* it never
+        touches its speed field, catching up included, and walks at whatever the field holds.
         """
         self.client = client
         self.me = me
@@ -194,6 +197,7 @@ class Follower:
         self._speed_watch = CharacterWatch()
         self._ledger = speed_ledger if speed_ledger is not None else SpeedLedger()
         self._walking_speed = walking_speed
+        self.writes_speed = writes_speed
         self.last_step = Step(StepKind.WAIT)
         self._awaiting_move = wait_for_move
         self._leader_from: Snapshot | None = None
@@ -319,6 +323,11 @@ class Follower:
     def walking(self) -> bool:
         """Whether it holds the movement lease and is moving: the speed field is its own just now."""
         return self._walking
+
+    @property
+    def holds_speed(self) -> bool:
+        """Whether its speed field is its own just now: it is walking, and it writes the field."""
+        return self._walking and self.writes_speed
 
     @property
     def own_speed(self) -> int | None:
@@ -495,7 +504,12 @@ class Follower:
             self._port_after = self._clock() + FOLLOW_PORT_RETRY
 
     async def _set_speed(self, lease: Lease, *, fast: bool) -> None:
-        """2.0x to catch up, else the walking speed it's given, or the leader's own. Never above 2.0x."""
+        """2.0x to catch up, else the walking speed it's given, or the leader's own. Never above 2.0x.
+
+        Nothing at all without ``writes_speed``.
+        """
+        if not self.writes_speed:
+            return
         want = SPEED_VALUE_MAX if fast else None
         if want is None and self._walking_speed is not None:
             want = self._walking_speed()
@@ -522,7 +536,13 @@ class Follower:
         self._ledger.wrote(self.client, character, want)
 
     async def restore_speed(self, lease: Lease) -> None:
-        """Give the follower its own speed back, if we changed it and the game has not since."""
+        """Give the follower its own speed back, if we changed it and the game has not since.
+
+        Without ``writes_speed`` there is nothing of its own to give back, and the shared ledger's
+        writes are another writer's, so it does nothing.
+        """
+        if not self.writes_speed:
+            return
         try:
             character = await live_character_id(self.client)
             if not self._ledger.wrote_to(self.client, character):
