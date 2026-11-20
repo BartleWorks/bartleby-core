@@ -28,6 +28,20 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 - `Follower(writes_speed=False)` never writes its speed field, 2.0x catch-up included, and
   gives nothing back; `Follower.holds_speed` says whether the field is the follower's just now,
   which is `walking` only for one that writes it.
+- **Followers at a dungeon sigil**, with `Follower(sigil_prompts=PromptReads())`, shared by a
+  leader's followers (`bartleby.runtime.movement.sigil`). With the leader standing at a sigil
+  with its prompt, or from its press of X through its walk to its seat and its countdown, a
+  follower with its own prompt stands, and one without walks at the leader until it has one. A
+  press is the arbiter's Interact lease (detail `Helper.INTERACT`) on the follower or the
+  leader, or for the leader its prompt going as it stood at the sigil. From the follower's own
+  press it sends nothing at all until it loads, its prompt comes back, or `SIGIL_COUNTDOWN_MAX`
+  passes; a prompt not seen gone within `SIGIL_PRESS_CONFIRM` of a press means the press did not
+  take. A leader that cancels (its prompt back, off the seat it stood still on for
+  `SIGIL_SEAT_SETTLE` after its press, its press not taken, or never seated) has it cancel too,
+  by a `SIGIL_CANCEL_TAP` of Move Left. From `SIGIL_COUNTDOWN` after a press, a prompt back or a
+  leader off its seat may be the countdown ending, so cancels only after `SIGIL_END_GRACE` with
+  no zone change. New: `StepKind.CANCEL`, `Follower.at_sigil` and `.entering`, the `SIGIL_*`
+  timing constants. Without `sigil_prompts` nothing changes and no prompt is read.
 
 ## 0.6.0
 

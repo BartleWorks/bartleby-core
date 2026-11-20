@@ -207,6 +207,24 @@ Stated 2026-10-20 for BartleBot #279.
   which starts a countdown, and up to four players who press X within the same countdown
   window enter together. A stranger idling on the sigil is harmless; one who ends up inside
   pressed X in our window.
+- **What one entry looks like** (stated 2026-11-20, for BartleBuddy's followers). In range of a
+  sigil, the interact prompt shows, with a **Team Up button on every dungeon sigil** in the
+  game, and on no other prompt (`paths.DUNGEON_ENTRANCE_TEAMUP_BUTTON_PATH`; gauntlets have
+  none). Pressing X **closes the prompt** and auto-walks the wizard to one of the sigil's seats,
+  usually four, as the run into a fight does. The walk starts a moment after the press, so a
+  reader sees the wizard stand still where it pressed first (observed 2026-11-20: taking that
+  spot for its seat made every follower cancel when the walk began). A **10 s countdown**
+  follows. The first press starts it, and every press within it shares it, so a late player is
+  fine as long as it pressed before the others loaded. **Any movement cancels a player's
+  countdown**, forward, back or a turn, and its prompt almost always comes back within a second.
+  **One player cancelling cancels no one else's.** Then a loading screen, and the dungeon. **As
+  the countdown ends, the prompt shows again for a moment** before the loading screen (observed
+  2026-11-20: back 11.1 s after the press, gone 0.9 s later, then the zone changed), so a prompt
+  back that late is no sign of a cancel.
+- **The prompt's range reaches far.** Across BartleBot's 91 `enter_dungeon` nodes, whose
+  `sigil_xyz` is the first seat and whose `reset_xyz` an author puts outside the range, the two
+  are 430 to 1,438 units apart, median 660. So the range is usually a few hundred units, and
+  a team standing behind a player at its edge can leave its last wizard outside.
 - Relogging from inside a dungeon puts players back **where they were before entering**:
   usually on the entrance sigil, but elsewhere if they teleported in.
 

@@ -112,7 +112,8 @@ async def interact(arbiter: Arbiter, members: Sequence[Member]) -> list[Member]:
     async def one(member: Member) -> bool:
         if not await member.client.is_in_npc_range():
             return False
-        async with arbiter.acquire(member.client, Owner.HOTKEY, detail="interact") as lease:
+        # The detail is how a follower knows X was pressed on it (movement.follow).
+        async with arbiter.acquire(member.client, Owner.HOTKEY, detail=Helper.INTERACT) as lease:
             await lease.input.press(GameAction.INTERACT)
         return True
 
