@@ -14,7 +14,8 @@ summarize. These kinds of record:
   address to be written is a ``hook.wait`` span, named by the address it waits on. Each pass
   over a client's whole memory is a ``heap_scan.pass`` span, under no other since it serves
   several callers, and each caller's request a ``heap_scan.request`` inside the caller's span,
-  with its ``wait`` in the queue (``clients/heap_scan.py``).
+  with its ``wait`` in the queue (``clients/heap_scan.py``); a background request raised to
+  urgent, because someone needs it now, is a ``heap_scan.promoted`` mark.
 - **mark** -- a moment with no length: a client published, a size asked for. The one kind
   safe to write from any thread, so the GUI's side of a crossing can be placed too.
 - **executor** -- each function wizwalker runs on asyncio's default executor, a pattern

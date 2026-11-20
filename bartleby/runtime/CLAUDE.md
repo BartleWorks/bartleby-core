@@ -269,7 +269,11 @@ priority=…)` queues a request instead: one pass serves every request waiting f
 (`HEAP_SCAN_PASSES`): in a traced launch two at once took as long as one after the other, and
 each requester waited twice as long. A client's background work waits `HEAP_SCAN_BACKGROUND_GRACE`
 after its first request unless its first resize comes first, since the key map's scan begins at
-hook, just before the GUI asks for a size. A region that changes under the read (the game frees
+hook, just before the GUI asks for a size. **Background is for work nobody waits on yet**, and
+`heap_scan.promote(reader)` raises a client's waiting requests to urgent, in place, and ends its
+grace, once somebody does: the key map's warm-up at hook is the one background caller, and every
+other `key_map` caller (a press, a held key, a run's pre-check) asks at urgent, promoting a lookup
+still under way, its later stages included. A promoted request is still one request in one pass. A region that changes under the read (the game frees
 regions all the time as a client settles after a load) is read once more, then skipped and
 counted, never a failed pass; wizwalker's walk failed the whole scan on one, and cost a client its
 key map for the session. Only an exited process or a bad handle fails a pass. Ask for every

@@ -12,6 +12,12 @@ its address is kept, per window, and each read goes through it (about 10 ms for 
 which sees a rebind the moment the player saves it. An address that no longer holds the list
 is found again.
 
+**Background at hook, urgent once needed.** The client manager begins the lookup as a client
+hooks, in the background (``priority=BACKGROUND``), so a resize goes first. Every other caller
+needs the keys now and asks at urgent, the default: a press, a held key, a run's pre-check. One
+asking while a background lookup is under way promotes it, its remaining scans included
+(``heap_scan.promote``), and waits on it rather than starting another.
+
 **Never a reason not to run.** A client whose bindings cannot be read gets the game's
 defaults for the actions BartleBot presses, with one warning, until ``key_map(refresh=True)``
 tries again: a client's attach does. A run's start does not, since a build with no list, as
@@ -27,6 +33,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import struct
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from wizwalker import Keycode
@@ -62,6 +69,8 @@ class _Entry:
     """The bindings the last read from memory found, for a caller that cannot wait on a read."""
     scan: asyncio.Task | None = None
     """The scan under way, which a second caller waits on rather than starting its own."""
+    priority: heap_scan.Priority = heap_scan.Priority.BACKGROUND
+    """The scan's, asked again before each of its passes: a caller that needs the keys now raises it."""
 
 
 _entries: dict[int, _Entry] = {}
@@ -107,10 +116,14 @@ def _pointers_to(addresses) -> tuple[bytes, ...]:
     return tuple(struct.pack("<Q", a) for a in sorted(set(addresses)))
 
 
-async def _scan(reader, pattern: heap_scan.Pattern) -> list[int]:
-    """The 8-aligned hits of one pass, in the background: nothing waits on a key map until a key is pressed."""
-    (found,) = await heap_scan.scan(reader, pattern, priority=heap_scan.Priority.BACKGROUND)
+async def _scan(reader, pattern: heap_scan.Pattern, priority: heap_scan.Priority) -> list[int]:
+    """The 8-aligned hits of one pass."""
+    (found,) = await heap_scan.scan(reader, pattern, priority=priority)
     return [a for a in found if a % 8 == 0]
+
+
+def _background() -> heap_scan.Priority:
+    return heap_scan.Priority.BACKGROUND
 
 
 async def _holds(reader, value: int, vtable: int) -> bool:
@@ -145,23 +158,25 @@ async def _ring(reader, start_node: int, vtable: int) -> tuple[int, int] | None:
     return None
 
 
-async def find_binding_list(reader) -> int | None:
+async def find_binding_list(reader, priority: Callable[[], heap_scan.Priority] = _background) -> int | None:
     """The address of the client's InputBindingList, or None.
 
     The InputBinding holding "NPCInteract", then the list nodes pointing at it, then the rings
     those nodes are on, then the list pointing at the chosen ring's sentinel from 0x48: three
-    scans, each a background request to ``heap_scan``, so each may share its pass with whatever
-    else the client has waiting, the resizer's names above all. The game's key bindings page leaves lists of its own behind, one binding each, inside
-    an ``InputBindingData`` per row, and a row can still hold a key the player has since
-    changed; so the ring chosen is the one with the most bindings, the player's whole set.
+    scans, each a request to ``heap_scan``, so each may share its pass with whatever else the
+    client has waiting, the resizer's names above all. *priority* is asked before each, so a
+    lookup promoted partway asks the rest at urgent; it is background unless given. The game's
+    key bindings page leaves lists of its own behind, one binding each, inside an
+    ``InputBindingData`` per row, and a row can still hold a key the player has since changed;
+    so the ring chosen is the one with the most bindings, the player's whole set.
     """
-    seeds = [hit - ACTION for hit in await _scan(reader, _SEED)]
+    seeds = [hit - ACTION for hit in await _scan(reader, _SEED, priority())]
     seeds = [s for s in seeds if await type_name(reader, s) == "InputBinding"]
     if not seeds:
         return None
     vtable = await _u64(reader, seeds[0])
     rings: dict[int, int] = {}
-    for hit in await _scan(reader, _pointers_to(seeds)):
+    for hit in await _scan(reader, _pointers_to(seeds), priority()):
         try:
             found = await _ring(reader, hit - NODE_VALUE, vtable)
         except Exception:  # noqa: BLE001 - a pointer that is no list node leads into garbage
@@ -172,7 +187,7 @@ async def find_binding_list(reader) -> int | None:
     for sentinel in sorted(rings, key=rings.__getitem__, reverse=True):
         if rings[sentinel] < 2:
             break  # only the bindings page's leftovers: no whole set to read
-        for pointer in await _scan(reader, _pointers_to([sentinel])):
+        for pointer in await _scan(reader, _pointers_to([sentinel]), priority()):
             if await type_name(reader, pointer - LIST_HEAD) == "InputBindingList":
                 return pointer - LIST_HEAD
     return None
@@ -200,7 +215,7 @@ async def _find(client, entry: _Entry) -> None:
     """Find the client's list and read it, or mark *entry* unreadable. Never raises."""
     reader = getattr(client, "hook_handler", None)
     try:
-        address = await find_binding_list(reader)
+        address = await find_binding_list(reader, lambda: entry.priority)
         if address is None:
             raise LookupError("no InputBindingList in the client's memory")
         bindings = await read_binding_list(reader, address)
@@ -212,12 +227,21 @@ async def _find(client, entry: _Entry) -> None:
     entry.last = KeyMap(bindings, source="memory")
 
 
-async def key_map(client, *, refresh: bool = False, warn: bool = True) -> KeyMap:
+async def key_map(
+    client,
+    *,
+    refresh: bool = False,
+    warn: bool = True,
+    priority: heap_scan.Priority = heap_scan.Priority.URGENT,
+) -> KeyMap:
     """The client's key bindings, from its memory; the game's defaults when they cannot be read.
 
     *refresh* tries memory again for a client that failed before. *warn* False leaves a failure
     for the next caller to warn of: the read made as a client attaches, whose failure the pre-run
-    check reports. Never raises.
+    check reports. *priority* is how soon a scan for the list is wanted: urgent, since a caller
+    waits, but for that read at attach, which is background. An urgent caller arriving while a
+    background scan is under way promotes it, the passes it has still to ask for included.
+    Never raises.
     """
     entry = _entries.setdefault(_handle(client), _Entry())
     if entry.fixed is not None:
@@ -232,7 +256,14 @@ async def key_map(client, *, refresh: bool = False, warn: bool = True) -> KeyMap
             entry.address = None
     if not entry.unreadable:
         if entry.scan is None or entry.scan.done():
+            entry.priority = priority
             entry.scan = asyncio.create_task(_find(client, entry))
+        elif priority > entry.priority:
+            # Raised first, so a pass asked for from here on is urgent; then the one waiting.
+            entry.priority = priority
+            reader = getattr(client, "hook_handler", None)
+            if reader is not None:
+                heap_scan.promote(reader)
         # Shielded: the caller that began it may be cancelled while another waits on it.
         await asyncio.shield(entry.scan)
         if not entry.unreadable:

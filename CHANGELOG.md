@@ -24,6 +24,10 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   finding its nodes makes one where it made two, so a product test asserting a count of two per
   client asserts one. BartleBuddy's `test_session.py` asserts only none or some, and passes as it
   is. A double of a reader of its own answers `heap_regions()` with `(address, bytes)` pairs.
+- **The client manager calls `game_keys.key_map` with `priority=`** (under Added), so a double of
+  `key_map` patched in under a `ClientManager` takes it, as core's `test_client_loop.py` now
+  does. Neither product has one: BartleBot's `test_run_probe.py` fakes it for the pre-check,
+  which passes no priority.
 
 ### Added
 
@@ -38,6 +42,13 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   `heap_scan.request` span per request, with its `wait` in the queue, each with the `hwnd` an
   enclosing span names. `run_trace.current_slot()` gives the innermost span's player, and
   `run_trace.enclosing(name)` the innermost open span's attribute *name*.
+- **`heap_scan.promote(reader) -> int`** raises every background request waiting on a client to
+  urgent, in place, queued as if asked for now, and ends the client's grace; it returns how many
+  it raised, and a pass already under way runs on as it began. Traced as a `heap_scan.promoted`
+  mark, with the `requests` raised and how long the first had `waited`, and `promoted` on each
+  raised request's span. `game_keys.key_map(..., priority=Priority.URGENT)` says how soon a scan
+  for the list is wanted, and `find_binding_list(reader, priority=...)` takes a callable asked
+  before each of its three scans, background unless given.
 
 - **The run trace places a startup**, for BartleBuddy's slow first resize and late Team tab.
   `run_trace.mark(name, *, client=None, slot=None, **attrs)` writes a moment with no length, and
@@ -118,6 +129,14 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   skipped region is not found. An exited process or a bad handle still fails the scan. A client
   unhooked or closed has its waiting scans dropped, which the key map takes as unreadable, as
   before, until its next attach.
+- **A key map someone needs now is no longer background work.** The warm-up at hook still asks
+  in the background, so a resize goes first, and in a traced four-client launch the key maps
+  finished about 25 s after the hooks. A caller that needed one before then, a follower starting
+  to walk, a helper's press or a run's pre-check, waited on that queue for as long. Every
+  `key_map` caller but the warm-up now asks at urgent, the default: one arriving while the
+  lookup is under way promotes it, its waiting scan raised with its grace ended and its later
+  scans asked at urgent, and it is still one lookup, scanned once. Its failure is as before: the
+  defaults with one warning, until a refresh on attach.
 - **`pymem` is a declared dependency of the `runtime` extra** (`>=1.13`), since
   `clients/heap_scan.py` imports it. It came only through wizwalker before.
 

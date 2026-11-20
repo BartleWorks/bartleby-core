@@ -537,6 +537,80 @@ async def test_forgetting_a_client_starts_its_grace_afresh(memories):
     await asyncio.gather(keys, return_exceptions=True)
 
 
+# -- promotion ---------------------------------------------------------------------------------------------
+
+
+async def test_a_promoted_request_is_served_at_once_its_grace_ended(memories):
+    scanner = HeapScanner(grace=5)
+    memory = memories("client", b"keys")
+    keys = _start(scanner, memory, b"keys", priority=BACKGROUND)
+    await _until(lambda: scanner.waiting(memory) == 1)
+    await asyncio.sleep(0.02)
+    assert memory.scans == 0, "waiting out its grace"
+    assert scanner.promote(memory) == 1
+    assert await asyncio.wait_for(keys, 2) == [[BASE]]
+    assert memory.scans == 1
+    # Its grace is over: the client's background work waits no longer.
+    assert await asyncio.wait_for(scanner.scan(memory, [b"keys"], BACKGROUND), 2) == [[BASE]]
+
+
+async def test_a_promoted_request_is_one_request_and_shares_its_pass(memories, log):
+    """Raised in place: one pass serves it and the client's other waiting work, behind an urgent request asked first."""
+    scanner = HeapScanner(passes=1, background_passes=1)
+    busy, memory = memories("busy"), memories("client", b"keys more")
+    busy.hold()
+    first = _start(scanner, busy, b"x", priority=BACKGROUND)
+    await _until(lambda: busy.scans == 1)
+    keys = _start(scanner, memory, b"keys", priority=BACKGROUND)
+    more = _start(scanner, memory, b"more", priority=BACKGROUND)
+    resize = _start(scanner, memories("resize"), b"x")
+    await _until(lambda: scanner.waiting(memory) == 2)
+    assert scanner.promote(memory) == 2
+    assert scanner.waiting(memory) == 2, "raised in place, not asked again"
+    busy.gate.set()
+    assert await asyncio.gather(first, keys, more, resize) == [[[]], [[BASE]], [[BASE + 5]], [[]]]
+    assert log == ["busy", "resize", "client"], "the resize was urgent first"
+    assert memory.scans == 1
+
+
+async def test_promoting_a_client_whose_pass_has_begun_changes_nothing(memories):
+    scanner = HeapScanner()
+    memory = memories("client", b"keys")
+    memory.hold()
+    keys = _start(scanner, memory, b"keys", priority=BACKGROUND)
+    await _until(lambda: memory.scans == 1)
+    assert scanner.promote(memory) == 0
+    assert scanner.running == 1
+    memory.gate.set()
+    assert await keys == [[BASE]]
+    assert memory.scans == 1
+    assert (scanner.running, scanner._running_background) == (0, 0), "the background pass gave its place back"
+    assert await asyncio.wait_for(scanner.scan(memory, [b"keys"], BACKGROUND), 2) == [[BASE]]
+
+
+async def test_an_urgent_request_is_not_promoted(memories):
+    scanner = HeapScanner(passes=1, background_passes=1)
+    busy, memory = memories("busy"), memories("client", b"x")
+    busy.hold()
+    first = _start(scanner, busy, b"x")
+    await _until(lambda: busy.scans == 1)
+    resize = _start(scanner, memory, b"x")
+    await _until(lambda: scanner.waiting(memory) == 1)
+    assert scanner.promote(memory) == 0
+    assert scanner.promote(memories("nothing waiting")) == 0
+    busy.gate.set()
+    await asyncio.gather(first, resize)
+
+
+async def test_the_module_promotes_on_the_running_loop_s_scanner(memories, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 5.0)
+    memory = memories("client", b"keys")
+    keys = asyncio.create_task(heap_scan.scan(memory, b"keys", priority=BACKGROUND))
+    await _until(lambda: heap_scan.scanner().waiting(memory) == 1)
+    assert heap_scan.promote(memory) == 1
+    assert await asyncio.wait_for(keys, 2) == [[BASE]]
+
+
 # -- the trace ---------------------------------------------------------------------------------------------
 
 
@@ -589,3 +663,28 @@ async def test_a_trace_counts_the_regions_a_pass_skipped(monkeypatch, tmp_path):
     records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     (pass_,) = [r for r in records if r.get("name") == "heap_scan.pass"]
     assert (pass_["attrs"]["regions"], pass_["attrs"]["skipped"]) == (2, 1)
+
+
+async def test_a_trace_shows_a_promotion(memories, tmp_path):
+    scanner = HeapScanner(grace=5)
+    memory = memories("client", b"keys")
+    path = run_trace.start(lambda client: None, tmp_path)
+    try:
+        with run_trace.span("client.key_map", hwnd=77):
+            keys = _start(scanner, memory, b"keys", priority=BACKGROUND)
+        await _until(lambda: scanner.waiting(memory) == 1)
+        await asyncio.sleep(0.02)
+        with run_trace.span("press", slot=2):
+            scanner.promote(memory)
+        await asyncio.wait_for(keys, 2)
+    finally:
+        run_trace.stop()
+
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    (mark,) = [r for r in records if r["kind"] == "mark" and r["name"] == "heap_scan.promoted"]
+    assert (mark["slot"], mark["hwnd"], mark["requests"]) == (2, 77, 1), "the promoter's slot, the requester's window"
+    assert mark["waited"] >= 0.02
+    (request,) = [r for r in records if r.get("name") == "heap_scan.request"]
+    assert (request["attrs"]["priority"], request["attrs"]["promoted"]) == ("background", True), "asked as, and raised"
+    (pass_,) = [r for r in records if r.get("name") == "heap_scan.pass"]
+    assert pass_["attrs"]["priority"] == "urgent"

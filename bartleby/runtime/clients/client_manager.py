@@ -733,8 +733,14 @@ class ClientManager:
                 # are in memory now: find them here, a scan of a few seconds, rather than when
                 # the first run starts. A task of its own, so publishing the client never waits
                 # on it; the pre-run check takes its answer, and warns if they cannot be read.
+                # In the background, so the client's resize goes first; a key pressed before it
+                # is done promotes it (game_keys.key_map).
                 warm = asyncio.create_task(
-                    run_trace.traced(game_keys.key_map(client, refresh=True, warn=False), "client.key_map", hwnd=hwnd)
+                    run_trace.traced(
+                        game_keys.key_map(client, refresh=True, warn=False, priority=heap_scan.Priority.BACKGROUND),
+                        "client.key_map",
+                        hwnd=hwnd,
+                    )
                 )
                 self._activation_tasks.add(warm)
                 warm.add_done_callback(self._activation_tasks.discard)

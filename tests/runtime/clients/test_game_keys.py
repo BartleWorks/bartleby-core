@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import struct
+import threading
+import time
+from unittest.mock import AsyncMock
 
 import pytest
 from wizwalker import Keycode
@@ -28,6 +31,8 @@ class FakeMemory:
         self.next = 0x100
         self.names: dict[int, str] = {}
         self.scans = 0
+        self.gate = threading.Event()
+        self.gate.set()
 
     def alloc(self, size: int) -> int:
         address = BASE + self.next
@@ -86,6 +91,7 @@ class FakeMemory:
     def heap_regions(self) -> list[tuple[int, bytes]]:
         """The region, for a pass of heap_scan's."""
         self.scans += 1
+        assert self.gate.wait(5), "a test left a pass waiting"
         return [(BASE, bytes(self.data))]
 
 
@@ -96,6 +102,7 @@ class MemoryClient:
         MemoryClient._next += 1
         self.window_handle = MemoryClient._next
         self.hook_handler = memory
+        self.send_key = AsyncMock()
 
 
 @pytest.fixture(autouse=True)
@@ -321,3 +328,117 @@ async def test_the_bindings_last_read_are_known_without_a_read():
     client = MemoryClient(memory)
     keys = await game_keys.key_map(client)
     assert keys in game_keys.known_maps()
+
+
+# -- the warm-up in the background, promoted by a press ------------------------------------------------------
+
+
+@pytest.fixture
+def asked(monkeypatch) -> list[heap_scan.Priority]:
+    """The priority each of the key map's scans was asked at, in order."""
+    asked: list[heap_scan.Priority] = []
+    real = heap_scan.scan
+
+    async def scan(reader, *patterns, priority):
+        asked.append(priority)
+        return await real(reader, *patterns, priority=priority)
+
+    monkeypatch.setattr(heap_scan, "scan", scan)
+    return asked
+
+
+BACKGROUND, URGENT = heap_scan.Priority.BACKGROUND, heap_scan.Priority.URGENT
+
+
+async def _until(condition, timeout: float = 5) -> None:
+    deadline = time.monotonic() + timeout
+    while not condition():
+        assert time.monotonic() < deadline, "it never happened"
+        await asyncio.sleep(0.002)
+
+
+def _warm_up(client) -> asyncio.Task:
+    """The client manager's read at hook."""
+    return asyncio.create_task(game_keys.key_map(client, refresh=True, warn=False, priority=BACKGROUND))
+
+
+async def test_a_press_during_a_queued_warm_up_is_served_at_urgent_its_grace_ended(monkeypatch, asked):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 5.0)
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    client = MemoryClient(memory)
+    warm = _warm_up(client)
+    await _until(lambda: heap_scan.scanner().waiting(memory) == 1)
+    await asyncio.sleep(0.02)
+    assert memory.scans == 0, "the warm-up waits out its grace"
+
+    await asyncio.wait_for(game_keys.press(client, GameAction.INTERACT, 0.1), 2)
+
+    client.send_key.assert_awaited_once_with(Keycode.K, 0.1)
+    assert asked == [BACKGROUND, URGENT, URGENT], "its later scans are urgent too"
+    assert (await warm).choose(GameAction.INTERACT).code == ord("K")
+    alone = FakeMemory()
+    _player_set(alone, interact="k")
+    assert await game_keys.find_binding_list(alone, lambda: URGENT) is not None
+    assert memory.scans == alone.scans == 3, "one lookup, each of its scans once"
+
+
+async def test_the_warm_up_alone_stays_in_the_background(monkeypatch, asked):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 0.1)
+    promoted = []
+    monkeypatch.setattr(heap_scan, "promote", promoted.append)
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    began = time.monotonic()
+    keys = await _warm_up(MemoryClient(memory))
+    assert time.monotonic() - began >= 0.09, "it waited out its grace"
+    assert keys.choose(GameAction.INTERACT).code == ord("K")
+    assert asked == [BACKGROUND] * 3
+    assert promoted == []
+
+
+async def test_a_key_map_with_no_warm_up_asks_at_urgent_and_a_warm_up_never_lowers_it(asked):
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    client = MemoryClient(memory)
+    first = asyncio.create_task(game_keys.key_map(client))
+    await asyncio.sleep(0)
+    warm = _warm_up(client)
+    assert (await first) is (await warm)
+    assert asked == [URGENT] * 3
+
+
+async def test_a_press_while_the_warm_up_s_pass_runs_changes_nothing_harmful(asked):
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    client = MemoryClient(memory)
+    memory.gate.clear()
+    try:
+        warm = _warm_up(client)
+        await _until(lambda: memory.scans == 1)
+        press = asyncio.create_task(game_keys.press(client, GameAction.INTERACT))
+        await asyncio.sleep(0.02)
+        assert heap_scan.scanner().waiting(memory) == 0, "no second request"
+        assert heap_scan.scanner().running == 1
+    finally:
+        memory.gate.set()
+    await asyncio.wait_for(press, 2)
+    client.send_key.assert_awaited_once_with(Keycode.K, 0)
+    assert (await warm).source == "memory"
+    assert asked == [BACKGROUND, URGENT, URGENT], "the pass ran on as it began, and the rest were urgent"
+    assert memory.scans == 3
+    assert heap_scan.scanner().running == 0
+
+
+async def test_a_promoted_lookup_that_fails_keeps_the_defaults_with_one_warning(monkeypatch, caplog):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 5.0)
+    memory = FakeMemory()  # nothing in it
+    client = MemoryClient(memory)
+    warm = _warm_up(client)
+    await _until(lambda: heap_scan.scanner().waiting(memory) == 1)
+    await asyncio.wait_for(game_keys.press(client, GameAction.INTERACT), 2)
+    client.send_key.assert_awaited_once_with(Keycode.X, 0)
+    assert (await warm).source == "defaults"
+    await game_keys.press(client, GameAction.INTERACT)
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
+    assert memory.scans == 1, "no scan per press"

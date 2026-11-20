@@ -30,6 +30,13 @@ unless an urgent pass over it comes first, which takes them along. The key map's
 hook and the GUI asks for a size two or three seconds later, so without the wait the key map
 took the only place just before the resize asked.
 
+**Promoted when someone needs it now.** :func:`promote` raises every request waiting on a
+client to urgent, as if each had been asked for urgently at that moment, and ends the client's
+grace. The key map's lookup asks in the background at hook, and a key pressed before it is done
+promotes it, so a follower starting to walk waits a pass, not the queue. A request is raised in
+place: it is still one request, served by one pass, beside whatever else waits on its client. A
+request whose pass has begun is not waiting, and its pass runs on as it began.
+
 **Searched with bytes.find, never a regex.** wizwalker searches with ``regex``, which lets go of
 the GIL and takes it back again and again while it searches for an alternation: beside one busy
 thread, three names over 16 MB took 24 s instead of 0.1 s, and the key map's pointer scan is an
@@ -59,7 +66,9 @@ for a client not yet on a team), its number (``pass_id``), its ``priority``, how
 ``patterns`` and ``requesters``, and once it ends the ``regions``, ``mb``, ``hits`` and
 ``skipped`` regions. Each request is a ``heap_scan.request`` span inside its caller's, with its
 ``hwnd``, its ``wait`` in the queue and the ``pass_id`` that served it, so a request's span
-less its wait is its pass.
+less its wait is its pass. A promotion is a ``heap_scan.promoted`` mark, with the client's slot
+and ``hwnd``, how many ``requests`` it raised and how long the first had ``waited``, and each
+request it raised has ``promoted`` set on its span.
 """
 
 from __future__ import annotations
@@ -115,7 +124,7 @@ class Priority(enum.IntEnum):
     """How soon a request's pass should run."""
 
     BACKGROUND = 0
-    """Nothing waits on it yet: the key map, until a key is pressed."""
+    """Nothing waits on it yet: the key map's warm-up at hook, until a key is pressed (:func:`promote`)."""
     URGENT = 1
     """A player waits on it: a resize."""
 
@@ -233,6 +242,7 @@ class _Request:
     queued: float = field(default_factory=time.perf_counter)
     began: float | None = None
     pass_id: int | None = None
+    promoted: bool = False
 
 
 class HeapScanner:
@@ -293,6 +303,8 @@ class HeapScanner:
                 return await request.future
             finally:
                 self._withdraw(reader, request)
+                if request.promoted:
+                    run_trace.note(promoted=True)
                 if request.began is not None:
                     run_trace.note(wait=round(request.began - request.queued, 4), pass_id=request.pass_id)
 
@@ -306,6 +318,30 @@ class HeapScanner:
         for request in self._waiting.pop(reader, []):
             if not request.future.done():
                 request.future.set_exception(ScanDropped("the client is gone or unhooked"))
+
+    def promote(self, reader) -> int:
+        """Raise each background request waiting on *reader* to urgent, and end its grace. How many it raised.
+
+        Each is queued as if asked for urgently now, so an urgent request already waiting goes
+        first. A pass under way is left as it is.
+        """
+        self._had_urgent.add(reader)
+        raised = [r for r in self._waiting.get(reader, ()) if r.priority is not Priority.URGENT]
+        for request in raised:
+            request.priority, request.promoted, request.order = Priority.URGENT, True, next(self._order)
+        if raised:
+            first = raised[0]
+            slot = first.slot if first.slot is not None else run_trace.current_slot()
+            hwnd = first.hwnd if first.hwnd is not None else run_trace.enclosing("hwnd")
+            run_trace.mark(
+                "heap_scan.promoted",
+                slot=slot,
+                requests=len(raised),
+                waited=round(time.perf_counter() - first.queued, 4),
+                **({} if hwnd is None else {"hwnd": hwnd}),
+            )
+            self._dispatch()
+        return len(raised)
 
     def _withdraw(self, reader, request: _Request) -> None:
         waiting = self._waiting.get(reader)
@@ -449,6 +485,14 @@ async def scan(reader, *patterns: Pattern, priority: Priority) -> list[list[int]
     :class:`ScanDropped` if :func:`forget` was told of the client first. No hit is an empty list.
     """
     return await scanner().scan(reader, patterns, priority)
+
+
+def promote(reader) -> int:
+    """Someone needs *reader*'s waiting background work now: it is raised to urgent. How many requests it raised.
+
+    See :meth:`HeapScanner.promote`.
+    """
+    return scanner().promote(reader)
 
 
 def forget(reader) -> None:

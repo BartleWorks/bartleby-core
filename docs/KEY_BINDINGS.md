@@ -24,9 +24,10 @@ and a rebind saved in game changed the list in place, the same address, at once.
 at the list, so finding it takes a scan of the process: the `InputBinding` holding
 `NPCInteract`, whose name sits inside the object; the list nodes pointing at it; the ring
 they are on; the list pointing at the ring's sentinel. About 4 s on a fresh client, nearer 10
-once the game's key bindings page has been opened. Each of the three is a background request to
-`clients/heap_scan.py`, so it waits behind any resize a player is waiting on and shares a pass
-with whatever else that client has waiting, the resizer's names above all. The pointers are
+once the game's key bindings page has been opened. Each of the three is a request to
+`clients/heap_scan.py`, so it shares a pass with whatever else that client has waiting, the
+resizer's names above all; the warm-up's are background ones, which wait behind any resize a
+player is waiting on, until a key is needed (below). The pointers are
 searched as literals, one at a time: as a regex alternation, which wizwalker's scan made of them,
 the search gave up and retook the GIL constantly, which is likely why more seeds, the bindings
 page's, cost so much more. The address is then kept per window and
@@ -132,9 +133,14 @@ before the run, since the other action happens too and the player may wonder why
 character is in the world, and so are its bindings. Nothing waits on it until a key is pressed,
 so its passes are background ones, and a client's first resize is not held up by them: they wait
 `HEAP_SCAN_BACKGROUND_GRACE` after the client's first request unless its resize comes first, and
-go along with that pass. A region the game frees while a pass reads it is skipped, so a client
+go along with that pass. In a traced four-client launch they finished about 25 s after the hooks,
+behind the resizes. A region the game frees while a pass reads it is skipped, so a client
 still settling after its load can miss its list and press the defaults until its next attach. A read
-made while that scan is under way waits on it rather than starting a second. A failure there is logged at DEBUG, and the pre-run
+made while that scan is under way waits on it rather than starting a second, and promotes it:
+every caller but the warm-up asks at urgent (`key_map`'s `priority`), a follower starting to walk,
+a press, a run's pre-check, so the lookup's waiting request is raised to urgent with its grace
+ended (`heap_scan.promote`) and its remaining scans are asked at urgent too. It is still one
+lookup: nothing is scanned twice. The trace marks it `heap_scan.promoted`. A failure there is logged at DEBUG, and the pre-run
 read takes its answer and warns.
 
 ## The authoring hotkeys' clash warning
