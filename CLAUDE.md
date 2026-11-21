@@ -107,7 +107,7 @@ texture committed now ships publicly, and a repo carrying the game's own art inv
 takedown the way one carrying player data invites a link back to the account.
 
 Names and ids are the exception, and the line worth remembering is *text versus
-asset*: `dialog_captions.json`, `name_tables.json` and `realm_names.json` in
+asset*: `dialog_captions.json`, `name_tables.json`, `realm_names.json` and `spell_names.json` in
 `bartleby/runtime/game/data/` are all extracted from `Root.wad` and all tracked, because a
 snapshot of names is what lets an app talk about the game without shipping any of it. Art
 is extracted on the user's own machine, outside any repo, and every lookup of it returning

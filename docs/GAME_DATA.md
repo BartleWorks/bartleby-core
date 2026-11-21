@@ -126,7 +126,8 @@ obj = ser.deserialize(data)
 obj.get("m_displayName")  # -> b"Spells_00003940", by name, not position
 ```
 
-`tools/dump_spell_names.py` is the worked example. It's a dev-only dependency
+BartleBot's `tools/dump_spell_names.py` is the worked example; it writes core's
+`runtime/game/data/spell_names.json`, and stays in BartleBot because it reads BartleBot's type dumps. It's a dev-only dependency
 (`uv add --group dev katsuba`) — nothing at runtime reads a WAD, per the rule
 above — so reach for it whenever a new dump tool needs a specific field off a
 `BINd` object rather than an ordered `<Thing>.xml` / `.lang` pair; save the
