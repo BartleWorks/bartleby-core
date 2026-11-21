@@ -329,6 +329,15 @@ module's words.
   move, as ISBoxer's home regions and xmonad's DwmPromote do it. The equal grid is always in slot
   order, and the strip comes back in the order it had, with a swap made meanwhile trading places
   with the last Main.
+- **A launch keeps Main for the wizard it is bringing in.** `played` is by player, and a wizard
+  still launching is no player: a pending tile, then a window at character select. So Main went
+  to whichever wizard was in game first, and changed hands as each wizard before it in slot
+  order came in, a resize each time: four accounts launched together and coming in from P4 to P1
+  gave three. `set_layout(..., played_slots=)` names the slots played whatever their tile holds,
+  and BartleBuddy names the slot its Active wizard is coming into (its `docs/MULTIBOX.md`, "The
+  views"), so Main waits there and every wizard in game first keeps its Side tile, at the size it
+  launched at. A window with no player is never asked for a size, so only the game that arrives
+  in Main resizes, once.
 - **A resize keeps the launch's aspect**, so no camera is written. `aspect_family` gives a
   client's rungs: 16:9's or 4:3's, and None for any other aspect, whose client has no target.
   The largest game with a ladder picks the family the tiles are placed by, and a client of the

@@ -17,7 +17,7 @@ from __future__ import annotations
 import contextlib
 import ctypes
 import logging
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -644,6 +644,8 @@ class GameView(ThemedMixin, QWidget):
         # See set_layout: None is the equal grid, and the rest is by player index.
         self._layout: Layout | None = None
         self._played: list[bool] = []
+        # See set_layout: the slots played whatever player they hold, as a slot a launch is bringing the played wizard into.
+        self._played_slots: frozenset[int] = frozenset()
         self._by_rung = False
         # See set_layout: the most pixels an equal grid by rung may grow a game to, or None.
         self._cap: tuple[int, int] | None = None
@@ -1113,6 +1115,7 @@ class GameView(ThemedMixin, QWidget):
         layout: Layout | None,
         played: Sequence[bool] = (),
         *,
+        played_slots: Collection[int] = (),
         by_rung: bool = False,
         cap: tuple[int, int] | None = None,
         at_once: bool = False,
@@ -1126,6 +1129,14 @@ class GameView(ThemedMixin, QWidget):
         tile equal. When the Main tile changes hands, the old Main takes the new one's place
         in the strip, and the rest stay put. The equal grid is in slot order, and the strip
         comes back in the order it had.
+
+        *played_slots* are slots played whatever their tile holds, for a wizard the user will
+        play that is no player yet: BartleBuddy's slot a launch is bringing the Active wizard
+        into, a pending tile until its window comes, then its window, not in game. So the
+        Main tile waits there for it, rather than going to whichever wizard is in game first
+        and changing hands as the rest come in, each change a resize. A window with no player
+        is never asked for a size (``set_resizable``), so its game keeps its launch size in
+        the Main tile until it joins.
 
         *by_rung* is for a product whose clients can be resized: each Side tile holds its
         whole game and each Main tile is exactly a rung (``tile_layouts.arrange``), an equal
@@ -1145,6 +1156,7 @@ class GameView(ThemedMixin, QWidget):
         """
         self._layout = layout
         self._played = list(played)
+        self._played_slots = frozenset(played_slots)
         self._by_rung = by_rung
         self._cap = None if cap is None else tuple(cap)
         if not by_rung:
@@ -1582,11 +1594,17 @@ class GameView(ThemedMixin, QWidget):
         )
 
     def _played_at(self, slots: list[int]) -> list[bool]:
-        """Whether the user moves the wizard in each of *slots*; a slot with no player is not moved."""
+        """Whether the user moves the wizard in each of *slots*: by player, or by slot (``set_layout``'s *played_slots*).
+
+        A slot with no player, and none of the played slots, is not moved.
+        """
         if self._planned is not None:
             return [bool(self._planned.played.get(slot, False)) for slot in slots]
         players = [self._player_for(slot) for slot in slots]
-        return [p is not None and 0 <= p < len(self._played) and self._played[p] for p in players]
+        return [
+            slot in self._played_slots or (p is not None and 0 <= p < len(self._played) and self._played[p])
+            for slot, p in zip(slots, players)
+        ]
 
     def refresh_launch_lists(self) -> None:
         """Rebuild the Quick Launch account and profile lists from settings.

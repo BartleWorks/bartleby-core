@@ -143,9 +143,21 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   - `launch_profile.launch_profile(..., resolution=None)` launches at the size it is handed, over
     the profile's own and the global setting, with the UI scale for it, as `launch_accounts`
     already did; `launch_profile.profile_resolution(profile)` is a profile's own, or None.
+- **`GameView.set_layout(..., played_slots=())`** names the slots played whatever their tile
+  holds, beside *played*'s players: for a wizard still launching, a pending tile or a window not
+  in game, so the Main tile waits in its slot for it. For BartleBuddy, whose traced four-client
+  launch gave the large tile to each wizard in game in turn, three resizes where one was planned.
+  Keyword-only and empty by default, so BartleBot is unchanged.
 
 ### Fixed
 
+- **A reorder or a swap during a launch moves the wizards in game, and no slot still coming.**
+  `ClientManager.reorder_clients` and `swap_clients` moved `_client_order` by position, as if
+  position i in the hooked list were slot i, so with two of four reserved slots in game a drag
+  of those two traded the other two's pending tiles and left the dragged ones where they were.
+  They now hand round the slots the hooked clients hold, which keeps a slot held for a recovery
+  where it is too. A client with no slot, one this app did not launch, moves the ordering by
+  position as before.
 - **wizwalker is pinned at `0857de9`** (`bartlebot-pin-20261120`), where it was `991c257`. A
   product that pins wizwalker itself pins the same commit. A click cut short while the
   mouseless hook was being written could leave its jump at `GetCursorPos`, and every click by

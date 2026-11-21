@@ -672,6 +672,58 @@ def asking(by_rung):
     return build
 
 
+def _launching(game, joined: list[int], *, pending: frozenset[int] = frozenset()) -> None:
+    """Four slots a launch reserved, a window in each but *pending*'s, in game once *joined* names its slot.
+
+    The players are compacted in slot order, as the client manager's are, so a slot's player
+    changes as the slots before it join.
+    """
+    player = {slot: i for i, slot in enumerate(sorted(joined))}
+    game.sync_tiles(
+        [
+            TileSlot(slot=slot, hwnd=None, label=f"a{slot}", player=None, username=f"a{slot}", resolution=(534, 300))
+            if slot in pending
+            else TileSlot(slot=slot, hwnd=100 + slot, label=f"a{slot}", player=player.get(slot), username=f"a{slot}")
+            for slot in range(4)
+        ]
+    )
+    game.set_resizable(100 + slot for slot in joined)
+
+
+def test_a_played_slot_holds_the_large_tile_for_a_tile_with_no_player(by_rung):
+    """A pending tile, then its window not in game: the tiles are those of its wizard played, and in game."""
+    there = by_rung((1920, 971), [(534, 300)] * 4)
+    there.set_layout(ONE_LARGE, [True, False, False, False], by_rung=True)
+    targets = there.game_targets()
+    game = by_rung((1920, 971), [(534, 300)] * 4)
+
+    for pending in (frozenset({0}), frozenset()):
+        _launching(game, [3], pending=pending)
+        game.set_layout(ONE_LARGE, [False], played_slots={0}, by_rung=True)
+
+        assert _rects(game) == _rects(there)
+        assert game.game_targets() == {hwnd: targets[hwnd] for hwnd in game.game_targets()}
+        assert game.game_targets()[103] == (534, 300)
+
+
+def test_a_launch_s_wizards_joining_in_any_order_ask_only_for_the_large_tile_s_game(asking):
+    """The live launch of 2026-11-20: P4, P3, P2 then P1 came in, and the large tile went to each in turn."""
+    game, timer, asked = asking([(534, 300)] * 4)
+    _launching(game, [], pending=frozenset({0}))
+    game.set_layout(ONE_LARGE, [], played_slots={0}, by_rung=True)
+
+    for joined in ([3], [2, 3], [1, 2, 3]):
+        _launching(game, joined, pending=frozenset({0}))
+        game.set_layout(ONE_LARGE, [False] * len(joined), played_slots={0}, by_rung=True)
+        timer.fire()
+    _launching(game, [1, 2, 3])
+    timer.fire()
+    _launching(game, [0, 1, 2, 3])
+    game.set_layout(ONE_LARGE, [True, False, False, False], by_rung=True, at_once=True)
+
+    assert asked == [(100, (960, 540))]
+
+
 def test_a_target_is_asked_for_once_after_it_settles(asking):
     game, timer, asked = asking()
 

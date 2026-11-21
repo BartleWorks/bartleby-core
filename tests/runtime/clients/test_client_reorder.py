@@ -166,6 +166,40 @@ def test_a_shorter_client_order_is_left_alone():
     assert harness._client_order == ["a", "b"]
 
 
+def _mid_launch() -> ReorderHarness:
+    """Four slots reserved by a launch, the last two of them in game, the first two still coming."""
+    harness = ReorderHarness([120, 130], ["alt", "spare", "farm", "main"])
+    harness._hwnd_account_map = {120: "farm", 130: "main"}
+    return harness
+
+
+def test_a_reorder_during_a_launch_moves_the_wizards_dragged_and_no_slot_still_coming():
+    """Positional, the drag of the two in game would have traded the two pending tiles instead."""
+    harness = _mid_launch()
+
+    harness.reorder_clients([1, 0])
+
+    assert harness.hwnds == [130, 120]
+    assert harness._client_order == ["alt", "spare", "main", "farm"]
+
+
+def test_a_swap_during_a_launch_moves_the_two_wizards_and_no_slot_still_coming():
+    harness = _mid_launch()
+
+    harness.swap_clients(0, 1)
+
+    assert harness._client_order == ["alt", "spare", "main", "farm"]
+
+
+def test_a_slot_held_for_a_recovery_between_the_wizards_stays_where_it_is():
+    harness = ReorderHarness([100, 120], ["a", None, "c"])
+    harness._hwnd_account_map = {100: "a", 120: "c"}
+
+    harness.reorder_clients([1, 0])
+
+    assert harness._client_order == ["c", None, "a"]
+
+
 # ---------------------------------------------------------------------------
 # account_for
 # ---------------------------------------------------------------------------

@@ -136,6 +136,27 @@ def _slot_order_for_log(order: list[str | None]) -> str:
     return ", ".join(f"P{i + 1} {'(empty)' if u is None else repr(account_label(u))}" for i, u in enumerate(order))
 
 
+def _reorder_by_slot(client_order: list[str | None], accounts: list[str | None], order: list[int]) -> bool:
+    """Hand the hooked clients' slots round by *order*, in place in *client_order*; whether it could.
+
+    *accounts* is each hooked client's account, in the client list's order, and *order* the
+    permutation ``reorder_clients`` takes of that list. Every other slot stays as it was: one
+    held for a recovery, and one a launch reserved for an account still coming in, whose
+    pending tile would otherwise trade places with a wizard in game while the ones dragged
+    stayed where they were. That needs every hooked client's slot. A client this app did not
+    launch has none, and then the caller moves the ordering by position, as it always did,
+    position i in the client list standing for slot i, whatever the slots between.
+    """
+    if any(account is None or account not in client_order for account in accounts):
+        return False
+    slots = [client_order.index(account) for account in accounts]
+    if len(set(slots)) != len(slots):
+        return False
+    for slot, old in zip(slots, order):
+        client_order[slot] = accounts[old]
+    return True
+
+
 class ClientManager:
     """Owns client detection, hooking, account identity, launches and slot ordering.
 
@@ -329,15 +350,17 @@ class ClientManager:
             return
         if idx_a >= len(self._clients) or idx_b >= len(self._clients):
             return
+        order = list(range(len(self._clients)))
+        order[idx_a], order[idx_b] = idx_b, idx_a
+        # Before the list moves: the slots are read off the clients where they are now.
+        accounts = [self._hwnd_account_map.get(c.window_handle) for c in self._clients]
+        by_slot = _reorder_by_slot(self._client_order, accounts, order)
         self._clients[idx_a], self._clients[idx_b] = (self._clients[idx_b], self._clients[idx_a])
-        # Keep _client_order in sync so recovery preserves the user's reordering.
-        if idx_a < len(self._client_order) and idx_b < len(self._client_order):
+        if not by_slot and idx_a < len(self._client_order) and idx_b < len(self._client_order):
             self._client_order[idx_a], self._client_order[idx_b] = (
                 self._client_order[idx_b],
                 self._client_order[idx_a],
             )
-        order = list(range(len(self._clients)))
-        order[idx_a], order[idx_b] = idx_b, idx_a
         self.clients_reordered.emit(order)
         # Both numbers moved — the slots the tiles sit in and the player indices their
         # captions read from — so the view is re-derived rather than relabeled. The tiles
@@ -365,13 +388,12 @@ class ClientManager:
             return
         if self._refuse_reorder():
             return
+        # Before the list moves: the slots are read off the clients where they are now.
+        accounts = [self._hwnd_account_map.get(c.window_handle) for c in self._clients]
+        by_slot = _reorder_by_slot(self._client_order, accounts, order)
         self._clients[:] = reordered
-        # Keep _client_order in sync so recovery preserves the user's reordering. Positional,
-        # exactly as swap_clients is: _clients is hooked-only and contiguous while
-        # _client_order can hold None for a slot awaiting recovery, so position i in one is
-        # not necessarily slot i in the other. That misalignment belongs to recovery and is
-        # deliberately not corrected here.
-        if len(self._client_order) >= len(order):
+        # By position, for a client with no slot (see _reorder_by_slot).
+        if not by_slot and len(self._client_order) >= len(order):
             head = [self._client_order[i] for i in order]
             self._client_order[: len(order)] = head
         self.clients_reordered.emit(list(order))
