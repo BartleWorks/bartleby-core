@@ -329,6 +329,15 @@ module's words.
   move, as ISBoxer's home regions and xmonad's DwmPromote do it. The equal grid is always in slot
   order, and the strip comes back in the order it had, with a swap made meanwhile trading places
   with the last Main.
+- **A launch keeps Main for the wizard it is bringing in.** `played` is by player, and a wizard
+  still launching is no player: a pending tile, then a window at character select. So Main went
+  to whichever wizard was in game first, and changed hands as each wizard before it in slot
+  order came in, a resize each time: four accounts launched together and coming in from P4 to P1
+  gave three. `set_layout(..., played_slots=)` names the slots played whatever their tile holds,
+  and BartleBuddy names the slot its Active wizard is coming into (its `docs/MULTIBOX.md`, "The
+  views"), so Main waits there and every wizard in game first keeps its Side tile, at the size it
+  launched at. A window with no player is never asked for a size, so only the game that arrives
+  in Main resizes, once.
 - **A resize keeps the launch's aspect**, so no camera is written. `aspect_family` gives a
   client's rungs: 16:9's or 4:3's, and None for any other aspect, whose client has no target.
   The largest game with a ladder picks the family the tiles are placed by, and a client of the
@@ -795,15 +804,35 @@ those parts, not about resizing at runtime:
 
 A resize is three steps, in this order, and the game does the rest. An apply takes tens of
 milliseconds, and up to about 600 ms when two clients apply at once. From asking to the answer,
-embedded in a tile, it was 242 to 265 ms, so a swap is about 0.75 s with `RESIZE_SETTLE`, and about
-3.5 s the first time, with the scans:
+embedded in a tile, it was 242 to 265 ms, so a swap is about 0.75 s with `RESIZE_SETTLE`, and, when
+the static route below misses, about 3.5 s the first time, with the heap scan:
 
 1. **The two nodes**: write the live `Resolution` node's string and the live `UISize` node's
    int32, in the game's config. The writes alone change nothing on screen. The nodes are among
-   ~130,000 generic key/value objects, found once per client by a scan for their names, as the
-   key bindings are (`docs/KEY_BINDINGS.md`). Both names take about 2.5 s, off the event loop, and
-   its longest gap stays near 69 ms against 64 ms with nothing running: BartleBuddy's
-   `tools/probe_resize_scan.py` has the numbers. Each name has several
+   ~130,000 generic key/value objects, and are found once per client.
+
+   **By a static route first** (`clients/static_routes.py`, `find_config_nodes`). The config
+   object's constructor stores it in a static slot of the image, which a code pattern finds once
+   per process, and from the slot about ten reads reach the user's group of `VideoSettings`,
+   whose children are the live two: `[slot]`, `+0x80` the map of sections, the `VideoSettings`
+   node's `+0x40` a vector of one group, and the group's children inline from `+0x20`, 0x78 bytes
+   each, named at `+0x50`. The two are checked as the heap's are below, and their parent must be
+   that group. On four live clients of r814353 (2026-11-20) the route gave what the heap gave, in
+   1.6 to 2.0 ms against 2.4 to 4.0 s, after a module scan of 84 to 93 ms for the slot, once per
+   process. Core's `tools/probe_static_paths.py` found the chain, and its RESULTS have the climb.
+   **Any miss falls back to the heap**, as it was: no single pattern match, an empty slot, a read
+   that fails, a chain that stops, or nodes that fail the check. Its reason is logged once per
+   client, at INFO, since the heap still finds the nodes, and traced on a `config.route` span
+   with `outcome` `route` or `heap`. `docs/GAME_UPDATES.md` says what to check after a patch.
+
+   **By a scan for their names**, as the fallback, as the key bindings' is
+   (`docs/KEY_BINDINGS.md`). Both names took about 2.5 s as two scans, off the
+   event loop, and its longest gap stayed near 69 ms against 64 ms with nothing running:
+   BartleBuddy's `tools/probe_resize_scan.py` has the numbers. They are now one pass, an urgent
+   request to `clients/heap_scan.py`, which runs ahead of any key map's scan waiting and shares
+   the pass with whatever that client has waiting; one pass runs at a time, of 2.2 to 2.5 s. In
+   a four-client startup, run all at once beside the key maps' twelve, the scans took 16 to 17 s
+   each, and two passes at a time took twice as long as one each. Each name has several
    nodes: the live `UISize` is the one marked at `+0x45` with a pointer at `+0x18`, and the
    live `Resolution` the one with that pointer under the same parent. The string is an MSVC
    `std::string`, so its size field changes with its text.
@@ -827,10 +856,20 @@ still equals the client size after every resize, so the 1:1 contract holds.
 - **`prepare(clients)`** finds the manager and the nodes ahead of the first swap, once there are
   two clients. With one it does nothing, so a one-account session never scans. The caller decides
   when a session may need a resize; a session with no Side tile should not ask.
-- **`resize(client, size)`** only sets a target. One worker per client waits out loading and any
-  lease above `Owner.DISPLAY`, then reads the target, so targets sent during a wait run only the
-  last. A size it is already at writes nothing. A fight is not waited out: the tiles change shape
-  at once, so a wait left a game at its old size, cut off by its new tile, until the fight ended.
+- **`resize(client, size)`** only sets a target. One worker per client waits out any lease above
+  `Owner.DISPLAY`, then reads the target, so targets sent during a wait run only the last. A size
+  it is already at writes nothing. A fight is not waited out: the tiles change shape at once, so a
+  wait left a game at its old size, cut off by its new tile, until the fight ended.
+- **Nor is a loading screen** (since 2026-11-21). The worker waited out `is_loading()` from its
+  first commit, with no reason recorded. It was the one step that needed the root window hook,
+  every other read and write needs only the process, and it can't see the load-in from character
+  select at all, so it never held off a resize there. A tile swap during that load-in applied in
+  game, with the HUD at the right scale, and that is what lets BartleBuddy resize a game during
+  its load-in, before it is hooked (*Launching at the tiles' size*, below). **A resize during a
+  zone's loading screen is not yet proven in game**: the one zone change tried with a swap looked
+  no different, but the wait was still in then, so that apply most likely ran after the load. If
+  the game holds its apply back on that screen, `RESIZE_APPLY_TIMEOUT` takes the byte back, as for
+  any byte that never clears, and the client is left at its old size with the one warning.
 - **The UI size** is `ui_size_for` of the user's own, captured by
   `launch_profile.capture_game_settings` before the first write, for a client no launch captured.
   A game with no UI scale in its file is not resized, since a resolution with the wrong UI size is
@@ -845,12 +884,63 @@ still equals the client size after every resize, so the 1:1 contract holds.
   takes out of its tile. In game this happens only behind a secure screen held past the timeout,
   below.
 - **`give_back(client)`** returns the size read from the device before the first resize and the
-  UI size read from the node, within `RESIZE_GIVE_BACK_TIMEOUT`, waits included. One still in a
-  loading or under a higher lease then is left as it is, with a warning. The files are `restore_ui_size` and
+  UI size read from the node, within `RESIZE_GIVE_BACK_TIMEOUT`, waits included. One loading is
+  given back all the same; one under a higher lease then is left as it is, with a warning. The files are `restore_ui_size` and
   `restore_game_prefs`, on quit and at the next start, so they run after the last apply.
+- **`give_back_to(client, size)`** is for a client launched at another size than the user's own,
+  below: every give back from then on returns it to *size*, with `ui_size_for` the user's own UI
+  scale, as a launch at *size* would have written it, whether it was ever resized or not. Its nodes
+  are found at once, by the static route in a few milliseconds, or, when it misses, by a scan at
+  background priority, which usually shares the pass its key map makes after the hook; so a give
+  back as the app quits doesn't wait on a scan, and a resize or a give back that comes first
+  promotes one under way (`heap_scan.promote`). `forget` drops it with the rest, so the product
+  names it again for a client hooked again. Named before a resize asked of a client not yet
+  hooked, it is the home that resize keeps, and named again at the join it keeps what was found.
 - **Any failure** is one warning, and no more is asked of that client until `forget(client)` and
-  it is hooked again.
+  it is hooked again. Finding no single node pair is a failure only once the scan is sure: a pass
+  that skipped a region the game changed under the read, as it does most just after a hook, may
+  have skipped the nodes, so the scan is made once more after `HEAP_SCAN_RETRY_DELAY` (1 s) first
+  (`heap_scan.lookup`), and only a second pass with no pair, whole or not, fails. A whole pass
+  with none fails at once. `forget(client)` ends a scan waiting to retry; `stop_all()` ends the
+  resize waiting on it, and the scan runs on, as any scan does, for the next resize to use. A
+  failure of a resize asked before the hook is the product's to clear as the client is hooked,
+  with `clear_failure(client)`, which keeps the nodes and the home and ends nothing under way;
+  `failed(client)` says whether resizing is off for it.
 - **`stop_all()`** ends every resize still waiting. An apply under way finishes and reports first.
+
+**Launching at the tiles' size.** A launch batch opens every game at one size, since the game reads
+the one `config.xml` at its own startup, and a batch per size would run the whole launch again. A
+game launched at the user's resolution and then resized to its tile paid its scan first, and they
+ran one at a time: in a traced four-client launch, before the static route, the fourth resized about
+10 s after the first. The route takes the scans away, and launching at the tiles' size still spares
+each game its apply and the refit after it. So
+BartleBuddy launches a batch at the size most of its tiles will want once placed: the small tiles'
+in One large, so only the large tile's game resizes, and the shared one in All equal, so none does.
+`GameView.planned_targets(layout, played, launches, cap=)` is what it asks: the target each slot
+would get, the slots held and the ones the launch takes, by the view's own `_plan_geometry` and
+`tile_targets`, with nothing moved. The new slots are asked about at the user's own size, so the
+targets are rungs of its family, and the launch's UI scale is the ladder's for the size chosen
+(`_ui_size_update`), as for any launch. The user's own size stays the home: `give_back_to` above,
+and `GameView.set_home_sizes`, so a lone client, which keeps its launch size, goes back to it.
+`begin_launch(..., resolution=)` is handed the size chosen, so the pending tiles hold its room.
+The user's files are captured before the first patch and restored on quit as before, so they hold
+the user's own resolution and UI scale whatever the launch opened at. BartleBuddy's
+`launch_size.py` has the rest: the tie rule, and the launches that keep the user's size.
+
+**The large tile's game resizes during its load-in.** In One large the game the large tile is held
+for still opens at the small tiles' size, and resized as it joined, 0.1 to 0.3 s after its
+character was in the world. Its load-in after Play is about 15 s, and nothing a resize does needs a
+hook, so the drive's `on_play` (`launcher/auto_select.py`), called once Play is seen taken, is
+where BartleBuddy asks instead: on the client the drive borrowed, never a second one, only for the
+held slot and only when its planned target differs from the launch size, naming the home first
+with `give_back_to`. `on_resized` hears it by handle as for any resize, and `GameView.game_resized`
+embeds it in the held tile, which needs no hook either. The files are safe: every game of a batch
+reads them before any login, so a resize this early reaches no sibling. As the game joins, a
+failure of that ask is cleared (`clear_failure`), and the GUI's ask then runs as it did before;
+after a success it finds the device at its target, writes nothing and reports, so the tile refits.
+With auto-select off nothing presses Play, and the blind drive can't tell when it is taken, so
+both leave it to the join. Not yet traced in game: in the next traced launch the large tile's
+`resize.worker` should begin about when Play is taken, well before `client.published`.
 
 The window's half is the product's two crossings around that:
 
@@ -867,7 +957,7 @@ The window's half is the product's two crossings around that:
   (`ClientTile.hold_moves`), and a game whose size was asked for is left to its refit, which
   places it. A move at the old size in between was a call into each game, about 30 ms of the GUI
   thread a swap (Stage 5.2 of BartleBuddy #14). The refit is waited for only `_MOVE_GRACE_MS`
-  (500 ms), since a resize can wait out a loading screen and a client that can't be resized never
+  (500 ms), since a resize can wait out a higher lease, and a client that can't be resized never
   answers; then the game is moved after all. A drag moves each game as its tile changes, as before.
 - **Answering.** `GameView.game_resized(hwnd, size)` hands the tile the size measured, and
   `ClientTile.refit` embeds the window again there (`EmbeddedWindow.reembed`), with no second
@@ -988,7 +1078,8 @@ Measured and worth knowing:
   like a crash on quit, and is not one: from a terminal they stay open.
 
 Swaps in a fight ran with no issues in game, with two accounts, as did zone changes, so a fight is
-not waited out.
+not waited out. The zone changes were with the loading wait still in, so they say nothing of an
+apply during a zone's loading screen (above).
 
 **Through a device loss**, as BartleBuddy's `tools/probe_device_loss.py` ran it with four clients on
 2026-11-04 (BartleBuddy #11), a resize waits for the device and then completes, or fails with its one
@@ -1030,7 +1121,8 @@ window's half that is slow:
   real click reaches the tile as a Qt press and never the game, while the game still draws and
   takes posted keys and clicks by path.
 
-Open: a resize across 4:3 and 16:9 corrects the selected camera too, read in the world only, so
+Open: a resize during a zone's loading screen, which the worker no longer waits out, has not been
+seen to apply; a resize across 4:3 and 16:9 corrects the selected camera too, read in the world only, so
 combat's is unchecked; a device removed or hung, as by a driver reset, was not tried; the Test
 realm's offset was read from its exe, and never run; and two clients on a 1080p display, the core
 case, have not been run through the probe.

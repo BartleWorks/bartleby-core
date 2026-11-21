@@ -688,11 +688,19 @@ async def _log_in_and_drive(
     return titles
 
 
+def profile_resolution(profile: dict) -> tuple[int, int] | None:
+    """The resolution *profile* sets for its accounts, or None where it takes the global setting."""
+    own = profile.get("resolution")
+    return (int(own[0]), int(own[1])) if own else None
+
+
 async def launch_profile(
     profile_name: str,
     drive: DriveFn | None = None,
     usernames: list[str] | None = None,
     progress: ProgressFn | None = None,
+    *,
+    resolution: tuple[int, int] | None = None,
 ) -> None:
     """Launch the accounts in the named profile.
 
@@ -711,6 +719,11 @@ async def launch_profile(
     ``reserve`` callback until the guard needed a single place both launch routes meet,
     which is one level up: reserving from inside the launch cannot reject a launch
     that has not started yet.
+
+    *resolution* is the size the batch launches at, over the profile's own and the global
+    setting: BartleBuddy's, launching a team at the size most of its tiles will take, so most
+    of its clients are never resized. None takes the profile's, else the global one. The UI
+    scale written goes with whichever it is (``_ui_size_update``).
 
     Raises ``ValueError`` if the profile is not found or has no accounts.
     Raises ``RuntimeError`` if a password is not stored for an account.
@@ -744,8 +757,8 @@ async def launch_profile(
 
     # A per-profile resolution overrides the global setting; the whole profile shares it,
     # which is what lets the accounts go out as one batch.
-    profile_res = profile.get("resolution")
-    resolution = tuple(profile_res) if profile_res else None
+    if resolution is None:
+        resolution = profile_resolution(profile)
 
     await launch_accounts(accounts, resolution=resolution, drive=drive, progress=progress)
 

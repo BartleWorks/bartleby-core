@@ -3,40 +3,73 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import logging
 import re
 import struct
+import threading
+import time
+from unittest.mock import AsyncMock
 
 import pytest
 from wizwalker import Keycode
-from wizwalker.errors import MemoryReadError
+from wizwalker.errors import MemoryReadError, PatternFailed
 
-from bartleby.runtime.clients import game_keys
+from bartleby.runtime import run_trace
+from bartleby.runtime.clients import game_keys, heap_scan, static_routes
 from bartleby.runtime.game.key_bindings import PREFIX, Binding, GameAction, KeyMap
+from bartleby.runtime.testing.sim_client import BINDINGS_STORE, SkippedWalk, rip_operand
 from tests.conftest import FakeClient
 
 BASE = 0x2000_0000
 VTABLE = 0x7FF7_1C47_8B30
+# The module's code, and the bindings holder's slot after it.
+CODE = 0x7FF7_1000_0000
+HOLDER_SLOT = CODE + 0x800
 
 
 class FakeMemory:
     """One region of a process: objects placed in it, read and scanned as the game's would be.
 
     Class names, which the real reader finds through an object's vtable, are a table here.
+    The passes numbered in ``unsettled`` (the first is 1) find the region changing under the
+    read, as a client's does just after its hook: they skip it, and find nothing. Its module's
+    code matches no pattern until ``place_holder`` opens the static route.
     """
 
     def __init__(self) -> None:
         self.data = bytearray(0x20000)
+        self.image = bytearray(0x1000)
         self.next = 0x100
         self.names: dict[int, str] = {}
         self.scans = 0
+        self.module_scans = 0
+        self.unsettled: set[int] = set()
+        self.gate = threading.Event()
+        self.gate.set()
 
     def alloc(self, size: int) -> int:
         address = BASE + self.next
         self.next += (size + 0xF) & ~0xF
         return address
 
+    def _region(self, address: int, size: int) -> tuple[bytearray, int]:
+        for data, base in ((self.data, BASE), (self.image, CODE)):
+            if base <= address <= base + len(data) - size:
+                return data, address - base
+        raise MemoryReadError(address)
+
     def put(self, address: int, raw: bytes) -> None:
-        self.data[address - BASE : address - BASE + len(raw)] = raw
+        data, offset = self._region(address, len(raw))
+        data[offset : offset + len(raw)] = raw
+
+    def place_holder(self, binding_list: int) -> int:
+        """The bindings holder, holding *binding_list*, its slot, and the code the route's pattern matches."""
+        holder = self.alloc(0xD0)
+        self.put_u64(holder + 0xB0, binding_list)
+        self.put_u64(HOLDER_SLOT, holder)
+        self.put(CODE, rip_operand(BINDINGS_STORE, CODE, HOLDER_SLOT))
+        return holder
 
     def put_u64(self, address: int, value: int) -> None:
         self.put(address, struct.pack("<Q", value))
@@ -80,13 +113,25 @@ class FakeMemory:
     # What game_keys asks of a client's hook_handler:
 
     async def read_bytes(self, address: int, size: int) -> bytes:
-        if not BASE <= address <= BASE + len(self.data) - size:
-            raise MemoryReadError(address)
-        return bytes(self.data[address - BASE : address - BASE + size])
+        data, offset = self._region(address, size)
+        return bytes(data[offset : offset + size])
 
-    async def pattern_scan(self, pattern: bytes, *, module=None, return_multiple=False):
+    async def pattern_scan(self, pattern: bytes, *, module: str | None = None, return_multiple: bool = False):
+        """The module's code, as wizwalker's pattern_scan answers a module scan for many results."""
+        self.module_scans += 1
+        found = [CODE + m.start() for m in re.finditer(pattern, bytes(self.image), re.DOTALL)]
+        if not found:
+            raise PatternFailed(pattern)
+        assert return_multiple
+        return found
+
+    def heap_regions(self) -> list[tuple[int, bytes]]:
+        """The region, for a pass of heap_scan's."""
         self.scans += 1
-        return [BASE + m.start() for m in re.finditer(pattern, bytes(self.data), re.DOTALL)]
+        assert self.gate.wait(5), "a test left a pass waiting"
+        if self.scans in self.unsettled:
+            return SkippedWalk(skipped=1)
+        return [(BASE, bytes(self.data))]
 
 
 class MemoryClient:
@@ -96,6 +141,19 @@ class MemoryClient:
         MemoryClient._next += 1
         self.window_handle = MemoryClient._next
         self.hook_handler = memory
+        self.send_key = AsyncMock()
+
+
+@pytest.fixture(autouse=True)
+def _no_grace(monkeypatch):
+    """The key map's scans start at once: no resize here for them to wait on (heap_scan's grace)."""
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 0.0)
+
+
+@pytest.fixture(autouse=True)
+def _quick_retry(monkeypatch):
+    """A stage's wait before its retry, shortened. The tests of its end give their own."""
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 0.01)
 
 
 @pytest.fixture(autouse=True)
@@ -315,3 +373,323 @@ async def test_the_bindings_last_read_are_known_without_a_read():
     client = MemoryClient(memory)
     keys = await game_keys.key_map(client)
     assert keys in game_keys.known_maps()
+
+
+# -- the warm-up in the background, promoted by a press ------------------------------------------------------
+
+
+@pytest.fixture
+def asked(monkeypatch) -> list[heap_scan.Priority]:
+    """The priority each of the key map's scans was asked at, in order."""
+    asked: list[heap_scan.Priority] = []
+    real = heap_scan.scan
+
+    async def scan(reader, *patterns, priority):
+        asked.append(priority)
+        return await real(reader, *patterns, priority=priority)
+
+    monkeypatch.setattr(heap_scan, "scan", scan)
+    return asked
+
+
+BACKGROUND, URGENT = heap_scan.Priority.BACKGROUND, heap_scan.Priority.URGENT
+
+
+async def _until(condition, timeout: float = 5) -> None:
+    deadline = time.monotonic() + timeout
+    while not condition():
+        assert time.monotonic() < deadline, "it never happened"
+        await asyncio.sleep(0.002)
+
+
+def _warm_up(client) -> asyncio.Task:
+    """The client manager's read at hook."""
+    return asyncio.create_task(game_keys.key_map(client, refresh=True, warn=False, priority=BACKGROUND))
+
+
+async def test_a_press_during_a_queued_warm_up_is_served_at_urgent_its_grace_ended(monkeypatch, asked):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 5.0)
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    client = MemoryClient(memory)
+    warm = _warm_up(client)
+    await _until(lambda: heap_scan.scanner().waiting(memory) == 1)
+    await asyncio.sleep(0.02)
+    assert memory.scans == 0, "the warm-up waits out its grace"
+
+    await asyncio.wait_for(game_keys.press(client, GameAction.INTERACT, 0.1), 2)
+
+    client.send_key.assert_awaited_once_with(Keycode.K, 0.1)
+    assert asked == [BACKGROUND, URGENT, URGENT], "its later scans are urgent too"
+    assert (await warm).choose(GameAction.INTERACT).code == ord("K")
+    alone = FakeMemory()
+    _player_set(alone, interact="k")
+    assert await game_keys.find_binding_list(alone, lambda: URGENT) is not None
+    assert memory.scans == alone.scans == 3, "one lookup, each of its scans once"
+
+
+async def test_the_warm_up_alone_stays_in_the_background(monkeypatch, asked):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 0.1)
+    promoted = []
+    monkeypatch.setattr(heap_scan, "promote", promoted.append)
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    began = time.monotonic()
+    keys = await _warm_up(MemoryClient(memory))
+    assert time.monotonic() - began >= 0.09, "it waited out its grace"
+    assert keys.choose(GameAction.INTERACT).code == ord("K")
+    assert asked == [BACKGROUND] * 3
+    assert promoted == []
+
+
+async def test_a_key_map_with_no_warm_up_asks_at_urgent_and_a_warm_up_never_lowers_it(asked):
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    client = MemoryClient(memory)
+    first = asyncio.create_task(game_keys.key_map(client))
+    await asyncio.sleep(0)
+    warm = _warm_up(client)
+    assert (await first) is (await warm)
+    assert asked == [URGENT] * 3
+
+
+async def test_a_press_while_the_warm_up_s_pass_runs_changes_nothing_harmful(asked):
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    client = MemoryClient(memory)
+    memory.gate.clear()
+    try:
+        warm = _warm_up(client)
+        await _until(lambda: memory.scans == 1)
+        press = asyncio.create_task(game_keys.press(client, GameAction.INTERACT))
+        await asyncio.sleep(0.02)
+        assert heap_scan.scanner().waiting(memory) == 0, "no second request"
+        assert heap_scan.scanner().running == 1
+    finally:
+        memory.gate.set()
+    await asyncio.wait_for(press, 2)
+    client.send_key.assert_awaited_once_with(Keycode.K, 0)
+    assert (await warm).source == "memory"
+    assert asked == [BACKGROUND, URGENT, URGENT], "the pass ran on as it began, and the rest were urgent"
+    assert memory.scans == 3
+    assert heap_scan.scanner().running == 0
+
+
+async def test_a_promoted_lookup_that_fails_keeps_the_defaults_with_one_warning(monkeypatch, caplog):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 5.0)
+    memory = FakeMemory()  # nothing in it
+    client = MemoryClient(memory)
+    warm = _warm_up(client)
+    await _until(lambda: heap_scan.scanner().waiting(memory) == 1)
+    await asyncio.wait_for(game_keys.press(client, GameAction.INTERACT), 2)
+    client.send_key.assert_awaited_once_with(Keycode.X, 0)
+    assert (await warm).source == "defaults"
+    await game_keys.press(client, GameAction.INTERACT)
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
+    assert memory.scans == 1, "no scan per press"
+
+
+# -- a pass that skipped a region ----------------------------------------------------------------------------
+
+
+@pytest.fixture
+def retried(monkeypatch) -> list[str]:
+    """The caller of each wait before a retry, in order: the stage that came up empty."""
+    retried: list[str] = []
+    real = heap_scan.HeapScanner.pause_before_retry
+
+    async def pause_before_retry(self, reader, caller, skipped):
+        retried.append(caller)
+        await real(self, reader, caller, skipped)
+
+    monkeypatch.setattr(heap_scan.HeapScanner, "pause_before_retry", pause_before_retry)
+    return retried
+
+
+def _end_retry_waits(memory: FakeMemory) -> None:
+    """End *memory*'s waits before a retry now, as their delay would: a test's delay is a long one."""
+    for pause in list(heap_scan.scanner()._pausing.get(memory, ())):
+        heap_scan._end_pause(pause)
+
+
+@pytest.mark.parametrize("stage, unsettled", [("seed", 1), ("ring", 2), ("list", 3)])
+async def test_a_stage_that_found_nothing_in_an_incomplete_pass_is_scanned_once_more(stage, unsettled, retried, caplog):
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    memory.unsettled = {unsettled}
+    keys = await game_keys.key_map(MemoryClient(memory))
+    assert keys.source == "memory"
+    assert keys.choose(GameAction.INTERACT).code == ord("K")
+    assert retried == [f"key_map.{stage}"]
+    assert memory.scans == 4, "that stage twice, the others once"
+    assert not [r for r in caplog.records if r.levelname == "WARNING"]
+
+
+async def test_a_stage_whose_retry_is_incomplete_too_gives_the_defaults_with_one_warning(retried, caplog):
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    memory.unsettled = {1, 2}
+    client = MemoryClient(memory)
+    assert (await game_keys.key_map(client)).source == "defaults"
+    assert retried == ["key_map.seed"]
+    assert memory.scans == 2, "once more, never a third"
+    assert (await game_keys.key_map(client)).source == "defaults"
+    assert memory.scans == 2
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
+
+
+async def test_a_whole_pass_that_finds_no_list_is_not_scanned_again(retried, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = FakeMemory()  # nothing in it
+    assert (await asyncio.wait_for(game_keys.key_map(MemoryClient(memory)), 5)).source == "defaults"
+    assert (memory.scans, retried) == (1, [])
+
+
+async def test_a_warm_up_s_retry_stays_in_the_background(asked):
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    memory.unsettled = {2}
+    assert (await _warm_up(MemoryClient(memory))).source == "memory"
+    assert asked == [BACKGROUND] * 4
+
+
+async def test_a_warm_up_promoted_while_its_retry_waits_retries_at_urgent(asked, monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    memory.unsettled = {1}
+    client = MemoryClient(memory)
+    warm = _warm_up(client)
+    await _until(lambda: heap_scan.scanner().retrying(memory) == 1)
+    press = asyncio.create_task(game_keys.press(client, GameAction.INTERACT))
+    await asyncio.sleep(0)  # the press asks, raising the lookup, and waits on it
+    _end_retry_waits(memory)
+    await asyncio.wait_for(press, 5)
+    client.send_key.assert_awaited_once_with(Keycode.K, 0)
+    assert (await warm).source == "memory"
+    assert asked == [BACKGROUND, URGENT, URGENT, URGENT]
+
+
+async def test_forgetting_a_client_ends_its_key_map_s_wait_to_retry(monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 30.0)
+    memory = FakeMemory()
+    _player_set(memory, interact="k")
+    memory.unsettled = {1}
+    warm = _warm_up(MemoryClient(memory))
+    await _until(lambda: heap_scan.scanner().retrying(memory) == 1)
+    heap_scan.forget(memory)
+    assert (await asyncio.wait_for(warm, 5)).source == "defaults"
+    assert heap_scan.scanner().retrying(memory) == 0
+    assert memory.scans == 1
+
+
+# -- the static route --------------------------------------------------------------------------------------
+
+
+@pytest.fixture
+def fell_back(caplog):
+    """The route's misses logged, each its message."""
+    caplog.set_level(logging.INFO, logger=static_routes.logger.name)
+    return lambda: [r.getMessage() for r in caplog.records if r.name == static_routes.logger.name]
+
+
+def _routed() -> tuple[FakeMemory, int, int]:
+    """A client of a build the holder's pattern was written for: its memory, the player's list, and the holder."""
+    memory = FakeMemory()
+    address, _ = _player_set(memory, interact="k")
+    return memory, address, memory.place_holder(address)
+
+
+async def test_the_holder_s_route_finds_the_list_with_no_heap_pass(fell_back):
+    memory, address, _ = _routed()
+    assert await game_keys.find_binding_list(memory) == address
+    keys = await game_keys.key_map(MemoryClient(memory))
+    assert keys.choose(GameAction.INTERACT).code == ord("K")
+    assert (memory.scans, memory.module_scans) == (0, 1), "the pattern once for the client"
+    assert fell_back() == []
+
+
+async def test_the_warm_up_at_hook_finishes_by_the_route_whatever_the_grace(monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 30.0)
+    memory, _, _ = _routed()
+    keys = await asyncio.wait_for(_warm_up(MemoryClient(memory)), 1)
+    assert keys.source == "memory"
+    assert memory.scans == 0
+
+
+def _no_code(memory, address, holder) -> None:
+    memory.put(CODE, bytes(0x40))
+
+
+def _empty_slot(memory, address, holder) -> None:
+    memory.put_u64(HOLDER_SLOT, 0)
+
+
+def _unreadable(memory, address, holder) -> None:
+    memory.put_u64(HOLDER_SLOT, 0x5000_0000)
+
+
+def _no_list(memory, address, holder) -> None:
+    memory.put_u64(holder + 0xB0, 0)
+
+
+def _a_binding(memory, address, holder) -> None:
+    memory.put_u64(holder + 0xB0, memory.binding("NPCInteract", "j"))
+
+
+def _the_bindings_page_s(memory, address, holder) -> None:
+    memory.put_u64(holder + 0xB0, memory.binding_list([memory.binding("NPCInteract", "j")]))
+
+
+@pytest.mark.parametrize(
+    "breaking, reason",
+    [
+        (_no_code, "no single pattern match"),
+        (_empty_slot, "the slot is empty"),
+        (_unreadable, "a read failed (MemoryReadError)"),
+        (_no_list, "the holder holds no list"),
+        (_a_binding, "no InputBindingList at the holder's +0xB0"),
+        (_the_bindings_page_s, "no whole set of bindings in the list"),
+    ],
+)
+async def test_a_route_that_misses_falls_back_to_the_heap_s_three_stages_saying_why(breaking, reason, fell_back):
+    memory, address, holder = _routed()
+    breaking(memory, address, holder)
+
+    assert await game_keys.find_binding_list(memory) == address
+
+    assert memory.scans == 3
+    (message,) = fell_back()
+    assert reason in message
+    assert "the key bindings" in message
+
+
+async def test_a_miss_is_logged_once_per_client(fell_back):
+    """Today's heap tests are this: a build whose pattern matches nothing."""
+    first, second = FakeMemory(), FakeMemory()
+    for memory in (first, second):
+        _player_set(memory)
+    for memory in (first, first, second):
+        assert await game_keys.find_binding_list(memory) is not None
+    assert len(fell_back()) == 2
+    assert first.module_scans == 1, "no match is kept too"
+
+
+async def test_a_trace_shows_the_route_taken_and_no_heap_request(tmp_path):
+    memory, _, _ = _routed()
+    missed = FakeMemory()
+    _player_set(missed)
+    path = run_trace.start(lambda c: None, tmp_path)
+    try:
+        await game_keys.find_binding_list(memory)
+        await game_keys.find_binding_list(missed)
+    finally:
+        run_trace.stop()
+
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    routes = [r["attrs"] for r in records if r.get("name") == "key_map.route"]
+    assert [(r["outcome"], r.get("reason")) for r in routes] == [
+        ("route", None),
+        ("heap", "no single pattern match"),
+    ]
+    assert len([r for r in records if r.get("name") == "heap_scan.request"]) == 3, "the miss's three stages alone"

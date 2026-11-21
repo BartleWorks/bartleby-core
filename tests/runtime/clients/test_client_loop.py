@@ -13,10 +13,14 @@ Wizard101 process.
 """
 
 import asyncio
+import json
+import time
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from bartleby.runtime import run_trace
+from bartleby.runtime.clients import account_identity
 from bartleby.runtime.clients.client_manager import ClientManager
 from bartleby.runtime.launcher.login_gate import gate
 
@@ -70,6 +74,13 @@ class LoopHarness:
     _assign_slot = ClientManager._assign_slot
     _place_account = ClientManager._place_account
     _forget_closed_windows = ClientManager._forget_closed_windows
+    # The identity pass is real, but reads nothing while _settings has no accounts.
+    _learn_identities = ClientManager._learn_identities
+    _identity_task_done = ClientManager._identity_task_done
+    _learn_identity = ClientManager._learn_identity
+    _learn_fingerprint = ClientManager._learn_fingerprint
+    _adopt_by_identity = ClientManager._adopt_by_identity
+    _read_user_id = ClientManager._read_user_id
     stop = ClientManager.stop
     has_client_titled = ClientManager.has_client_titled
     client_titled = ClientManager.client_titled
@@ -83,7 +94,9 @@ class LoopHarness:
         self._gated_clients: list = []
         self._failed_hook_hwnds: set[int] = set()
         self._activation_tasks: set[asyncio.Task] = set()
+        self._identity_tasks: dict[int, asyncio.Task] = {}
         self._client_loop_task: asyncio.Task | None = None
+        self._settings = MagicMock(accounts=[])
         self._hwnd_account_map: dict[int, str] = {}
         self._hwnd_titles: dict[int, str] = {}
         self._hwnd_user_ids: dict[int, int] = {}
@@ -94,7 +107,6 @@ class LoopHarness:
         self.clients_changed = MagicMock()
         self.all_clients_changed = MagicMock()
         self._refresh_account_map = MagicMock()
-        self._refresh_account_identity = AsyncMock()
         self._game_view = MagicMock()
         self._sync_tiles = MagicMock()
         self._place_pending_accounts = MagicMock()
@@ -118,6 +130,23 @@ _TEST_INTERVAL = 0.01
 async def _tick(cycles: float = 4) -> None:
     """Let the loop run for a few of its detection cycles."""
     await asyncio.sleep(_TEST_INTERVAL * cycles)
+
+
+async def _until(condition, timeout: float = 5) -> None:
+    """Wait for *condition*, however many cycles a loaded machine takes to reach it.
+
+    For anything a test asserts the loop has done. A fixed ``_tick`` is only for a test
+    asserting something has *not* happened, which no wait can be sure of.
+    """
+    deadline = time.monotonic() + timeout
+    while not condition():
+        assert time.monotonic() < deadline, "it never happened"
+        await asyncio.sleep(0.002)
+
+
+def _passes(harness: "LoopHarness") -> int:
+    """How many passes the loop has made: each asks the titles to place its clients once."""
+    return harness._refresh_account_map.call_count
 
 
 @pytest.fixture(autouse=True)
@@ -192,14 +221,15 @@ async def test_client_is_published_once_hooks_come_up(harness):
 
 async def test_a_client_s_key_bindings_are_read_once_its_hooks_come_up(harness, monkeypatch):
     """The scan for a client's key bindings takes seconds, so it is begun as the client
-    arrives, quietly, rather than when the first run starts; and publishing never waits on it."""
-    from bartleby.runtime.clients import game_keys  # noqa: PLC0415
+    arrives, quietly and in the background, rather than when the first run starts; and publishing
+    never waits on it."""
+    from bartleby.runtime.clients import game_keys, heap_scan  # noqa: PLC0415
 
-    reads: list[tuple[int, bool, bool]] = []
+    reads: list[tuple[int, bool, bool, heap_scan.Priority]] = []
     scan = asyncio.Event()
 
-    async def key_map(client, *, refresh=False, warn=True):
-        reads.append((client.window_handle, refresh, warn))
+    async def key_map(client, *, refresh=False, warn=True, priority=heap_scan.Priority.URGENT):
+        reads.append((client.window_handle, refresh, warn, priority))
         await scan.wait()
 
     monkeypatch.setattr(game_keys, "key_map", key_map)
@@ -211,7 +241,8 @@ async def test_a_client_s_key_bindings_are_read_once_its_hooks_come_up(harness, 
         assert reads == []
         client.hooks_ready.set_result(None)
         await _tick(3)
-        assert reads == [(100, True, False)]  # refreshed: a reattached client is tried again
+        # Refreshed: a reattached client is tried again. Background: its resize goes first.
+        assert reads == [(100, True, False, heap_scan.Priority.BACKGROUND)]
         assert harness.published_hwnds == {100}  # while the scan is still going
     finally:
         scan.set()
@@ -315,7 +346,7 @@ async def test_a_failed_pass_keeps_the_list_so_a_death_is_still_reported(harness
                 failed.append(True)
                 raise MemoryReadError("the dying client's last read")
 
-        harness._refresh_account_identity.side_effect = _fails_once
+        harness._adopt_by_identity = AsyncMock(side_effect=_fails_once)
         harness._handler.clients.remove(dying)
         await _tick()
 
@@ -404,3 +435,147 @@ async def test_a_held_window_that_closes_is_dropped(harness):
     finally:
         gate.release([100])
         harness.stop()
+
+
+async def test_a_trace_places_a_client_s_hooking_and_its_publishing(harness, tmp_path):
+    """Whether a wizard is late to the list because it hooked late, or because the loop published it late."""
+    client = FakeHookClient(100)
+    harness._handler.add(client)
+    path = run_trace.start(lambda c: None, tmp_path)
+    harness.start()
+    try:
+        await _until(lambda: harness._activating_hwnds == {100})
+        client.hooks_ready.set_result(None)
+        await _until(lambda: harness.published_hwnds == {100})
+    finally:
+        harness.stop()
+        run_trace.stop()
+
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    (hook,) = [r for r in records if r.get("name") == "client.hook"]
+    (published,) = [r for r in records if r.get("name") == "client.published"]
+    assert hook["kind"] == "span" and hook["attrs"] == {"hwnd": 100}
+    assert published["kind"] == "mark" and published["hwnd"] == 100
+    assert published["t"] >= hook["t"] + hook["dur"]
+
+
+# ---------------------------------------------------------------------------
+# Identity: a titled client is published without waiting for its user id
+# ---------------------------------------------------------------------------
+
+_KEY = b"\x01" * 32
+_UID = 196751008724043973
+
+
+@pytest.fixture
+def _fixed_key(monkeypatch):
+    """Pin the HMAC key so fingerprints are predictable and no keyring is touched."""
+    monkeypatch.setattr(account_identity, "account_key", lambda: _KEY)
+
+
+def _reports(client: FakeHookClient, user_id: int, *, until: asyncio.Event | None = None) -> FakeHookClient:
+    """Give *client* a user id to report, once *until* is set if given: a first read's pattern scan."""
+
+    async def user_id_read():
+        if until is not None:
+            await until.wait()
+        return user_id
+
+    client.game_client = MagicMock()
+    client.game_client.user_id = AsyncMock(side_effect=user_id_read)
+    return client
+
+
+def _learned(harness: LoopHarness, username: str) -> bool:
+    stored = account_identity.stored_fingerprint(harness._settings.accounts, username)
+    return stored == account_identity.fingerprint(_UID, _KEY)
+
+
+async def test_a_titled_client_is_published_while_its_identity_is_still_being_read(harness, _fixed_key):
+    """The startup trace's 12 s: each titled client's first read held every client's publishing back."""
+    read = asyncio.Event()
+    client = _reports(FakeHookClient(100), _UID, until=read)
+    harness._handler.add(client)
+    harness._hwnd_account_map[100] = "alpha"
+    harness._settings.accounts = [{"username": "alpha"}]
+    harness.start()
+    try:
+        client.hooks_ready.set_result(None)
+        await _until(lambda: harness.published_hwnds == {100} and client.game_client.user_id.await_count == 1)
+        passes = _passes(harness)
+        await _until(lambda: _passes(harness) >= passes + 3)
+        assert client.game_client.user_id.await_count == 1, "begun once, and not again each pass"
+        assert not _learned(harness, "alpha")
+
+        read.set()
+        await _until(lambda: _learned(harness, "alpha"))
+    finally:
+        read.set()
+        harness.stop()
+
+
+async def test_an_untitled_client_is_placed_by_its_identity_before_it_is_published(harness, _fixed_key):
+    """Adopting still comes first: the slot it is given depends on which account it is."""
+    client = _reports(FakeHookClient(100), _UID)
+    harness._handler.add(client)
+    harness._settings.accounts = [
+        {
+            "username": "alpha",
+            "uid_fingerprint": account_identity.fingerprint(_UID, _KEY),
+            "uid_scheme": account_identity.SCHEME,
+        }
+    ]
+    published: list[tuple[dict, list]] = []
+    harness.clients_changed.emit.side_effect = lambda clients: (
+        published.append((dict(harness._hwnd_account_map), list(harness._client_order))) if clients else None
+    )
+    harness.start()
+    try:
+        client.hooks_ready.set_result(None)
+        await _until(lambda: published)
+        assert published[0] == ({100: "alpha"}, ["alpha"])
+    finally:
+        harness.stop()
+
+
+async def test_stop_cancels_a_read_learning_an_identity(harness, _fixed_key):
+    """A first read can take seconds; it must not outlive the manager."""
+    read = asyncio.Event()
+    client = _reports(FakeHookClient(100), _UID, until=read)
+    harness._handler.add(client)
+    harness._hwnd_account_map[100] = "alpha"
+    harness._settings.accounts = [{"username": "alpha"}]
+    harness.start()
+    client.hooks_ready.set_result(None)
+    await _until(lambda: len(harness._identity_tasks) == 1)
+    tasks = list(harness._identity_tasks.values())
+
+    harness.stop()
+    await asyncio.gather(*tasks, return_exceptions=True)
+    assert all(t.cancelled() for t in tasks)
+    assert harness._identity_tasks == {}
+    assert not _learned(harness, "alpha")
+
+
+async def test_a_trace_shows_an_identity_learned_apart_from_the_pass(harness, _fixed_key, tmp_path):
+    """Its own span, on no pass's, and only for the read: a pass that has the id does without one."""
+    client = _reports(FakeHookClient(100), _UID)
+    harness._handler.add(client)
+    harness._hwnd_account_map[100] = "alpha"
+    harness._settings.accounts = [{"username": "alpha"}]
+    path = run_trace.start(lambda c: None, tmp_path)
+    harness.start()
+    try:
+        client.hooks_ready.set_result(None)
+        await _until(lambda: _learned(harness, "alpha"))
+        # Passes that have the id now, which must learn it without a read, and so without a span.
+        passes = _passes(harness)
+        await _until(lambda: _passes(harness) >= passes + 3)
+    finally:
+        harness.stop()
+        run_trace.stop()
+
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    (learn,) = [r for r in records if r.get("name") == "client.identity_learn"]
+    assert learn["kind"] == "span" and learn["attrs"] == {"hwnd": 100}
+    assert learn["parent"] is None

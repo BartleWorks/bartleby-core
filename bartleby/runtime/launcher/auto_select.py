@@ -35,6 +35,13 @@ Since the 2026-11-16 build the loading screens' key, Space, also takes Play, so 
 those can reach character select too, but only in the instant between a read that says
 loading and the press after it: the panel appears exactly when the screen does.
 
+A product that wants the load-in after Play, as BartleBuddy does to resize the game before
+it is in the world, passes ``on_play``. It is called once, with the borrowed client, on the
+first read after a press that finds character select gone, so it never runs while the
+screen is still up: the first presses can land before Play resolves, and a resize at
+character select itself has not been tried in game. The blind fallback can't tell when Play
+is taken, and the drive with auto-select off never presses it, so neither calls it.
+
 That positive identification is also what makes the two halves separable. With the
 ``auto_select_character`` setting off the loading screens are *still* skipped — they carry
 no decision, and making the user watch them and press a key twice is nobody's preference —
@@ -69,6 +76,7 @@ from __future__ import annotations
 
 import asyncio
 import ctypes
+import inspect
 import logging
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
@@ -102,6 +110,12 @@ _KEY_HOLD = 0.05
 # How many ESC presses to spend on each stage of the post-login cleanup before giving up.
 # The cleanup is best-effort — a leftover window is cosmetic, not a failure.
 _CLEANUP_ATTEMPTS = 5
+
+#: Called with the borrowed client once Play is taken; it may return an awaitable, run as a task.
+OnPlay = Callable[[object], object]
+
+# What an on_play started and nothing awaits, held so the loop doesn't drop it half-run.
+_after_play: set[asyncio.Task] = set()
 
 
 async def _press(hwnd: int, vk: int) -> None:
@@ -208,6 +222,28 @@ async def press_escape(hwnd: int) -> None:
     await _press(hwnd, _VK_ESCAPE)
 
 
+def _tell_played(on_play: OnPlay | None, client, expected_title: str) -> None:
+    """Hand *client* to *on_play*, waiting on nothing it does. What it raises is logged, never the drive's."""
+    if on_play is None:
+        return
+    try:
+        result = on_play(client)
+    except Exception:
+        logger.warning("Auto-select: what follows Play for '%s' failed", expected_title, exc_info=True)
+        return
+    if not inspect.isawaitable(result):
+        return
+    task = asyncio.ensure_future(result)
+    _after_play.add(task)
+
+    def _done(done: asyncio.Task) -> None:
+        _after_play.discard(done)
+        if not done.cancelled() and done.exception() is not None:
+            logger.warning("Auto-select: what follows Play for '%s' failed", expected_title, exc_info=done.exception())
+
+    task.add_done_callback(_done)
+
+
 async def at_character_select(client) -> bool:
     """Whether the character-select screen is up.
 
@@ -246,6 +282,7 @@ async def auto_select_character(
     get_client: Callable[[], object | None] = lambda: None,
     *,
     timeout: float = AUTO_SELECT_TIMEOUT,
+    on_play: OnPlay | None = None,
 ) -> bool:
     """Advance the window titled *expected_title* until its character is in-game.
 
@@ -258,11 +295,15 @@ async def auto_select_character(
     so the driver can read its UI tree. Never build one here — see the module docstring.
     Omitting it drives the client blind.
 
+    *on_play*, given that client, is called once Play is seen taken, during the load-in and
+    before the hooks: see the module docstring. It returns at once, or an awaitable the drive
+    runs as a task and never waits on; what it raises is logged and changes nothing.
+
     Returns True once the client is in-game, False on timeout. Never raises: callers
     decide what a failure means (recovery stops the bot; a normal launch just leaves the
     window for the user).
     """
-    return await _drive(expected_title, is_hooked, get_client, timeout=timeout, select_character=True)
+    return await _drive(expected_title, is_hooked, get_client, timeout=timeout, select_character=True, on_play=on_play)
 
 
 async def drive_to_character_select(
@@ -294,6 +335,7 @@ async def _drive(
     *,
     timeout: float,
     select_character: bool,
+    on_play: OnPlay | None = None,
 ) -> bool:
     """Shared body of the two drives: wait out the first screen, then read or guess."""
     if is_hooked():
@@ -330,7 +372,9 @@ async def _drive(
             expected_title,
         )
         return await _drive_blind(expected_title, is_hooked, deadline, get_client)
-    return await _drive_by_sight(expected_title, is_hooked, client, deadline, select_character=select_character)
+    return await _drive_by_sight(
+        expected_title, is_hooked, client, deadline, select_character=select_character, on_play=on_play
+    )
 
 
 async def _drive_by_sight(
@@ -340,15 +384,18 @@ async def _drive_by_sight(
     deadline: float,
     *,
     select_character: bool = True,
+    on_play: OnPlay | None = None,
 ) -> bool:
-    """Skip the loading screens, then press Enter on a confirmed character-select screen.
+    """Skip the loading screens, then press Play on a confirmed character-select screen.
 
     With *select_character* False the loading screens are still skipped, but the drive
     stops at character select and presses nothing — the character is the user's to pick.
+    *on_play* is called once, on the first read after a press that finds the screen gone.
     """
     loop = asyncio.get_event_loop()
     enters = 0
     seen_character_select = False
+    played = False
 
     while loop.time() < deadline:
         if is_hooked():
@@ -379,6 +426,10 @@ async def _drive_by_sight(
             # both dismiss a loading screen, but Space is far less likely to confirm a
             # dialog we have not identified.
             await _try_press(expected_title, _VK_SPACE, lambda: client)
+        elif not played:
+            # Play was taken: the panel goes exactly when it does. The load-in has begun.
+            played = True
+            _tell_played(on_play, client, expected_title)
         # Once character select has been taken, press nothing — the client is loading in
         # and every further keystroke would land in the game world.
 
@@ -524,6 +575,7 @@ async def drive_client_in(
     timeout: float = AUTO_SELECT_TIMEOUT,
     remember_realm: bool = False,
     hold: Callable[[object], AbstractAsyncContextManager] | None = None,
+    on_play: OnPlay | None = None,
 ) -> bool:
     """auto_select_character followed by the cleanup pass, for the common case.
 
@@ -538,8 +590,10 @@ async def drive_client_in(
     *hold*, given the client, is held around the cleanup. The cleanup is the one part of the
     drive that presses on a hooked client, so a product whose behaviors share clients holds
     it through its arbiter. Losing the hold, as to a fight, only ends the cleanup early.
+
+    *on_play* goes to ``auto_select_character``: called once Play is taken, never waited on.
     """
-    reached = await auto_select_character(expected_title, is_hooked, get_client, timeout=timeout)
+    reached = await auto_select_character(expected_title, is_hooked, get_client, timeout=timeout, on_play=on_play)
     if not reached:
         return False
     client = get_client()

@@ -10,6 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from bartleby.runtime.clients import heap_scan
 from bartleby.runtime.clients.client_manager import ClientManager
 from bartleby.runtime.clients.launch_tracker import LaunchTracker
 from tests.runtime.clients.test_client_slots import FakeGameView
@@ -114,6 +115,16 @@ class TestUnhookAll:
         clients = list(harness._clients)
         await harness.unhook_all()
         assert all(c.closed for c in clients)
+
+    async def test_drops_each_client_s_waiting_heap_scans(self, harness: HookHarness, monkeypatch) -> None:
+        forgotten: list = []
+        monkeypatch.setattr(heap_scan, "forget", forgotten.append)
+        readers = []
+        for client in harness._clients:
+            client.hook_handler = object()
+            readers.append(client.hook_handler)
+        await harness.unhook_all()
+        assert forgotten == readers
 
     async def test_clears_ordering_and_account_map(self, harness: HookHarness) -> None:
         await harness.unhook_all()

@@ -20,11 +20,28 @@ shipped defaults sit beside it, in `InputBindings.xml`, and live has had those s
 and a rebind saved in game changed the list in place, the same address, at once.
 `tools/probe_binding_memory.py` found all of this, and reruns it after a patch.
 
-**Found once, read on every use** (`clients/game_keys.py`). Nothing in the game's image points
-at the list, so finding it takes a scan of the process: the `InputBinding` holding
+**Found once, read on every use** (`clients/game_keys.py`). **First by a static route**
+(`clients/static_routes.py`): nothing in the game's image points at the list, but an object
+holding it, with no reflected type, has its constructor store it in a static slot, which a code
+pattern finds once per process. `[[slot] + 0xB0]` is a `SharedPointer<InputBindingList>`, the
+account's list, and it is taken only with the class `read_binding_list` checks and two bindings
+or more, a whole set as the heap's ring must be. On four live clients of r814353 (2026-11-20)
+the route gave what the heap gave, in 0.1 to 0.2 ms against 6.1 to 6.5 s for the three passes,
+after a module scan of 63 to 68 ms for the slot. Core's `tools/probe_static_paths.py` found the
+chain. **Any miss falls back to the scan** below, as it was, its reason logged once per client
+at INFO and traced on a `key_map.route` span (`outcome` `route` or `heap`, and the `reason`);
+`docs/GAME_UPDATES.md` says what to check after a patch.
+
+The scan, the fallback, finds in turn the `InputBinding` holding
 `NPCInteract`, whose name sits inside the object; the list nodes pointing at it; the ring
 they are on; the list pointing at the ring's sentinel. About 4 s on a fresh client, nearer 10
-once the game's key bindings page has been opened. The address is then kept per window and
+once the game's key bindings page has been opened. Each of the three is a request to
+`clients/heap_scan.py`, so it shares a pass with whatever else that client has waiting, the
+resizer's names above all; the warm-up's are background ones, which wait behind any resize a
+player is waiting on, until a key is needed (below). The pointers are
+searched as literals, one at a time: as a regex alternation, which wizwalker's scan made of them,
+the search gave up and retook the GIL constantly, which is likely why more seeds, the bindings
+page's, cost so much more. The address is then kept per window and
 every read goes through it, about 10 ms, which is what makes a rebind mid-session visible
 without another scan. An address that no longer holds a list is found again.
 
@@ -35,7 +52,8 @@ Interact to K and back left a list saying K. So the ring chosen is the one with 
 bindings, the player's whole set, and a ring with one is never taken for it.
 
 **A client that cannot be read gets the defaults.** `key_map()` never raises: a client whose
-list cannot be found presses the shipped default keys, with one warning, and is not scanned
+list cannot be found, a pass that skipped a region having been tried once more (below), presses
+the shipped default keys, with one warning, and is not scanned
 again until `key_map(refresh=True)`, which only a client's attach asks for. A run's start must
 not: live at r806919 has no list, so rescanning there held every run back about 8 s with four
 clients. The price is that a client whose attach scan fails on a build that has a list presses
@@ -122,10 +140,28 @@ kept per node goes stale silently, where a refusal the player fixes once does no
 A key shared with an action that is not the chat line is pressed, and logged at WARNING
 before the run, since the other action happens too and the player may wonder why it opened.
 
-**The scan is begun as a client arrives.** Finding a client's list takes seconds, so
-`ClientManager` starts it, as a task of its own, once the client's hooks are up: by then a
-character is in the world, and so are its bindings. A read made while that scan is under way
-waits on it rather than starting a second. A failure there is logged at DEBUG, and the pre-run
+**The lookup is begun as a client arrives.** Finding a client's list by the scan takes seconds,
+so `ClientManager` starts the lookup, as a task of its own, once the client's hooks are up: by
+then a character is in the world, and so are its bindings. Its route normally answers in a
+fraction of a millisecond, and the rest of this paragraph is the scan, when the route misses.
+Nothing waits on it until a key is pressed,
+so its passes are background ones, and a client's first resize is not held up by them: they wait
+`HEAP_SCAN_BACKGROUND_GRACE` after the client's first request unless its resize comes first, and
+go along with that pass. In a traced four-client launch, before the route, they finished about
+25 s after the hooks, behind the resizes. A region the game frees while a pass reads it is skipped, so a client
+still settling after its load can miss what a stage looks for. So a stage that finds nothing in a
+pass that skipped a region scans once more, after `HEAP_SCAN_RETRY_DELAY` (1 s), at the priority
+asked for then, and only a second empty answer, whole or not, means no list: the seed, the ring
+and the list are each retried on their own (`heap_scan.lookup`, traced as `heap_scan.retry` with
+the stage, `key_map.seed`, `key_map.ring` or `key_map.list`), and an unhook ends a retry still
+waiting. A stage that finds something is not retried: a seed pass that skipped the player's own
+binding but found one the bindings page left behind goes on, finds no whole set from it, and the
+client presses the defaults until its next attach. A read
+made while that scan is under way waits on it rather than starting a second, and promotes it:
+every caller but the warm-up asks at urgent (`key_map`'s `priority`), a follower starting to walk,
+a press, a run's pre-check, so the lookup's waiting request is raised to urgent with its grace
+ended (`heap_scan.promote`) and its remaining scans are asked at urgent too. It is still one
+lookup: nothing is scanned twice. The trace marks it `heap_scan.promoted`. A failure there is logged at DEBUG, and the pre-run
 read takes its answer and warns.
 
 ## The authoring hotkeys' clash warning

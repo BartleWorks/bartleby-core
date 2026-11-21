@@ -61,11 +61,11 @@ _refit_pool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="refit")
 # How long unembed waits for a refit under way before restoring the window anyway.
 _REFIT_WAIT_S = 5.0
 # How long a move held for a coming refit waits for it before moving after all (release_moves).
-# A swap's answers came 70 to 100 ms after the ask; a resize that waits out a loading screen,
-# or a client that can't be resized, never answers.
+# A swap's answers came 70 to 100 ms after the ask; a resize that waits out a higher lease is
+# later, and a client that can't be resized never answers.
 _MOVE_GRACE_MS = 500
 # How long a ring over a swap (show_ring) stays up at most, whatever the refits are doing: a
-# resize can wait out a loading screen, and a client that can't be resized never answers.
+# resize can wait out a higher lease, and a client that can't be resized never answers.
 RING_LIMIT_MS = 1500
 
 
@@ -611,7 +611,7 @@ class ClientTile(_PillIconHover, QWidget):
     def release_moves(self, *, refit_coming: bool) -> None:
         """Stop holding moves. One held is made now, or, with *refit_coming*, left to the refit.
 
-        Left only for ``_MOVE_GRACE_MS``: a resize can wait out a loading screen, and a client
+        Left only for ``_MOVE_GRACE_MS``: a resize can wait out a higher lease, and a client
         that can't be resized never answers, and the game is out of place until it moves.
         """
         self._moves_held = False

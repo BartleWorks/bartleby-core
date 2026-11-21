@@ -1,14 +1,28 @@
 """Developer-only timeline of a run, for finding where its time goes.
 
 A product starts it when it wants one -- BartleBot with ``BARTLEBOT_DEV`` set, at the top of
-a run, and stops it in the run's ``finally``. Each trace writes one JSON-lines file to the
-directory it is given, which BartleBot's ``tools/run_trace_report.py`` summarizes. Five kinds of record:
+a run, and stops it in the run's ``finally``; BartleBuddy with ``BARTLEBUDDY_DEV`` set, for
+its whole session. Each trace writes one JSON-lines file to the directory it is given, which
+BartleBot's ``tools/run_trace_report.py`` and BartleBuddy's ``tools/startup_trace_report.py``
+summarize. These kinds of record:
 
 - **span** -- a named stretch of work, written when it ends: a pre-run step, a node, a
-  combat round and its phases. Spans nest through a context variable, so a task started
-  inside one (``gather``, ``create_task``) belongs to it, and a span with no player of its
-  own takes its parent's. Each counts the memory reads made while it was the innermost
-  span, and how long they took.
+  combat round and its phases, a client's hooking, a resize. Spans nest through a context
+  variable, so a task started inside one (``gather``, ``create_task``) belongs to it, and a
+  span with no player of its own takes its parent's. Each counts the memory reads made while
+  it was the innermost span, and how long they took. Each of wizwalker's waits for a hook's
+  address to be written is a ``hook.wait`` span, named by the address it waits on. Each pass
+  over a client's whole memory is a ``heap_scan.pass`` span, under no other since it serves
+  several callers, and each caller's request a ``heap_scan.request`` inside the caller's span,
+  with its ``wait`` in the queue (``clients/heap_scan.py``); a background request raised to
+  urgent, because someone needs it now, is a ``heap_scan.promoted`` mark, and a lookup scanning
+  once more, having found nothing in a pass that skipped a region, a ``heap_scan.retry`` mark.
+- **mark** -- a moment with no length: a client published, a size asked for. The one kind
+  safe to write from any thread, so the GUI's side of a crossing can be placed too.
+- **executor** -- each function wizwalker runs on asyncio's default executor, a pattern
+  scan above all: how long it waited for a thread (``wait``) and how long it ran (``run``).
+  Every scan of every client shares that one pool and one GIL, so a long ``wait`` is a pool
+  full, and a long ``run`` for a small scan is the GIL shared with others.
 - **key**, **hotkey** and **click** -- every input sent to a client, with the BartleBot
   function that sent it (``caller``) and, when it went through a wizwalker extension such
   as ``DeckBuilder`` or wizsprinter, the extension function (``via``). A window opened,
@@ -34,6 +48,7 @@ import datetime
 import json
 import logging
 import sys
+import threading
 import time
 from collections.abc import Callable, Coroutine
 from contextlib import AbstractContextManager, nullcontext
@@ -69,6 +84,8 @@ class _Span:
     attrs: dict[str, Any] = field(default_factory=dict)
     reads: int = 0
     read_s: float = 0.0
+    outer: _Span | None = field(default=None, repr=False)
+    """The span this one is inside, while both are open: for :func:`enclosing`."""
 
 
 _SPAN: contextvars.ContextVar[_Span | None] = contextvars.ContextVar("run_trace_span", default=None)
@@ -89,6 +106,8 @@ class RunTrace:
         self._t0 = time.perf_counter()
         self._next_id = 1
         self._buffer: list[str] = []
+        # A mark may come from the GUI's thread while the runtime's flushes.
+        self._lock = threading.Lock()
         self._file = path.open("w", encoding="utf-8")
         self._loose_reads = 0
         self._loose_read_s = 0.0
@@ -107,13 +126,16 @@ class RunTrace:
             return None
 
     def write(self, record: dict) -> None:
-        self._buffer.append(json.dumps(record, separators=(",", ":"), default=str))
+        line = json.dumps(record, separators=(",", ":"), default=str)
+        with self._lock:
+            self._buffer.append(line)
 
     def flush(self) -> None:
-        if self._buffer:
-            self._file.write("\n".join(self._buffer) + "\n")
+        with self._lock:
+            buffer, self._buffer = self._buffer, []
+        if buffer:
+            self._file.write("\n".join(buffer) + "\n")
             self._file.flush()
-            self._buffer.clear()
 
     def new_id(self) -> int:
         span_id, self._next_id = self._next_id, self._next_id + 1
@@ -257,7 +279,13 @@ class _SpanContext(AbstractContextManager):
         parent = _SPAN.get()
         slot = self._slot if self._slot is not None else (parent.slot if parent else None)
         self.span = _Span(
-            self._trace.new_id(), parent.id if parent else None, self._name, slot, time.perf_counter(), self._attrs
+            self._trace.new_id(),
+            parent.id if parent else None,
+            self._name,
+            slot,
+            time.perf_counter(),
+            self._attrs,
+            outer=parent,
         )
         self._token = _SPAN.set(self.span)
         return self.span
@@ -290,6 +318,40 @@ def note(**attrs) -> None:
     current = _SPAN.get()
     if current is not None and _trace is not None:
         current.attrs.update(attrs)
+
+
+def current_slot() -> int | None:
+    """The player of the innermost open span, or None: for work handed to a task outside it."""
+    current = _SPAN.get()
+    return current.slot if current is not None else None
+
+
+def enclosing(name: str) -> Any:
+    """The attribute *name* of the innermost open span that has one (an ``hwnd``, say), or None."""
+    current = _SPAN.get()
+    while current is not None:
+        if name in current.attrs:
+            return current.attrs[name]
+        current = current.outer
+    return None
+
+
+def mark(name: str, *, client=None, slot: int | None = None, **attrs) -> None:
+    """Place a moment on the timeline, or nothing while no trace runs. Safe from any thread.
+
+    The player is as :func:`span` takes it. From a thread other than the event loop's, pass
+    *slot* or an id in *attrs* rather than *client*, since the product's ``slot_of`` reads
+    state the loop owns.
+    """
+    trace = _trace
+    if trace is None:
+        return
+    if slot is None and client is not None:
+        slot = trace.slot(client)
+    fields = {"name": name, **attrs}
+    if slot is not None:
+        fields["slot"] = slot
+    trace.event("mark", time.perf_counter(), **fields)
 
 
 async def traced(coro: Coroutine, name: str, **kwargs) -> Any:
@@ -347,11 +409,14 @@ def _patch(owner, name: str, make: Callable[[Callable], Callable]) -> None:
 def _install_hooks() -> None:
     from wizwalker.client import Client  # noqa: PLC0415
     from wizwalker.combat.card import CombatCard  # noqa: PLC0415
+    from wizwalker.memory.handler import HookHandler  # noqa: PLC0415
     from wizwalker.memory.memory_objects.window import Window  # noqa: PLC0415
     from wizwalker.memory.memory_reader import MemoryReader  # noqa: PLC0415
     from wizwalker.mouse_handler import MouseHandler  # noqa: PLC0415
 
     _patch(MemoryReader, "read_bytes", _hook_read)
+    _patch(MemoryReader, "run_in_executor", _hook_executor)
+    _patch(HookHandler, "_wait_for_value", _hook_wait_for_value)
     _patch(Window, "get_windows_with_name", lambda original: _hook_walk(original, "name"))
     _patch(Window, "get_windows_with_type", lambda original: _hook_walk(original, "type"))
     _patch(Window, "get_windows_with_predicate", lambda original: _hook_walk(original, None))
@@ -373,6 +438,55 @@ def _hook_read(original):
                 trace.count_read(time.perf_counter() - start)
 
     return read_bytes
+
+
+def _hook_executor(original: staticmethod):
+    run = original.__func__
+
+    async def run_in_executor(func, *args, **kwargs):
+        trace = _trace
+        if trace is None:
+            return await run(func, *args, **kwargs)
+        submitted = time.perf_counter()
+        # Taken on the worker's thread, so neither includes the event loop's turn to resume.
+        began = ended = None
+
+        def timed(*a, **kw):
+            nonlocal began, ended
+            began = time.perf_counter()
+            try:
+                return func(*a, **kw)
+            finally:
+                ended = time.perf_counter()
+
+        try:
+            return await run(timed, *args, **kwargs)
+        finally:
+            if _trace is trace:
+                now = time.perf_counter()
+                began_at = began if began is not None else now
+                ended_at = ended if ended is not None else now
+                where, _via = caller()
+                trace.event(
+                    "executor",
+                    submitted,
+                    fn=getattr(func, "__name__", type(func).__name__),
+                    wait=round(began_at - submitted, 4),
+                    run=round(ended_at - began_at, 4),
+                    caller=where,
+                )
+
+    return staticmethod(run_in_executor)
+
+
+def _hook_wait_for_value(original):
+    async def wait_for_value(self, address: int, timeout=None):
+        # The handler's own name for the address, such as player_struct: ours to log, not the game's.
+        what = next((name for name, value in self._base_addrs.items() if value == address), None)
+        with span("hook.wait", client=getattr(self, "client", None), what=what):
+            return await original(self, address, timeout)
+
+    return wait_for_value
 
 
 def _hook_walk(original, by: str | None):

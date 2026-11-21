@@ -24,9 +24,11 @@ a lease around it, by `drive_client_in`'s `hold`.
 **A resize holds `Owner.DISPLAY`**, labeled "resizing" (`clients/client_resizer.py`): it writes
 memory, though it presses nothing, and a click sent during an apply would land on a window on its
 way somewhere else. So it preempts the quester and movement, which resume from their own state,
-and it waits for a hotkey, combat and recovery, and for `is_loading` to end. A fight alone is
-not waited out, since a tile that has changed shape would cut its game off until the fight ended,
-though the combat lease still goes first. Finding its config nodes takes seconds and is reads alone, so it comes before the
+and it waits for a hotkey, combat and recovery. A fight alone is not waited out, since a tile
+that has changed shape would cut its game off until the fight ended, though the combat lease
+still goes first. Nor is a loading screen: nothing a resize does needs a hook, so a product may
+ask during the load-in after Play, on the client the drive borrowed (`auto_select`'s `on_play`),
+and one during a zone's loading screen is not yet proven in game (`docs/WINDOW_SIZING.md`). Finding its config nodes takes seconds and is reads alone, so it comes before the
 lease, and a follower walks through it. Once the writes begin they run out of any cancel's reach,
 since the game can't be asked to stop: a higher owner or Stop all waits the length of an apply,
 and whoever embeds the window always hears how it ended.
@@ -224,7 +226,7 @@ Interactions need no wait: the prompt they wait for is the confirmation.
 ## The client manager
 
 `bartleby.runtime.clients.client_manager.ClientManager` finds, hooks, names and orders the
-game clients for every product. Four rules, each the cost of a bug or of a crash avoided:
+game clients for every product. Five rules, each the cost of a bug or of a crash avoided:
 
 - **Hooking runs in the background.** `activate_hooks()` waits for a character to be in a
   game zone, with no timeout, so a window at login or character select never returns from
@@ -246,11 +248,64 @@ game clients for every product. Four rules, each the cost of a bug or of a crash
   comparison is the only thing that reports a client that died. Emptying the list on an
   error, as BartleBot's loop once did, lost the removal of a client whose last reads were
   what failed, and popped every game window out of its tile (BartleBot #154).
+- **Publishing a client waits only on what places it.** A window its title placed is
+  published without its user id, which only teaches the account its fingerprint, and is read
+  in a task per window (`_learn_identities`). Only a window the title could not place is read
+  before the list is compared, since its slot depends on the answer (`_adopt_by_identity`). A
+  first read is a pattern scan of up to 9 s at startup, and reading every client's in the pass
+  kept a four-client launch's last two wizards off the list for 15 s after their hooks.
 
 What a product adds to it goes through its listeners or a subclass, never a copy: BartleBot
 subclasses it for recovery and relogging (`docs/ARCHITECTURE.md`, "The client manager, in two
 halves"). A listener is called inside the loop's pass, so one that answers `clients_removed`
 can hold the slot before anything else takes it, and one that does slow work starts a task.
+
+## Scanning a client's whole memory
+
+**A static route comes first, and the heap is its fallback.** Both heap lookups,
+`find_config_nodes` and `find_binding_list`, first follow a chain of reads from a slot in the
+game's image (`clients/static_routes.py`): a code pattern, one of a tuple tried in turn, finds the
+slot once per process, a few reads follow the chain, and the owner checks what it reaches as its
+scan checks a hit. A millisecond or two against seconds a pass, measured on four live clients. Any
+miss (no single pattern match, an empty slot, a failed read, a chain that stops, a check that
+fails) falls back to the scan unchanged, is logged once per client at INFO, since the scan still
+finds the object, and is traced as `config.route` or `key_map.route` with its `outcome` and
+`reason`. A new lookup of the heap looks for such a route first: core's
+`tools/probe_static_paths.py --search` is the bounded reverse pointer search that found these two,
+and `docs/GAME_UPDATES.md` says what a patch can break in them.
+
+**Every heap scan goes through `clients/heap_scan.py`**, never wizwalker's `pattern_scan` with
+no module. A heap scan reads all of a client's 1.1 GB, and a four-client startup ran twenty at
+once, the resizer's names and the key map's chain, so the first resize landed 17 s after it was
+asked for and the event loop stalled for up to 1.6 s. `heap_scan.scan(reader, *patterns,
+priority=…)` queues a request instead: one pass serves every request waiting for that client,
+`URGENT` (a player waits) before `BACKGROUND`, and one pass at a time across every client
+(`HEAP_SCAN_PASSES`): in a traced launch two at once took as long as one after the other, and
+each requester waited twice as long. A client's background work waits `HEAP_SCAN_BACKGROUND_GRACE`
+after its first request unless its first resize comes first, since the key map's scan begins at
+hook, just before the GUI asks for a size. **Background is for work nobody waits on yet**, and
+`heap_scan.promote(reader)` raises a client's waiting requests to urgent, in place, and ends its
+grace, once somebody does: the key map's warm-up at hook is the one background caller, and every
+other `key_map` caller (a press, a held key, a run's pre-check) asks at urgent, promoting a lookup
+still under way, its later stages included. A promoted request is still one request in one pass. A region that changes under the read (the game frees
+regions all the time as a client settles after a load) is read once more, then skipped and
+counted, never a failed pass; wizwalker's walk failed the whole scan on one, and cost a client its
+key map for the session. Only an exited process or a bad handle fails a pass. **A lookup that finds
+nothing in a pass that skipped a region tries once more** before it concludes the object isn't
+there: `scan` returns `Hits`, a list that is `incomplete` when its pass skipped a region, and
+`heap_scan.lookup(reader, *patterns, priority=…, usable=…, caller=…)` scans, and if `usable` makes
+nothing of an incomplete pass, waits `HEAP_SCAN_RETRY_DELAY`, holding no place in the queue, and
+scans once more at the priority asked for then, whose answer stands. A requester that concludes
+anything from finding nothing goes through `lookup`, as `find_config_nodes` and each of the key
+map's three stages do, since concluding wrongly turns its feature off for the client until the next
+hook. The trace marks a retry `heap_scan.retry`, naming its `caller`. Ask for every
+pattern a step needs in one call, as `find_config_nodes` does for both names. A pattern is a
+literal or a set of literals, never a regex: the pass searches with `bytes.find`, since
+wizwalker's `regex` gives up and retakes the GIL constantly while it searches for an
+alternation, and beside one busy thread ran 240 times slower. An unhook or a closed window calls
+`heap_scan.forget`, which ends that client's waiting requests, and its lookups waiting to retry,
+with `ScanDropped`; a cancel ends a waiting retry too. Module scans
+(`module=`) are wizwalker's, and stay so.
 
 ## Comparing a zone a bot names with one a client is in
 

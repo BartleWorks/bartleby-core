@@ -135,6 +135,20 @@ class HookedWhenInWorld:
         return self._client.screen == "world"
 
 
+class HookedAfterTheLoadIn:
+    """Hooks up some polls after Play is taken, as after the load-in's ~15 s in game."""
+
+    def __init__(self, client: FakeGameClient, polls: int = 5) -> None:
+        self._client = client
+        self._polls = polls
+        self.in_world = 0
+
+    def __call__(self) -> bool:
+        if self._client.screen == "world":
+            self.in_world += 1
+        return self.in_world > self._polls
+
+
 @pytest.fixture
 def keys():
     recorder = KeyRecorder()
@@ -253,6 +267,116 @@ async def test_no_keys_before_the_first_screen_delay(monkeypatch, keys, game):
     await auto_select_character(TITLE, HookedWhenInWorld(game), lambda: game)
     assert first_press, "expected at least one keypress"
     assert first_press[0] >= 0.2
+
+
+# ---------------------------------------------------------------------------
+# on_play: the load-in after Play, before the hooks
+# ---------------------------------------------------------------------------
+
+
+async def test_on_play_is_called_once_with_the_client_after_play_is_taken(keys, fast, game):
+    """On the first read that finds character select gone: the load-in has begun, and the hooks aren't in."""
+    hooked = HookedAfterTheLoadIn(game)
+    calls = []
+
+    def on_play(client):
+        calls.append((client, client.screen, hooked.in_world, list(game.pressed)))
+
+    reached = await auto_select_character(TITLE, hooked, lambda: game, on_play=on_play)
+
+    assert reached is True
+    ((client, screen, polls_in_world, pressed),) = calls
+    assert client is game
+    assert screen == "world"
+    assert polls_in_world <= 1, "as soon as the screen is seen gone, long before the hooks"
+    assert pressed[-1] == (_VK_SPACE, "charselect"), "after the press that took Play"
+
+
+async def test_on_play_waits_for_play_to_take_not_for_the_first_press(keys, fast, game):
+    """The screen swallows the first presses while Play resolves: nothing follows a press that didn't take."""
+    swallowed = {"n": 0}
+    screens = []
+
+    def _on_key(vk: int) -> None:
+        game.pressed.append((vk, game.screen))
+        if vk == _VK_SPACE and game.screen == "charselect":
+            swallowed["n"] += 1
+            if swallowed["n"] >= 3:
+                game.screen = "world"
+
+    keys.on_key = _on_key
+    await auto_select_character(
+        TITLE, HookedAfterTheLoadIn(game), lambda: game, on_play=lambda c: screens.append(c.screen)
+    )
+
+    assert screens == ["world"]
+    assert len(game.on("charselect")) == 3
+
+
+async def test_on_play_that_raises_does_not_fail_the_drive(keys, fast, game, caplog):
+    def on_play(_client):
+        raise RuntimeError("a product's bug")
+
+    reached = await auto_select_character(TITLE, HookedAfterTheLoadIn(game), lambda: game, on_play=on_play)
+
+    assert reached is True
+    assert game.on("world") == [], "and the drive pressed nothing after Play"
+    assert "what follows Play" in caplog.text
+
+
+async def test_on_play_is_never_waited_on_and_its_awaitable_runs_as_a_task(keys, fast, game, caplog):
+    """The drive goes on while what it started runs; one that raises later is logged too."""
+    started, release = asyncio.Event(), asyncio.Event()
+    hooked = HookedAfterTheLoadIn(game, polls=3)
+
+    async def on_play(_client):
+        started.set()
+        await release.wait()
+        raise RuntimeError("after the drive")
+
+    reached = await asyncio.wait_for(auto_select_character(TITLE, hooked, lambda: game, on_play=on_play), 5)
+
+    assert reached is True
+    assert started.is_set()
+    release.set()
+    for _ in range(20):
+        if "after the drive" in caplog.text:
+            break
+        await asyncio.sleep(0.01)
+    assert "after the drive" in caplog.text
+    assert not auto_select._after_play
+
+
+async def test_on_play_is_not_called_when_the_hooks_come_first(keys, fast, game):
+    """A client in game is the join's to resize: nothing early to do."""
+    calls = []
+    await auto_select_character(TITLE, HookedWhenInWorld(game), lambda: game, on_play=calls.append)
+    assert calls == []
+
+
+async def test_on_play_is_not_called_by_the_blind_drive(keys, fast):
+    """It can't tell when Play is taken, so the join resizes, as before."""
+    calls = []
+    with patch.object(auto_select, "clean_up_after_auto_select", AsyncMock()):
+        reached = await drive_client_in(TITLE, Hooked(after=40), lambda: None, on_play=calls.append)
+    assert reached is True
+    assert calls == []
+
+
+async def test_on_play_is_not_handed_on_with_auto_select_off(keys, fast):
+    """Nothing presses Play, so the join resizes, as before."""
+    driver = AsyncMock(return_value=True)
+    with patch.object(auto_select, "drive_to_character_select", driver):
+        await _manager(auto_select_character=False).drive_client_in(TITLE, on_play=MagicMock())
+    assert "on_play" not in driver.await_args.kwargs
+
+
+async def test_drive_client_in_hands_on_play_to_the_drive(keys, fast, game):
+    calls = []
+    with patch.object(auto_select, "clean_up_after_auto_select", AsyncMock()):
+        reached = await drive_client_in(TITLE, HookedAfterTheLoadIn(game), lambda: game, on_play=calls.append)
+    assert reached is True
+    assert calls == [game]
 
 
 # ---------------------------------------------------------------------------
@@ -526,7 +650,15 @@ async def test_the_managers_drive_hands_on_the_hold_and_no_remember_realm(keys, 
     hold = MagicMock()
     with patch.object(auto_select, "drive_client_in", driver):
         await _manager(auto_select_character=True).drive_client_in(TITLE, hold=hold)
-    assert driver.await_args.kwargs == {"remember_realm": False, "hold": hold}
+    assert driver.await_args.kwargs == {"remember_realm": False, "hold": hold, "on_play": None}
+
+
+async def test_the_managers_drive_hands_on_on_play(keys, fast):
+    driver = AsyncMock(return_value=True)
+    on_play = MagicMock()
+    with patch.object(auto_select, "drive_client_in", driver):
+        await _manager(auto_select_character=True).drive_client_in(TITLE, on_play=on_play)
+    assert driver.await_args.kwargs["on_play"] is on_play
 
 
 async def test_driver_borrows_the_pending_client(keys, fast, monkeypatch):

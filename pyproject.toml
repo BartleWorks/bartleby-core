@@ -17,6 +17,8 @@ dependencies = [
 runtime = [
     "wizwalker",
     "wizsprinter",
+    # Walks a client's memory regions (runtime/clients/heap_scan.py). wizwalker brings it, but we import it.
+    "pymem>=1.13",
 ]
 # Theming and the widgets the products share.
 qt = [

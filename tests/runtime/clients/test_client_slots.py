@@ -26,6 +26,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from bartleby.runtime.clients import heap_scan
 from bartleby.runtime.clients.client_manager import ClientManager, Removal
 from bartleby.runtime.clients.tile_slots import TileSlot, plan_tile_changes
 
@@ -426,6 +427,17 @@ class TestRemoval:
             Removal(hwnd=300, username=None, slot=None, title="Wizard101"),
         ]
         assert harness._hwnd_titles == {} and harness._hwnd_user_ids == {}
+
+    def test_a_removed_client_s_waiting_heap_scans_are_dropped(self, harness: ClientManager, monkeypatch) -> None:
+        forgotten: list = []
+        monkeypatch.setattr(heap_scan, "forget", forgotten.append)
+        gone, stays = FakeClient(100), FakeClient(200)
+        gone.hook_handler, stays.hook_handler = object(), object()
+        harness._clients = [gone, stays]
+
+        harness._on_clients_removed({100})
+
+        assert forgotten == [gone.hook_handler]
 
     def test_crash_then_relaunch_reuses_the_slot(self, harness: ClientManager) -> None:
         harness._hwnd_account_map = {100: "user1", 200: "user2"}

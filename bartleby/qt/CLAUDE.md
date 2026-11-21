@@ -985,6 +985,9 @@ Things to preserve:
 - **`ClientManager.clients` stays hooked-only and contiguous.** Bot nodes address players
   by position in that list. A hole in it is not expressible, which is why the slot index
   could not simply replace it.
+- **A Main tile held for a wizard still launching is named by slot**, `set_layout`'s
+  `played_slots`, since that wizard has no player index to name it by. Handing Main to the
+  wizards in game instead moved it, with a resize, as each one before it in slot order came in.
 - **`_sync_tiles()` runs every detection tick, not only when the client list changes.** A
   window reaching character select changes no client list — it is not a client — and it is
   precisely the window that needs to appear. `sync_tiles` is a no-op when nothing moved.

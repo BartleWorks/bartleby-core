@@ -5,13 +5,22 @@ wizwalker's ``client.video_manager`` holds the apply, and this holds everything 
 when one may happen:
 
 **Latest target only.** :meth:`ClientResizer.resize` only says what size a client should be. One
-worker per client waits out loading and any lease it can't preempt, and reads the target at
-the last moment, so targets sent during a wait run only the last. A fight is not waited out:
-the tiles have already changed shape, so a wait would leave a game cut off for the whole fight.
+worker per client waits out any lease it can't preempt, and reads the target at the last
+moment, so targets sent during a wait run only the last. A fight is not waited out: the tiles
+have already changed shape, so a wait would leave a game cut off for the whole fight.
+
+**Nor is a loading screen.** Every step of a resize needs only the process: the nodes, the
+video manager and its byte. ``is_loading`` was the one read that needed the root window hook,
+and it can't see the load-in from character select at all. A resize asked for during the
+load-in after Play applied in game, at the right HUD scale, which is what lets a product resize
+a game before it is hooked. One during a zone's loading screen has not been seen to apply yet;
+if the game holds its apply back there, ``RESIZE_APPLY_TIMEOUT`` takes the byte back as for any
+byte that never clears.
 
 **A lease, below hotkeys.** It writes memory, so it holds ``Owner.DISPLAY``: movement and the
 quester are preempted and resume from their own state, and a hotkey, combat or recovery goes
-first. Finding the nodes is reads alone and takes seconds, so it happens before the lease, and a
+first. Finding the nodes is reads alone, a millisecond or two by the static route and seconds by
+the heap scan it falls back to (:func:`find_config_nodes`), so it happens before the lease, and a
 follower walks through it.
 
 **An apply can't be recalled.** The writes and the wait for the byte run as one task of their own
@@ -20,27 +29,36 @@ embeds the window hears how it ended, as the game has taken it out of its tile b
 before that task starts simply ends the resize.
 
 **Any failure means today's behavior.** One warning, the client keeps its last size, and nothing
-more is tried on it until :meth:`ClientResizer.forget` and it is hooked again.
+more is tried on it until :meth:`ClientResizer.forget` and it is hooked again, or, for one asked
+of before its hook, :meth:`ClientResizer.clear_failure` as it is hooked. Finding no node pair is
+a failure only once the scan is sure: a pass that skipped a region the game changed under it is
+made once more first (:func:`find_config_nodes`).
+
+**Giving back is to the user's size.** A client goes back to the size it was first measured at,
+or, launched at its tile's size to spare it a resize, to the size it would have launched at,
+which the product names with :meth:`ClientResizer.give_back_to`, resized since or not.
 """
 
 from __future__ import annotations
 
 import asyncio
 import contextlib
+import functools
 import logging
-import re
 import struct
+import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 from wizwalker.constants import Primitive
-from wizwalker.errors import PatternFailed, WizWalkerMemoryError
+from wizwalker.errors import WizWalkerMemoryError
 
+from bartleby.runtime import run_trace
 from bartleby.runtime.arbiter import Arbiter, Owner, Preempted, Revoked, client_key
+from bartleby.runtime.clients import heap_scan, static_routes
 from bartleby.runtime.game.game_sizing import ui_size_for
 from bartleby.runtime.launcher import launch_profile
 from bartleby.runtime.timing import (
-    POLL_INTERVAL,
     RESIZE_APPLY_POLL,
     RESIZE_APPLY_TIMEOUT,
     RESIZE_GIVE_BACK_TIMEOUT,
@@ -80,13 +98,9 @@ class _Node:
     parent: int
 
 
-async def _nodes_called(reader, name: bytes) -> list[_Node]:
-    """Every config node called *name*: a scan for the name, then a check of the object around it."""
+async def _nodes_at(reader, hits: list[int]) -> list[_Node]:
+    """The config nodes among a scan's *hits* for a name: a check of the object around each."""
     module = reader.process.process_base
-    try:
-        hits = await reader.pattern_scan(re.escape(name) + b"\x00", return_multiple=True)
-    except PatternFailed:
-        return []
     found = []
     for hit in hits:
         try:
@@ -107,19 +121,73 @@ async def _nodes_called(reader, name: bytes) -> list[_Node]:
     return found
 
 
-async def find_config_nodes(reader) -> ConfigNodes | None:
+async def find_config_nodes(
+    reader, *, priority: heap_scan.Priority | Callable[[], heap_scan.Priority] = heap_scan.Priority.URGENT
+) -> ConfigNodes | None:
     """The client's live UISize and Resolution nodes, or None without exactly one of each.
 
     Each name has several nodes, and the count moves. The live UISize is the one marked at
     +0x45 with a pointer at +0x18. Its parent is the user's settings, so the live Resolution is
     the one with a pointer under that parent: the other parent holds the defaults, and the
     second class's copies, some of them marked, hold no pointer.
+
+    The static route comes first: from the config object's slot to the user's group of
+    VideoSettings, whose two children are checked as the heap's are, and their parent must be
+    that group (:func:`config_nodes_at`). A millisecond or two. Any miss falls back to the heap
+    (``static_routes.follow``).
+
+    There both names are found in one pass over the process, urgent by default, since a player
+    waits on it (``heap_scan``); *priority* may be a callable, asked before each pass. A pass
+    that skipped a region the game changed under it, and found no single pair, is made once
+    more after ``HEAP_SCAN_RETRY_DELAY`` (``heap_scan.lookup``), so a client still settling after
+    its hook does not cost the resizer that client.
     """
-    ui_sizes = [n for n in await _nodes_called(reader, _UI_SIZE) if n.marked and n.has_string]
+    nodes = await static_routes.follow(reader, static_routes.CONFIG, config_nodes_at)
+    if nodes is not None:
+        return nodes
+    return await heap_scan.lookup(
+        reader,
+        _UI_SIZE + b"\x00",
+        _RESOLUTION + b"\x00",
+        priority=priority,
+        usable=functools.partial(_live_pair, reader),
+        caller="resize.config_nodes",
+    )
+
+
+async def config_nodes_at(reader, config_slot: int) -> ConfigNodes:
+    """The live pair through the config object's static slot at *config_slot*, checked.
+
+    Of the VideoSettings groups holding both names, the one pair whose UISize is marked with a
+    pointer, whose Resolution has one too, and whose parent is their own group, as
+    ``_live_pair`` checks a scan's. Raises ``static_routes.Missed`` without exactly one.
+    """
+    found = []
+    for candidate in await static_routes.config_groups(reader, config_slot):
+        ui_sizes = await _nodes_at(reader, [candidate.ui_size + NODE_NAME])
+        resolutions = await _nodes_at(reader, [candidate.resolution + NODE_NAME])
+        live = (
+            len(ui_sizes) == len(resolutions) == 1
+            and ui_sizes[0].marked
+            and ui_sizes[0].has_string
+            and resolutions[0].has_string
+            and ui_sizes[0].parent == resolutions[0].parent == candidate.group
+        )
+        if live:
+            found.append(ConfigNodes(candidate.ui_size, candidate.resolution))
+    if len(found) != 1:
+        raise static_routes.Missed("no single live pair")
+    return found[0]
+
+
+async def _live_pair(reader, hits: heap_scan.Hits) -> ConfigNodes | None:
+    """The one live pair among a pass's hits for the two names, or None."""
+    ui_size_hits, resolution_hits = hits
+    ui_sizes = [n for n in await _nodes_at(reader, ui_size_hits) if n.marked and n.has_string]
     if len(ui_sizes) != 1:
         return None
     parent = ui_sizes[0].parent
-    resolutions = [n for n in await _nodes_called(reader, _RESOLUTION) if n.has_string and n.parent == parent]
+    resolutions = [n for n in await _nodes_at(reader, resolution_hits) if n.has_string and n.parent == parent]
     if len(resolutions) != 1:
         return None
     return ConfigNodes(ui_sizes[0].address, resolutions[0].address)
@@ -142,8 +210,12 @@ class _Entry:
     scan: asyncio.Task | None = None
     nodes: ConfigNodes | None = None
     failed: bool = False
+    #: What a give back returns it to: the size first measured, or the one ``give_back_to`` named.
     launch: tuple[int, int] | None = None
+    #: The UI size first read with it, or None for the user's own at that size (``ui_size_for``).
     launch_ui_size: int | None = None
+    #: Whether the scan under way was started in the background, with nobody waiting on it yet.
+    background: bool = False
 
 
 class ClientResizer:
@@ -175,7 +247,12 @@ class ClientResizer:
                 entry.scan = asyncio.create_task(self._find(client, entry), name="resize-scan")
 
     def resize(self, client, size: tuple[int, int]) -> None:
-        """Have *client* run at *size*, as soon as it may. Returns at once; ``on_resized`` says how it ended."""
+        """Have *client* run at *size*, as soon as it may. Returns at once; ``on_resized`` says how it ended.
+
+        *client* need not be hooked: nothing a resize reads or writes needs a hook, so a product
+        can ask during the load-in after Play, on the client its drive borrowed. It names the home
+        first (``give_back_to``), and clears a failure as the client is hooked (``clear_failure``).
+        """
         entry = self._entry(client)
         if entry.failed:
             return
@@ -183,11 +260,34 @@ class ClientResizer:
         if entry.task is None or entry.task.done():
             entry.task = asyncio.create_task(self._run(client, entry, RESIZE_APPLY_TIMEOUT), name="resize")
 
+    def give_back_to(self, client, size: tuple[int, int]) -> None:
+        """Have every give back of *client* return it to *size*, not to the size it was first measured at.
+
+        For a client launched at another size than the user's own, to spare it a resize: a
+        product launching a team at its tiles' size names here the size each client would have
+        launched at, so the user's games still go back to it, resized or not. The UI size given
+        back with it is ``ui_size_for`` the user's own, as a launch at *size* writes it.
+
+        Its nodes are found now, in the background, so a give back as the app quits doesn't wait
+        on a scan; a client just hooked shares that pass with its key map's. A resize or a give
+        back that comes first makes it urgent. Call it before anything is asked of the client, as
+        it joins or before a resize asked of it earlier; ``forget`` drops it with the rest.
+        Called again, it keeps what was found.
+        """
+        entry = self._entry(client)
+        entry.launch, entry.launch_ui_size = tuple(size), None
+        scanning = entry.scan is not None and not entry.scan.done()
+        if not entry.failed and entry.nodes is None and not scanning:
+            entry.background = True
+            entry.scan = asyncio.create_task(self._find(client, entry), name="resize-scan")
+
     async def give_back(self, client) -> None:
         """Put *client* back at its launch size and UI size, on a short timeout, as it leaves its tile.
 
-        A client never resized, or one given up on, has nothing to give back. One still loading
-        when the time is up, or held by a higher lease, is left as it is, with a warning.
+        The launch size is the one ``give_back_to`` named, else the size measured before the
+        first resize. A client with neither, so never resized, or one given up on, has nothing to
+        give back. One loading is given back all the same, as any resize is; one held by a higher
+        lease until the time is up is left as it is, with a warning.
         """
         entry = self._entries.get(client_key(client))
         if entry is None or entry.failed or entry.launch is None:
@@ -204,6 +304,25 @@ class ClientResizer:
     async def stop_all(self) -> None:
         """Stop all: every waiting resize ends. An apply under way finishes and reports first."""
         await asyncio.gather(*(self._end_waiting(entry) for entry in self._entries.values()))
+
+    def failed(self, client) -> bool:
+        """Whether resizing is off for *client* after a failure, until ``forget`` or ``clear_failure``."""
+        entry = self._entries.get(client_key(client))
+        return entry is not None and entry.failed
+
+    def clear_failure(self, client) -> bool:
+        """*client* is hooked now, after a resize asked of it before failed: it may be resized again.
+
+        For a product that asks before the hook, as BartleBuddy does during the load-in after
+        Play. What that attempt found, the nodes and the home, is kept, and the nodes are checked
+        again before they are used, so a client still settling costs no scan. Unlike ``forget``
+        it ends nothing under way. Whether there was a failure to clear.
+        """
+        entry = self._entries.get(client_key(client))
+        if entry is None or not entry.failed:
+            return False
+        entry.failed = False
+        return True
 
     async def forget(self, client) -> None:
         """*client* is unhooked or gone: a client hooked again starts afresh, failures included."""
@@ -225,17 +344,27 @@ class ClientResizer:
 
     async def _find(self, client, entry: _Entry) -> None:
         """Everything a resize reads once, or this client's one warning. Never raises."""
-        try:
-            video = client.video_manager
-            await video.read_base_address()
-            await video.pending_flag_offset()
-            nodes = await find_config_nodes(client.hook_handler)
-            if nodes is None:
-                raise _Refused("no single live UISize and Resolution node")
-        except Exception as exc:  # noqa: BLE001 - whatever it was, it means leaving this client alone
-            self._fail(client, entry, exc)
-            return
-        entry.nodes = nodes
+        with run_trace.span("resize.find", client=client, hwnd=client_key(client), background=entry.background):
+            try:
+                video = client.video_manager
+                with run_trace.span("resize.base_address"):
+                    await video.read_base_address()
+                with run_trace.span("resize.pending_flag"):
+                    await video.pending_flag_offset()
+                with run_trace.span("resize.config_nodes"):
+                    nodes = await find_config_nodes(
+                        client.hook_handler,
+                        priority=lambda: (
+                            heap_scan.Priority.BACKGROUND if entry.background else heap_scan.Priority.URGENT
+                        ),
+                    )
+                if nodes is None:
+                    raise _Refused("no single live UISize and Resolution node")
+            except Exception as exc:  # noqa: BLE001 - whatever it was, it means leaving this client alone
+                run_trace.note(failed=type(exc).__name__)
+                self._fail(client, entry, exc)
+                return
+            entry.nodes = nodes
 
     async def _nodes(self, client, entry: _Entry) -> ConfigNodes | None:
         """The nodes, checked again since an address can go stale, and found again if it has."""
@@ -248,7 +377,12 @@ class ClientResizer:
                 return nodes
             entry.nodes = None
         if entry.scan is None or entry.scan.done():
+            entry.background = False
             entry.scan = asyncio.create_task(self._find(client, entry), name="resize-scan")
+        elif entry.background:
+            # Someone waits on it now: raised to urgent, its retry too.
+            entry.background = False
+            heap_scan.promote(client.hook_handler)
         # Shielded: a Stop all ends this wait, and the scan is worth keeping.
         await asyncio.shield(entry.scan)
         return entry.nodes
@@ -257,23 +391,27 @@ class ClientResizer:
 
     async def _run(self, client, entry: _Entry, timeout: float) -> None:
         """Bring *client* to its latest target, until there is none."""
-        try:
-            while entry.target is not None:
-                if await self._in_the_way(client):
-                    await asyncio.sleep(POLL_INTERVAL)
-                elif await self._nodes(client, entry) is not None:
-                    await self._under_lease(client, entry, timeout)
-        except Exception as exc:  # noqa: BLE001 - a read that failed: the client may be going away
-            self._fail(client, entry, exc)
-
-    @staticmethod
-    async def _in_the_way(client) -> bool:
-        return await client.is_loading()
+        with run_trace.span("resize.worker", client=client, hwnd=client_key(client), target=entry.target):
+            try:
+                while entry.target is not None:
+                    with run_trace.span("resize.nodes"):
+                        nodes = await self._nodes(client, entry)
+                    if nodes is not None:
+                        await self._under_lease(client, entry, timeout)
+            except Exception as exc:  # noqa: BLE001 - a read that failed: the client may be going away
+                self._fail(client, entry, exc)
 
     async def _under_lease(self, client, entry: _Entry, timeout: float) -> None:
+        asked = time.perf_counter()
         try:
             async with self._arbiter.acquire(client, Owner.DISPLAY):
-                if entry.target is None or await self._in_the_way(client):
+                run_trace.mark(
+                    "resize.leased",
+                    client=client,
+                    hwnd=client_key(client),
+                    waited=round(time.perf_counter() - asked, 4),
+                )
+                if entry.target is None:
                     return
                 size, entry.target = entry.target, None
                 await self._commit(client, entry, size, timeout)
@@ -301,10 +439,11 @@ class ClientResizer:
         video = client.video_manager
         measured = None
         try:
-            measured = await video.read_device_size()
-            if measured != size:
-                await self._write_and_wait(client, entry, measured, size, timeout)
-                logger.info("Window %s now runs at %dx%d", client_key(client), *size)
+            with run_trace.span("resize.apply", client=client, hwnd=client_key(client), size=size):
+                measured = await video.read_device_size()
+                if measured != size:
+                    await self._write_and_wait(client, entry, measured, size, timeout)
+                    logger.info("Window %s now runs at %dx%d", client_key(client), *size)
         except Exception as exc:  # noqa: BLE001 - whatever it was, the client keeps its last size
             self._fail(client, entry, exc)
         if measured is None:
@@ -324,7 +463,10 @@ class ClientResizer:
         ui_was = await reader.read_typed(nodes.ui_size + NODE_INT, Primitive.int32)
         if entry.launch is None:
             entry.launch, entry.launch_ui_size = was, ui_was
-        ui_size = entry.launch_ui_size if size == entry.launch else ui_size_for(preferred, size)
+        if size == entry.launch and entry.launch_ui_size is not None:
+            ui_size = entry.launch_ui_size
+        else:
+            ui_size = ui_size_for(preferred, size)
         if ui_size is None:
             raise _Refused("the game has no UI scale to size from")
 

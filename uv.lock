@@ -44,6 +44,7 @@ qt = [
     { name = "pyqt6" },
 ]
 runtime = [
+    { name = "pymem" },
     { name = "wizsprinter" },
     { name = "wizwalker" },
 ]
@@ -64,6 +65,7 @@ dev = [
 requires-dist = [
     { name = "keyring", specifier = ">=25.0" },
     { name = "pydantic", specifier = ">=2.0" },
+    { name = "pymem", marker = "extra == 'runtime'", specifier = ">=1.13" },
     { name = "pyperclip", marker = "extra == 'qt'", specifier = ">=1.8" },
     { name = "pyqt6", marker = "extra == 'qt'", specifier = ">=6.9" },
     { name = "vdf", specifier = ">=3.4" },

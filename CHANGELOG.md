@@ -10,8 +10,105 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ## Unreleased
 
+### Breaking
+
+- **`ClientManager._refresh_account_identity` is gone**, split in two so publishing a client
+  waits only on what places it (under Changed): `_learn_identities`, which learns a titled
+  client's fingerprint in a task of its own, and `_adopt_by_identity`, which places an untitled
+  one. Private, but a test harness that binds it fails at collection: BartleBot's
+  `tests/clients/test_account_identity_storage.py` binds `_learn_identity`, `_learn_fingerprint`
+  and `_read_user_id` instead, and awaits `_learn_identity(client, username)` where it awaited
+  the pass.
+- **`SimMemory` answers `heap_regions()` instead of `pattern_scan`**, since every heap scan now
+  goes through `clients/heap_scan.py` (under Changed). `scans` counts its passes, and a resizer
+  finding its nodes makes one where it made two, so a product test asserting a count of two per
+  client asserts one. BartleBuddy's `test_session.py` asserts only none or some, and passes as it
+  is. A double of a reader of its own answers `heap_regions()` with `(address, bytes)` pairs.
+- **`SimMemory`'s live config nodes are a group's children**, inline in its vector as the game
+  lays them out, under a config object and its map of sections (under Added): `USER_SETTINGS` is
+  gone, and `place_node`'s default parent is `SimMemory.group`. Neither product imports either.
+- **The client manager calls `game_keys.key_map` with `priority=`** (under Added), so a double of
+  `key_map` patched in under a `ClientManager` takes it, as core's `test_client_loop.py` now
+  does. Neither product has one: BartleBot's `test_run_probe.py` fakes it for the pre-check,
+  which passes no priority.
+- **The resizer no longer waits out a loading screen** (under Changed), so a resize asked during
+  one applies then, and `client_resizer.POLL_INTERVAL`, which only that wait read, is gone: a
+  test that patches it fails at setup, as BartleBuddy's `resizing` fixture in `test_session.py`
+  did. A test that held a resize off with `SimClient(loading=True)` now holds a lease above
+  `Owner.DISPLAY` instead. A `give_back` reaches a client that is loading, where it was left as
+  it was with a warning. BartleBot doesn't use the resizer.
+
 ### Added
 
+- **`on_play`, called once Play is taken**, on `auto_select.auto_select_character`,
+  `auto_select.drive_client_in` and `ClientManager.drive_client_in`, for a product that acts
+  during the load-in, before the hooks: BartleBuddy resizes the game its large tile is held for.
+  It is called with the client the drive borrowed (`pending_client_titled`) on the first read
+  after a press that finds character select gone, never while the screen is up, and never
+  waited on: an awaitable it returns runs as a task. What it raises is logged and never fails
+  the drive. With auto-select off, and on the blind drive, it isn't called. `auto_select.OnPlay`
+  is its type. Existing callers are unchanged.
+- **`ClientResizer.failed(client)` and `clear_failure(client)`.** A resize asked before the hook
+  that failed turns resizing off for the client as any failure does; `clear_failure`, as the
+  client is hooked, turns it back on, keeping the nodes and the home found, and ends nothing
+  under way. It says whether there was a failure to clear.
+
+- **`clients/static_routes.py`, a chain of reads from a slot in the game's image**, for the
+  resizer's config nodes and the key map's bindings (under Changed). `Route` is a slot's
+  `patterns`, a tuple tried in turn as wizwalker's `AUTOBOT_PATTERNS` is, each a regex whose one
+  group is a RIP-relative disp32; `CONFIG` and `BINDINGS` are the two. `static_routes.slot(reader,
+  route)` is the slot, found by `pattern_scan(..., module="WizardGraphicalClient.exe")` once per
+  client and kept; `follow(reader, route, chain)` is what *chain* reaches from it, or None, its
+  reason traced and logged once per client; `config_groups` and `held_binding_list` are the two
+  chains, raising `Missed` with its `reason` where they stop. `client_resizer.config_nodes_at(reader,
+  slot)` and `game_keys.binding_list_at(reader, slot)` follow and check them. Traced as a
+  `config.route` or `key_map.route` span, with its `outcome`, `route` or `heap`, the `reason` for a
+  miss, and `module_scan`, the seconds of the slot's pattern scan, on the attempt that made it.
+  `SimMemory` has the config object's slot, map and group, a module answering `pattern_scan` and
+  counting `module_scans`, `place_slot_code()` to open the route, `put` and `put_u64`;
+  `testing.sim_client.rip_operand` and `CONFIG_STORE`, `CONFIG_CLEAR` and `BINDINGS_STORE` are
+  code each pattern matches, for a double of a reader of its own.
+- **`clients/heap_scan.py`, one scanner for every scan of a client's whole memory.**
+  `heap_scan.scan(reader, *patterns, priority=Priority.URGENT | Priority.BACKGROUND)` returns
+  each pattern's hits, a pattern being a literal or a set of literals, from one pass shared by
+  every request waiting for that client; `heap_scan.forget(reader)` ends a client's waiting
+  requests with `ScanDropped`. `HEAP_SCAN_PASSES` (1) run at once across every client (above
+  one, background passes take all but one place), and a client's background requests wait
+  `HEAP_SCAN_BACKGROUND_GRACE` (3 s) from its first request unless an urgent pass over it comes
+  first. Traced as a `heap_scan.pass` span per pass, with the regions it `skipped`, and a
+  `heap_scan.request` span per request, with its `wait` in the queue, each with the `hwnd` an
+  enclosing span names. `run_trace.current_slot()` gives the innermost span's player, and
+  `run_trace.enclosing(name)` the innermost open span's attribute *name*.
+- **`heap_scan.promote(reader) -> int`** raises every background request waiting on a client to
+  urgent, in place, queued as if asked for now, and ends the client's grace; it returns how many
+  it raised, and a pass already under way runs on as it began. Traced as a `heap_scan.promoted`
+  mark, with the `requests` raised and how long the first had `waited`, and `promoted` on each
+  raised request's span. `game_keys.key_map(..., priority=Priority.URGENT)` says how soon a scan
+  for the list is wanted, and `find_binding_list(reader, priority=...)` takes a callable asked
+  before each of its three scans, background unless given.
+- **`heap_scan.scan` returns `Hits`**, a `list` subclass, so every caller that unpacks or
+  compares its result works as it did: `hits.skipped` is how many regions the pass skipped as
+  the game changed them under the read, and `hits.incomplete` whether it skipped any.
+  **`heap_scan.lookup(reader, *patterns, priority=..., usable=..., caller=...)`** is a scan and
+  what an async `usable` makes of its hits; when that is nothing (falsy) and the pass was
+  incomplete, it waits `HEAP_SCAN_RETRY_DELAY` (1 s, new in `timing.py`), holding no place in
+  the queue, and scans once more, whose answer stands. *priority* may be a callable, asked
+  before each scan. `forget` ends a lookup waiting to retry with `ScanDropped`, and
+  `HeapScanner.retrying(reader)` counts those waiting. Traced as a `heap_scan.retry` mark with
+  the `caller`, slot, `hwnd`, `skipped` and `delay`. `SimMemory.unsettled` is how many passes
+  to come skip its heap and find nothing, and `testing.sim_client.SkippedWalk` is what a
+  double's `heap_regions()` returns for a pass that skipped regions.
+
+- **The run trace places a startup**, for BartleBuddy's slow first resize and late Team tab.
+  `run_trace.mark(name, *, client=None, slot=None, **attrs)` writes a moment with no length, and
+  is the one call safe from any thread, so a product's GUI can mark its side of a crossing. Each
+  job wizwalker runs on asyncio's default executor, every pattern scan among them, is an
+  `executor` record with its wait for a thread and its run apart, and each of wizwalker's waits
+  for a hook's address is a `hook.wait` span named by that address (`player_struct`). The client
+  manager traces each client's hooking (`client.hook`), its key-map scan (`client.key_map`), the
+  loop's identity and wizard-name passes, and marks each client as it is published
+  (`client.published`); the resizer traces its worker (`resize.worker`), the scan for the nodes and each part of it (`resize.find`), the lease (`resize.leased`)
+  and the apply (`resize.apply`). Nothing changes while no trace runs.
 - **Following is back**, as it was before 0.4.0 shelved it: `bartleby.runtime.movement`
   (`Follower`, `spacing_for`, `Trail` and its geometry) and the timing constants only it
   reads, `FOLLOW_TICK`, `FOLLOW_STALL_WINDOW`, `FOLLOW_BACK_OFF`, `LEADER_SETTLE`,
@@ -42,15 +139,125 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   leader off its seat may be the countdown ending, so cancels only after `SIGIL_END_GRACE` with
   no zone change. New: `StepKind.CANCEL`, `Follower.at_sigil` and `.entering`, the `SIGIL_*`
   timing constants. Without `sigil_prompts` nothing changes and no prompt is read.
+- **A launch can open at the size its tiles will want, and its games still go back to the
+  user's.** For BartleBuddy, whose traced four-client launches spent their last 10 s resizing
+  each game from the user's resolution to its tile, one 2.5 s scan at a time. All additive, so
+  BartleBot is unchanged:
+  - `GameView.planned_targets(layout, played, launches, *, cap=None)` is the target each slot
+    would get, by slot, with the tiles in *played*'s slots placed by rung in *layout*: the
+    slots held now and the ones a launch will take, each new one at its size in *launches*. It
+    reads the view's own geometry and `tile_targets`, and changes nothing on screen; empty while
+    the view has no size or no tile has a ladder. `GameView.synced_tiles` is what the last
+    `sync_tiles` was handed, for the slots, windows and accounts held.
+  - `GameView.set_home_sizes({username: size or None})` is the size an account's next window
+    counts as launched at, so a lone client goes back to the user's size, not the small one it
+    opened at.
+  - `ClientResizer.give_back_to(client, size)` has every give back return the client to *size*,
+    with `ui_size_for` the user's own UI scale, whether it was ever resized or not; a client
+    never resized had nothing to give back. It finds the client's nodes at once, in the
+    background, so a quit doesn't wait on a scan, and a resize or give back that comes first
+    promotes it. Traced as `background` on its `resize.find` span. `find_config_nodes(reader,
+    priority=...)` takes the priority, urgent by default, or a callable asked before each pass.
+  - `launch_profile.launch_profile(..., resolution=None)` launches at the size it is handed, over
+    the profile's own and the global setting, with the UI scale for it, as `launch_accounts`
+    already did; `launch_profile.profile_resolution(profile)` is a profile's own, or None.
+- **`GameView.set_layout(..., played_slots=())`** names the slots played whatever their tile
+  holds, beside *played*'s players: for a wizard still launching, a pending tile or a window not
+  in game, so the Main tile waits in its slot for it. For BartleBuddy, whose traced four-client
+  launch gave the large tile to each wizard in game in turn, three resizes where one was planned.
+  Keyword-only and empty by default, so BartleBot is unchanged.
 
 ### Fixed
 
+- **A reorder or a swap during a launch moves the wizards in game, and no slot still coming.**
+  `ClientManager.reorder_clients` and `swap_clients` moved `_client_order` by position, as if
+  position i in the hooked list were slot i, so with two of four reserved slots in game a drag
+  of those two traded the other two's pending tiles and left the dragged ones where they were.
+  They now hand round the slots the hooked clients hold, which keeps a slot held for a recovery
+  where it is too. A client with no slot, one this app did not launch, moves the ordering by
+  position as before.
 - **wizwalker is pinned at `0857de9`** (`bartlebot-pin-20261120`), where it was `991c257`. A
   product that pins wizwalker itself pins the same commit. A click cut short while the
   mouseless hook was being written could leave its jump at `GetCursorPos`, and every click by
   hand on that client missed until it was relaunched; wizwalker now writes nothing until its
   lookups are done and takes user32's originals from a clean copy, so a leftover from before is
   put right on the next click.
+
+### Changed
+
+- **A resize no longer waits out a loading screen** (under Breaking). The worker waited on
+  `client.is_loading()` from its first commit, with no reason recorded. It was the one step that
+  needed the root window hook, and it can't see the load-in from character select, where a tile
+  swap applied in game with the HUD at the right scale. So a product may resize a game during
+  its load-in, before the hook, on the client its drive borrowed. A resize during a zone's
+  loading screen is not yet proven in game; a byte the game holds back there is taken back after
+  `RESIZE_APPLY_TIMEOUT`, as before. The `resize.worker` span no longer notes `loading_s`.
+  `docs/WINDOW_SIZING.md`, "Resizing a running client", has the rest.
+- **The config nodes and the key bindings are found by a static route first, in a millisecond or
+  two, and the heap only when it misses.** Each hangs off an object whose constructor stores it
+  in a static slot of the image, which a code pattern finds once per process (84 to 93 ms and 63
+  to 68 ms on four live clients of r814353): `find_config_nodes` follows the config object's map
+  of sections to the user's `VideoSettings` group and checks its two children as the heap's are,
+  their parent that group, in 1.6 to 2.0 ms against 2.4 to 4.0 s; `find_binding_list` takes the
+  holder's `+0xB0` with its class and two bindings or more, in 0.1 to 0.2 ms against 6.1 to 6.5 s
+  for three passes. On every client the route gave what the heap gave. So the resizer's
+  background lookup at hook and the key map's warm-up no longer wait in the heap scanner's queue.
+  Any miss, from no single pattern match to a check that fails, falls back to the heap lookup as
+  it was, retry included, and is logged once per client at INFO, naming its reason: a game patch
+  that moves a slot or an offset costs seconds, never the feature. Both functions keep their
+  signatures. The patterns are the old compiler's only; a build of the new one misses both routes
+  until a second form is added (`docs/GAME_UPDATES.md`). Not taken: GameClient, which holds both
+  objects too (`+0x21390`, `+0x21358`), as a second try before the heap, since its fields move
+  with patches (r814353 moved its camera fields by 8), the finders take a reader and not a client,
+  and a stale offset there would only add a miss before the same heap pass.
+- **`ClientManager` publishes a client its title placed without waiting for its user id.** That
+  id only teaches the account its fingerprint, for a later session, so it is read in a task of
+  its own, one per window at a time, which `stop()` cancels, and traced as
+  `client.identity_learn`. Each pass read every client's one after another before publishing
+  any, and a first read is a pattern scan: in a four-client launch the last two wizards reached
+  the list 15 s after their hooks. A window the title could not place is still identified
+  before its slot is assigned, its read now beside the others' rather than after them. An
+  account removed from the settings while its window is open is no longer written every pass.
+  The split this took is under Breaking.
+- **The resizer's and the key map's scans share passes, the resizer's first.** Each scanned
+  through wizwalker's `pattern_scan` on its own, so a four-client startup made twenty passes of
+  1.1 GB nearly all at once, sharing one GIL: the first resize landed 17 s after it was asked
+  for, the key maps took 20 to 24 s, and the event loop stalled for up to 1.6 s. Now
+  `find_config_nodes` asks for both names in one urgent request, each of the key map's three
+  steps is a background request, and a client's first pass takes everything it has waiting.
+  The search is `bytes.find`, one literal at a time, with the same hits as wizwalker's regex:
+  its search for an alternation, which the key map's pointer step is, gives up and retakes the
+  GIL constantly, and beside one busy thread ran 240 times slower. One pass runs at a time: in
+  a traced four-client launch two at once took 4.2 to 6.4 s each against 2.2 to 2.5 s alone, so
+  each requester waited twice as long. A region the game frees or changes between asking about
+  it and reading it (`ERROR_PARTIAL_COPY`, `ERROR_NOACCESS`, `ERROR_INVALID_ADDRESS`) is read
+  once more, then skipped, where wizwalker's walk failed the whole scan: in game one such region,
+  as a client settled after its load, cost it its key map for the session. An object in a
+  skipped region is not found. An exited process or a bad handle still fails the scan. A client
+  unhooked or closed has its waiting scans dropped, which the key map takes as unreadable, as
+  before, until its next attach.
+- **A key map someone needs now is no longer background work.** The warm-up at hook still asks
+  in the background, so a resize goes first, and in a traced four-client launch the key maps
+  finished about 25 s after the hooks. A caller that needed one before then, a follower starting
+  to walk, a helper's press or a run's pre-check, waited on that queue for as long. Every
+  `key_map` caller but the warm-up now asks at urgent, the default: one arriving while the
+  lookup is under way promotes it, its waiting scan raised with its grace ended and its later
+  scans asked at urgent, and it is still one lookup, scanned once. Its failure is as before: the
+  defaults with one warning, until a refresh on attach.
+- **A lookup whose pass skipped a region tries once more before it fails.** An object in a
+  region the game changed under the read is not found, and both lookups took that for an
+  object not there: the resizer turned itself off for the client, and the key map pressed the
+  defaults, each until the next hook, for a condition that mostly lasts only while a client
+  settles after its hook. Now `find_config_nodes`, and each of `find_binding_list`'s three
+  stages on its own, scans once more after `HEAP_SCAN_RETRY_DELAY` when an incomplete pass gave
+  it nothing usable, at the priority asked for then, so a background warm-up's retry stays
+  background unless promoted meanwhile. A whole pass that finds nothing fails at once, and a
+  retry that is incomplete too fails as before. Both functions keep their signatures, so
+  BartleBot's `tools/probe_key_bindings.py` and BartleBuddy's `tools/probe_resize_scan.py`
+  call them unchanged, and get the retry. A product double of `heap_scan.scan` would need to
+  return `Hits`; neither product has one.
+- **`pymem` is a declared dependency of the `runtime` extra** (`>=1.13`), since
+  `clients/heap_scan.py` imports it. It came only through wizwalker before.
 
 ## 0.6.0
 
