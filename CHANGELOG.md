@@ -24,6 +24,9 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   finding its nodes makes one where it made two, so a product test asserting a count of two per
   client asserts one. BartleBuddy's `test_session.py` asserts only none or some, and passes as it
   is. A double of a reader of its own answers `heap_regions()` with `(address, bytes)` pairs.
+- **`SimMemory`'s live config nodes are a group's children**, inline in its vector as the game
+  lays them out, under a config object and its map of sections (under Added): `USER_SETTINGS` is
+  gone, and `place_node`'s default parent is `SimMemory.group`. Neither product imports either.
 - **The client manager calls `game_keys.key_map` with `priority=`** (under Added), so a double of
   `key_map` patched in under a `ClientManager` takes it, as core's `test_client_loop.py` now
   does. Neither product has one: BartleBot's `test_run_probe.py` fakes it for the pre-check,
@@ -31,6 +34,21 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ### Added
 
+- **`clients/static_routes.py`, a chain of reads from a slot in the game's image**, for the
+  resizer's config nodes and the key map's bindings (under Changed). `Route` is a slot's
+  `patterns`, a tuple tried in turn as wizwalker's `AUTOBOT_PATTERNS` is, each a regex whose one
+  group is a RIP-relative disp32; `CONFIG` and `BINDINGS` are the two. `static_routes.slot(reader,
+  route)` is the slot, found by `pattern_scan(..., module="WizardGraphicalClient.exe")` once per
+  client and kept; `follow(reader, route, chain)` is what *chain* reaches from it, or None, its
+  reason traced and logged once per client; `config_groups` and `held_binding_list` are the two
+  chains, raising `Missed` with its `reason` where they stop. `client_resizer.config_nodes_at(reader,
+  slot)` and `game_keys.binding_list_at(reader, slot)` follow and check them. Traced as a
+  `config.route` or `key_map.route` span, with its `outcome`, `route` or `heap`, the `reason` for a
+  miss, and `module_scan`, the seconds of the slot's pattern scan, on the attempt that made it.
+  `SimMemory` has the config object's slot, map and group, a module answering `pattern_scan` and
+  counting `module_scans`, `place_slot_code()` to open the route, `put` and `put_u64`;
+  `testing.sim_client.rip_operand` and `CONFIG_STORE`, `CONFIG_CLEAR` and `BINDINGS_STORE` are
+  code each pattern matches, for a double of a reader of its own.
 - **`clients/heap_scan.py`, one scanner for every scan of a client's whole memory.**
   `heap_scan.scan(reader, *patterns, priority=Priority.URGENT | Priority.BACKGROUND)` returns
   each pattern's hits, a pattern being a literal or a set of literals, from one pass shared by
@@ -137,6 +155,23 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ### Changed
 
+- **The config nodes and the key bindings are found by a static route first, in a millisecond or
+  two, and the heap only when it misses.** Each hangs off an object whose constructor stores it
+  in a static slot of the image, which a code pattern finds once per process (84 to 93 ms and 63
+  to 68 ms on four live clients of r814353): `find_config_nodes` follows the config object's map
+  of sections to the user's `VideoSettings` group and checks its two children as the heap's are,
+  their parent that group, in 1.6 to 2.0 ms against 2.4 to 4.0 s; `find_binding_list` takes the
+  holder's `+0xB0` with its class and two bindings or more, in 0.1 to 0.2 ms against 6.1 to 6.5 s
+  for three passes. On every client the route gave what the heap gave. So the resizer's
+  background lookup at hook and the key map's warm-up no longer wait in the heap scanner's queue.
+  Any miss, from no single pattern match to a check that fails, falls back to the heap lookup as
+  it was, retry included, and is logged once per client at INFO, naming its reason: a game patch
+  that moves a slot or an offset costs seconds, never the feature. Both functions keep their
+  signatures. The patterns are the old compiler's only; a build of the new one misses both routes
+  until a second form is added (`docs/GAME_UPDATES.md`). Not taken: GameClient, which holds both
+  objects too (`+0x21390`, `+0x21358`), as a second try before the heap, since its fields move
+  with patches (r814353 moved its camera fields by 8), the finders take a reader and not a client,
+  and a stale offset there would only add a miss before the same heap pass.
 - **`ClientManager` publishes a client its title placed without waiting for its user id.** That
   id only teaches the account its fingerprint, for a later session, so it is read in a task of
   its own, one per window at a time, which `stop()` cancels, and traced as

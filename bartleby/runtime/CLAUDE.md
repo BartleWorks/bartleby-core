@@ -260,6 +260,18 @@ can hold the slot before anything else takes it, and one that does slow work sta
 
 ## Scanning a client's whole memory
 
+**A static route comes first, and the heap is its fallback.** Both heap lookups,
+`find_config_nodes` and `find_binding_list`, first follow a chain of reads from a slot in the
+game's image (`clients/static_routes.py`): a code pattern, one of a tuple tried in turn, finds the
+slot once per process, a few reads follow the chain, and the owner checks what it reaches as its
+scan checks a hit. A millisecond or two against seconds a pass, measured on four live clients. Any
+miss (no single pattern match, an empty slot, a failed read, a chain that stops, a check that
+fails) falls back to the scan unchanged, is logged once per client at INFO, since the scan still
+finds the object, and is traced as `config.route` or `key_map.route` with its `outcome` and
+`reason`. A new lookup of the heap looks for such a route first: core's
+`tools/probe_static_paths.py --search` is the bounded reverse pointer search that found these two,
+and `docs/GAME_UPDATES.md` says what a patch can break in them.
+
 **Every heap scan goes through `clients/heap_scan.py`**, never wizwalker's `pattern_scan` with
 no module. A heap scan reads all of a client's 1.1 GB, and a four-client startup ran twenty at
 once, the resizer's names and the key map's chain, so the first resize landed 17 s after it was

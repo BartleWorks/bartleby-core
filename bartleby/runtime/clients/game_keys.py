@@ -7,10 +7,11 @@ as one ``InputBindingList`` whose ``m_inputs`` (0x48) is a list of ``InputBindin
 (r811339's type dump; ``tools/probe_binding_memory.py`` found exactly one list per client, and
 a rebind saved in game changed it in place).
 
-**Found once, read on every use.** Finding the list scans the process, about four seconds; so
-its address is kept, per window, and each read goes through it (about 10 ms for 109 bindings),
-which sees a rebind the moment the player saves it. An address that no longer holds the list
-is found again.
+**Found once, read on every use.** Finding the list follows a static route from the bindings
+holder's slot, about 0.2 ms (``static_routes``), or, when it misses, scans the process, about
+four seconds; so its address is kept, per window, and each read goes through it (about 10 ms
+for 109 bindings), which sees a rebind the moment the player saves it. An address that no
+longer holds the list is found again.
 
 **Background at hook, urgent once needed.** The client manager begins the lookup as a client
 hooks, in the background (``priority=BACKGROUND``), so a resize goes first. Every other caller
@@ -41,7 +42,7 @@ from dataclasses import dataclass
 from wizwalker import Keycode
 from wizwalker.memory.memory_object import DynamicMemoryObject, PropertyClass
 
-from bartleby.runtime.clients import heap_scan
+from bartleby.runtime.clients import heap_scan, static_routes
 from bartleby.runtime.game.key_bindings import ENCODING, Binding, GameAction, KeyMap, action_label
 
 logger = logging.getLogger(__name__)
@@ -189,10 +190,30 @@ async def _list_at(reader, hits: heap_scan.Hits) -> int | None:
     return None
 
 
+async def binding_list_at(reader, bindings_slot: int) -> int:
+    """The account's InputBindingList through the bindings holder's static slot at *bindings_slot*, checked.
+
+    ``[[slot] + 0xB0]``, then the class ``read_binding_list`` checks and a count it can read: a
+    whole set, two bindings or more, as the heap's ring must be. Raises ``static_routes.Missed``
+    otherwise.
+    """
+    address = await static_routes.held_binding_list(reader, bindings_slot)
+    if await type_name(reader, address) != "InputBindingList":
+        raise static_routes.Missed("no InputBindingList at the holder's +0xB0")
+    count = struct.unpack("<i", await reader.read_bytes(address + LIST_SIZE, 4))[0]
+    if not 2 <= count <= MAX_BINDINGS:
+        raise static_routes.Missed("no whole set of bindings in the list")
+    return address
+
+
 async def find_binding_list(reader, priority: Callable[[], heap_scan.Priority] = _background) -> int | None:
     """The address of the client's InputBindingList, or None.
 
-    The InputBinding holding "NPCInteract", then the list nodes pointing at it, then the rings
+    The static route comes first, from the bindings holder's slot (:func:`binding_list_at`):
+    two reads and the list's class, about 0.2 ms. Any miss falls back to the heap
+    (``static_routes.follow``), and *priority* is for that.
+
+    There the InputBinding holding "NPCInteract", then the list nodes pointing at it, then the rings
     those nodes are on, then the list pointing at the chosen ring's sentinel from 0x48: three
     scans, each a request to ``heap_scan``, so each may share its pass with whatever else the
     client has waiting, the resizer's names above all. *priority* is asked before each, so a
@@ -205,6 +226,9 @@ async def find_binding_list(reader, priority: Callable[[], heap_scan.Priority] =
     region the game changed under it scans once more after ``HEAP_SCAN_RETRY_DELAY``, at the
     priority asked for then, and only then is the list not there.
     """
+    address = await static_routes.follow(reader, static_routes.BINDINGS, binding_list_at)
+    if address is not None:
+        return address
     seeds = await heap_scan.lookup(
         reader, _SEED, priority=priority, usable=functools.partial(_seeds, reader), caller="key_map.seed"
     )

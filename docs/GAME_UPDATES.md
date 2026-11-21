@@ -127,8 +127,36 @@ once on the old one's, and every copy must resolve to the same client global and
 read at fixed distances from the match (`+13` and `+18`), or it refuses; look at each when it
 changes count.
 
-**The config nodes** a resize writes are found by name, not by a pattern, so no scan here reports
-them. `client_resizer.find_config_nodes` checks the object around each name at fixed offsets. If
+**The static routes** (`bartleby/runtime/clients/static_routes.py`) are core's own patterns, not
+wizwalker's, so `check_hook_patterns.py` does not report them. Each finds a slot the resizer's
+config nodes or the key map's bindings hang off, and a broken one costs only time: the finder falls
+back to its heap scan, and the session log says why once per client, at INFO (`The static route to
+the config nodes missed in process ... (no single pattern match)`), as does the trace's
+`config.route` or `key_map.route` span. After a patch, on clients of the new build in the world:
+
+```bash
+uv run --no-sync python tools/probe_static_paths.py              # each pattern's matches, both chains against the heap
+uv run --no-sync python tools/probe_static_paths.py --search     # the slots found again, when a pattern no longer matches
+```
+
+The default run says how often each pattern matched and the slot each gives, follows both chains
+with core's own code, and says SAME or DIFFERENT against the heap finders, client by client. Check:
+
+- **The patterns** (`CONFIG.patterns`, `BINDINGS.patterns`), each to match once. A tuple per
+  slot, tried in turn, so a build of the other compiler gets a second form beside the old one,
+  as `AUTOBOT_PATTERNS` has; none was written for the new compiler (r811339, r813697), so its
+  next build is expected to miss both routes until one is. `--search --depth 2` finds the two
+  slots from today's targets in about 20 s a client; a new pattern is then written around an
+  instruction that stores `this` in the slot, from the code at the probe's references.
+- **The offsets:** `CONFIG_SECTIONS` (+0x80; the probe counts the code's uses of each offset
+  right after a load of the slot, 64 of them +0x80 on r814353), the std::map node's fields, the
+  group's (`GROUP_CHILDREN`, `CHILD_STRIDE`, `CHILD_NAME`) and `HOLDER_BINDINGS` (+0xB0, used by
+  one load only, so trust the list's class there, not the count).
+- **The checks still hold:** each finder checks the end of its chain as the heap's would, so a
+  moved offset is a miss, never a wrong write.
+
+**The config nodes**, when the route misses, are found by name, not by a pattern.
+`client_resizer.find_config_nodes` checks the object around each name at fixed offsets. If
 those move, it finds no single live pair, and each client gets one warning and keeps its size.
 `tools/probe_resize_scan.py`, in BartleBuddy, on a client of the build in the world, says what it
 finds, and BartleBot's `tools/probe_runtime_resize.py nodes --dump` shows the bytes.
@@ -448,3 +476,7 @@ against the Test realm's r812087, since no copy of r813697 was kept.
 - **The chat and social systems manager patterns:** the manager's constructor matches once
   again; the chat hook's patterns match 10 and 4 times, their sites unchecked. Nothing of ours
   activates either.
+- **The static routes** were found on this build (2026-11-20, `tools/probe_static_paths.py`): the
+  config object's slot at `+0x33BD0B0` and the bindings holder's at `+0x33BD518`, each pattern
+  matching once, and once too on the Test realm's r812087 exe on disk, at `+0x33A06D0` and
+  `+0x33A0B38`. Both finders take them first since then.

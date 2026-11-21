@@ -795,13 +795,29 @@ those parts, not about resizing at runtime:
 
 A resize is three steps, in this order, and the game does the rest. An apply takes tens of
 milliseconds, and up to about 600 ms when two clients apply at once. From asking to the answer,
-embedded in a tile, it was 242 to 265 ms, so a swap is about 0.75 s with `RESIZE_SETTLE`, and about
-3.5 s the first time, with the scans:
+embedded in a tile, it was 242 to 265 ms, so a swap is about 0.75 s with `RESIZE_SETTLE`, and, when
+the static route below misses, about 3.5 s the first time, with the heap scan:
 
 1. **The two nodes**: write the live `Resolution` node's string and the live `UISize` node's
    int32, in the game's config. The writes alone change nothing on screen. The nodes are among
-   ~130,000 generic key/value objects, found once per client by a scan for their names, as the
-   key bindings are (`docs/KEY_BINDINGS.md`). Both names took about 2.5 s as two scans, off the
+   ~130,000 generic key/value objects, and are found once per client.
+
+   **By a static route first** (`clients/static_routes.py`, `find_config_nodes`). The config
+   object's constructor stores it in a static slot of the image, which a code pattern finds once
+   per process, and from the slot about ten reads reach the user's group of `VideoSettings`,
+   whose children are the live two: `[slot]`, `+0x80` the map of sections, the `VideoSettings`
+   node's `+0x40` a vector of one group, and the group's children inline from `+0x20`, 0x78 bytes
+   each, named at `+0x50`. The two are checked as the heap's are below, and their parent must be
+   that group. On four live clients of r814353 (2026-11-20) the route gave what the heap gave, in
+   1.6 to 2.0 ms against 2.4 to 4.0 s, after a module scan of 84 to 93 ms for the slot, once per
+   process. Core's `tools/probe_static_paths.py` found the chain, and its RESULTS have the climb.
+   **Any miss falls back to the heap**, as it was: no single pattern match, an empty slot, a read
+   that fails, a chain that stops, or nodes that fail the check. Its reason is logged once per
+   client, at INFO, since the heap still finds the nodes, and traced on a `config.route` span
+   with `outcome` `route` or `heap`. `docs/GAME_UPDATES.md` says what to check after a patch.
+
+   **By a scan for their names**, as the fallback, as the key bindings' is
+   (`docs/KEY_BINDINGS.md`). Both names took about 2.5 s as two scans, off the
    event loop, and its longest gap stayed near 69 ms against 64 ms with nothing running:
    BartleBuddy's `tools/probe_resize_scan.py` has the numbers. They are now one pass, an urgent
    request to `clients/heap_scan.py`, which runs ahead of any key map's scan waiting and shares
@@ -855,9 +871,10 @@ still equals the client size after every resize, so the 1:1 contract holds.
 - **`give_back_to(client, size)`** is for a client launched at another size than the user's own,
   below: every give back from then on returns it to *size*, with `ui_size_for` the user's own UI
   scale, as a launch at *size* would have written it, whether it was ever resized or not. Its nodes
-  are found at once, at background priority, so they usually share the pass its key map makes after
-  the hook, and a give back as the app quits doesn't wait on a scan; a resize or a give back that
-  comes first promotes it (`heap_scan.promote`). `forget` drops it with the rest, so the product
+  are found at once, by the static route in a few milliseconds, or, when it misses, by a scan at
+  background priority, which usually shares the pass its key map makes after the hook; so a give
+  back as the app quits doesn't wait on a scan, and a resize or a give back that comes first
+  promotes one under way (`heap_scan.promote`). `forget` drops it with the rest, so the product
   names it again for a client hooked again.
 - **Any failure** is one warning, and no more is asked of that client until `forget(client)` and
   it is hooked again. Finding no single node pair is a failure only once the scan is sure: a pass
@@ -870,8 +887,10 @@ still equals the client size after every resize, so the 1:1 contract holds.
 
 **Launching at the tiles' size.** A launch batch opens every game at one size, since the game reads
 the one `config.xml` at its own startup, and a batch per size would run the whole launch again. A
-game launched at the user's resolution and then resized to its tile pays its scan first, and they
-run one at a time: in a traced four-client launch the fourth resized about 10 s after the first. So
+game launched at the user's resolution and then resized to its tile paid its scan first, and they
+ran one at a time: in a traced four-client launch, before the static route, the fourth resized about
+10 s after the first. The route takes the scans away, and launching at the tiles' size still spares
+each game its apply and the refit after it. So
 BartleBuddy launches a batch at the size most of its tiles will want once placed: the small tiles'
 in One large, so only the large tile's game resizes, and the shared one in All equal, so none does.
 `GameView.planned_targets(layout, played, launches, cap=)` is what it asks: the target each slot

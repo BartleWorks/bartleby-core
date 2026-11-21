@@ -6,7 +6,8 @@ them should need the game to test. A :class:`SimClient` answers the reads they m
 input they send (keys pressed and held, yaw and speed written), logs every input with the
 time it came, and walks while its forward key is held, at the speed its speed field says.
 Its ``hook_handler`` is the few bytes a resize finds its config nodes in, laid out as the
-game's, and its ``video_manager`` a fake apply of the size those nodes say.
+game's, with the config object's static slot and map of sections above them, and its
+``video_manager`` a fake apply of the size those nodes say.
 
 Movement is integrated on demand against a clock the test can drive (:class:`SimClock`),
 so a test runs as fast as it likes and lands where the arithmetic says. Walking speed is
@@ -18,6 +19,7 @@ from __future__ import annotations
 
 import itertools
 import math
+import re
 import struct
 import time
 from collections.abc import Callable
@@ -25,7 +27,7 @@ from dataclasses import dataclass, field
 from types import SimpleNamespace
 
 from wizwalker import XYZ
-from wizwalker.errors import MemoryReadError
+from wizwalker.errors import MemoryReadError, PatternFailed, PatternMultipleResults
 
 from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction, KeyMap
@@ -38,13 +40,42 @@ _handles = itertools.count(50_000)
 # Where a simulated client's config nodes are: in a made-up module and heap, as the game's.
 _MODULE_BASE, _MODULE_SIZE = 0x7FF7_0000_0000, 0x400_0000
 _HEAP_BASE, _HEAP_SIZE = 0x2000_0000, 0x4000
-#: The vtables of a config node, and of the second class's copies.
-NODE_VTABLE, COPY_VTABLE = _MODULE_BASE + 0x1000, _MODULE_BASE + 0x2000
-#: The parents a config node can have: the user's settings, and the defaults.
-USER_SETTINGS, DEFAULT_SETTINGS = 0x1111_0000, 0x2222_0000
+#: The part of the module a double reads: its code from the start, the static slots after.
+IMAGE_BASE, IMAGE_SIZE = _MODULE_BASE + 0x10000, 0x2000
+_CONFIG_SLOT = IMAGE_BASE + 0x1800
+#: The vtables of a config node, of the second class's copies, and of a config group.
+NODE_VTABLE, COPY_VTABLE, GROUP_VTABLE = _MODULE_BASE + 0x1000, _MODULE_BASE + 0x2000, _MODULE_BASE + 0x3000
+#: The parent a default's config node has. The user's are children of a group, ``SimMemory.group``.
+DEFAULT_SETTINGS = 0x2222_0000
 _NODE_INT, _NODE_STRING, _NODE_PARENT, _NODE_TYPE, _NODE_MARK, _NODE_NAME = 0x14, 0x18, 0x38, 0x44, 0x45, 0x50
 _STRING_TYPE, _INT_TYPE = 0x00, 0x02
 _PENDING_OFFSET = 0x2229B
+# The config object and its sections, as static_routes reads them (core's tools/probe_static_paths.py).
+_CONFIG_SIZE, _CONFIG_SECTIONS = 0xC8, 0x80
+_TREE_KEY, _TREE_VALUE = 0x20, 0x40
+_GROUP_SECTION, _GROUP_CHILDREN, _GROUP_COUNT, _CHILD_STRIDE = 0x10, 0x20, 0x38, 0x78
+_SECTIONS = ("GameSettings", "SoundSettings", "VideoSettings")
+
+
+def rip_operand(code: tuple[bytes, bytes], at: int, target: int) -> bytes:
+    """Code placed at *at*: *code*'s bytes before a disp32 pointing at *target*, the disp32, and those after.
+
+    The disp32 ends its instruction, so it counts from the end of the four bytes.
+    """
+    before, after = code
+    return before + struct.pack("<i", target - (at + len(before) + 4)) + after
+
+
+# Code each of static_routes' patterns matches, with made-up operands around the slot's disp32.
+#: The config object's constructor, storing ``this`` in its slot.
+CONFIG_STORE = (b"\xc6\x87\x10\x01\x00\x00\x00\x48\x89\x3d", b"\xeb\x05\x48\x8b\xfb\x48\x89\xbe\x20\x01\x00\x00")
+#: The config object's destructor, clearing its slot before the delete of its 0xC8 bytes.
+CONFIG_CLEAR = (
+    b"\x48\x8b\x9f\x80\x00\x00\x00\x48\x85\xdb\x74\x10\x4c\x89\x35",
+    b"\x48\x8b\xcb\xe8\x11\x22\x33\x44\xba\xc8\x00\x00\x00",
+)
+#: The bindings holder's constructor, storing ``this`` in its slot.
+BINDINGS_STORE = (b"\x48\x8b\xf9\x48\x89\x0d", b"\xe8\x11\x22\x33\x44\x90\x48\x8d\x05\x55\x66\x77\x08\x48\x89\x07")
 
 
 class SkippedWalk(list):
@@ -140,21 +171,71 @@ class SimMemory:
     it, and ``scan_seconds`` is how long one takes, spent on an executor's thread as a real
     pass is. ``unsettled`` is how many passes still to come find the heap changing under the
     read, as a client's does just after its hook: each skips it, one region, and finds nothing.
+
+    The live two are the children of the user's group, ``group``, inline in its vector beside a
+    third, as the game lays them out, under the config object's map of sections and its static
+    slot (``static_routes``). The module's code holds nothing the config route's patterns match,
+    as on a build they were not written for, so a lookup misses its route and scans the heap;
+    ``place_slot_code`` puts the code in, opening the route. ``module_scans`` counts the module
+    pattern scans made.
     """
 
     def __init__(self, sim: SimClient) -> None:
         self.sim = sim
         self.data = bytearray(_HEAP_SIZE)
+        self.image = bytearray(IMAGE_SIZE)
         self.next = 0x100
         self.scans = 0
+        self.module_scans = 0
         self.scan_seconds = 0.0
         self.unsettled = 0
         self.process = SimpleNamespace(process_base=SimpleNamespace(lpBaseOfDll=_MODULE_BASE, SizeOfImage=_MODULE_SIZE))
+        self.config_slot = _CONFIG_SLOT
+        self.config, self.sections, self.group, children = self._place_config()
         width, height = sim.game_size
-        self.ui_size_node = self.place_node("UISize", marked=True, text=str(sim.ui_size), value=sim.ui_size)
-        self.resolution_node = self.place_node("Resolution", text=f"{width}x{height}", kind=_STRING_TYPE)
+        self.place_node("FullScreen", at=children, value=0)
+        self.resolution_node = self.place_node(
+            "Resolution", at=children + _CHILD_STRIDE, text=f"{width}x{height}", kind=_STRING_TYPE
+        )
+        self.ui_size_node = self.place_node(
+            "UISize", at=children + 2 * _CHILD_STRIDE, marked=True, text=str(sim.ui_size), value=sim.ui_size
+        )
         self.place_node("UISize", parent=DEFAULT_SETTINGS, text="2", value=2)
         self.place_node("Resolution", parent=DEFAULT_SETTINGS, text="autodetect", kind=_STRING_TYPE)
+
+    def _place_config(self) -> tuple[int, dict[str, int], int, int]:
+        """The config object, its map of three sections, VideoSettings' one group and that group's children.
+
+        Returns the object, each section's map node by key, the group, and where its three
+        children go. The slot holds the object, as its constructor leaves it.
+        """
+        config, head = self.alloc(_CONFIG_SIZE), self.alloc(_TREE_KEY)
+        sections = {key: self.alloc(_TREE_VALUE + 0x10) for key in _SECTIONS}
+        left, root, right = (sections[key] for key in _SECTIONS)
+        self.put_u64(config + _CONFIG_SECTIONS, head)
+        self._put(head, struct.pack("<QQQ", left, root, right) + b"\x01\x01")
+        for key, node in sections.items():
+            links = (left, head, right) if node == root else (head, root, head)
+            self._put(node, struct.pack("<QQQ", *links) + b"\x00\x00")
+            self.put_string(node + _TREE_KEY, key)
+        groups, group = self.alloc(8), self.alloc(0x40)
+        children = self.alloc(3 * _CHILD_STRIDE)
+        self._put(right + _TREE_VALUE, struct.pack("<QQ", groups, groups + 8))
+        self.put_u64(groups, group)
+        self.put_u64(group, GROUP_VTABLE)
+        self.put_u64(group + _GROUP_SECTION, right + _TREE_VALUE)
+        self._put(group + _GROUP_CHILDREN, struct.pack("<QQ", children, children + 3 * _CHILD_STRIDE))
+        self.put_u64(group + _GROUP_COUNT, 3)
+        self.put_u64(self.config_slot, config)
+        return config, sections, group, children
+
+    def place_slot_code(self, code: tuple[bytes, bytes] = CONFIG_STORE, at: int = IMAGE_BASE) -> None:
+        """Put code in the module that one of the config route's patterns matches, its operand the slot.
+
+        By default its constructor's store, at the start of the code. Put twice, at two places,
+        it matches twice.
+        """
+        self._put(at, rip_operand(code, at, self.config_slot))
 
     def alloc(self, size: int) -> int:
         address = _HEAP_BASE + self.next
@@ -165,15 +246,20 @@ class SimMemory:
         self,
         name: str,
         *,
+        at: int | None = None,
         vtable: int = NODE_VTABLE,
-        parent: int = USER_SETTINGS,
+        parent: int | None = None,
         kind: int = _INT_TYPE,
         marked: bool = False,
         value: int = 0,
         text: str | None = None,
     ) -> int:
-        """Put a config node in memory, as the game lays one out. No *text* is no string pointer."""
-        address = self.alloc(_NODE_NAME + 0x20)
+        """Put a config node in memory, as the game lays one out. No *text* is no string pointer.
+
+        At *at*, or wherever the heap has room; under *parent*, or the user's group.
+        """
+        address = self.alloc(_NODE_NAME + 0x20) if at is None else at
+        parent = self.group if parent is None else parent
         string = 0
         if text is not None:
             string = self.alloc(0x20)
@@ -207,13 +293,40 @@ class SimMemory:
         raw = text.encode()
         self._put(address, raw.ljust(16, b"\x00") + struct.pack("<QQ", len(raw), 15))
 
+    def put_u64(self, address: int, value: int) -> None:
+        """A pointer or a qword, written as the game would: to stage a chain that breaks."""
+        self._put(address, struct.pack("<Q", value))
+
+    def put(self, address: int, raw: bytes) -> None:
+        """Bytes written as the game would."""
+        self._put(address, raw)
+
+    def _region(self, address: int, size: int) -> tuple[bytearray, int]:
+        """The bytes *address* is in, the heap or the image, and its offset there."""
+        for data, base in ((self.data, _HEAP_BASE), (self.image, IMAGE_BASE)):
+            if base <= address <= base + len(data) - size:
+                return data, address - base
+        raise MemoryReadError(address)
+
     def _put(self, address: int, raw: bytes) -> None:
-        self.data[address - _HEAP_BASE : address - _HEAP_BASE + len(raw)] = raw
+        data, offset = self._region(address, len(raw))
+        data[offset : offset + len(raw)] = raw
 
     def _get(self, address: int, size: int) -> bytes:
-        if not _HEAP_BASE <= address <= _HEAP_BASE + _HEAP_SIZE - size:
-            raise MemoryReadError(address)
-        return bytes(self.data[address - _HEAP_BASE : address - _HEAP_BASE + size])
+        data, offset = self._region(address, size)
+        return bytes(data[offset : offset + size])
+
+    async def pattern_scan(self, pattern: bytes, *, module: str | None = None, return_multiple: bool = False):
+        """The module's code searched for *pattern*, as wizwalker's ``pattern_scan`` answers a module scan."""
+        self.module_scans += 1
+        found = [IMAGE_BASE + match.start() for match in re.finditer(pattern, bytes(self.image), re.DOTALL)]
+        if not found:
+            raise PatternFailed(pattern)
+        if return_multiple:
+            return found
+        if len(found) > 1:
+            raise PatternMultipleResults(f"Got {len(found)} results for {pattern}")
+        return found[0]
 
     def heap_regions(self) -> list[tuple[int, bytes]]:
         """The heap as one region, for a pass of ``heap_scan``'s, which calls it on an executor's thread.

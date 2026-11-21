@@ -11,7 +11,8 @@ the tiles have already changed shape, so a wait would leave a game cut off for t
 
 **A lease, below hotkeys.** It writes memory, so it holds ``Owner.DISPLAY``: movement and the
 quester are preempted and resume from their own state, and a hotkey, combat or recovery goes
-first. Finding the nodes is reads alone and takes seconds, so it happens before the lease, and a
+first. Finding the nodes is reads alone, a millisecond or two by the static route and seconds by
+the heap scan it falls back to (:func:`find_config_nodes`), so it happens before the lease, and a
 follower walks through it.
 
 **An apply can't be recalled.** The writes and the wait for the byte run as one task of their own
@@ -45,7 +46,7 @@ from wizwalker.errors import WizWalkerMemoryError
 
 from bartleby.runtime import run_trace
 from bartleby.runtime.arbiter import Arbiter, Owner, Preempted, Revoked, client_key
-from bartleby.runtime.clients import heap_scan
+from bartleby.runtime.clients import heap_scan, static_routes
 from bartleby.runtime.game.game_sizing import ui_size_for
 from bartleby.runtime.launcher import launch_profile
 from bartleby.runtime.timing import (
@@ -122,12 +123,20 @@ async def find_config_nodes(
     the one with a pointer under that parent: the other parent holds the defaults, and the
     second class's copies, some of them marked, hold no pointer.
 
-    Both names are found in one pass over the process, urgent by default, since a player waits
-    on it (``heap_scan``); *priority* may be a callable, asked before each pass. A pass that
-    skipped a region the game changed under it, and found no single pair, is made once more
-    after ``HEAP_SCAN_RETRY_DELAY`` (``heap_scan.lookup``), so a client still settling after its
-    hook does not cost the resizer that client.
+    The static route comes first: from the config object's slot to the user's group of
+    VideoSettings, whose two children are checked as the heap's are, and their parent must be
+    that group (:func:`config_nodes_at`). A millisecond or two. Any miss falls back to the heap
+    (``static_routes.follow``).
+
+    There both names are found in one pass over the process, urgent by default, since a player
+    waits on it (``heap_scan``); *priority* may be a callable, asked before each pass. A pass
+    that skipped a region the game changed under it, and found no single pair, is made once
+    more after ``HEAP_SCAN_RETRY_DELAY`` (``heap_scan.lookup``), so a client still settling after
+    its hook does not cost the resizer that client.
     """
+    nodes = await static_routes.follow(reader, static_routes.CONFIG, config_nodes_at)
+    if nodes is not None:
+        return nodes
     return await heap_scan.lookup(
         reader,
         _UI_SIZE + b"\x00",
@@ -136,6 +145,31 @@ async def find_config_nodes(
         usable=functools.partial(_live_pair, reader),
         caller="resize.config_nodes",
     )
+
+
+async def config_nodes_at(reader, config_slot: int) -> ConfigNodes:
+    """The live pair through the config object's static slot at *config_slot*, checked.
+
+    Of the VideoSettings groups holding both names, the one pair whose UISize is marked with a
+    pointer, whose Resolution has one too, and whose parent is their own group, as
+    ``_live_pair`` checks a scan's. Raises ``static_routes.Missed`` without exactly one.
+    """
+    found = []
+    for candidate in await static_routes.config_groups(reader, config_slot):
+        ui_sizes = await _nodes_at(reader, [candidate.ui_size + NODE_NAME])
+        resolutions = await _nodes_at(reader, [candidate.resolution + NODE_NAME])
+        live = (
+            len(ui_sizes) == len(resolutions) == 1
+            and ui_sizes[0].marked
+            and ui_sizes[0].has_string
+            and resolutions[0].has_string
+            and ui_sizes[0].parent == resolutions[0].parent == candidate.group
+        )
+        if live:
+            found.append(ConfigNodes(candidate.ui_size, candidate.resolution))
+    if len(found) != 1:
+        raise static_routes.Missed("no single live pair")
+    return found[0]
 
 
 async def _live_pair(reader, hits: heap_scan.Hits) -> ConfigNodes | None:

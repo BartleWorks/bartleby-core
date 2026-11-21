@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import json
+import logging
+import re
 import struct
 import threading
 import time
@@ -10,15 +13,19 @@ from unittest.mock import AsyncMock
 
 import pytest
 from wizwalker import Keycode
-from wizwalker.errors import MemoryReadError
+from wizwalker.errors import MemoryReadError, PatternFailed
 
-from bartleby.runtime.clients import game_keys, heap_scan
+from bartleby.runtime import run_trace
+from bartleby.runtime.clients import game_keys, heap_scan, static_routes
 from bartleby.runtime.game.key_bindings import PREFIX, Binding, GameAction, KeyMap
-from bartleby.runtime.testing.sim_client import SkippedWalk
+from bartleby.runtime.testing.sim_client import BINDINGS_STORE, SkippedWalk, rip_operand
 from tests.conftest import FakeClient
 
 BASE = 0x2000_0000
 VTABLE = 0x7FF7_1C47_8B30
+# The module's code, and the bindings holder's slot after it.
+CODE = 0x7FF7_1000_0000
+HOLDER_SLOT = CODE + 0x800
 
 
 class FakeMemory:
@@ -26,14 +33,17 @@ class FakeMemory:
 
     Class names, which the real reader finds through an object's vtable, are a table here.
     The passes numbered in ``unsettled`` (the first is 1) find the region changing under the
-    read, as a client's does just after its hook: they skip it, and find nothing.
+    read, as a client's does just after its hook: they skip it, and find nothing. Its module's
+    code matches no pattern until ``place_holder`` opens the static route.
     """
 
     def __init__(self) -> None:
         self.data = bytearray(0x20000)
+        self.image = bytearray(0x1000)
         self.next = 0x100
         self.names: dict[int, str] = {}
         self.scans = 0
+        self.module_scans = 0
         self.unsettled: set[int] = set()
         self.gate = threading.Event()
         self.gate.set()
@@ -43,8 +53,23 @@ class FakeMemory:
         self.next += (size + 0xF) & ~0xF
         return address
 
+    def _region(self, address: int, size: int) -> tuple[bytearray, int]:
+        for data, base in ((self.data, BASE), (self.image, CODE)):
+            if base <= address <= base + len(data) - size:
+                return data, address - base
+        raise MemoryReadError(address)
+
     def put(self, address: int, raw: bytes) -> None:
-        self.data[address - BASE : address - BASE + len(raw)] = raw
+        data, offset = self._region(address, len(raw))
+        data[offset : offset + len(raw)] = raw
+
+    def place_holder(self, binding_list: int) -> int:
+        """The bindings holder, holding *binding_list*, its slot, and the code the route's pattern matches."""
+        holder = self.alloc(0xD0)
+        self.put_u64(holder + 0xB0, binding_list)
+        self.put_u64(HOLDER_SLOT, holder)
+        self.put(CODE, rip_operand(BINDINGS_STORE, CODE, HOLDER_SLOT))
+        return holder
 
     def put_u64(self, address: int, value: int) -> None:
         self.put(address, struct.pack("<Q", value))
@@ -88,9 +113,17 @@ class FakeMemory:
     # What game_keys asks of a client's hook_handler:
 
     async def read_bytes(self, address: int, size: int) -> bytes:
-        if not BASE <= address <= BASE + len(self.data) - size:
-            raise MemoryReadError(address)
-        return bytes(self.data[address - BASE : address - BASE + size])
+        data, offset = self._region(address, size)
+        return bytes(data[offset : offset + size])
+
+    async def pattern_scan(self, pattern: bytes, *, module: str | None = None, return_multiple: bool = False):
+        """The module's code, as wizwalker's pattern_scan answers a module scan for many results."""
+        self.module_scans += 1
+        found = [CODE + m.start() for m in re.finditer(pattern, bytes(self.image), re.DOTALL)]
+        if not found:
+            raise PatternFailed(pattern)
+        assert return_multiple
+        return found
 
     def heap_regions(self) -> list[tuple[int, bytes]]:
         """The region, for a pass of heap_scan's."""
@@ -548,3 +581,115 @@ async def test_forgetting_a_client_ends_its_key_map_s_wait_to_retry(monkeypatch)
     assert (await asyncio.wait_for(warm, 5)).source == "defaults"
     assert heap_scan.scanner().retrying(memory) == 0
     assert memory.scans == 1
+
+
+# -- the static route --------------------------------------------------------------------------------------
+
+
+@pytest.fixture
+def fell_back(caplog):
+    """The route's misses logged, each its message."""
+    caplog.set_level(logging.INFO, logger=static_routes.logger.name)
+    return lambda: [r.getMessage() for r in caplog.records if r.name == static_routes.logger.name]
+
+
+def _routed() -> tuple[FakeMemory, int, int]:
+    """A client of a build the holder's pattern was written for: its memory, the player's list, and the holder."""
+    memory = FakeMemory()
+    address, _ = _player_set(memory, interact="k")
+    return memory, address, memory.place_holder(address)
+
+
+async def test_the_holder_s_route_finds_the_list_with_no_heap_pass(fell_back):
+    memory, address, _ = _routed()
+    assert await game_keys.find_binding_list(memory) == address
+    keys = await game_keys.key_map(MemoryClient(memory))
+    assert keys.choose(GameAction.INTERACT).code == ord("K")
+    assert (memory.scans, memory.module_scans) == (0, 1), "the pattern once for the client"
+    assert fell_back() == []
+
+
+async def test_the_warm_up_at_hook_finishes_by_the_route_whatever_the_grace(monkeypatch):
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 30.0)
+    memory, _, _ = _routed()
+    keys = await asyncio.wait_for(_warm_up(MemoryClient(memory)), 1)
+    assert keys.source == "memory"
+    assert memory.scans == 0
+
+
+def _no_code(memory, address, holder) -> None:
+    memory.put(CODE, bytes(0x40))
+
+
+def _empty_slot(memory, address, holder) -> None:
+    memory.put_u64(HOLDER_SLOT, 0)
+
+
+def _unreadable(memory, address, holder) -> None:
+    memory.put_u64(HOLDER_SLOT, 0x5000_0000)
+
+
+def _no_list(memory, address, holder) -> None:
+    memory.put_u64(holder + 0xB0, 0)
+
+
+def _a_binding(memory, address, holder) -> None:
+    memory.put_u64(holder + 0xB0, memory.binding("NPCInteract", "j"))
+
+
+def _the_bindings_page_s(memory, address, holder) -> None:
+    memory.put_u64(holder + 0xB0, memory.binding_list([memory.binding("NPCInteract", "j")]))
+
+
+@pytest.mark.parametrize(
+    "breaking, reason",
+    [
+        (_no_code, "no single pattern match"),
+        (_empty_slot, "the slot is empty"),
+        (_unreadable, "a read failed (MemoryReadError)"),
+        (_no_list, "the holder holds no list"),
+        (_a_binding, "no InputBindingList at the holder's +0xB0"),
+        (_the_bindings_page_s, "no whole set of bindings in the list"),
+    ],
+)
+async def test_a_route_that_misses_falls_back_to_the_heap_s_three_stages_saying_why(breaking, reason, fell_back):
+    memory, address, holder = _routed()
+    breaking(memory, address, holder)
+
+    assert await game_keys.find_binding_list(memory) == address
+
+    assert memory.scans == 3
+    (message,) = fell_back()
+    assert reason in message
+    assert "the key bindings" in message
+
+
+async def test_a_miss_is_logged_once_per_client(fell_back):
+    """Today's heap tests are this: a build whose pattern matches nothing."""
+    first, second = FakeMemory(), FakeMemory()
+    for memory in (first, second):
+        _player_set(memory)
+    for memory in (first, first, second):
+        assert await game_keys.find_binding_list(memory) is not None
+    assert len(fell_back()) == 2
+    assert first.module_scans == 1, "no match is kept too"
+
+
+async def test_a_trace_shows_the_route_taken_and_no_heap_request(tmp_path):
+    memory, _, _ = _routed()
+    missed = FakeMemory()
+    _player_set(missed)
+    path = run_trace.start(lambda c: None, tmp_path)
+    try:
+        await game_keys.find_binding_list(memory)
+        await game_keys.find_binding_list(missed)
+    finally:
+        run_trace.stop()
+
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    routes = [r["attrs"] for r in records if r.get("name") == "key_map.route"]
+    assert [(r["outcome"], r.get("reason")) for r in routes] == [
+        ("route", None),
+        ("heap", "no single pattern match"),
+    ]
+    assert len([r for r in records if r.get("name") == "heap_scan.request"]) == 3, "the miss's three stages alone"

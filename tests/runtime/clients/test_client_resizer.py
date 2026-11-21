@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import struct
 import time
 
 import pytest
@@ -12,7 +13,7 @@ from wizwalker.errors import PatternFailed, VideoManagerError
 
 from bartleby.runtime import run_trace, timing
 from bartleby.runtime.arbiter import Arbiter, Owner, Preempted
-from bartleby.runtime.clients import client_resizer, heap_scan
+from bartleby.runtime.clients import client_resizer, heap_scan, static_routes
 from bartleby.runtime.clients.client_resizer import ClientResizer, ConfigNodes, find_config_nodes
 from bartleby.runtime.game.game_sizing import ui_size_for
 from bartleby.runtime.game.key_bindings import GameAction
@@ -21,7 +22,7 @@ from bartleby.runtime.movement import follow
 from bartleby.runtime.movement.follow import Follower, spacing_for
 from bartleby.runtime.movement.trail import Trail
 from bartleby.runtime.state import StateReader
-from bartleby.runtime.testing.sim_client import COPY_VTABLE, DEFAULT_SETTINGS, SimClient
+from bartleby.runtime.testing.sim_client import COPY_VTABLE, DEFAULT_SETTINGS, IMAGE_BASE, SimClient
 
 _HUGE, _REGULAR, _MICRO = 4, 2, 5
 _SMALL_SIZE, _LARGE_SIZE = (534, 300), (1280, 720)
@@ -491,6 +492,150 @@ async def test_no_node_at_all_is_no_answer():
     memory.forget_node(memory.ui_size_node)
     memory.forget_node(memory.resolution_node)
     assert await find_config_nodes(memory) is None
+
+
+# -- the static route ------------------------------------------------------------------------------
+
+
+def _routed(**fields) -> SimClient:
+    """A client of a build the config route's patterns were written for."""
+    client = SimClient(**fields)
+    client.hook_handler.place_slot_code()
+    return client
+
+
+@pytest.fixture
+def fell_back(caplog):
+    """The route's misses logged, each its message."""
+    caplog.set_level(logging.INFO, logger=static_routes.logger.name)
+    return lambda: [r.getMessage() for r in caplog.records if r.name == static_routes.logger.name]
+
+
+async def test_the_route_finds_the_live_pair_with_no_heap_pass(fell_back):
+    memory = _routed().hook_handler
+    assert await find_config_nodes(memory) == ConfigNodes(memory.ui_size_node, memory.resolution_node)
+    assert (memory.scans, memory.module_scans) == (0, 1)
+    assert fell_back() == []
+
+
+async def test_the_route_s_pattern_is_found_once_per_client():
+    memory = _routed().hook_handler
+    for _ in range(3):
+        assert await find_config_nodes(memory) is not None
+    assert (memory.scans, memory.module_scans) == (0, 1)
+
+
+def _no_code(memory) -> None:
+    memory.put(IMAGE_BASE, bytes(0x40))
+
+
+def _empty_slot(memory) -> None:
+    memory.put_u64(memory.config_slot, 0)
+
+
+def _unreadable(memory) -> None:
+    memory.put_u64(memory.config_slot, 0x5000_0000)
+
+
+def _video_settings_renamed(memory) -> None:
+    memory.put_string(memory.sections["VideoSettings"] + static_routes.TREE_KEY, "VideoSettingz")
+
+
+def _another_group(memory) -> None:
+    """VideoSettings holds a group with no such children: the user's is only in the heap."""
+    stray = memory.alloc(0x40)
+    groups = memory.sections["VideoSettings"] + static_routes.TREE_VALUE
+    memory.put(groups, struct.pack("<QQ", stray, stray + 8))
+    memory.put_u64(stray, stray + 0x20)
+
+
+def _unmarked_and_moved(memory) -> ConfigNodes:
+    """The group's UISize is no longer marked, and a live one stands elsewhere, which only the heap sees."""
+    memory.put(memory.ui_size_node + 0x45, b"\x00")
+    moved = memory.place_node("UISize", marked=True, text="2", value=2)
+    return ConfigNodes(moved, memory.resolution_node)
+
+
+def _another_parent(memory) -> ConfigNodes:
+    """The group's two name another parent: the route's check, not the heap's."""
+    memory.put_u64(memory.ui_size_node + 0x38, 0x3333_0000)
+    memory.put_u64(memory.resolution_node + 0x38, 0x3333_0000)
+    return ConfigNodes(memory.ui_size_node, memory.resolution_node)
+
+
+@pytest.mark.parametrize(
+    "breaking, reason",
+    [
+        (_no_code, "no single pattern match"),
+        (_empty_slot, "the slot is empty"),
+        (_unreadable, "a read failed (MemoryReadError)"),
+        (_video_settings_renamed, "no VideoSettings section"),
+        (_another_group, "no UISize and Resolution in VideoSettings"),
+        (_unmarked_and_moved, "no single live pair"),
+        (_another_parent, "no single live pair"),
+    ],
+)
+async def test_a_route_that_misses_falls_back_to_the_heap_s_answer_saying_why(breaking, reason, fell_back):
+    memory = _routed().hook_handler
+    expected = breaking(memory) or ConfigNodes(memory.ui_size_node, memory.resolution_node)
+
+    assert await find_config_nodes(memory) == expected
+
+    assert memory.scans == 1
+    (message,) = fell_back()
+    assert reason in message
+    assert "the config nodes" in message
+
+
+async def test_a_miss_is_logged_once_per_client(fell_back):
+    """Today's heap tests are this: a build whose patterns match nothing."""
+    first, second = SimClient().hook_handler, SimClient().hook_handler
+    for memory in (first, first, second, first):
+        assert await find_config_nodes(memory) is not None
+    assert len(fell_back()) == 2
+    assert first.scans == 3, "the heap, every time"
+
+
+async def test_a_resize_by_the_route_makes_no_heap_pass(resizer):
+    client = _routed()
+    resizer.resize(client, _SMALL_SIZE)
+    await _settled(resizer, client)
+    assert client.game_size == _SMALL_SIZE
+    assert client.hook_handler.scans == 0
+
+
+async def test_the_size_named_has_its_nodes_by_the_route_at_once_whatever_the_grace(resizer, monkeypatch):
+    """The background lookup at hook: no pass to wait its grace out for."""
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 30.0)
+    client = _routed(game_size=_SMALL_SIZE)
+    resizer.give_back_to(client, _LARGE_SIZE)
+    entry = resizer._entries[client.window_handle]
+
+    await asyncio.wait_for(entry.scan, 1)
+
+    assert entry.nodes == ConfigNodes(client.hook_handler.ui_size_node, client.hook_handler.resolution_node)
+    assert client.hook_handler.scans == 0
+
+
+async def test_nodes_the_game_moved_are_found_again_by_the_route(resizer):
+    """The group's vector reallocated: the old nodes wiped, the same names a vector further on."""
+    client = _routed()
+    memory = client.hook_handler
+    resizer.resize(client, _SMALL_SIZE)
+    await _settled(resizer, client)
+
+    children = memory.alloc(3 * 0x78)
+    memory.forget_node(memory.ui_size_node)
+    memory.forget_node(memory.resolution_node)
+    memory.resolution_node = memory.place_node("Resolution", at=children + 0x78, text="534x300", kind=0)
+    memory.ui_size_node = memory.place_node("UISize", at=children + 2 * 0x78, marked=True, text="5", value=_MICRO)
+    memory.put(memory.group + static_routes.GROUP_CHILDREN, struct.pack("<QQ", children, children + 3 * 0x78))
+    resizer.resize(client, _LARGE_SIZE)
+    await _settled(resizer, client)
+
+    assert client.game_size == _LARGE_SIZE
+    assert memory.scans == 0
+    assert memory.module_scans == 1
 
 
 # -- when it scans ------------------------------------------------------------------------------
@@ -1043,6 +1188,45 @@ async def test_a_trace_places_each_part_of_a_resize(resizer, tmp_path):
     assert spans["heap_scan.pass"]["attrs"]["patterns"] == 2
     assert spans["resize.apply"]["parent"] == worker["id"]
     assert [r["name"] for r in records if r["kind"] == "mark"] == ["resize.leased"]
+
+
+async def test_a_trace_shows_the_route_taken_inside_the_search_for_the_nodes(resizer, tmp_path):
+    client = _routed()
+    path = run_trace.start(lambda c: 3 if c is client else None, tmp_path)
+    try:
+        resizer.resize(client, _SMALL_SIZE)
+        await _settled(resizer, client)
+    finally:
+        run_trace.stop()
+
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    spans = {r["name"]: r for r in records if r["kind"] == "span"}
+    route = spans["config.route"]
+    assert route["parent"] == spans["resize.config_nodes"]["id"]
+    assert (route["slot"], route["attrs"]["outcome"]) == (3, "route")
+    assert "reason" not in route["attrs"]
+    assert "heap_scan.request" not in spans
+
+
+async def test_a_trace_shows_a_route_that_missed_and_the_heap_after_it(resizer, tmp_path):
+    client = SimClient()
+    path = run_trace.start(lambda c: 3 if c is client else None, tmp_path)
+    try:
+        resizer.resize(client, _SMALL_SIZE)
+        await _settled(resizer, client)
+    finally:
+        run_trace.stop()
+
+    records = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    spans = {r["name"]: r for r in records if r["kind"] == "span"}
+    assert spans["config.route"]["attrs"] == {
+        "module_scan": spans["config.route"]["attrs"]["module_scan"],
+        "outcome": "heap",
+        "reason": "no single pattern match",
+    }
+    assert spans["heap_scan.request"]["parent"] == spans["resize.config_nodes"]["id"]
+    route, request = spans["config.route"], spans["heap_scan.request"]
+    assert route["t"] + route["dur"] <= request["t"] + 0.0001, "the route first, then the heap"
 
 
 async def test_a_trace_shows_the_scan_s_retry_inside_the_search_for_the_nodes(resizer, tmp_path):
