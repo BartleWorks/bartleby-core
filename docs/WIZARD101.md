@@ -16,6 +16,10 @@ listed here. The date and issue say where each came from.
   bank** moves items between an account's characters; nothing ever overflows into it
   (2026-10-22).
 - **Crowns items are always sellable** through quicksell (2026-10-22).
+- **A character's id lasts.** `m_characterId`, which `live_character_id` reads, was the same
+  for each of four wizards after a logout to character select and back, and after the client
+  was closed and relaunched (measured 2026-11-21, BartleBuddy #32). It can key what is saved
+  about a wizard.
 
 ## Moving, and what the server allows
 
@@ -228,6 +232,49 @@ Stated 2026-10-20 for BartleBot #279.
 - Relogging from inside a dungeon puts players back **where they were before entering**:
   usually on the entrance sigil, but elsewhere if they teleported in.
 
+## Decks and the backpack
+
+Stated by the user and measured on live clients on 2026-11-21, for Stage 1 of BartleBuddy's
+Auto-combat epic (#31, #32); the measurements are `tools/probe_combat_facts.py`'s RESULTS, in
+BartleBuddy.
+
+- **A wizard owns several deck items and wears one.** Players keep, for instance, a Main Deck
+  and a Boss Deck and switch between them; a deck can't be changed in a fight. **Next Deck**
+  (Ctrl-K) cycles through every deck the wizard has, so with three or more it can't flip
+  between two.
+- **Equipment sets can include a deck**, so equipping a set can change the deck too.
+- **A deck's name is picked from three wheels**, `DeckNames.lang`'s `Class_N` (a school or
+  world), `Type_N` (Main, Boss, Dungeon, Piercing…) and `Num_N` (1 to 7), each with an empty
+  choice at 0, and composed by its `DeckName` key (`$PART0$$PART1$Deck $PART2$` in en-US). The
+  text differs by locale, and so can the wheels: en-US has a `Class_36` (Ahmarra) that de does
+  not yet. Two `Type` entries share their English text (`Healer` is 12 and 18, `Tank` 13 and
+  21), so a name's text doesn't always say its keys. Equipment sets are named the same way,
+  from `EquipmentSetNames.lang`'s `Wheel0` to `Wheel2`.
+- **Two decks of one wizard can share a name**: the rename window accepts a name another deck
+  already has.
+- **In memory, a deck's name is three uint32 wheel indices** in its `BasicDeckBehavior`, past
+  the fields the type dump reflects: +0xF0 `Class`, +0xF4 `Type`, +0xF8 `Num`. The deck item
+  itself (`WizClientObjectItem`) holds no name; `m_displayKey` is empty. **A deck never named
+  reads (0, 0, 0)**, and the game shows it by its item's own name ("Headmistress' Dynamic
+  Deck"), not as "Deck". An equipment set's `m_equipmentSetName` packs its wheels a byte each
+  (`[0, 1, 0, 0]` is `Wheel1_1`).
+- **The equipped deck is only in the equipment's `item_list`**
+  (`ClientWizEquipmentBehavior`); every other deck is in the inventory's
+  (`ClientWizInventoryBehavior`), the equipped one never. A wizard's decks are the two together.
+- **The backpack's Decks tab** (`InventorySpellbookPage`, `ButtonLayout/Tab_Deck`) lists the
+  equipped deck first, its `fist` icon visible, then the rest alphabetically: eight rows a page,
+  `Item_1` to `Item_8`, paged by `rightscroll`. A row's text is the deck's name as the game shows
+  it. The order is fixed when the backpack opens and stays until it is reopened.
+- **Equipping a deck is select, then `Equip_Item`**: click the row, then the button under the
+  list (`windowForBtns/Layout/Equip_Item`). Double-clicking a row, or selecting it alone, equips
+  nothing. From a closed backpack to closed again takes **1.7 to 2.1 s a wizard**, and four
+  clients at once took 2.2 s. It works while the wizard walks.
+- **The equipment behavior shows the new deck 0.0 to 0.6 s after the click**, not at once, so
+  an equip is confirmed by polling it.
+- **Equipping an empty deck asks first**: a message box, "Equipping Empty Deck", offers to copy
+  the old deck's spells into it (`centerButton` Yes, `rightButton` No). **No equips it empty**,
+  as it is. Until it is answered the backpack won't close.
+
 ## Combat as players fight it
 
 Stated 2026-10-14 while reworking BartleBot's shipped default strategies (#212), and
@@ -306,6 +353,23 @@ Stated 2026-10-14 while reworking BartleBot's shipped default strategies (#212),
   accuracy and pierce charms; absorbs behave like shields (cast on allies).
 - Elites and minions almost never cheat in standard mode; only bosses do. Standard and
   Challenge versions of a boss usually cheat differently.
+
+### Seats and casting order
+
+Stated by the user on 2026-11-21, for BartleBuddy's Auto-combat epic (#31).
+
+- **A team sits in the order it enters a fight**, unless it is an Adventure Party group, which
+  sits in the slots its members chose (core #1).
+- **The HUD shows the team in seat order**, the first seat on the right, going left, and every
+  client in the duel shows the same order: no client puts its own wizard first.
+- **The team casts in seat order** every round, so a blade from an earlier seat lands before a
+  later seat's hit in the same round, and a team's hitter wants the last seat.
+- **wizsprinter's team list is that order on every client**: `get_team()` reads the planning
+  phase's combatant windows, which are those HUD portraits. So `ally(last)` is the wizard that
+  entered last, the same one on every client. BartleBot enters its clients in combat order
+  (4, 3, 2, 1) so that P1 sits last; a team that enters on its own, as BartleBot's ambient fights
+  do (#212), seats whoever arrives last there.
+- **`is_boss` reads correctly at the first planning phase.**
 
 ### Special cards
 

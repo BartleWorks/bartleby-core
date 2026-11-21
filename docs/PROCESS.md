@@ -122,6 +122,12 @@ The rest are **BartleBot-only**, because they name things the other products do 
 | `area/bot-library` | shipped bot files under `bots/` |
 | `area/combat` | combat DSL, decks, fight tables |
 
+BartleBuddy has one of its own, added for the Auto-combat epic (BartleBuddy #31):
+
+| label | scope |
+|---|---|
+| `area/combat` | auto-combat, the duels each fight runs, deck sets |
+
 Replicating all eight into every repo was considered and rejected: BartleBuddy has no
 bot canvas, and a label that can never apply is noise in every picker it appears in.
 When BartleBuddy needs an area of its own, add it there rather than everywhere.
