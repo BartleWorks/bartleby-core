@@ -46,6 +46,22 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ### Added
 
+- **`bartleby.runtime.combat`, the fight runner both products fight with** (BartleBuddy #31,
+  Stage 2), moved from BartleBot with its tests. `fight` holds `run_fight`, `CombatRun`,
+  `FightWatch` and its flee vote, `FightEnd`, `FightResult`, `RoundReport`, `slots_in_battle`
+  and the flee itself; each takes a `log(message, level)` callable, never a machine, and takes
+  no lease. `dsl` holds `parse_strategies`, `dsl_check`, `dsl_error`, `dsl_warnings`,
+  `validate_dsl`, `known_dsl_check`, `store_dsl_check`, `check_dsl_uncached` and
+  `dsl_warning_text`; its disk cache, `dsl_check_cache`, keeps
+  `%APPDATA%/Bartleby/<product>/cache/dsl_checks.json` for whichever product `product.current()`
+  is. `hold.FirstCastHold` holds a fighter's first cast for the players joining it, until they
+  are in or AMBIENT_HELP_HOLD has passed since the later of its first planning phase and the
+  latest join.
+- **`bartleby.runtime.game.spell_names`**, with its snapshot `runtime/game/data/spell_names.json`:
+  a card's in-game name (`display_name`) and whether a name in a DSL finds a card
+  (`name_problem`), moved from BartleBot for `dsl_warnings`. BartleBot's
+  `tools/dump_spell_names.py` still writes the snapshot, into this checkout, since it reads
+  BartleBot's type dumps.
 - **`on_play`, called once Play is taken**, on `auto_select.auto_select_character`,
   `auto_select.drive_client_in` and `ClientManager.drive_client_in`, for a product that acts
   during the load-in, before the hooks: BartleBuddy resizes the game its large tile is held for.
