@@ -8,7 +8,12 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
-## Unreleased
+## 0.7.0
+
+The fight runner, the DSL checks, the first cast's hold and the spell-name snapshot, moved
+from BartleBot so both products fight with one runner (BartleBuddy #31, Stage 2), with what
+BartleBuddy's startup, follow and resize work changed since 0.6.0. A minor release: a product
+fixes the Breaking items below, and pins wizwalker at `d68082c`.
 
 ### Breaking
 
