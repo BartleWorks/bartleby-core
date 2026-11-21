@@ -176,8 +176,12 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   They now hand round the slots the hooked clients hold, which keeps a slot held for a recovery
   where it is too. A client with no slot, one this app did not launch, moves the ordering by
   position as before.
-- **wizwalker is pinned at `0857de9`** (`bartlebot-pin-20261120`), where it was `991c257`. A
-  product that pins wizwalker itself pins the same commit. A click cut short while the
+- **wizwalker is pinned at `d68082c`** (`bartlebot-pin-20261121`), where it was `0857de9`. A
+  product that pins wizwalker itself pins the same commit. A module pattern scan is now done
+  once per build and shared by every client of it, each hit checked in the client at hand, so a
+  four-client startup made 16 module scans where it made 68.
+- **wizwalker was pinned at `0857de9`** (`bartlebot-pin-20261120`), where it was `991c257`. A
+  click cut short while the
   mouseless hook was being written could leave its jump at `GetCursorPos`, and every click by
   hand on that client missed until it was relaunched; wizwalker now writes nothing until its
   lookups are done and takes user32's originals from a clean copy, so a leftover from before is
