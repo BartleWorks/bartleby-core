@@ -852,6 +852,13 @@ still equals the client size after every resize, so the 1:1 contract holds.
   UI size read from the node, within `RESIZE_GIVE_BACK_TIMEOUT`, waits included. One still in a
   loading or under a higher lease then is left as it is, with a warning. The files are `restore_ui_size` and
   `restore_game_prefs`, on quit and at the next start, so they run after the last apply.
+- **`give_back_to(client, size)`** is for a client launched at another size than the user's own,
+  below: every give back from then on returns it to *size*, with `ui_size_for` the user's own UI
+  scale, as a launch at *size* would have written it, whether it was ever resized or not. Its nodes
+  are found at once, at background priority, so they usually share the pass its key map makes after
+  the hook, and a give back as the app quits doesn't wait on a scan; a resize or a give back that
+  comes first promotes it (`heap_scan.promote`). `forget` drops it with the rest, so the product
+  names it again for a client hooked again.
 - **Any failure** is one warning, and no more is asked of that client until `forget(client)` and
   it is hooked again. Finding no single node pair is a failure only once the scan is sure: a pass
   that skipped a region the game changed under the read, as it does most just after a hook, may
@@ -860,6 +867,23 @@ still equals the client size after every resize, so the 1:1 contract holds.
   with none fails at once. `forget(client)` ends a scan waiting to retry; `stop_all()` ends the
   resize waiting on it, and the scan runs on, as any scan does, for the next resize to use.
 - **`stop_all()`** ends every resize still waiting. An apply under way finishes and reports first.
+
+**Launching at the tiles' size.** A launch batch opens every game at one size, since the game reads
+the one `config.xml` at its own startup, and a batch per size would run the whole launch again. A
+game launched at the user's resolution and then resized to its tile pays its scan first, and they
+run one at a time: in a traced four-client launch the fourth resized about 10 s after the first. So
+BartleBuddy launches a batch at the size most of its tiles will want once placed: the small tiles'
+in One large, so only the large tile's game resizes, and the shared one in All equal, so none does.
+`GameView.planned_targets(layout, played, launches, cap=)` is what it asks: the target each slot
+would get, the slots held and the ones the launch takes, by the view's own `_plan_geometry` and
+`tile_targets`, with nothing moved. The new slots are asked about at the user's own size, so the
+targets are rungs of its family, and the launch's UI scale is the ladder's for the size chosen
+(`_ui_size_update`), as for any launch. The user's own size stays the home: `give_back_to` above,
+and `GameView.set_home_sizes`, so a lone client, which keeps its launch size, goes back to it.
+`begin_launch(..., resolution=)` is handed the size chosen, so the pending tiles hold its room.
+The user's files are captured before the first patch and restored on quit as before, so they hold
+the user's own resolution and UI scale whatever the launch opened at. BartleBuddy's
+`launch_size.py` has the rest: the tie rule, and the launches that keep the user's size.
 
 The window's half is the product's two crossings around that:
 

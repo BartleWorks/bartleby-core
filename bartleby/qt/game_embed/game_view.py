@@ -17,7 +17,8 @@ from __future__ import annotations
 import contextlib
 import ctypes
 import logging
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass
 from typing import Protocol
 
 from PyQt6.QtCore import QEvent, QPoint, Qt, QTimer, pyqtSignal
@@ -537,6 +538,18 @@ class _GamePlaceholder(QWidget):
             return []
 
 
+@dataclass(frozen=True)
+class _Planned:
+    """Tiles a product asks about before they exist: see ``GameView.planned_targets``.
+
+    *played* is every slot the tiles would be in, and whether its wizard is played; *launches*
+    the launch size of each slot that has no window of its own yet.
+    """
+
+    played: Mapping[int, bool]
+    launches: Mapping[int, tuple[int, int]]
+
+
 class GameView(ThemedMixin, QWidget):
     """Container that shows N ClientTile widgets in a grid layout.
 
@@ -642,6 +655,12 @@ class GameView(ThemedMixin, QWidget):
         # knows the size it was built over, and a window that has been resized is not at
         # its launch size when a re-attach builds a new tile over it.
         self._launch_sizes: dict[int, tuple[int, int]] = {}
+        # See set_home_sizes: the size an account's window counts as launched at, where it opened at another.
+        self._home_sizes: dict[str, tuple[int, int]] = {}
+        # See synced_tiles: what the last sync_tiles was handed.
+        self._synced: tuple[TileSlot, ...] = ()
+        # See planned_targets: the tiles asked about while it works them out, else None.
+        self._planned: _Planned | None = None
         # See set_resizable: the windows a size may be asked for, by hwnd.
         self._resizable: frozenset[int] = frozenset()
         # What has been asked for and not reached, by hwnd, so it is asked for once.
@@ -735,6 +754,7 @@ class GameView(ThemedMixin, QWidget):
         tile sits at its ``slot`` and is captioned from its ``player``, so a window with no
         player index is drawn under its account name rather than a number it does not have.
         """
+        self._synced = tuple(tiles)
         current: dict[int, TileKey] = {slot: ("hwnd", tile.hwnd) for slot, tile in self._tiles.items()}
         current.update({slot: ("hwnd", hwnd) for slot, hwnd in self._detached_hwnds.items()})
         current.update({slot: ("pending", name) for slot, name in self._pending_accounts.items()})
@@ -788,7 +808,8 @@ class GameView(ThemedMixin, QWidget):
         tile = ClientTile(spec.hwnd, self._caption_for(spec.player) or spec.label, parent=self)
         tile.set_wizard_name(self._wizard_name_for(spec.player))
         self._tiles[spec.slot] = tile
-        self._launch_sizes.setdefault(spec.hwnd, tile.game_size)
+        home = self._home_sizes.get(spec.username) if spec.username else None
+        self._launch_sizes.setdefault(spec.hwnd, home or tile.game_size)
         tile.detach_requested.connect(lambda slot=spec.slot: self._detach_client(slot))
         tile.caption_clicked.connect(lambda point, slot=spec.slot: self._on_caption_clicked(slot, point))
         tile.role_clicked.connect(lambda point, slot=spec.slot: self._on_role_clicked(slot, point))
@@ -1346,9 +1367,74 @@ class GameView(ThemedMixin, QWidget):
         areas = [self._widget_at(slot).size() for slot in slots]
         return self._targets_at(slots, [(area.width(), area.height()) for area in areas])
 
+    def planned_targets(
+        self,
+        layout: Layout | None,
+        played: Mapping[int, bool],
+        launches: Mapping[int, tuple[int, int]],
+        *,
+        cap: tuple[int, int] | None = None,
+    ) -> dict[int, tuple[int, int]]:
+        """The size each slot's client would be asked to run at, by slot, were the tiles those of *played*.
+
+        For a product choosing the size a launch opens at, before the launch takes its slots:
+        BartleBuddy launches a team at the size most of its tiles will want, so most of its
+        clients never resize. *played* is every slot the tiles would be in, the ones held now
+        and the ones the launch takes, and whether each wizard is played, as ``set_layout``'s
+        *played* says it by player; *launches* the size each slot with no window yet would
+        launch at. A slot holding a window keeps its own launch size. The tiles are placed by
+        rung in *layout*, with *cap*, in this view's area, by the same geometry and targets
+        ``game_targets`` reads (``_plan_geometry``, ``tile_targets``), and nothing on screen
+        changes. A slot with no target is left out, and so is every slot while the view has no
+        size or no client of the tiles has a ladder.
+        """
+        if self.width() <= 0 or self.height() <= 0 or not played:
+            return {}
+        held = self._layout, self._by_rung, self._cap
+        self._layout, self._by_rung, self._cap = layout, True, None if cap is None else tuple(cap)
+        self._planned = _Planned(dict(played), {slot: tuple(size) for slot, size in launches.items()})
+        try:
+            slots = self._occupied_slots()
+            if self._rung_family_in_use() is None:
+                return {}
+            _tiles, rects, _placement, _main = self._plan_geometry(slots)
+            targets = self._slot_targets(slots, [(rect.w, rect.h) for rect in rects])
+        finally:
+            self._layout, self._by_rung, self._cap = held
+            self._planned = None
+        return {slot: target for slot, target in zip(slots, targets) if target is not None}
+
+    @property
+    def synced_tiles(self) -> tuple[TileSlot, ...]:
+        """The tiles the last ``sync_tiles`` was handed, in its order: every slot held, its window and its account."""
+        return self._synced
+
+    def set_home_sizes(self, sizes: Mapping[str, tuple[int, int] | None]) -> None:
+        """Say the size each account's next window counts as launched at, or None to count the size it opens at.
+
+        For a product that launches a client at another size than the user's own, to spare it
+        a resize: the size given is the one it would have launched at. A lone client keeps its
+        launch size, so it goes back to this one, and the floor for it is measured at it
+        (``_rung_floor``). Read as each window's tile is first built; a window already here
+        keeps the size it counts as.
+        """
+        for username, size in sizes.items():
+            if size is None:
+                self._home_sizes.pop(username, None)
+            else:
+                self._home_sizes[username] = (int(size[0]), int(size[1]))
+
     def _targets_at(self, slots: list[int], areas: list[tuple[int, int]]) -> dict[int, tuple[int, int]]:
         """``game_targets`` for tiles of these sizes, by hwnd: where they are, or where they are going."""
-        targets = tile_targets(
+        return {
+            self._tiles[slot].hwnd: target
+            for slot, target in zip(slots, self._slot_targets(slots, areas))
+            if slot in self._tiles and target is not None
+        }
+
+    def _slot_targets(self, slots: list[int], areas: list[tuple[int, int]]) -> list[tuple[int, int] | None]:
+        """Each of *slots*' target in tiles of *areas*, in slot order, or None for one with none."""
+        return tile_targets(
             [self._launch_size_at(slot) for slot in slots],
             areas,
             self._tile_sizes(slots),
@@ -1356,11 +1442,6 @@ class GameView(ThemedMixin, QWidget):
             grow=True,
             cap=self._cap,
         )
-        return {
-            self._tiles[slot].hwnd: target
-            for slot, target in zip(slots, targets)
-            if slot in self._tiles and target is not None
-        }
 
     def _targets_to_ask_for(self) -> dict[int, tuple[int, int]]:
         return {hwnd: size for hwnd, size in self.game_targets().items() if hwnd in self._resizable}
@@ -1388,6 +1469,8 @@ class GameView(ThemedMixin, QWidget):
 
     def _launch_size_at(self, slot: int) -> tuple[int, int] | None:
         """What the window in *slot* launched at, or its launch's word for it, or None."""
+        if self._planned is not None and slot in self._planned.launches:
+            return self._planned.launches[slot]
         pending = self._pending_tiles.get(slot)
         if pending is not None:
             return pending.resolution
@@ -1500,6 +1583,8 @@ class GameView(ThemedMixin, QWidget):
 
     def _played_at(self, slots: list[int]) -> list[bool]:
         """Whether the user moves the wizard in each of *slots*; a slot with no player is not moved."""
+        if self._planned is not None:
+            return [bool(self._planned.played.get(slot, False)) for slot in slots]
         players = [self._player_for(slot) for slot in slots]
         return [p is not None and 0 <= p < len(self._played) and self._played[p] for p in players]
 
@@ -1557,7 +1642,11 @@ class GameView(ThemedMixin, QWidget):
         count and whether the launch screen shows. Each of those read two of the three
         before pending tiles existed, and a pending tile missing from any one of them is a
         tile drawn on top of another.
+
+        While ``planned_targets`` works, the slots it was asked about.
         """
+        if self._planned is not None:
+            return sorted(self._planned.played)
         return sorted(set(self._tiles) | set(self._detached_tiles) | set(self._pending_tiles))
 
     def _widget_at(self, slot: int):
@@ -1720,8 +1809,9 @@ class GameView(ThemedMixin, QWidget):
         return required_game_area(largest, count, dpr)
 
     def _pending_resolutions(self) -> list[tuple[int, int]]:
-        """The resolution each launching window will open at, where its launch said."""
-        return [tile.resolution for tile in self._pending_tiles.values() if tile.resolution is not None]
+        """The resolution each launching window will open at, where its launch said, and each one ``planned_targets`` asks about."""
+        planned = list(self._planned.launches.values()) if self._planned is not None else []
+        return [tile.resolution for tile in self._pending_tiles.values() if tile.resolution is not None] + planned
 
     def _detach_client(self, idx: int) -> None:
         """Save hwnd, create a DetachedTile, and unembed the ClientTile."""

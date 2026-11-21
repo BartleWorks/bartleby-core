@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from bartleby.runtime.launcher import launch_profile
 from bartleby.runtime.launcher.launch_profile import launch_accounts
 from bartleby.runtime.launcher.login_gate import gate
 
@@ -71,6 +72,46 @@ async def test_no_resolution_falls_back_to_the_app_setting(launcher) -> None:
     await launch_accounts(ACCOUNTS)
 
     assert launcher.config.call_args.args[:2] == (1280, 720)
+
+
+@pytest.fixture
+def profile(launcher):
+    """A profile of the three accounts, at its own 1024x768, with their passwords stored."""
+    settings = launch_profile.SettingsManager.instance()
+    settings.launch_profiles = [{"name": "Team", "accounts": [u for u, _p, _d in ACCOUNTS], "resolution": [1024, 768]}]
+    settings.accounts = [{"username": u} for u, _p, _d in ACCOUNTS]
+    with patch("bartleby.runtime.launcher.launch_profile.CredentialStore") as creds:
+        creds.retrieve.return_value = "pw"
+        creds.display_name.side_effect = lambda u, _a: u
+        yield settings
+
+
+async def test_a_profile_launches_at_its_own_resolution(launcher, profile) -> None:
+    await launch_profile.launch_profile("Team")
+
+    assert launcher.config.call_args.args[:2] == (1024, 768)
+
+
+async def test_a_size_handed_to_a_profile_s_launch_is_the_one_it_opens_at(launcher, profile) -> None:
+    """BartleBuddy's, the size most of the team's tiles will take: the profile's own is then its home."""
+    await launch_profile.launch_profile("Team", resolution=(534, 300))
+
+    launcher.config.assert_called_once()
+    assert launcher.config.call_args.args[:2] == (534, 300)
+
+
+async def test_a_profile_with_no_resolution_of_its_own_launches_at_the_app_setting(launcher, profile) -> None:
+    del profile.launch_profiles[0]["resolution"]
+
+    await launch_profile.launch_profile("Team")
+
+    assert launcher.config.call_args.args[:2] == (1280, 720)
+
+
+def test_a_profile_s_resolution_is_its_own_or_none() -> None:
+    assert launch_profile.profile_resolution({"resolution": [1024, 768]}) == (1024, 768)
+    assert launch_profile.profile_resolution({"resolution": None}) is None
+    assert launch_profile.profile_resolution({}) is None
 
 
 async def test_the_drives_overlap(launcher) -> None:

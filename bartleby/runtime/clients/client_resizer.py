@@ -23,6 +23,10 @@ before that task starts simply ends the resize.
 more is tried on it until :meth:`ClientResizer.forget` and it is hooked again. Finding no node
 pair is a failure only once the scan is sure: a pass that skipped a region the game changed under
 it is made once more first (:func:`find_config_nodes`).
+
+**Giving back is to the user's size.** A client goes back to the size it was first measured at,
+or, launched at its tile's size to spare it a resize, to the size it would have launched at,
+which the product names with :meth:`ClientResizer.give_back_to`, resized since or not.
 """
 
 from __future__ import annotations
@@ -108,7 +112,9 @@ async def _nodes_at(reader, hits: list[int]) -> list[_Node]:
     return found
 
 
-async def find_config_nodes(reader) -> ConfigNodes | None:
+async def find_config_nodes(
+    reader, *, priority: heap_scan.Priority | Callable[[], heap_scan.Priority] = heap_scan.Priority.URGENT
+) -> ConfigNodes | None:
     """The client's live UISize and Resolution nodes, or None without exactly one of each.
 
     Each name has several nodes, and the count moves. The live UISize is the one marked at
@@ -116,16 +122,17 @@ async def find_config_nodes(reader) -> ConfigNodes | None:
     the one with a pointer under that parent: the other parent holds the defaults, and the
     second class's copies, some of them marked, hold no pointer.
 
-    Both names are found in one pass over the process, urgent, since a player waits on it
-    (``heap_scan``). A pass that skipped a region the game changed under it, and found no
-    single pair, is made once more after ``HEAP_SCAN_RETRY_DELAY`` (``heap_scan.lookup``), so
-    a client still settling after its hook does not cost the resizer that client.
+    Both names are found in one pass over the process, urgent by default, since a player waits
+    on it (``heap_scan``); *priority* may be a callable, asked before each pass. A pass that
+    skipped a region the game changed under it, and found no single pair, is made once more
+    after ``HEAP_SCAN_RETRY_DELAY`` (``heap_scan.lookup``), so a client still settling after its
+    hook does not cost the resizer that client.
     """
     return await heap_scan.lookup(
         reader,
         _UI_SIZE + b"\x00",
         _RESOLUTION + b"\x00",
-        priority=heap_scan.Priority.URGENT,
+        priority=priority,
         usable=functools.partial(_live_pair, reader),
         caller="resize.config_nodes",
     )
@@ -161,8 +168,12 @@ class _Entry:
     scan: asyncio.Task | None = None
     nodes: ConfigNodes | None = None
     failed: bool = False
+    #: What a give back returns it to: the size first measured, or the one ``give_back_to`` named.
     launch: tuple[int, int] | None = None
+    #: The UI size first read with it, or None for the user's own at that size (``ui_size_for``).
     launch_ui_size: int | None = None
+    #: Whether the scan under way was started in the background, with nobody waiting on it yet.
+    background: bool = False
 
 
 class ClientResizer:
@@ -202,11 +213,33 @@ class ClientResizer:
         if entry.task is None or entry.task.done():
             entry.task = asyncio.create_task(self._run(client, entry, RESIZE_APPLY_TIMEOUT), name="resize")
 
+    def give_back_to(self, client, size: tuple[int, int]) -> None:
+        """Have every give back of *client* return it to *size*, not to the size it was first measured at.
+
+        For a client launched at another size than the user's own, to spare it a resize: a
+        product launching a team at its tiles' size names here the size each client would have
+        launched at, so the user's games still go back to it, resized or not. The UI size given
+        back with it is ``ui_size_for`` the user's own, as a launch at *size* writes it.
+
+        Its nodes are found now, in the background, so a give back as the app quits doesn't wait
+        on a scan; a client just hooked shares that pass with its key map's. A resize or a give
+        back that comes first makes it urgent. Call it as the client joins, before anything is
+        asked of it; ``forget`` drops it with the rest.
+        """
+        entry = self._entry(client)
+        entry.launch, entry.launch_ui_size = tuple(size), None
+        scanning = entry.scan is not None and not entry.scan.done()
+        if not entry.failed and entry.nodes is None and not scanning:
+            entry.background = True
+            entry.scan = asyncio.create_task(self._find(client, entry), name="resize-scan")
+
     async def give_back(self, client) -> None:
         """Put *client* back at its launch size and UI size, on a short timeout, as it leaves its tile.
 
-        A client never resized, or one given up on, has nothing to give back. One still loading
-        when the time is up, or held by a higher lease, is left as it is, with a warning.
+        The launch size is the one ``give_back_to`` named, else the size measured before the
+        first resize. A client with neither, so never resized, or one given up on, has nothing to
+        give back. One still loading when the time is up, or held by a higher lease, is left as
+        it is, with a warning.
         """
         entry = self._entries.get(client_key(client))
         if entry is None or entry.failed or entry.launch is None:
@@ -244,7 +277,7 @@ class ClientResizer:
 
     async def _find(self, client, entry: _Entry) -> None:
         """Everything a resize reads once, or this client's one warning. Never raises."""
-        with run_trace.span("resize.find", client=client, hwnd=client_key(client)):
+        with run_trace.span("resize.find", client=client, hwnd=client_key(client), background=entry.background):
             try:
                 video = client.video_manager
                 with run_trace.span("resize.base_address"):
@@ -252,7 +285,12 @@ class ClientResizer:
                 with run_trace.span("resize.pending_flag"):
                     await video.pending_flag_offset()
                 with run_trace.span("resize.config_nodes"):
-                    nodes = await find_config_nodes(client.hook_handler)
+                    nodes = await find_config_nodes(
+                        client.hook_handler,
+                        priority=lambda: (
+                            heap_scan.Priority.BACKGROUND if entry.background else heap_scan.Priority.URGENT
+                        ),
+                    )
                 if nodes is None:
                     raise _Refused("no single live UISize and Resolution node")
             except Exception as exc:  # noqa: BLE001 - whatever it was, it means leaving this client alone
@@ -272,7 +310,12 @@ class ClientResizer:
                 return nodes
             entry.nodes = None
         if entry.scan is None or entry.scan.done():
+            entry.background = False
             entry.scan = asyncio.create_task(self._find(client, entry), name="resize-scan")
+        elif entry.background:
+            # Someone waits on it now: raised to urgent, its retry too.
+            entry.background = False
+            heap_scan.promote(client.hook_handler)
         # Shielded: a Stop all ends this wait, and the scan is worth keeping.
         await asyncio.shield(entry.scan)
         return entry.nodes
@@ -363,7 +406,10 @@ class ClientResizer:
         ui_was = await reader.read_typed(nodes.ui_size + NODE_INT, Primitive.int32)
         if entry.launch is None:
             entry.launch, entry.launch_ui_size = was, ui_was
-        ui_size = entry.launch_ui_size if size == entry.launch else ui_size_for(preferred, size)
+        if size == entry.launch and entry.launch_ui_size is not None:
+            ui_size = entry.launch_ui_size
+        else:
+            ui_size = ui_size_for(preferred, size)
         if ui_size is None:
             raise _Refused("the game has no UI scale to size from")
 

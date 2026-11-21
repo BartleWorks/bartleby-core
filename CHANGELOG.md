@@ -103,6 +103,28 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   leader off its seat may be the countdown ending, so cancels only after `SIGIL_END_GRACE` with
   no zone change. New: `StepKind.CANCEL`, `Follower.at_sigil` and `.entering`, the `SIGIL_*`
   timing constants. Without `sigil_prompts` nothing changes and no prompt is read.
+- **A launch can open at the size its tiles will want, and its games still go back to the
+  user's.** For BartleBuddy, whose traced four-client launches spent their last 10 s resizing
+  each game from the user's resolution to its tile, one 2.5 s scan at a time. All additive, so
+  BartleBot is unchanged:
+  - `GameView.planned_targets(layout, played, launches, *, cap=None)` is the target each slot
+    would get, by slot, with the tiles in *played*'s slots placed by rung in *layout*: the
+    slots held now and the ones a launch will take, each new one at its size in *launches*. It
+    reads the view's own geometry and `tile_targets`, and changes nothing on screen; empty while
+    the view has no size or no tile has a ladder. `GameView.synced_tiles` is what the last
+    `sync_tiles` was handed, for the slots, windows and accounts held.
+  - `GameView.set_home_sizes({username: size or None})` is the size an account's next window
+    counts as launched at, so a lone client goes back to the user's size, not the small one it
+    opened at.
+  - `ClientResizer.give_back_to(client, size)` has every give back return the client to *size*,
+    with `ui_size_for` the user's own UI scale, whether it was ever resized or not; a client
+    never resized had nothing to give back. It finds the client's nodes at once, in the
+    background, so a quit doesn't wait on a scan, and a resize or give back that comes first
+    promotes it. Traced as `background` on its `resize.find` span. `find_config_nodes(reader,
+    priority=...)` takes the priority, urgent by default, or a callable asked before each pass.
+  - `launch_profile.launch_profile(..., resolution=None)` launches at the size it is handed, over
+    the profile's own and the global setting, with the UI scale for it, as `launch_accounts`
+    already did; `launch_profile.profile_resolution(profile)` is a profile's own, or None.
 
 ### Fixed
 

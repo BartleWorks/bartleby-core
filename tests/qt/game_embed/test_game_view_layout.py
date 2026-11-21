@@ -570,6 +570,90 @@ def test_turning_rungs_off_goes_back_to_the_fixed_strip(by_rung):
     assert _rects_of(game, 2) == [(r.x, r.y, r.w, r.h) for r in expected]
 
 
+# -- the targets of tiles still to come, for a launch's size ----------------------------------
+
+
+def test_planned_targets_are_the_ones_the_tiles_get_once_they_are_there(by_rung):
+    """Two accounts launching into an empty view: the large tile's target and the small one's."""
+    empty = by_rung((1920, 971), [])
+
+    planned = empty.planned_targets(ONE_LARGE, {0: True, 1: False}, {0: (854, 480), 1: (854, 480)})
+
+    assert planned == {0: (1280, 720), 1: (534, 300)}
+    there = by_rung((1920, 971), [(854, 480), (854, 480)])
+    there.set_layout(ONE_LARGE, [True, False], by_rung=True)
+    assert {slot: there.game_targets()[100 + slot] for slot in planned} == planned
+
+
+def test_planned_targets_change_nothing_the_view_has(by_rung):
+    game = by_rung((1920, 971), [(854, 480), (854, 480)])
+    game.set_layout(ALL_EQUAL, [True, True], by_rung=True)
+    before = (game.game_targets(), _rects_of(game, 2), game.minimumSize())
+
+    game.planned_targets(ONE_LARGE, {0: True, 1: False, 2: False}, {2: (854, 480)}, cap=(640, 360))
+
+    assert (game.game_targets(), _rects_of(game, 2), game.minimumSize()) == before
+    assert game._layout is ALL_EQUAL and game._planned is None
+
+
+def test_planned_targets_count_the_tiles_held_with_their_own_launch_sizes(by_rung):
+    """Two more launched beside two: no strip fits on 1080p with the sidebar, so the view's equal grid."""
+    game = by_rung((1612, 971), [(746, 420), (746, 420)])
+
+    planned = game.planned_targets(ONE_LARGE, {0: True, 1: False, 2: False, 3: False}, {2: (746, 420), 3: (746, 420)})
+
+    assert planned == dict.fromkeys(range(4), (746, 420))
+
+
+def test_planned_targets_in_all_equal_grow_to_the_tile_at_most_the_cap(by_rung):
+    empty = by_rung((1920, 971), [])
+
+    assert empty.planned_targets(ALL_EQUAL, {0: True, 1: False}, {0: (640, 360), 1: (640, 360)}) == {
+        0: (854, 480),
+        1: (854, 480),
+    }
+    assert empty.planned_targets(ALL_EQUAL, {0: True, 1: False}, {0: (640, 360), 1: (640, 360)}, cap=(746, 420)) == {
+        0: (746, 420),
+        1: (746, 420),
+    }
+
+
+def test_planned_targets_with_no_ladder_or_no_size_are_none(by_rung):
+    empty = by_rung((1920, 971), [])
+    assert empty.planned_targets(ONE_LARGE, {0: True, 1: False}, {0: (1280, 1024), 1: (1280, 1024)}) == {}
+
+    empty.resize(0, 0)
+    assert empty.planned_targets(ONE_LARGE, {0: True, 1: False}, {0: (854, 480), 1: (854, 480)}) == {}
+    assert empty.planned_targets(ONE_LARGE, {}, {}) == {}
+
+
+def test_the_tiles_synced_are_kept_as_they_were_handed(by_rung):
+    game = by_rung((1920, 971), [(854, 480)])
+
+    tiles = [
+        TileSlot(slot=0, hwnd=100, label="P1", player=0, username="a"),
+        TileSlot(slot=2, hwnd=None, label="b", player=None, username="b"),
+    ]
+    game.sync_tiles(tiles)
+
+    assert game.synced_tiles == tuple(tiles)
+
+
+def test_a_window_whose_account_has_a_home_size_counts_as_launched_there(by_rung):
+    """A game launched at its tile's size: alone, it goes back to the user's own, as a lone client keeps its launch size."""
+    game = by_rung((1920, 971), [])
+    _Sized.sizes = {100: (534, 300), 101: (534, 300)}
+    game.set_home_sizes({"a": (1280, 720)})
+    game.sync_tiles([TileSlot(slot=0, hwnd=100, label="P1", player=0, username="a")])
+    game.set_layout(ONE_LARGE, [True], by_rung=True)
+
+    assert game.game_targets() == {100: (1280, 720)}
+
+    game.set_home_sizes({"a": None})
+    game.sync_tiles([TileSlot(slot=0, hwnd=101, label="P1", player=0, username="a")])
+    assert game.game_targets() == {101: (534, 300)}
+
+
 # -- asking for a size, and hearing back ------------------------------------------------------
 
 

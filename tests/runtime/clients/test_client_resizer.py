@@ -904,6 +904,114 @@ async def test_giving_back_is_on_the_shorter_timeout():
     assert timing.RESIZE_GIVE_BACK_TIMEOUT < timing.RESIZE_APPLY_TIMEOUT
 
 
+# -- giving back to the size named, for a client launched at another ----------------------------------
+
+
+@pytest.fixture
+def no_grace(monkeypatch):
+    """A background scan runs at once, as one beside a key map's would."""
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 0.0)
+
+
+async def test_a_client_launched_small_and_never_resized_goes_back_to_the_size_named_with_its_ui_size(
+    resizer, reports, no_grace
+):
+    """Launched at its small tile's size, so nothing ever resized it: the user's own size and UI scale all the same."""
+    client = SimClient(game_size=_SMALL_SIZE, ui_size=_MICRO)
+    resizer.give_back_to(client, _LARGE_SIZE)
+
+    await resizer.give_back(client)
+
+    assert client.game_size == _LARGE_SIZE
+    assert client.ui_size == ui_size_for(_HUGE, _LARGE_SIZE) == _HUGE
+    assert client.hook_handler.resolution_text() == "1280x720"
+    assert reports == [(client, _LARGE_SIZE)]
+
+
+async def test_a_client_launched_small_and_resized_goes_back_to_the_size_named_not_the_one_it_opened_at(
+    resizer, no_grace
+):
+    client = SimClient(game_size=_SMALL_SIZE, ui_size=_MICRO)
+    resizer.give_back_to(client, _LARGE_SIZE)
+    resizer.resize(client, (854, 480))
+    await _settled(resizer, client)
+    assert client.game_size == (854, 480)
+
+    await resizer.give_back(client)
+
+    assert client.game_size == _LARGE_SIZE
+    assert client.ui_size == _HUGE
+
+
+async def test_resizing_to_the_size_named_takes_the_user_s_ui_size_for_it(resizer, no_grace):
+    """A lone client goes back up to it, through a resize, not a give back."""
+    client = SimClient(game_size=_SMALL_SIZE, ui_size=_MICRO)
+    resizer.give_back_to(client, _LARGE_SIZE)
+
+    resizer.resize(client, _LARGE_SIZE)
+    await _settled(resizer, client)
+
+    assert (client.game_size, client.ui_size) == (_LARGE_SIZE, _HUGE)
+
+
+async def test_the_size_named_has_its_nodes_found_at_once_in_the_background_and_nothing_written(resizer, no_grace):
+    client = SimClient(game_size=_SMALL_SIZE)
+    resizer.give_back_to(client, _LARGE_SIZE)
+    entry = resizer._entries[client.window_handle]
+    assert entry.background
+
+    await entry.scan
+
+    assert client.hook_handler.scans == 1
+    assert entry.nodes is not None
+    assert _writes(client) == []
+
+
+async def test_a_resize_waiting_on_a_background_scan_makes_it_urgent(resizer, monkeypatch):
+    """The background waits out its grace, and a resize asked meanwhile doesn't."""
+    monkeypatch.setattr(heap_scan, "HEAP_SCAN_BACKGROUND_GRACE", 30.0)
+    client = SimClient(game_size=_SMALL_SIZE)
+    resizer.give_back_to(client, _LARGE_SIZE)
+    await _until(lambda: heap_scan.scanner().waiting(client.hook_handler) == 1)
+    promoted = []
+    real = heap_scan.promote
+    monkeypatch.setattr(heap_scan, "promote", lambda reader: promoted.append(reader) or real(reader))
+
+    resizer.resize(client, (854, 480))
+    await _settled(resizer, client)
+
+    assert promoted == [client.hook_handler]
+    assert client.game_size == (854, 480)
+    assert client.hook_handler.scans == 1
+
+
+async def test_a_client_forgotten_forgets_the_size_named(resizer, no_grace):
+    """An unhook: hooked again, it starts afresh, and the product names the size again."""
+    client = SimClient(game_size=_SMALL_SIZE)
+    resizer.give_back_to(client, _LARGE_SIZE)
+    await resizer.forget(client)
+
+    await resizer.give_back(client)
+
+    assert _writes(client) == []
+    assert client.game_size == _SMALL_SIZE
+
+
+async def test_a_client_given_up_on_scans_no_more_for_a_size_named(resizer, warnings, no_grace):
+    client = SimClient()
+    client.video_manager.error = VideoManagerError("no pending byte")
+    resizer.resize(client, _SMALL_SIZE)
+    await _settled(resizer, client)
+    scans = client.hook_handler.scans
+
+    resizer.give_back_to(client, _LARGE_SIZE)
+    await resizer.give_back(client)
+
+    assert client.hook_handler.scans == scans
+    assert _writes(client) == []
+    assert len(warnings()) == 1
+
+
 # -- the trace ----------------------------------------------------------------------------------
 
 
