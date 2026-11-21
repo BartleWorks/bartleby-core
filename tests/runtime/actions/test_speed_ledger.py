@@ -14,7 +14,7 @@ from bartleby.runtime.actions.helpers import Member, SpeedBoost
 from bartleby.runtime.actions.speed_ledger import SpeedLedger
 from bartleby.runtime.arbiter import Arbiter, Lease, Owner
 from bartleby.runtime.input import ClientInput
-from bartleby.runtime.movement.follow import Follower, spacing_for
+from bartleby.runtime.movement.follow import Follower
 from bartleby.runtime.movement.trail import Trail
 from bartleby.runtime.state import StateReader
 from bartleby.runtime.testing.sim_client import SimClient
@@ -107,7 +107,6 @@ class _Team:
             leader_reader,
             Trail(),
             self.arbiter,
-            spacing=spacing_for(0),
             walking_speed=lambda: self.boost.value,
             speed_ledger=self.ledger,
         )

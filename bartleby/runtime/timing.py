@@ -786,9 +786,6 @@ FOLLOW_STALL_WINDOW = 1.5
 FOLLOW_BACK_OFF = 0.25
 # Seconds a stalled follower holds the backward key before trying again.
 
-LEADER_SETTLE = 1.0
-# Seconds a leader must stand still before its followers take their places around it.
-
 FOLLOW_PROMPT_WAIT = 2.0
 # Seconds a follower at a jump waits for the interact prompt to show before pressing anyway.
 # The game takes 0.2 to 0.4s to show it, and a press before it does nothing.
