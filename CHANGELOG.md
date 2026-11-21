@@ -8,6 +8,25 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+### Added
+
+- **Who is cast for, at each planning phase** (BartleBuddy #31, Stage 3). `CombatRun` and
+  `FightWatch` take `casts`, asked of each player at the start of every planning phase, and
+  `hold`, the async context a cast or a flee is made under. A player played by hand is not cast
+  for that round, never votes on a flee, and keeps its fight from being fled, the time limit's
+  included: `FightWatch.would_flee` names the players of such a fight instead. Without either,
+  nothing changes, so BartleBot's fights run as before.
+- **`Follower.joining_fight`**: whether a follower is walking into the leader's fight, what a
+  fighter's first cast is held for.
+- **`official_set.shipped_root(..., others=)`**: more roots to weigh by the set version rule, each
+  with its product, as a checkout beside a product that ships no set.
+- **`combat_defaults.slot_dsls(duel, player, players)`**, the DSL each player slot runs in a duel,
+  the last resort where it runs nothing; and **`DefaultDuel.label`**, a default's phrase for the
+  log. BartleBot's `resolve_combat` still builds its own list; Stage 5 (BartleBot #332) moves it
+  onto `slot_dsls`.
+
 ## 0.7.0
 
 The fight runner, the DSL checks, the first cast's hold and the spell-name snapshot, moved
