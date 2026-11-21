@@ -209,7 +209,7 @@ class Follower:
         self._port_after = 0.0
         self._stalls = 0
         self._stall_from: tuple[Point, float] | None = None
-        # Where the last stall counted happened, and the settle of the leader it gave up on.
+        # Where the last stall counted happened, and since when the leader stood where it gave up.
         self._stall_at: Point | None = None
         self._stood_for: float | None = None
         self._speed_watch = CharacterWatch()
