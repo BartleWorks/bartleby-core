@@ -13,7 +13,7 @@ from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.input import ClientInput
 from bartleby.runtime.movement import follow
 from bartleby.runtime.movement import sigil as sigil_module
-from bartleby.runtime.movement.follow import Follower, StepKind, spacing_for
+from bartleby.runtime.movement.follow import Follower, StepKind
 from bartleby.runtime.movement.geometry import flat_distance
 from bartleby.runtime.movement.sigil import PromptReads
 from bartleby.runtime.movement.trail import Trail
@@ -23,11 +23,11 @@ from bartleby.runtime.testing.sim_client import SimClient
 ZONE = "WizardCity/WC_Streets/Unicorn_Way"
 
 
-def snap(x, y, t=0.0, zone=ZONE, **kw):
-    return Snapshot(key=1, time=t, position=(x, y, 0.0), yaw=0.0, zone=zone, **kw)
+def snap(x, y, t=0.0, zone=ZONE, yaw=0.0, **kw):
+    return Snapshot(key=1, time=t, position=(x, y, 0.0), yaw=yaw, zone=zone, **kw)
 
 
-def follower(trail=None, index=0):
+def follower(trail=None):
     client = SimClient()
     leader = SimClient()
     return Follower(
@@ -36,7 +36,6 @@ def follower(trail=None, index=0):
         StateReader(leader),
         trail or Trail(),
         Arbiter(),
-        spacing=spacing_for(index),
     )
 
 
@@ -75,25 +74,70 @@ def test_far_behind_it_runs_at_2x_and_near_it_matches():
     assert not near.plan(snap(0, 0), (0, 0, 0), snap(300, 0), 0).fast
 
 
-def test_within_its_gap_of_a_moving_leader_it_stops():
-    f = follower(laid_trail(0, 60, 120))
-    assert f.plan(snap(0, 0), (0, 0, 0), snap(120, 0), 0).kind is StepKind.STOP
-
-
-def test_each_follower_keeps_its_own_gap_and_place():
-    spacings = [spacing_for(i) for i in range(3)]
-    assert len({s.gap for s in spacings}) == 3
-    assert len({round(s.angle, 3) for s in spacings}) == 3
-
-
-def test_around_a_still_leader_it_takes_its_place_behind():
+def test_it_walks_right_up_to_the_leader_with_no_wait_for_it_to_stop():
     f = follower(laid_trail(0, 60, 120, 180, 240, 300))
+    step = f.plan(snap(180, 0), (180, 0, 0), snap(300, 0), 0.0)
+    assert step.kind is StepKind.WALK and step.target == (300, 0, 0.0)
+
+
+def test_on_the_leaders_spot_it_stands():
+    f = follower(laid_trail(0, 60, 120, 180, 240, 300))
+    step = f.plan(snap(270, 0), (270, 0, 0), snap(300, 0), 0.0)
+    assert (step.kind, step.reason) == (StepKind.STOP, follow.ON_LEADERS_SPOT)
+
+
+def test_on_the_spot_it_walks_again_only_once_the_leader_is_resume_away():
+    """Not at the leader's first step, or it would stop and start at the leader's heels."""
+    f = follower(laid_trail(*range(0, 700, 60)))
+    assert f.plan(snap(290, 0), (290, 0, 0), snap(300, 0), 0.0).reason == follow.ON_LEADERS_SPOT
+    near = snap(290 + follow.RESUME - 10, 0)
+    assert f.plan(snap(290, 0), (290, 0, 0), near, 0.1).reason == follow.ON_LEADERS_SPOT
+    away = snap(290 + follow.RESUME + 10, 0)
+    assert f.plan(snap(290, 0), (290, 0, 0), away, 0.2).kind is StepKind.WALK
+    assert f.plan(snap(290, 0), (290, 0, 0), near, 0.3).kind is StepKind.WALK, "walking, it goes on to the spot"
+
+
+def test_the_way_onto_the_leader_is_its_trail_round_a_corner():
+    """Straight at the leader would cut the corner, through whatever wall made the leader turn."""
+    trail = Trail()
+    for i, (x, y) in enumerate([(x, 0) for x in range(0, 301, 60)] + [(300, y) for y in range(60, 301, 60)]):
+        trail.note(snap(x, y, t=i * 0.1))
+    f = follower(trail)
+    step = f.plan(snap(0, 0), (0, 0, 0), snap(300, 300), 0.0)
+    assert step.reason == "along the trail" and step.target[1] == 0
+
+
+def test_which_way_the_leader_faces_has_no_say_in_where_it_stands():
+    """A wizard spawns facing into the room, its back to the door: behind it is the way out."""
+    targets = set()
+    for yaw in (0.0, math.pi / 2, math.pi):
+        f = follower(laid_trail(0, 60, 120, 180, 240, 300))
+        targets.add(f.plan(snap(180, 0), (180, 0, 0), snap(300, 0, yaw=yaw), 0.0).target)
+    assert targets == {(300, 0, 0.0)}
+
+
+def test_a_stall_near_the_leader_stands_it_there_until_the_leader_moves():
+    f = follower(laid_trail(*range(0, 700, 60)))
     leader = snap(300, 0)
-    f.plan(snap(0, 0), (0, 0, 0), leader, 0.0)
-    step = f.plan(snap(0, 0), (0, 0, 0), leader, 2.0)
-    assert step.kind is StepKind.WALK and step.reason == "to its place"
-    # Yaw 0 faces -y, so behind the leader is +y.
-    assert step.target[1] > 0
+    f.plan(snap(150, 0), (150, 0, 0), leader, 0.0)
+    f._stalls, f._stall_at = follow.MAX_STALLS, (200.0, 0.0, 0.0)
+    step = f.plan(snap(150, 0), (150, 0, 0), leader, 0.5)
+    assert (step.kind, step.reason) == (StepKind.STOP, follow.AS_NEAR_AS_IT_GETS), "not a port"
+    assert not f.stalled, "it stands, and nothing says it is stuck"
+    drifted = snap(300 + follow.STILL - 5, 0)
+    assert f.plan(snap(150, 0), (150, 0, 0), drifted, 5.0).reason == follow.AS_NEAR_AS_IT_GETS
+
+    # The leader walks on: a fresh try at its spot.
+    assert f.plan(snap(150, 0), (150, 0, 0), snap(600, 0), 6.0).kind is StepKind.WALK
+
+
+def test_a_stall_far_back_from_the_leader_still_counts_toward_a_port():
+    f = follower(laid_trail(*range(0, 1300, 60)))
+    leader = snap(1260, 0)
+    f.plan(snap(100, 0), (100, 0, 0), leader, 0.0)
+    f._stalls, f._stall_at = follow.MAX_STALLS, (100.0, 0.0, 0.0)
+    step = f.plan(snap(100, 0), (100, 0, 0), leader, 0.5)
+    assert (step.kind, step.reason) == (StepKind.PORT, "stalled")
 
 
 def test_at_a_jump_it_interacts():
@@ -152,7 +196,6 @@ def waiting(trail=None):
         StateReader(leader),
         trail or Trail(),
         Arbiter(),
-        spacing=spacing_for(0),
         wait_for_move=True,
     )
 
@@ -225,7 +268,6 @@ def _fight(clock: _Clock) -> Follower:
         StateReader(leader),
         Trail(),
         Arbiter(),
-        spacing=spacing_for(0),
         label="P2",
         clock=clock,
     )
@@ -327,7 +369,6 @@ async def test_walking_its_prompt_going_is_walking_out_of_range_not_a_press():
         StateReader(leader),
         Trail(),
         Arbiter(),
-        spacing=spacing_for(0),
         sigil_prompts=PromptReads(lambda c: _shown(shown, c), interval=0),
     )
     f.position = (0.0, 0.0, 0.0)
@@ -353,7 +394,6 @@ def _sigil_team(shown, arbiter=None):
         leader_reader,
         Trail(),
         arbiter or Arbiter(),
-        spacing=spacing_for(0),
         sigil_prompts=PromptReads(lambda c: _shown(shown, c), interval=0),
     )
     return f, leader, client, leader_reader
@@ -471,7 +511,7 @@ async def test_a_follower_walks_the_leaders_trail_around_a_corner(quick):
     me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
     trail = Trail()
     leader_reader.subscribe(trail.note)
-    f = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0))
+    f = Follower(client, me, leader_reader, trail, arbiter)
     track = []
 
     async def watch():
@@ -493,6 +533,24 @@ async def test_a_follower_walks_the_leaders_trail_around_a_corner(quick):
     assert not client.held, "it let go of forward when it was cancelled"
 
 
+async def test_a_follower_is_on_the_spot_of_a_leader_that_stopped_well_inside_a_second(quick):
+    arbiter = Arbiter()
+    leader, client = SimClient(), SimClient(position=(-150.0, 0.0, 0.0))
+    leader_reader, me = StateReader(leader), StateReader(client)
+    me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
+    trail = Trail()
+    leader_reader.subscribe(trail.note)
+    f = Follower(client, me, leader_reader, trail, arbiter)
+    task = asyncio.create_task(f.run())
+    try:
+        await _drive_leader(leader, leader_reader, [(0, 0), (600, 0)])
+        await _until(lambda: f.last_step.reason == follow.ON_LEADERS_SPOT, timeout=0.5)
+        assert flat_distance(client.position, leader.position) <= follow.ON_LEADER
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+
 async def test_a_follower_runs_at_2x_to_catch_up_and_never_above(quick):
     arbiter = Arbiter()
     leader, client = SimClient(), SimClient()
@@ -500,7 +558,7 @@ async def test_a_follower_runs_at_2x_to_catch_up_and_never_above(quick):
     me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
     trail = Trail()
     leader_reader.subscribe(trail.note)
-    f = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0))
+    f = Follower(client, me, leader_reader, trail, arbiter)
     task = asyncio.create_task(f.run())
     await _drive_leader(leader, leader_reader, [(0, 0), (1500, 0)], speed=1500)
     await asyncio.sleep(0.1)
@@ -517,7 +575,7 @@ async def test_without_writes_speed_a_follower_catches_up_at_its_own_speed(quick
     me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
     trail = Trail()
     leader_reader.subscribe(trail.note)
-    f = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0), writes_speed=False)
+    f = Follower(client, me, leader_reader, trail, arbiter, writes_speed=False)
     task = asyncio.create_task(f.run())
     await _drive_leader(leader, leader_reader, [(0, 0), (1500, 0)], speed=1500)
     await asyncio.sleep(0.1)
@@ -538,7 +596,6 @@ async def test_without_writes_speed_a_follower_gives_back_nothing_another_writer
         StateReader(SimClient()),
         Trail(),
         Arbiter(),
-        spacing=spacing_for(0),
         speed_ledger=ledger,
         writes_speed=False,
     )
@@ -553,7 +610,7 @@ async def test_without_writes_speed_a_follower_gives_back_nothing_another_writer
 
 def _speed_follower(client: SimClient) -> tuple[Follower, Lease]:
     arbiter, leader_reader, me = Arbiter(), StateReader(SimClient()), StateReader(client)
-    follower = Follower(client, me, leader_reader, Trail(), arbiter, spacing=spacing_for(0))
+    follower = Follower(client, me, leader_reader, Trail(), arbiter)
     return follower, Lease(client, Owner.MOVEMENT, ClientInput(client))
 
 
@@ -611,7 +668,7 @@ async def test_a_hotkey_preempts_a_walking_follower_which_then_resumes(quick):
     me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
     trail = Trail()
     leader_reader.subscribe(trail.note)
-    f = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0))
+    f = Follower(client, me, leader_reader, trail, arbiter)
     task = asyncio.create_task(f.run())
     walking = asyncio.create_task(_drive_leader(leader, leader_reader, [(0, 0), (1200, 0)]))
     await asyncio.sleep(0.3)
@@ -631,9 +688,7 @@ async def test_a_hotkey_preempts_a_walking_follower_which_then_resumes(quick):
 def made(trail=None, **kwargs):
     """A follower over a fresh pair of simulated clients, with *kwargs* for the new options."""
     client, leader = SimClient(), SimClient()
-    return Follower(
-        client, StateReader(client), StateReader(leader), trail or Trail(), Arbiter(), spacing=spacing_for(0), **kwargs
-    )
+    return Follower(client, StateReader(client), StateReader(leader), trail or Trail(), Arbiter(), **kwargs)
 
 
 _LONG = tuple(range(0, 1300, 60))
@@ -717,9 +772,7 @@ async def test_near_the_leader_it_walks_at_the_walking_speed_it_is_given():
     leader = SimClient(speed=30)
     reader = StateReader(leader)
     reader.publish(position=leader.position, zone=leader.zone, loading=False, speed=30)
-    f = Follower(
-        client, StateReader(client), reader, Trail(), Arbiter(), spacing=spacing_for(0), walking_speed=lambda: 50
-    )
+    f = Follower(client, StateReader(client), reader, Trail(), Arbiter(), walking_speed=lambda: 50)
     lease = Lease(client, Owner.MOVEMENT, ClientInput(client))
     await f._set_speed(lease, fast=False)
     await f._set_speed(lease, fast=False)
@@ -730,9 +783,7 @@ async def test_with_no_walking_speed_it_matches_the_leaders_field():
     client = SimClient(speed=0)
     reader = StateReader(SimClient())
     reader.publish(position=(0.0, 0.0, 0.0), zone=ZONE, loading=False, speed=30)
-    f = Follower(
-        client, StateReader(client), reader, Trail(), Arbiter(), spacing=spacing_for(0), walking_speed=lambda: None
-    )
+    f = Follower(client, StateReader(client), reader, Trail(), Arbiter(), walking_speed=lambda: None)
     lease = Lease(client, Owner.MOVEMENT, ClientInput(client))
     await f._set_speed(lease, fast=False)
     await f._set_speed(lease, fast=False)
@@ -746,7 +797,7 @@ async def test_a_follower_is_walking_only_while_it_holds_the_movement_lease(quic
     me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
     trail = Trail()
     leader_reader.subscribe(trail.note)
-    f = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0))
+    f = Follower(client, me, leader_reader, trail, arbiter)
     assert not f.walking
     task = asyncio.create_task(f.run())
     walking = asyncio.create_task(_drive_leader(leader, leader_reader, [(0, 0), (800, 0)]))
@@ -769,7 +820,7 @@ async def test_a_follower_with_no_walking_speed_stands_at_its_own_speed(quick):
     me.publish(position=client.position, zone=client.zone, loading=False, speed=10)
     trail = Trail()
     leader_reader.subscribe(trail.note)
-    f = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0), walking_speed=lambda: None)
+    f = Follower(client, me, leader_reader, trail, arbiter, walking_speed=lambda: None)
     task = asyncio.create_task(f.run())
     await _drive_leader(leader, leader_reader, [(0, 0), (1500, 0)], speed=1500)
     for _ in range(300):

@@ -37,6 +37,12 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   did. A test that held a resize off with `SimClient(loading=True)` now holds a lease above
   `Owner.DISPLAY` instead. A `give_back` reaches a client that is loading, where it was left as
   it was with a warning. BartleBot doesn't use the resizer.
+- **`Follower` takes no `spacing`**, and `movement.follow.Spacing` and `spacing_for` are gone,
+  since every follower walks onto the leader's own spot (under Changed). So are `ARRIVE_PLACE`
+  (now `ON_LEADER`), `PLACE_DIRECT`, `timing.LEADER_SETTLE` and `geometry.offset_from`, which
+  only they used. A follower's stop says `ON_LEADERS_SPOT` where it said "in place" or "close
+  enough", and nothing says "to its place". BartleBuddy's session and its follow-jitter probe
+  passed a spacing and no longer do; BartleBot doesn't follow.
 
 ### Added
 
@@ -189,6 +195,18 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ### Changed
 
+- **Followers walk onto the leader's spot**, where each stopped at its own gap behind a moving
+  leader (180 to 420 units) and, once the leader had stood still for a second, took its own
+  place around it: behind-left, behind-right and behind, from the way the leader faced, 170
+  units or more out and walked to in a straight line. In game that left a follower out of range
+  of an NPC the leader was just in range of, sent it into a wall behind the leader, and out
+  through the door of a room just entered, since a wizard spawns facing in with its back to the
+  door; and the player waited on the second and the gap at every stop. Now a follower walks the
+  trail right up to the leader and stops on its spot, within `ON_LEADER` (40 units), as soon as
+  the leader stops; wizards never collide, so they stack. It walks again once the leader is
+  `RESUME` (120 units) away, so it doesn't stop and start at the leader's heels. A stall within
+  `NEAR_STALL` (300 units) of the leader stands a follower where it is until the leader moves
+  (`AS_NEAR_AS_IT_GETS`), where three stalls walking to its place ported it.
 - **A resize no longer waits out a loading screen** (under Breaking). The worker waited on
   `client.is_loading()` from its first commit, with no reason recorded. It was the one step that
   needed the root window hook, and it can't see the load-in from character select, where a tile

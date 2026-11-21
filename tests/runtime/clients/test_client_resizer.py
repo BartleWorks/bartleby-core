@@ -19,7 +19,7 @@ from bartleby.runtime.game.game_sizing import ui_size_for
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.launcher import launch_profile
 from bartleby.runtime.movement import follow
-from bartleby.runtime.movement.follow import Follower, spacing_for
+from bartleby.runtime.movement.follow import Follower
 from bartleby.runtime.movement.trail import Trail
 from bartleby.runtime.state import StateReader
 from bartleby.runtime.testing.sim_client import COPY_VTABLE, DEFAULT_SETTINGS, IMAGE_BASE, SimClient
@@ -316,7 +316,7 @@ async def test_a_follower_moves_again_after_a_resize(resizer, arbiter, monkeypat
     me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
     trail = Trail()
     trail.note(leader_reader.latest)
-    follower = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0))
+    follower = Follower(client, me, leader_reader, trail, arbiter)
     task = asyncio.create_task(follower.run())
     try:
         await _until(lambda: client.holding(GameAction.MOVE_FORWARD))
@@ -728,7 +728,7 @@ async def test_the_scan_holds_no_lease_and_a_follower_ticks_through_it(resizer, 
     me.publish(position=client.position, zone=client.zone, loading=False, speed=0)
     trail = Trail()
     trail.note(leader_reader.latest)
-    follower = Follower(client, me, leader_reader, trail, arbiter, spacing=spacing_for(0))
+    follower = Follower(client, me, leader_reader, trail, arbiter)
     client.hook_handler.scan_seconds = 0.3
 
     ticks: list[float] = []

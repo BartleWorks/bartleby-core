@@ -17,8 +17,13 @@ reading the position back every tick, and a stall backed off from.
   takes it through after the leader.
 * **Ports are the fallback**, for a follower too far behind, a jump or gate that did not
   take it, a stall it cannot back out of, or a leader somewhere the trail does not reach.
-* **Spacing.** Each follower stops at its own gap behind a moving leader, and takes its own
-  place around a leader standing still (:func:`spacing_for`).
+* **Onto the leader's spot.** Every follower walks the trail all the way to the leader and
+  stops on its spot, within :data:`ON_LEADER`, so it stands there as soon as the leader stops:
+  in range of whatever the leader is in range of, on ground the game took, and never out
+  through the door a wizard spawns facing away from. Wizards never collide, so they stack. It
+  walks again once the leader is :data:`RESUME` away, not at its first step, so it doesn't stop
+  and start at the leader's heels. One that stalls near the leader (:data:`NEAR_STALL`) stands
+  where it is until the leader moves, rather than port.
 * **Dungeon sigils**, with ``sigil_prompts``: at a sigil the leader stands at, a follower stays
   in range for the press, and from its press of X it sends nothing until it goes in or the
   leader cancels, which it then does too (:mod:`bartleby.runtime.movement.sigil`). Each press
@@ -65,7 +70,7 @@ from bartleby.runtime.arbiter import Arbiter, Lease, Owner, Preempted, Revoked, 
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.game.wizard_names import NO_CHARACTER
 from bartleby.runtime.input import SPEED_VALUE_MAX
-from bartleby.runtime.movement.geometry import Point, flat_distance, heading_to, offset_from
+from bartleby.runtime.movement.geometry import Point, flat_distance, heading_to
 from bartleby.runtime.movement.sigil import PromptReads, SigilState
 from bartleby.runtime.movement.trail import Mark, Trail, TrailPoint
 from bartleby.runtime.state import Snapshot, StateReader
@@ -77,7 +82,6 @@ from bartleby.runtime.timing import (
     FOLLOW_PROMPT_WAIT,
     FOLLOW_STALL_WINDOW,
     FOLLOW_TICK,
-    LEADER_SETTLE,
     SIGIL_CANCEL_TAP,
 )
 
@@ -85,8 +89,12 @@ logger = logging.getLogger(__name__)
 
 #: Units from a point at which it counts as reached; the walking probe's.
 ARRIVE = 80.0
-#: Units from its place around a still leader at which a follower stops.
-ARRIVE_PLACE = 40.0
+#: Units from the leader at which a follower is on its spot, and stops.
+ON_LEADER = 40.0
+#: Units from the leader at which a follower standing on its spot walks after it again.
+RESUME = 120.0
+#: Units from the leader within which a stall stands a follower, rather than count toward a port.
+NEAR_STALL = 300.0
 #: Units the leader may drift and still count as standing still.
 STILL = 30.0
 #: Units behind beyond which a follower runs at 2.0x.
@@ -103,9 +111,10 @@ MAX_STALLS = 3
 LINK_MOVED = 300.0
 #: Units past a gate's last point a follower aims for, to walk on through the door.
 GATE_PUSH = 250.0
-#: Units from a still leader within which a follower walks straight to its place.
-PLACE_DIRECT = 600.0
-
+#: Why a follower stands on the leader's spot.
+ON_LEADERS_SPOT = "on the leader's spot"
+#: Why a follower stands short of the leader's spot: it stalled on the way, near the leader.
+AS_NEAR_AS_IT_GETS = "as near as it gets"
 #: Why a follower made with ``wait_for_move`` stands, until its leader has moved.
 AWAITING_MOVE = "waiting for the leader to move"
 #: Why a held follower stands.
@@ -142,22 +151,6 @@ class Step:
     point: TrailPoint | None = None
 
 
-@dataclass(frozen=True)
-class Spacing:
-    """Where one follower keeps itself: *gap* behind a moving leader, at *angle* and *radius*
-    around a still one (an angle of pi is straight behind)."""
-
-    gap: float
-    angle: float
-    radius: float
-
-
-def spacing_for(index: int) -> Spacing:
-    """The spacing of the *index*-th follower of one leader: behind-left, behind-right, behind."""
-    angles = (math.pi - 0.7, math.pi + 0.7, math.pi)
-    return Spacing(gap=180.0 + 80.0 * index, angle=angles[index % 3], radius=170.0 + 90.0 * (index // 3))
-
-
 #: Ports the follower to its leader through the friends list, under the lease it is given.
 #: True when it landed with the leader.
 PortToLeader = Callable[[Lease], Awaitable[bool]]
@@ -174,7 +167,6 @@ class Follower:
         trail: Trail,
         arbiter: Arbiter,
         *,
-        spacing: Spacing,
         port: PortToLeader | None = None,
         label: str = "",
         clock: Callable[[], float] = time.monotonic,
@@ -204,18 +196,22 @@ class Follower:
         self.leader = leader
         self.trail = trail
         self.arbiter = arbiter
-        self.spacing = spacing
         self.port = port
         self.label = label or f"window {client.window_handle}"
         self._clock = clock
         self.cursor: int | None = None
         self.position: Point | None = None
+        # Where the leader stands, and since when: a move past STILL starts it again.
         self._leader_still_at: tuple[Point, float] | None = None
+        self._on_spot = False
         self._gate_since: float | None = None
         self._jump_failed: int | None = None
         self._port_after = 0.0
         self._stalls = 0
         self._stall_from: tuple[Point, float] | None = None
+        # Where the last stall counted happened, and the settle of the leader it gave up on.
+        self._stall_at: Point | None = None
+        self._stood_for: float | None = None
         self._speed_watch = CharacterWatch()
         self._ledger = speed_ledger if speed_ledger is not None else SpeedLedger()
         self._walking_speed = walking_speed
@@ -288,20 +284,37 @@ class Follower:
             if self._jump_failed == point.seq:
                 return Step(StepKind.PORT, reason="the jump did not take it")
             return Step(StepKind.INTERACT, point.position, reason="at a jump", point=point)
+        onto = self._onto_leader(distance, leader.position)
+        if onto is not None:
+            return onto
         if self._stalls >= MAX_STALLS:
             return Step(StepKind.PORT, reason="stalled")
 
         fast = distance > CATCH_UP
-        if self._leader_still(now) and (point is None or distance <= PLACE_DIRECT):
-            place = offset_from(leader.position, leader.yaw or 0.0, self.spacing.angle, self.spacing.radius)
-            if flat_distance(position, place) <= ARRIVE_PLACE:
-                return Step(StepKind.STOP, reason="in place")
-            return Step(StepKind.WALK, place, fast=fast, reason="to its place")
-        if distance <= self.spacing.gap:
-            return Step(StepKind.STOP, reason="close enough")
         if point is None:
             return Step(StepKind.WALK, leader.position, fast=fast, reason="toward the leader")
         return Step(StepKind.WALK, point.position, fast=fast, reason="along the trail", point=point)
+
+    def _onto_leader(self, distance: float, leader: Point) -> Step | None:
+        """A stop on the leader's spot, or as near as a stall allowed. None walks on to it.
+
+        The walk there is the trail, ground the leader just crossed, so a wall or a door beside
+        the leader is never in the way. Once on the spot it stands until the leader is
+        :data:`RESUME` away. A stall within :data:`NEAR_STALL` of the leader stands it there until
+        the leader moves past :data:`STILL`, instead of counting toward a port; further back, a
+        stall counts as ever.
+        """
+        if distance <= ON_LEADER or (self._on_spot and distance <= RESUME):
+            self._on_spot = True
+            return Step(StepKind.STOP, reason=ON_LEADERS_SPOT)
+        self._on_spot = False
+        since = self._leader_still_at[1]
+        if self._stalls and self._stall_at is not None and flat_distance(self._stall_at, leader) <= NEAR_STALL:
+            self._stalls, self._stall_from, self._stall_at = 0, None, None
+            self._stood_for = since
+        if self._stood_for == since:
+            return Step(StepKind.STOP, reason=AS_NEAR_AS_IT_GETS)
+        return None
 
     def _sigil_step(self, me: Snapshot, position: Point, leader: Snapshot, now: float) -> Step | None:
         """The step a dungeon sigil decides, or None to follow as usual.
@@ -427,9 +440,6 @@ class Follower:
     def _note_leader(self, leader: Snapshot, now: float) -> None:
         if self._leader_still_at is None or flat_distance(leader.position, self._leader_still_at[0]) > STILL:
             self._leader_still_at = (leader.position, now)
-
-    def _leader_still(self, now: float) -> bool:
-        return self._leader_still_at is not None and now - self._leader_still_at[1] >= LEADER_SETTLE
 
     # -- doing ------------------------------------------------------------------------------
 
@@ -578,6 +588,7 @@ class Follower:
             return
         if flat_distance(start, self.position) < STALL_MIN_MOVE:
             self._stalls += 1
+            self._stall_at = self.position
             logger.info("%s stalled following (%d of %d); backing off", self.label, self._stalls, MAX_STALLS)
             await keys.release(GameAction.MOVE_FORWARD)
             await keys.hold(GameAction.MOVE_BACKWARD)

@@ -28,9 +28,3 @@ def facing(yaw: float) -> tuple[float, float]:
 
 def flat_distance(a: Point, b: Point) -> float:
     return math.hypot(a[0] - b[0], a[1] - b[1])
-
-
-def offset_from(origin: Point, yaw: float, angle: float, radius: float) -> Point:
-    """The point *radius* from *origin* at *angle* off the way *yaw* faces (pi is straight behind)."""
-    dx, dy = facing(yaw + angle)
-    return origin[0] + dx * radius, origin[1] + dy * radius, origin[2]
