@@ -368,7 +368,10 @@ Stated by the user on 2026-11-21, for BartleBuddy's Auto-combat epic (#31).
   phase's combatant windows, which are those HUD portraits. So `ally(last)` is the wizard that
   entered last, the same one on every client. BartleBot enters its clients in combat order
   (4, 3, 2, 1) so that P1 sits last; a team that enters on its own, as BartleBot's ambient fights
-  do (#212), seats whoever arrives last there.
+  do (#212), seats whoever arrives last there. Since BartleBuddy #31's Stage 4 the fight runner
+  hands wizsprinter the duel's combat order (`team_order`), which `ally(-N)` counts through
+  instead of the seats, and BartleBuddy's followers walk in in that order
+  (`bartleby.runtime.movement.join_order`). The casting order is still the seats'.
 - **`is_boss` reads correctly at the first planning phase.**
 
 ### Special cards

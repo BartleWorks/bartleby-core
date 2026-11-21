@@ -32,7 +32,10 @@ reading the position back every tick, and a stall backed off from.
   the leader, never by a port: stepping on an active duel circle pulls a wizard in, and a
   wizard ported beside one was not seen to join (``docs/WIZARD101.md``). Once the follower is
   in one itself it does nothing, since a fight is combat's. Each walk in is logged as it
-  starts and as it ends, joined or not, with how long it took.
+  starts and as it ends, joined or not, with how long it took. With a ``join_gate`` it stands
+  where it is until the gate opens, so a team walks in in the order its duel seats it, and so
+  casts in it (:mod:`bartleby.runtime.movement.join_order`); a follower waiting at its gate
+  counts as joining.
 * **Waiting for the leader to move**, when asked to (``wait_for_move``): nothing until the
   leader has passed :data:`STILL`, changed zone or entered a fight. A product that picks a
   new leader for the player, as BartleBuddy's swap does, uses it so that looking at a
@@ -121,6 +124,8 @@ AWAITING_MOVE = "waiting for the leader to move"
 HELD = "held where it is"
 #: Why a follower walks straight at the leader: the leader is in a fight.
 JOINING_FIGHT = "joining the fight"
+#: Why a follower stands while the leader is in a fight: its join gate has not opened yet.
+WAITING_TO_JOIN = "waiting its turn to join the fight"
 #: Units from the leader at a sigil within which a follower stops, with its prompt or not.
 SIGIL_CLOSE = 60.0
 #: Why a follower stands at a dungeon sigil: its prompt shows, so it stays in range for the press.
@@ -177,6 +182,7 @@ class Follower:
         speed_ledger: SpeedLedger | None = None,
         writes_speed: bool = True,
         sigil_prompts: PromptReads | None = None,
+        join_gate: Callable[[], bool] | None = None,
     ) -> None:
         """With *wait_for_move*, it stands until the leader has moved from where it first reads it.
 
@@ -189,7 +195,8 @@ class Follower:
         touches its speed field, catching up included, and walks at whatever the field holds.
         With *sigil_prompts*, shared by the leader's followers, it stays still at a dungeon
         sigil and through its countdown (:mod:`bartleby.runtime.movement.sigil`); without, it
-        never reads a prompt.
+        never reads a prompt. With *join_gate*, it walks into the leader's fight only once the
+        gate answers True, and stands until then (:mod:`bartleby.runtime.movement.join_order`).
         """
         self.client = client
         self.me = me
@@ -225,6 +232,8 @@ class Follower:
         self._far_check = port_when_far
         self._walking = False
         self._joining_since: float | None = None
+        self._join_gate = join_gate
+        self._waiting_since: float | None = None
         self._prompts = sigil_prompts
         self.sigil = SigilState()
         # Interact pressed on the follower and on the leader since the last tick.
@@ -277,6 +286,8 @@ class Follower:
                 return Step(StepKind.PORT, reason="far from the leader")
             self._far_check = False
         if leader.in_battle:
+            if self._join_gate is not None and not self._join_gate():
+                return Step(StepKind.STOP, reason=WAITING_TO_JOIN)
             return Step(StepKind.WALK, leader.position, fast=True, reason=JOINING_FIGHT)
 
         point = self._advance(position, me.zone)
@@ -411,8 +422,8 @@ class Follower:
 
     @property
     def joining_fight(self) -> bool:
-        """Whether it is walking into the leader's fight: what a fighter holds its first cast for."""
-        return self.last_step.reason == JOINING_FIGHT
+        """Whether it is walking into the leader's fight, or waiting its turn to: what a fighter holds its first cast for."""
+        return self.last_step.reason in (JOINING_FIGHT, WAITING_TO_JOIN)
 
     @property
     def entering(self) -> bool:
@@ -543,10 +554,21 @@ class Follower:
         Whether walking in joins a fight, where a port beside it did not, is a question a
         session's log has to answer, so each walk says how long it took or why it stopped.
         """
+        waiting = step.reason == WAITING_TO_JOIN
+        if waiting and self._waiting_since is None:
+            self._waiting_since = now
+            logger.info("%s waits its turn to join the leader's fight", self.label)
         joining = step.reason == JOINING_FIGHT
         if joining and self._joining_since is None:
             self._joining_since = now
-            logger.info("%s walks into the leader's fight", self.label)
+            if self._waiting_since is not None:
+                logger.info(
+                    "%s walks into the leader's fight after %.1f s waiting its turn",
+                    self.label,
+                    now - self._waiting_since,
+                )
+            else:
+                logger.info("%s walks into the leader's fight", self.label)
         elif not joining and self._joining_since is not None:
             elapsed, self._joining_since = now - self._joining_since, None
             if me.in_battle:
@@ -554,6 +576,8 @@ class Follower:
             else:
                 why = step.reason if leader.in_battle else "the fight ended first"
                 logger.info("%s did not join the leader's fight after %.1f s: %s", self.label, elapsed, why)
+        if not waiting:
+            self._waiting_since = None
 
     async def _drive(self, lease: Lease, step: Step) -> None:
         keys = lease.input

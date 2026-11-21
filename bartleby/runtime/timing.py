@@ -800,6 +800,12 @@ FOLLOW_GATE_WAIT = 8.0
 FOLLOW_PORT_RETRY = 15.0
 # Seconds before a follower whose port failed tries the fallback again.
 
+JOIN_ORDER_HOLD = 4.0
+# Seconds after a follower started walking into the leader's fight before the next one in the
+# join order (bartleby.runtime.movement.join_order) walks in anyway, whether the first has
+# joined or not. A walk in at 2.0x from the leader's spot takes about a second; three holds
+# in a row stay inside AMBIENT_HELP_HOLD, which the first cast waits for joiners up to.
+
 # ---------------------------------------------------------------------------
 # Followers at a dungeon sigil (bartleby.runtime.movement.sigil)
 # ---------------------------------------------------------------------------

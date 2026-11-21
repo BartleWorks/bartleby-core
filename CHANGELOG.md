@@ -10,8 +10,27 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ## Unreleased
 
+### Breaking
+
+- **`default_duel` takes no `ambient`, and `SHIPPED_AMBIENT_DUEL_IDS` is gone** (BartleBuddy
+  #31, Stage 4). A fight no node started gets Default Team Duel as its shipped Team default,
+  as every other fight does, not Everyone Attacks: the runner hands wizsprinter the duel's
+  combat order, so its supports' `ally(last)` is P1 however the team sat. A product drops the
+  argument; one that listed the ambient ids, as BartleBot's `--self-check` did, lists
+  `SHIPPED_EVERYONE_ATTACKS_DUEL_ID` itself if it still ships it. Takes wizsprinter at the
+  commit with `team_order`.
+
 ### Added
 
+- **The team's order, for `ally(-N)`** (BartleBuddy #31, Stage 4). `run_fight(..., order=)`,
+  `CombatRun(..., order=)` and its settable `order` take the duel's combat order as player
+  numbers, and each round the watch hands the players' global ids in that order to their
+  combat as wizsprinter's `team_order` (`FightWatch.team_order`). Without one, the seats
+  decide, as before.
+- **`movement.join_order.JoinOrder`** and **`Follower(..., join_gate=)`**: a leader's followers
+  walk into its fight one after another, each once the one before has joined or
+  `timing.JOIN_ORDER_HOLD` after that one started. A follower waiting at its gate stands, says
+  `WAITING_TO_JOIN`, and counts as `joining_fight`.
 - **Who is cast for, at each planning phase** (BartleBuddy #31, Stage 3). `CombatRun` and
   `FightWatch` take `casts`, asked of each player at the start of every planning phase, and
   `hold`, the async context a cast or a flee is made under. A player played by hand is not cast

@@ -22,6 +22,13 @@ played by hand in it is never fled: once it would be, the watch says so instead
 async context a round's cast, or a flee, is made under, such as an arbiter's combat lease.
 Without either, every player is cast for, under no hold, as BartleBot's are.
 
+**The team's order.** A team that isn't an Adventure Party group sits in the order it
+walked in, and wizsprinter counts ``ally(last)`` by seat. A caller that knows the duel's
+combat order hands it over as ``order``, player numbers in that order (Default Team Duel's
+4, 3, 2, 1). Each round the watch turns it into the players' global ids and gives it to
+that player's combat as wizsprinter's ``team_order``, so ``ally(last)`` is the order's last
+player in the fight however the team sat. With none, the seats decide, as before.
+
 wizwalker and wizsprinter are imported where they are used, so importing this module
 pulls in neither. Moved from BartleBot's ``nodes/combat_runner.py`` (BartleBuddy #31,
 Stage 2).
@@ -34,7 +41,7 @@ import contextlib
 import enum
 import logging
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -163,12 +170,22 @@ class FightWatch:
     with one in it is never fled, :meth:`flee_all` included. Such a fight goes into
     :attr:`would_flee` instead, until a round in it is no longer hopeless, or every player in
     it is cast for again and it is fled. *hold* is what a cast or a flee is made under.
+
+    *order*, the duel's combat order as player numbers, is the order wizsprinter counts the
+    team from the end in (:meth:`team_order`). A caller may set it once the duel is known.
     """
 
     def __init__(
-        self, numbers: dict, log: Callable[..., None], *, casts: Casts | None = None, hold: Hold | None = None
+        self,
+        numbers: dict,
+        log: Callable[..., None],
+        *,
+        casts: Casts | None = None,
+        hold: Hold | None = None,
+        order: Sequence[int] | None = None,
     ):
-        self._numbers = numbers  # client -> 1-based player number, for log lines only
+        self._numbers = numbers  # client -> 1-based player number
+        self.order: tuple[int, ...] = tuple(order or ())
         self.log = log
         self._casts = casts
         self._hold = hold
@@ -219,6 +236,17 @@ class FightWatch:
             how = "is cast for again" if casts else "is played by hand"
             self.log(f"P{self._numbers[client]} {how} from this round", logging.INFO)
         return casts
+
+    def team_order(self) -> list[int] | None:
+        """The players' global ids in :attr:`order`, for wizsprinter's ``team_order``.
+
+        None with no order, or while any player's id is unreadable: the seats decide then.
+        A number in the order no player has is left out.
+        """
+        if not self.order or not self._gids:
+            return None
+        gid_of = {self._numbers[client]: gid for client, gid in self._gids.items()}
+        return [gid_of[number] for number in self.order if number in gid_of] or None
 
     def hold_for(self, client) -> AbstractAsyncContextManager:
         """What *client*'s cast or flee is made under: the caller's *hold*, or nothing."""
@@ -494,6 +522,7 @@ def _watched_combat_class():
                     async with self.watch.hold_for(self.client):
                         await _flee(self, self.watch)
                     return
+                self.team_order = self.watch.team_order()
                 async with self.watch.hold_for(self.client):
                     await super().handle_round()
 
@@ -532,8 +561,9 @@ class CombatRun:
 
     *numbers* maps every client that may fight to its 1-based player number, so the watch
     can group players by fight whichever of them turn up. The time limit runs from creation.
-    *casts* and *hold* are the watch's: who is cast for at each planning phase, and what a
-    cast is made under (the module's docstring).
+    *casts*, *hold* and *order* are the watch's: who is cast for at each planning phase, what
+    a cast is made under, and the duel's combat order (the module's docstring). A caller that
+    resolves the duel once the fight has begun sets :attr:`order` then.
     """
 
     def __init__(
@@ -544,8 +574,9 @@ class CombatRun:
         *,
         casts: Casts | None = None,
         hold: Hold | None = None,
+        order: Sequence[int] | None = None,
     ):
-        self.watch = FightWatch(numbers, log, casts=casts, hold=hold)
+        self.watch = FightWatch(numbers, log, casts=casts, hold=hold, order=order)
         self._numbers = numbers
         self._deadline = None if time_limit is None else time.monotonic() + time_limit
         self._tasks: list[tuple[int, asyncio.Task]] = []
@@ -554,6 +585,15 @@ class CombatRun:
 
     async def identify(self) -> None:
         await self.watch.identify()
+
+    @property
+    def order(self) -> tuple[int, ...]:
+        """The duel's combat order, as player numbers; empty for the seats' own."""
+        return self.watch.order
+
+    @order.setter
+    def order(self, order: Sequence[int] | None) -> None:
+        self.watch.order = tuple(order or ())
 
     def start(self, client, dsl: str) -> bool:
         """Start *client*'s combat unless it is already running. True when it was started."""
@@ -621,20 +661,22 @@ async def run_fight(
     *,
     time_limit: float | None,
     log: Callable[..., None],
+    order: Sequence[int] | None = None,
 ) -> FightResult:
     """Fight to the end with every one of *clients*, fleeing any fight that cannot be won.
 
     ``clients``, ``dsls`` and ``numbers`` are parallel; ``numbers`` are 1-based player numbers,
     used in log lines. *time_limit* is how many seconds from now every fight is fled, or None
     for no limit; zero or less flees at the first planning phase. *log* takes ``(message,
-    level)``, so the caller decides whose logger the lines are filed under.
+    level)``, so the caller decides whose logger the lines are filed under. *order* is the
+    duel's combat order, as player numbers, which wizsprinter counts ``ally(-N)`` through.
 
     One player's combat raising does not stop the others; it is reported in the result.
     """
     if not clients:
         return FightResult(FightEnd.FINISHED, [])
     await dsl.parse_strategies(dsls)
-    run = CombatRun(dict(zip(clients, numbers)), log, time_limit)
+    run = CombatRun(dict(zip(clients, numbers)), log, time_limit, order=order)
     await run.identify()
     for client, text in zip(clients, dsls):
         run.start(client, text)
