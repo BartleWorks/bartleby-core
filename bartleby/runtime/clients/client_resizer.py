@@ -5,9 +5,17 @@ wizwalker's ``client.video_manager`` holds the apply, and this holds everything 
 when one may happen:
 
 **Latest target only.** :meth:`ClientResizer.resize` only says what size a client should be. One
-worker per client waits out loading and any lease it can't preempt, and reads the target at
-the last moment, so targets sent during a wait run only the last. A fight is not waited out:
-the tiles have already changed shape, so a wait would leave a game cut off for the whole fight.
+worker per client waits out any lease it can't preempt, and reads the target at the last
+moment, so targets sent during a wait run only the last. A fight is not waited out: the tiles
+have already changed shape, so a wait would leave a game cut off for the whole fight.
+
+**Nor is a loading screen.** Every step of a resize needs only the process: the nodes, the
+video manager and its byte. ``is_loading`` was the one read that needed the root window hook,
+and it can't see the load-in from character select at all. A resize asked for during the
+load-in after Play applied in game, at the right HUD scale, which is what lets a product resize
+a game before it is hooked. One during a zone's loading screen has not been seen to apply yet;
+if the game holds its apply back there, ``RESIZE_APPLY_TIMEOUT`` takes the byte back as for any
+byte that never clears.
 
 **A lease, below hotkeys.** It writes memory, so it holds ``Owner.DISPLAY``: movement and the
 quester are preempted and resume from their own state, and a hotkey, combat or recovery goes
@@ -21,9 +29,10 @@ embeds the window hears how it ended, as the game has taken it out of its tile b
 before that task starts simply ends the resize.
 
 **Any failure means today's behavior.** One warning, the client keeps its last size, and nothing
-more is tried on it until :meth:`ClientResizer.forget` and it is hooked again. Finding no node
-pair is a failure only once the scan is sure: a pass that skipped a region the game changed under
-it is made once more first (:func:`find_config_nodes`).
+more is tried on it until :meth:`ClientResizer.forget` and it is hooked again, or, for one asked
+of before its hook, :meth:`ClientResizer.clear_failure` as it is hooked. Finding no node pair is
+a failure only once the scan is sure: a pass that skipped a region the game changed under it is
+made once more first (:func:`find_config_nodes`).
 
 **Giving back is to the user's size.** A client goes back to the size it was first measured at,
 or, launched at its tile's size to spare it a resize, to the size it would have launched at,
@@ -50,7 +59,6 @@ from bartleby.runtime.clients import heap_scan, static_routes
 from bartleby.runtime.game.game_sizing import ui_size_for
 from bartleby.runtime.launcher import launch_profile
 from bartleby.runtime.timing import (
-    POLL_INTERVAL,
     RESIZE_APPLY_POLL,
     RESIZE_APPLY_TIMEOUT,
     RESIZE_GIVE_BACK_TIMEOUT,
@@ -239,7 +247,12 @@ class ClientResizer:
                 entry.scan = asyncio.create_task(self._find(client, entry), name="resize-scan")
 
     def resize(self, client, size: tuple[int, int]) -> None:
-        """Have *client* run at *size*, as soon as it may. Returns at once; ``on_resized`` says how it ended."""
+        """Have *client* run at *size*, as soon as it may. Returns at once; ``on_resized`` says how it ended.
+
+        *client* need not be hooked: nothing a resize reads or writes needs a hook, so a product
+        can ask during the load-in after Play, on the client its drive borrowed. It names the home
+        first (``give_back_to``), and clears a failure as the client is hooked (``clear_failure``).
+        """
         entry = self._entry(client)
         if entry.failed:
             return
@@ -257,8 +270,9 @@ class ClientResizer:
 
         Its nodes are found now, in the background, so a give back as the app quits doesn't wait
         on a scan; a client just hooked shares that pass with its key map's. A resize or a give
-        back that comes first makes it urgent. Call it as the client joins, before anything is
-        asked of it; ``forget`` drops it with the rest.
+        back that comes first makes it urgent. Call it before anything is asked of the client, as
+        it joins or before a resize asked of it earlier; ``forget`` drops it with the rest.
+        Called again, it keeps what was found.
         """
         entry = self._entry(client)
         entry.launch, entry.launch_ui_size = tuple(size), None
@@ -272,8 +286,8 @@ class ClientResizer:
 
         The launch size is the one ``give_back_to`` named, else the size measured before the
         first resize. A client with neither, so never resized, or one given up on, has nothing to
-        give back. One still loading when the time is up, or held by a higher lease, is left as
-        it is, with a warning.
+        give back. One loading is given back all the same, as any resize is; one held by a higher
+        lease until the time is up is left as it is, with a warning.
         """
         entry = self._entries.get(client_key(client))
         if entry is None or entry.failed or entry.launch is None:
@@ -290,6 +304,25 @@ class ClientResizer:
     async def stop_all(self) -> None:
         """Stop all: every waiting resize ends. An apply under way finishes and reports first."""
         await asyncio.gather(*(self._end_waiting(entry) for entry in self._entries.values()))
+
+    def failed(self, client) -> bool:
+        """Whether resizing is off for *client* after a failure, until ``forget`` or ``clear_failure``."""
+        entry = self._entries.get(client_key(client))
+        return entry is not None and entry.failed
+
+    def clear_failure(self, client) -> bool:
+        """*client* is hooked now, after a resize asked of it before failed: it may be resized again.
+
+        For a product that asks before the hook, as BartleBuddy does during the load-in after
+        Play. What that attempt found, the nodes and the home, is kept, and the nodes are checked
+        again before they are used, so a client still settling costs no scan. Unlike ``forget``
+        it ends nothing under way. Whether there was a failure to clear.
+        """
+        entry = self._entries.get(client_key(client))
+        if entry is None or not entry.failed:
+            return False
+        entry.failed = False
+        return True
 
     async def forget(self, client) -> None:
         """*client* is unhooked or gone: a client hooked again starts afresh, failures included."""
@@ -359,24 +392,14 @@ class ClientResizer:
     async def _run(self, client, entry: _Entry, timeout: float) -> None:
         """Bring *client* to its latest target, until there is none."""
         with run_trace.span("resize.worker", client=client, hwnd=client_key(client), target=entry.target):
-            loading = 0.0
             try:
                 while entry.target is not None:
-                    if await self._in_the_way(client):
-                        await asyncio.sleep(POLL_INTERVAL)
-                        loading += POLL_INTERVAL
-                        run_trace.note(loading_s=round(loading, 2))
-                    else:
-                        with run_trace.span("resize.nodes"):
-                            nodes = await self._nodes(client, entry)
-                        if nodes is not None:
-                            await self._under_lease(client, entry, timeout)
+                    with run_trace.span("resize.nodes"):
+                        nodes = await self._nodes(client, entry)
+                    if nodes is not None:
+                        await self._under_lease(client, entry, timeout)
             except Exception as exc:  # noqa: BLE001 - a read that failed: the client may be going away
                 self._fail(client, entry, exc)
-
-    @staticmethod
-    async def _in_the_way(client) -> bool:
-        return await client.is_loading()
 
     async def _under_lease(self, client, entry: _Entry, timeout: float) -> None:
         asked = time.perf_counter()
@@ -388,7 +411,7 @@ class ClientResizer:
                     hwnd=client_key(client),
                     waited=round(time.perf_counter() - asked, 4),
                 )
-                if entry.target is None or await self._in_the_way(client):
+                if entry.target is None:
                     return
                 size, entry.target = entry.target, None
                 await self._commit(client, entry, size, timeout)

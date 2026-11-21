@@ -299,7 +299,11 @@ class ClientManager:
         return _titled(self._handler.clients, title)
 
     async def drive_client_in(
-        self, expected_title: str, *, hold: Callable[[object], AbstractAsyncContextManager] | None = None
+        self,
+        expected_title: str,
+        *,
+        hold: Callable[[object], AbstractAsyncContextManager] | None = None,
+        on_play: auto_select.OnPlay | None = None,
     ) -> bool:
         """Advance a just-launched window through to in-game, then tidy up after it.
 
@@ -313,7 +317,9 @@ class ClientManager:
         sitting at character select for the user to pick from, and False says so: the client
         is not in-game. A caller that needs it anyway (recovery) falls back to await_client_in.
 
-        *hold* goes to the cleanup that follows, as ``auto_select.drive_client_in`` says.
+        *hold* goes to the cleanup that follows, as ``auto_select.drive_client_in`` says, and
+        *on_play* to the drive, which calls it with the client ``pending_client_titled`` lent it
+        once Play is taken. With the setting off nothing presses Play, so it is never called.
         """
         if not self._settings.auto_select_character:
             await auto_select.drive_to_character_select(
@@ -328,6 +334,7 @@ class ClientManager:
             lambda: self.pending_client_titled(expected_title),
             remember_realm=self._remember_realm_on_login(),
             hold=hold,
+            on_play=on_play,
         )
 
     def _remember_realm_on_login(self) -> bool:

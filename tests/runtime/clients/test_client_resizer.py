@@ -36,8 +36,7 @@ def preferred(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def quick(monkeypatch):
-    """A wait for a client to come free, shortened. Its reads count iterations, not seconds."""
-    monkeypatch.setattr(client_resizer, "POLL_INTERVAL", 0.005)
+    """A wait for the pending byte, shortened. Its reads count iterations, not seconds."""
     monkeypatch.setattr(client_resizer, "RESIZE_APPLY_POLL", 0.002)
     monkeypatch.setattr(heap_scan, "HEAP_SCAN_RETRY_DELAY", 0.01)
 
@@ -78,6 +77,29 @@ async def _until(condition, timeout: float = 5) -> None:
     while not condition():
         assert time.monotonic() < deadline, "it never happened"
         await asyncio.sleep(0.002)
+
+
+class _Held:
+    """A lease above the resizer's on *client*, held until let go: what a resize waits out."""
+
+    def __init__(self, arbiter: Arbiter, client: SimClient, owner: Owner = Owner.COMBAT) -> None:
+        self._release = asyncio.Event()
+        self._taken = asyncio.Event()
+
+        async def hold():
+            async with arbiter.acquire(client, owner):
+                self._taken.set()
+                await self._release.wait()
+
+        self.task = asyncio.create_task(hold())
+
+    async def __aenter__(self) -> _Held:
+        await self._taken.wait()
+        return self
+
+    async def __aexit__(self, *_exc) -> None:
+        self._release.set()
+        await asyncio.gather(self.task, return_exceptions=True)
 
 
 # -- the writes ------------------------------------------------------------------------------
@@ -162,12 +184,25 @@ def test_display_sits_above_movement_and_below_hotkeys():
     assert Owner.QUESTER < Owner.MOVEMENT < Owner.DISPLAY < Owner.HOTKEY < Owner.COMBAT < Owner.RECOVERY
 
 
-async def test_it_waits_while_the_client_loads(resizer):
+async def test_it_applies_while_the_client_loads(resizer, reports):
+    """A loading screen is not waited out: the load-in after Play is where a launch resizes its large tile."""
     client = SimClient(loading=True)
     resizer.resize(client, _SMALL_SIZE)
-    await asyncio.sleep(0.03)
-    assert _writes(client) == []
-    client.loading = False
+    await _settled(resizer, client)
+    assert client.game_size == _SMALL_SIZE
+    assert client.loading, "applied during the load, not after it"
+    assert reports == [(client, _SMALL_SIZE)]
+
+
+async def test_it_never_reads_is_loading_so_it_needs_no_hook(resizer):
+    """``is_loading`` was the one read that needed the root window hook, and it can't see a load-in from character select."""
+    client = SimClient()
+
+    async def unreadable():
+        raise AssertionError("is_loading was read")
+
+    client.is_loading = unreadable
+    resizer.resize(client, _SMALL_SIZE)
     await _settled(resizer, client)
     assert client.game_size == _SMALL_SIZE
 
@@ -180,24 +215,13 @@ async def test_a_fight_does_not_hold_it_off(resizer):
     assert client.game_size == _SMALL_SIZE
 
 
-async def test_a_load_that_starts_while_it_waits_for_the_lease_holds_it_off(resizer, arbiter):
+async def test_a_load_that_starts_while_it_waits_for_the_lease_does_not_hold_it_off(resizer, arbiter):
     client = SimClient()
-    release = asyncio.Event()
-
-    async def hotkey():
-        async with arbiter.acquire(client, Owner.HOTKEY):
-            await release.wait()
-
-    holder = asyncio.create_task(hotkey())
-    await asyncio.sleep(0)
-    resizer.resize(client, _SMALL_SIZE)
-    await asyncio.sleep(0.02)
-    client.loading = True
-    release.set()
-    await holder
-    await asyncio.sleep(0.03)
-    assert _writes(client) == []
-    client.loading = False
+    async with _Held(arbiter, client, Owner.HOTKEY):
+        resizer.resize(client, _SMALL_SIZE)
+        await asyncio.sleep(0.02)
+        assert _writes(client) == []
+        client.loading = True
     await _settled(resizer, client)
     assert client.game_size == _SMALL_SIZE
 
@@ -264,30 +288,22 @@ async def test_an_owner_above_it_that_arrives_during_an_apply_waits_for_the_appl
     assert reports == [(client, _SMALL_SIZE)]
 
 
-async def test_a_higher_owner_arriving_before_the_apply_leaves_the_target_standing(resizer, arbiter):
+async def test_a_higher_owner_waiting_beside_it_goes_first_and_the_target_stands(resizer, arbiter):
     client = SimClient()
-    # Held at the check under the lease, so the higher owner lands before the apply.
-    gate = asyncio.Event()
-    is_loading, calls = client.is_loading, []
-
-    async def slow_check():
-        calls.append(1)
-        if len(calls) == 2:
-            await gate.wait()
-        return await is_loading()
-
-    client.is_loading = slow_check
-    resizer.resize(client, _SMALL_SIZE)
-    await _until(lambda: len(calls) == 2)
+    seen = []
 
     async def hotkey():
         async with arbiter.acquire(client, Owner.HOTKEY):
-            assert _writes(client) == []
+            seen.append(list(_writes(client)))
 
-    higher = asyncio.create_task(hotkey())
+    async with _Held(arbiter, client):
+        resizer.resize(client, _SMALL_SIZE)
+        await asyncio.sleep(0.02)
+        higher = asyncio.create_task(hotkey())
+        await asyncio.sleep(0.01)
     await higher
-    gate.set()
     await _settled(resizer, client)
+    assert seen == [[]]
     assert client.game_size == _SMALL_SIZE
 
 
@@ -321,12 +337,13 @@ async def test_a_follower_moves_again_after_a_resize(resizer, arbiter, monkeypat
 # -- the latest target ----------------------------------------------------------------------
 
 
-async def test_three_targets_sent_during_a_wait_run_only_the_last(resizer, reports):
-    client = SimClient(loading=True)
-    resizer.resize(client, (640, 360))
-    resizer.resize(client, (854, 480))
-    resizer.resize(client, _SMALL_SIZE)
-    client.loading = False
+async def test_three_targets_sent_during_a_wait_run_only_the_last(resizer, arbiter, reports):
+    client = SimClient()
+    async with _Held(arbiter, client):
+        resizer.resize(client, (640, 360))
+        await asyncio.sleep(0.01)
+        resizer.resize(client, (854, 480))
+        resizer.resize(client, _SMALL_SIZE)
     await _settled(resizer, client)
     assert [d for k, d in _writes(client) if k == "resolution"] == ["534x300"]
     assert reports == [(client, _SMALL_SIZE)]
@@ -356,23 +373,23 @@ async def test_going_back_to_the_launch_size_gives_back_the_launch_ui_size(resiz
 # -- Stop all ------------------------------------------------------------------------------------
 
 
-async def test_stop_all_before_the_byte_ends_the_resize(resizer, reports):
-    client = SimClient(loading=True)
-    resizer.resize(client, _SMALL_SIZE)
-    await asyncio.sleep(0.01)
-    await resizer.stop_all()
-    client.loading = False
+async def test_stop_all_before_the_byte_ends_the_resize(resizer, arbiter, reports):
+    client = SimClient()
+    async with _Held(arbiter, client):
+        resizer.resize(client, _SMALL_SIZE)
+        await asyncio.sleep(0.01)
+        await resizer.stop_all()
     await asyncio.sleep(0.02)
     assert _writes(client) == []
     assert reports == []
     assert client.game_size == (800, 600)
 
 
-async def test_the_next_target_asks_again_after_stop_all(resizer):
-    client = SimClient(loading=True)
-    resizer.resize(client, _SMALL_SIZE)
-    await resizer.stop_all()
-    client.loading = False
+async def test_the_next_target_asks_again_after_stop_all(resizer, arbiter):
+    client = SimClient()
+    async with _Held(arbiter, client):
+        resizer.resize(client, _SMALL_SIZE)
+        await resizer.stop_all()
     resizer.resize(client, _SMALL_SIZE)
     await _settled(resizer, client)
     assert client.game_size == _SMALL_SIZE
@@ -392,26 +409,25 @@ async def test_stop_all_after_the_byte_still_ends_the_apply_and_reports(resizer,
     await _until(lambda: arbiter.holder(client) is None)
 
 
-async def test_the_arbiter_s_stop_all_alone_ends_a_resize_waiting_on_its_lease(resizer, arbiter, reports):
-    """A revoke lands on the lease in the moment before the apply starts: the target goes too."""
+async def test_a_revoke_the_moment_the_lease_is_taken_still_ends_the_apply_and_reports(resizer, arbiter, reports):
+    """Nothing is awaited between the lease and the apply, so the apply is committed once the lease is."""
     client = SimClient()
-    gate = asyncio.Event()
-    is_loading, calls = client.is_loading, []
+    loop = asyncio.get_running_loop()
+    revokes = []
 
-    async def slow_check():
-        calls.append(1)
-        if len(calls) == 2:
-            await gate.wait()
-        return await is_loading()
+    def on_holder(_key, lease):
+        if lease is not None and lease.owner is Owner.DISPLAY and not revokes:
+            revokes.append(loop.create_task(arbiter.revoke(client)))
 
-    client.is_loading = slow_check
+    arbiter.subscribe(on_holder)
     resizer.resize(client, _SMALL_SIZE)
-    await _until(lambda: len(calls) == 2)
-    await arbiter.revoke_all()
     await _settled(resizer, client)
-    assert _writes(client) == []
-    assert reports == []
+    await asyncio.gather(*revokes)
+    assert revokes
+    assert client.game_size == _SMALL_SIZE
+    assert reports == [(client, _SMALL_SIZE)]
     assert resizer._entries[client.window_handle].target is None
+    assert arbiter.holder(client) is None
 
 
 async def test_a_lease_revoked_during_an_apply_reports_and_raises_nothing(resizer, arbiter, reports):
@@ -796,16 +812,19 @@ async def test_a_prepare_that_finds_no_node_warns_once_and_a_swap_asks_no_more(r
     assert len(warnings()) == 1
 
 
-async def test_a_read_that_fails_during_the_wait_is_the_same_warning(resizer, warnings):
+async def test_a_read_that_fails_as_it_checks_its_nodes_is_the_same_warning(resizer, warnings):
     client = SimClient()
-
-    async def closed():
-        raise OSError("the window is gone")
-
-    client.is_loading = closed
     resizer.resize(client, _SMALL_SIZE)
     await _settled(resizer, client)
+
+    async def closed(*_args):
+        raise OSError("the window is gone")
+
+    client.hook_handler.read_bytes = closed
+    resizer.resize(client, _LARGE_SIZE)
+    await _settled(resizer, client)
     assert len(warnings()) == 1
+    assert client.game_size == _SMALL_SIZE
 
 
 async def test_a_timeout_takes_the_byte_back_puts_the_nodes_back_warns_once_and_reports(
@@ -954,14 +973,49 @@ async def test_stop_all_ends_a_resize_waiting_on_a_retry_and_the_scan_runs_on(re
     assert client.game_size == _SMALL_SIZE
 
 
-async def test_forgetting_a_waiting_client_ends_its_wait(resizer, reports):
-    client = SimClient(loading=True)
-    resizer.resize(client, _SMALL_SIZE)
-    task = resizer._entries[client.window_handle].task
-    await resizer.forget(client)
-    assert task.done()
+async def test_forgetting_a_waiting_client_ends_its_wait(resizer, arbiter, reports):
+    client = SimClient()
+    async with _Held(arbiter, client):
+        resizer.resize(client, _SMALL_SIZE)
+        await asyncio.sleep(0.01)
+        task = resizer._entries[client.window_handle].task
+        await resizer.forget(client)
+        assert task.done()
     assert reports == []
     await resizer.forget(client)
+
+
+async def test_a_failure_cleared_as_the_client_is_hooked_lets_it_resize_with_what_it_found(
+    resizer, monkeypatch, warnings
+):
+    """An ask made before the hook, as at the load-in after Play, that failed: the join's ask still runs."""
+    monkeypatch.setattr(client_resizer, "RESIZE_APPLY_TIMEOUT", 0.02)
+    client = SimClient(game_size=_SMALL_SIZE)
+    client.video_manager.hangs = True
+    resizer.resize(client, _LARGE_SIZE)
+    await _settled(resizer, client)
+    assert resizer.failed(client)
+    resizer.resize(client, _LARGE_SIZE)
+    assert resizer._entries[client.window_handle].target is None, "off until cleared"
+
+    client.video_manager.hangs = False
+    assert resizer.clear_failure(client) is True
+    assert not resizer.failed(client)
+    resizer.resize(client, _LARGE_SIZE)
+    await _settled(resizer, client)
+
+    assert client.game_size == _LARGE_SIZE
+    assert client.hook_handler.scans == 1, "the nodes it found are kept"
+    assert len(warnings()) == 1
+
+
+async def test_clearing_a_client_that_never_failed_clears_nothing(resizer):
+    client = SimClient()
+    assert resizer.clear_failure(client) is False
+    resizer.resize(client, _SMALL_SIZE)
+    await _settled(resizer, client)
+    assert resizer.clear_failure(client) is False
+    assert not resizer.failed(client)
 
 
 # -- giving back -----------------------------------------------------------------------------------
@@ -1004,9 +1058,7 @@ async def test_giving_back_runs_instead_of_any_target_still_waiting(resizer):
     client = SimClient()
     resizer.resize(client, _SMALL_SIZE)
     await _settled(resizer, client)
-    client.loading = True
     resizer.resize(client, _LARGE_SIZE)
-    client.loading = False
     await resizer.give_back(client)
     assert client.game_size == (800, 600)
     assert "1280x720" not in [d for k, d in _writes(client) if k == "resolution"]
@@ -1021,16 +1073,28 @@ async def test_giving_back_reaches_a_client_in_a_fight(resizer):
     assert client.game_size == (800, 600)
 
 
-async def test_giving_back_leaves_a_client_loading_with_a_warning_on_a_short_timeout(resizer, monkeypatch, warnings):
-    monkeypatch.setattr(client_resizer, "RESIZE_GIVE_BACK_TIMEOUT", 0.03)
+async def test_giving_back_reaches_a_client_that_is_loading(resizer, warnings):
     client = SimClient()
     resizer.resize(client, _SMALL_SIZE)
     await _settled(resizer, client)
     client.loading = True
     await resizer.give_back(client)
-    assert client.game_size == _SMALL_SIZE
-    assert len(warnings()) == 1
-    assert resizer._entries[client.window_handle].task.done()
+    assert client.game_size == (800, 600)
+    assert warnings() == []
+
+
+async def test_giving_back_leaves_a_client_held_by_a_higher_lease_with_a_warning_on_a_short_timeout(
+    resizer, arbiter, monkeypatch, warnings
+):
+    monkeypatch.setattr(client_resizer, "RESIZE_GIVE_BACK_TIMEOUT", 0.03)
+    client = SimClient()
+    resizer.resize(client, _SMALL_SIZE)
+    await _settled(resizer, client)
+    async with _Held(arbiter, client):
+        await resizer.give_back(client)
+        assert client.game_size == _SMALL_SIZE
+        assert len(warnings()) == 1
+        assert resizer._entries[client.window_handle].task.done()
 
 
 async def test_a_give_back_that_hangs_gives_one_warning(resizer, monkeypatch, warnings):
@@ -1130,6 +1194,20 @@ async def test_a_resize_waiting_on_a_background_scan_makes_it_urgent(resizer, mo
     assert client.hook_handler.scans == 1
 
 
+async def test_the_size_named_before_a_resize_is_kept_when_named_again_as_the_client_joins(resizer, no_grace):
+    """The early ask names the home first, and the join names it again: one scan, and the home stands."""
+    client = SimClient(game_size=_SMALL_SIZE, ui_size=_MICRO)
+    resizer.give_back_to(client, _LARGE_SIZE)
+    resizer.resize(client, (854, 480))
+    await _settled(resizer, client)
+
+    resizer.give_back_to(client, _LARGE_SIZE)
+    await resizer.give_back(client)
+
+    assert client.hook_handler.scans == 1
+    assert (client.game_size, client.ui_size) == (_LARGE_SIZE, _HUGE)
+
+
 async def test_a_client_forgotten_forgets_the_size_named(resizer, no_grace):
     """An unhook: hooked again, it starts afresh, and the product names the size again."""
     client = SimClient(game_size=_SMALL_SIZE)
@@ -1161,13 +1239,11 @@ async def test_a_client_given_up_on_scans_no_more_for_a_size_named(resizer, warn
 
 
 async def test_a_trace_places_each_part_of_a_resize(resizer, tmp_path):
-    """Where a resize's time went: the load it waited out, finding the nodes, the lease and the apply."""
+    """Where a resize's time went: finding the nodes, the lease and the apply, with no load waited out."""
     client = SimClient(game_size=_LARGE_SIZE, loading=True)
     path = run_trace.start(lambda c: 3 if c is client else None, tmp_path)
     try:
         resizer.resize(client, _SMALL_SIZE)
-        await asyncio.sleep(0.03)
-        client.loading = False
         await _settled(resizer, client)
     finally:
         run_trace.stop()
@@ -1177,7 +1253,7 @@ async def test_a_trace_places_each_part_of_a_resize(resizer, tmp_path):
     worker = spans["resize.worker"]
     assert worker["slot"] == 3
     assert worker["attrs"]["target"] == list(_SMALL_SIZE)
-    assert worker["attrs"]["loading_s"] > 0
+    assert "loading_s" not in worker["attrs"]
     # The scan the worker had to start itself, as nothing prepared one, inside its wait for the nodes.
     assert spans["resize.find"]["parent"] == spans["resize.nodes"]["id"]
     assert spans["resize.config_nodes"]["parent"] == spans["resize.find"]["id"]

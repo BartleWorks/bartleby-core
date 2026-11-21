@@ -24,9 +24,11 @@ a lease around it, by `drive_client_in`'s `hold`.
 **A resize holds `Owner.DISPLAY`**, labeled "resizing" (`clients/client_resizer.py`): it writes
 memory, though it presses nothing, and a click sent during an apply would land on a window on its
 way somewhere else. So it preempts the quester and movement, which resume from their own state,
-and it waits for a hotkey, combat and recovery, and for `is_loading` to end. A fight alone is
-not waited out, since a tile that has changed shape would cut its game off until the fight ended,
-though the combat lease still goes first. Finding its config nodes takes seconds and is reads alone, so it comes before the
+and it waits for a hotkey, combat and recovery. A fight alone is not waited out, since a tile
+that has changed shape would cut its game off until the fight ended, though the combat lease
+still goes first. Nor is a loading screen: nothing a resize does needs a hook, so a product may
+ask during the load-in after Play, on the client the drive borrowed (`auto_select`'s `on_play`),
+and one during a zone's loading screen is not yet proven in game (`docs/WINDOW_SIZING.md`). Finding its config nodes takes seconds and is reads alone, so it comes before the
 lease, and a follower walks through it. Once the writes begin they run out of any cancel's reach,
 since the game can't be asked to stop: a higher owner or Stop all waits the length of an apply,
 and whoever embeds the window always hears how it ended.

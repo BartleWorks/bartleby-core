@@ -31,8 +31,27 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   `key_map` patched in under a `ClientManager` takes it, as core's `test_client_loop.py` now
   does. Neither product has one: BartleBot's `test_run_probe.py` fakes it for the pre-check,
   which passes no priority.
+- **The resizer no longer waits out a loading screen** (under Changed), so a resize asked during
+  one applies then, and `client_resizer.POLL_INTERVAL`, which only that wait read, is gone: a
+  test that patches it fails at setup, as BartleBuddy's `resizing` fixture in `test_session.py`
+  did. A test that held a resize off with `SimClient(loading=True)` now holds a lease above
+  `Owner.DISPLAY` instead. A `give_back` reaches a client that is loading, where it was left as
+  it was with a warning. BartleBot doesn't use the resizer.
 
 ### Added
+
+- **`on_play`, called once Play is taken**, on `auto_select.auto_select_character`,
+  `auto_select.drive_client_in` and `ClientManager.drive_client_in`, for a product that acts
+  during the load-in, before the hooks: BartleBuddy resizes the game its large tile is held for.
+  It is called with the client the drive borrowed (`pending_client_titled`) on the first read
+  after a press that finds character select gone, never while the screen is up, and never
+  waited on: an awaitable it returns runs as a task. What it raises is logged and never fails
+  the drive. With auto-select off, and on the blind drive, it isn't called. `auto_select.OnPlay`
+  is its type. Existing callers are unchanged.
+- **`ClientResizer.failed(client)` and `clear_failure(client)`.** A resize asked before the hook
+  that failed turns resizing off for the client as any failure does; `clear_failure`, as the
+  client is hooked, turns it back on, keeping the nodes and the home found, and ends nothing
+  under way. It says whether there was a failure to clear.
 
 - **`clients/static_routes.py`, a chain of reads from a slot in the game's image**, for the
   resizer's config nodes and the key map's bindings (under Changed). `Route` is a slot's
@@ -88,8 +107,7 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   for a hook's address is a `hook.wait` span named by that address (`player_struct`). The client
   manager traces each client's hooking (`client.hook`), its key-map scan (`client.key_map`), the
   loop's identity and wizard-name passes, and marks each client as it is published
-  (`client.published`); the resizer traces its worker (`resize.worker`, with the load it waited
-  out), the scan for the nodes and each part of it (`resize.find`), the lease (`resize.leased`)
+  (`client.published`); the resizer traces its worker (`resize.worker`), the scan for the nodes and each part of it (`resize.find`), the lease (`resize.leased`)
   and the apply (`resize.apply`). Nothing changes while no trace runs.
 - **Following is back**, as it was before 0.4.0 shelved it: `bartleby.runtime.movement`
   (`Follower`, `spacing_for`, `Trail` and its geometry) and the timing constants only it
@@ -167,6 +185,14 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ### Changed
 
+- **A resize no longer waits out a loading screen** (under Breaking). The worker waited on
+  `client.is_loading()` from its first commit, with no reason recorded. It was the one step that
+  needed the root window hook, and it can't see the load-in from character select, where a tile
+  swap applied in game with the HUD at the right scale. So a product may resize a game during
+  its load-in, before the hook, on the client its drive borrowed. A resize during a zone's
+  loading screen is not yet proven in game; a byte the game holds back there is taken back after
+  `RESIZE_APPLY_TIMEOUT`, as before. The `resize.worker` span no longer notes `loading_s`.
+  `docs/WINDOW_SIZING.md`, "Resizing a running client", has the rest.
 - **The config nodes and the key bindings are found by a static route first, in a millisecond or
   two, and the heap only when it misses.** Each hangs off an object whose constructor stores it
   in a static slot of the image, which a code pattern finds once per process (84 to 93 ms and 63
