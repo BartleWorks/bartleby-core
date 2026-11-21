@@ -120,6 +120,7 @@ BartleBot supplies what core's copies cut away:
 | `StartCard(pill=)` | a template's Source pill, on New Bot's and the Templates dialog's cards |
 | `run_fight(clients, dsls, numbers, time_limit=, log=)` and `CombatRun(numbers, log, time_limit)` | the DSLs `resolve_combat` reads from its four levels, `machine.log`, and what follows from the result itself: the flee limit (`note_flee`), the drop poll, a stopped bot |
 | `FirstCastHold.ready(fighter, settled, joined_at)` | `AmbientSession`'s join tasks, and when each helper read in battle |
+| `CombatRun(..., casts=, hold=)` | nothing: every player is cast for, under no hold. BartleBuddy hands the session's answer to who is cast for, asked at each planning phase, and its `Owner.COMBAT` lease |
 | `dsl_check_cache.cache_path()`, by `product.current()` | `product.use`, at startup, so the cache stays under `BartleBot/cache/` |
 
 ### The client manager, in two halves

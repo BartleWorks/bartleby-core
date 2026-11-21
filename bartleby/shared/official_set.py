@@ -131,25 +131,44 @@ def reset_shipped_root() -> None:
     _reported = None
 
 
-def shipped_root(own_root: Path, *, product: str, reg: InstallRegistry | None = None) -> Path:
+def shipped_root(
+    own_root: Path,
+    *,
+    product: str,
+    reg: InstallRegistry | None = None,
+    others: tuple[tuple[str, Path], ...] = (),
+) -> Path:
     """The install directory whose copy of the shared set is used: ``own_root`` unless another's is newer.
 
     Another product's key counts only while its install directory exists, so a key an
-    uninstall left behind cannot leave the library empty. The registry is read once per
-    session; a ``reg`` passed in is always read, and its answer is not kept.
+    uninstall left behind cannot leave the library empty. *others* are more roots to weigh
+    by the same rule, each with the product it is: a product run from source, as BartleBuddy
+    is before it ships a set of its own, names the checkout beside it. The registry is read
+    once per session; a ``reg`` passed in is always read, and its answer is not kept.
     """
-    if reg is None and (cached := _chosen.get((own_root, product))) is not None:
+    cache_key = (own_root, product, others)
+    if reg is None and (cached := _chosen.get(cache_key)) is not None:
         return cached
-    root = _choose(own_root, product, reg or registry())
+    root = _choose(own_root, product, [*(reg or registry()).install_keys(), *_keys_of(others)])
     if reg is None:
-        _chosen[(own_root, product)] = root
+        _chosen[cache_key] = root
     return root
 
 
-def _choose(own_root: Path, product: str, reg: InstallRegistry) -> Path:
+def _keys_of(others: tuple[tuple[str, Path], ...]) -> list[InstallKey]:
+    """*others* as install keys, each with the version its set says; one with none is left out."""
+    keys = []
+    for other_product, root in others:
+        version = set_version(root)
+        if version is not None:
+            keys.append(InstallKey(other_product, Path(root), version))
+    return keys
+
+
+def _choose(own_root: Path, product: str, keys: list[InstallKey]) -> Path:
     global _reported
     best_version, best_root, best_product = set_version(own_root) or 0, own_root, product
-    for key in reg.install_keys():
+    for key in keys:
         if key.product == product or key.shared_set_version <= best_version:
             continue
         if not key.install_dir.is_dir():

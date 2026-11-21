@@ -10,9 +10,17 @@ What the runner needs from the app that calls it is a ``log`` callable taking
 ``(message, level)``, so the caller decides whose logger the lines are filed under.
 Which strategy each player runs, whether the app has been stopped, what a flee counts
 toward and what drops a fight left are the caller's: a product resolves the DSLs before
-the fight and reads the result after it. No lease is taken here. A product with an
-arbiter holds its combat lease around the run, and wizsprinter's clicks go through
-wizwalker's mouse as they always have.
+the fight and reads the result after it. No lease is taken here, and wizsprinter's clicks
+go through wizwalker's mouse as they always have.
+
+**Who is cast for, each planning phase.** A product whose player can take a wizard
+mid-fight, as BartleBuddy's can, hands :class:`CombatRun` a ``casts`` callable, asked of
+each player at the start of every planning phase. A player it says no to is played by hand
+that round: nothing is cast for it, and it never votes on a flee. A fight with a player
+played by hand in it is never fled: once it would be, the watch says so instead
+(:attr:`FightWatch.would_flee`), and the player decides. A ``hold`` callable gives the
+async context a round's cast, or a flee, is made under, such as an arbiter's combat lease.
+Without either, every player is cast for, under no hold, as BartleBot's are.
 
 wizwalker and wizsprinter are imported where they are used, so importing this module
 pulls in neither. Moved from BartleBot's ``nodes/combat_runner.py`` (BartleBuddy #31,
@@ -27,6 +35,7 @@ import enum
 import logging
 import time
 from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import NamedTuple
@@ -43,6 +52,11 @@ from bartleby.runtime.timing import (
 )
 
 logger = logging.getLogger(__name__)
+
+#: Whether the runner casts for a player at this planning phase; asked of each at every one.
+Casts = Callable[[object], bool]
+#: The async context a player's cast, or its flee, is made under.
+Hold = Callable[[object], AbstractAsyncContextManager]
 
 
 def slots_in_battle(in_battle_flags: list) -> list[int]:
@@ -111,6 +125,7 @@ class _Ballot:
     """One fight's reports for one planning phase."""
 
     expected: frozenset[int]
+    """The players it waits for: ours in the fight, less any played by hand, who never vote."""
     votes: dict[int, RoundReport] = field(default_factory=dict)
     abstained: set[int] = field(default_factory=set)
     """Players whose report could not be read. Each counts as able to deal damage."""
@@ -143,17 +158,28 @@ class FightWatch:
     within FLEE_VOTE_TIMEOUT, is read as "can still deal damage" and breaks the run of rounds.
     A player whose own report cannot be read abstains, which says so at once: staying silent
     left everyone else waiting out the timeout for it, 5 s of every round it happened in.
+
+    With *casts*, a player it says no to is played by hand: it is not waited for, and a fight
+    with one in it is never fled, :meth:`flee_all` included. Such a fight goes into
+    :attr:`would_flee` instead, until a round in it is no longer hopeless, or every player in
+    it is cast for again and it is fled. *hold* is what a cast or a flee is made under.
     """
 
-    def __init__(self, numbers: dict, log: Callable[..., None]):
+    def __init__(
+        self, numbers: dict, log: Callable[..., None], *, casts: Casts | None = None, hold: Hold | None = None
+    ):
         self._numbers = numbers  # client -> 1-based player number, for log lines only
         self.log = log
+        self._casts = casts
+        self._hold = hold
         self._gids: dict = {}  # client -> global id; empty when any was unreadable
         self._ballots: dict[tuple[int, frozenset[int]], _Ballot] = {}
         self._abstentions: dict[int, set[int]] = {}  # round -> players who abstained in it
         self._streaks: dict[frozenset[int], int] = {}
         self._fleeing: list[frozenset[int]] = []
         self._flee_all_reason: str | None = None
+        self._would: dict[frozenset[int], str] = {}  # fight -> why it would be fled
+        self._cast_for: dict = {}  # client -> whether its last planning phase was cast for
         self.fled: set[int] = set()  # player numbers that carried out a flee
 
     async def identify(self) -> None:
@@ -181,19 +207,55 @@ class FightWatch:
     def number(self, client) -> int:
         return self._numbers[client]
 
+    def casts_for(self, client) -> bool:
+        """Whether *client* is cast for at this planning phase. Ask once per planning phase.
+
+        A change from its last planning phase is logged: the player took the wizard, or handed it back.
+        """
+        casts = self._casts is None or self._casts(client)
+        was = self._cast_for.get(client)
+        self._cast_for[client] = casts
+        if was is not None and was != casts:
+            how = "is cast for again" if casts else "is played by hand"
+            self.log(f"P{self._numbers[client]} {how} from this round", logging.INFO)
+        return casts
+
+    def hold_for(self, client) -> AbstractAsyncContextManager:
+        """What *client*'s cast or flee is made under: the caller's *hold*, or nothing."""
+        return contextlib.nullcontext() if self._hold is None else self._hold(client)
+
+    @property
+    def would_flee(self) -> frozenset[int]:
+        """The player numbers in a fight that would be fled, but for a player in it played by hand."""
+        return frozenset(
+            self._numbers[client] for client, gid in self._gids.items() if any(gid in fight for fight in self._would)
+        )
+
+    def _by_hand(self, gids: frozenset[int]) -> frozenset[int]:
+        """Those of *gids* whose player is played by hand now."""
+        if self._casts is None:
+            return frozenset()
+        return frozenset(gid for client, gid in self._gids.items() if gid in gids and not self._casts(client))
+
     async def should_flee(self, combat) -> bool:
         """Whether *combat*'s player should flee now rather than cast. Call once per planning phase."""
-        if self._flee_all_reason is not None:
+        if self._flee_all_reason is not None and self._casts is None:
             return True
         gid = self._gids.get(combat.client)
         if gid is None:
-            return False
+            # No fights can be told apart: only the time limit flees, and not while anyone is played by hand.
+            return self._flee_all_reason is not None and all(self._casts(client) for client in self._numbers)
         if self._flees(gid):
             return True
         report = await _round_report(combat, gid, frozenset(self._gids.values()))
         if report is None:
+            if self._flee_all_reason is not None:
+                return not self._by_hand(frozenset(self._gids.values()))
             self._abstain(gid, await _readable_round(combat))
             return False
+        if self._flee_all_reason is not None:
+            what = f"{self._flee_all_reason} for {self._players(report.ours_here)}"
+            return self._flee_unless_by_hand(report.ours_here, what, announce=False)
         key = (report.round, report.ours_here)
         ballot = self._ballot(key)
         ballot.votes[gid] = report
@@ -207,7 +269,7 @@ class FightWatch:
         """The ballot for *key*, made with any abstentions already cast in its round."""
         ballot = self._ballots.get(key)
         if ballot is None:
-            ballot = self._ballots[key] = _Ballot(key[1])
+            ballot = self._ballots[key] = _Ballot(key[1] - self._by_hand(key[1]))
             ballot.abstained |= self._abstentions.get(key[0], set()) & ballot.expected
         return ballot
 
@@ -232,7 +294,7 @@ class FightWatch:
         if ballot.settled:
             return
         ballot.settled = True
-        fight = ballot.expected
+        fight = key[1]
         hopeless = (
             ballot.complete.is_set()
             and not ballot.abstained
@@ -240,15 +302,38 @@ class FightWatch:
         )
         if not hopeless:
             self._streaks[fight] = 0
+            self._would.pop(fight, None)
             return
         streak = self._streaks.get(fight, 0) + 1
         self._streaks[fight] = streak
-        what = f"{self._players(fight)}: no castable damage card and no damage over time on the enemies"
+        what = f"{self._players(ballot.expected)}: no castable damage card and no damage over time on the enemies"
         if streak < FLEE_AFTER_ROUNDS:
             self.log(f"{what} (round {key[0]}, {streak} of {FLEE_AFTER_ROUNDS})", logging.DEBUG)
             return
-        self._fleeing.append(fight)
-        self.log(f"{what} for {streak} rounds; fleeing", logging.WARNING)
+        self._flee_unless_by_hand(fight, f"{what} for {streak} rounds")
+
+    def _flee_unless_by_hand(self, fight: frozenset[int], what: str, *, announce: bool = True) -> bool:
+        """Flee *fight*, unless a player in it is played by hand: then it would be, and the player decides.
+
+        Returns whether it is fled. *what* says why, and with *announce* a flee is logged with it.
+        A fight that would be fled is logged as it first would be.
+        """
+        by_hand = self._by_hand(fight)
+        if not by_hand:
+            self._would.pop(fight, None)
+            if fight not in self._fleeing:
+                self._fleeing.append(fight)
+                if announce:
+                    self.log(f"{what}; fleeing", logging.WARNING)
+            return True
+        if fight not in self._would:
+            verb = "is" if len(by_hand) == 1 else "are"
+            self.log(
+                f"{what}; {self._players(by_hand)} {verb} played by hand, so the team would flee and the player decides",
+                logging.WARNING,
+            )
+        self._would[fight] = what
+        return False
 
     def _players(self, gids: frozenset[int]) -> str:
         numbers = sorted(self._numbers[c] for c, gid in self._gids.items() if gid in gids)
@@ -398,12 +483,19 @@ def _watched_combat_class():
                 if run_trace.active():
                     run_trace.note(round=await self.round_number())
                 self._tries = 0
+                if not self.watch.casts_for(self.client):
+                    # Played by hand this round: the player casts, and the game waits for them.
+                    run_trace.note(by_hand=True)
+                    return
                 # Outside SprintyCombat's own mouse_handler block: the flee's clicks take it themselves.
+                # The vote waits on the others, so it is made before the hold is taken.
                 if await self.watch.should_flee(self):
                     run_trace.note(fled=True)
-                    await _flee(self, self.watch)
+                    async with self.watch.hold_for(self.client):
+                        await _flee(self, self.watch)
                     return
-                await super().handle_round()
+                async with self.watch.hold_for(self.client):
+                    await super().handle_round()
 
         async def try_execute_config(self, move_config, willcasted: bool = False):
             self._tries += 1
@@ -440,10 +532,20 @@ class CombatRun:
 
     *numbers* maps every client that may fight to its 1-based player number, so the watch
     can group players by fight whichever of them turn up. The time limit runs from creation.
+    *casts* and *hold* are the watch's: who is cast for at each planning phase, and what a
+    cast is made under (the module's docstring).
     """
 
-    def __init__(self, numbers: dict, log: Callable[..., None], time_limit: float | None):
-        self.watch = FightWatch(numbers, log)
+    def __init__(
+        self,
+        numbers: dict,
+        log: Callable[..., None],
+        time_limit: float | None,
+        *,
+        casts: Casts | None = None,
+        hold: Hold | None = None,
+    ):
+        self.watch = FightWatch(numbers, log, casts=casts, hold=hold)
         self._numbers = numbers
         self._deadline = None if time_limit is None else time.monotonic() + time_limit
         self._tasks: list[tuple[int, asyncio.Task]] = []
