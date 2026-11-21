@@ -288,6 +288,16 @@ async def test_a_walk_into_the_leaders_fight_is_logged_as_it_starts_and_as_it_jo
     assert caplog.messages == ["P2 walks into the leader's fight", "P2 joined the leader's fight after 1.5 s"]
 
 
+async def test_a_follower_says_it_is_joining_a_fight_only_while_it_walks_in():
+    f = _fight(_Clock())
+    assert not f.joining_fight
+    await f._next_step()
+    assert f.joining_fight
+    f.me.publish(in_battle=True)
+    await f._next_step()
+    assert not f.joining_fight
+
+
 @pytest.mark.parametrize(
     "ends, why",
     [

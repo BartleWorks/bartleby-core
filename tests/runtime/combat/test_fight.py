@@ -347,7 +347,8 @@ async def test_a_defeated_player_flees_from_its_defeat_panel(ui):
 async def test_the_watched_combat_flees_instead_of_casting():
     from wizwalker.extensions.wizsprinter import SprintyCombat
 
-    watch = SimpleNamespace(should_flee=AsyncMock(return_value=True))
+    watch = FightWatch({}, _Log())
+    watch.should_flee = AsyncMock(return_value=True)
     combat = combat_runner._watched_combat_class()(FakeClient(), MagicMock(), watch)
     with (
         patch.object(combat_runner, "_flee", AsyncMock()) as flee,
@@ -360,6 +361,150 @@ async def test_the_watched_combat_flees_instead_of_casting():
         watch.should_flee.return_value = False
         await combat.handle_round()
         cast.assert_awaited_once()
+
+
+class _Hold:
+    """A hold that records when it is taken and let go, around what is done under it."""
+
+    def __init__(self, events: list):
+        self.events = events
+
+    async def __aenter__(self):
+        self.events.append("held")
+
+    async def __aexit__(self, *_exc):
+        self.events.append("let go")
+
+
+async def test_a_player_played_by_hand_is_not_cast_for_nor_asked_to_flee():
+    from wizwalker.extensions.wizsprinter import SprintyCombat
+
+    client = FakeClient()
+    casting = {client: False}
+    watch = FightWatch({client: 1}, _Log(), casts=casting.__getitem__)
+    watch.should_flee = AsyncMock(return_value=False)
+    combat = combat_runner._watched_combat_class()(client, MagicMock(), watch)
+    with patch.object(SprintyCombat, "handle_round", AsyncMock()) as cast:
+        await combat.handle_round()
+        cast.assert_not_awaited()
+        watch.should_flee.assert_not_awaited()
+
+        # Handed back: cast for from the next planning phase.
+        casting[client] = True
+        await combat.handle_round()
+        cast.assert_awaited_once()
+
+
+@pytest.mark.parametrize("flees", [False, True])
+async def test_a_cast_and_a_flee_are_made_under_the_hold(flees):
+    from wizwalker.extensions.wizsprinter import SprintyCombat
+
+    events: list[str] = []
+    client = FakeClient()
+    watch = FightWatch({client: 1}, _Log(), hold=lambda _client: _Hold(events))
+    watch.should_flee = AsyncMock(return_value=flees)
+
+    async def act(*_args):
+        events.append("acted")
+
+    combat = combat_runner._watched_combat_class()(client, MagicMock(), watch)
+    with (
+        patch.object(combat_runner, "_flee", side_effect=act),
+        patch.object(SprintyCombat, "handle_round", side_effect=act),
+    ):
+        await combat.handle_round()
+
+    assert events == ["held", "acted", "let go"]
+
+
+async def test_a_change_of_hands_is_logged_from_the_round_it_takes_effect():
+    log = _Log()
+    client = FakeClient()
+    casting = {client: True}
+    watch = FightWatch({client: 2}, log, casts=casting.__getitem__)
+
+    assert watch.casts_for(client) is True
+    casting[client] = False
+    assert watch.casts_for(client) is False
+    assert watch.casts_for(client) is False
+    casting[client] = True
+    assert watch.casts_for(client) is True
+
+    assert [m for m, _level in log.lines] == [
+        "P2 is played by hand from this round",
+        "P2 is cast for again from this round",
+    ]
+
+
+async def _watch_by_hand(by_hand: set[int], *gids: int) -> tuple[FightWatch, list, _Log, dict]:
+    """A watch over *gids* whose casts say no to the players in *by_hand*, by gid, as the test changes it."""
+    clients = [_client(gid) for gid in gids]
+    gid_of = dict(zip(clients, gids))
+    log = _Log()
+    watch = FightWatch({c: n for n, c in enumerate(clients, start=1)}, log, casts=lambda c: gid_of[c] not in by_hand)
+    await watch.identify()
+    return watch, clients, log, gid_of
+
+
+async def test_a_fight_with_a_player_played_by_hand_would_flee_and_waits_for_no_vote_of_theirs(monkeypatch):
+    """P2 is the player's: it never votes, so P1 isn't kept waiting, and the fight isn't fled."""
+    monkeypatch.setattr(combat_runner, "FLEE_VOTE_TIMEOUT", 30.0)
+    by_hand = {22}
+    watch, (p1, _p2), log, _gids = await _watch_by_hand(by_hand, 11, 22)
+    fight = {11, 22}
+    with _reports({(11, "*"): (fight, False, False)}):
+        decisions = [await asyncio.wait_for(watch.should_flee(_combat(p1)), 1.0) for _ in range(_ROUNDS + 1)]
+
+    assert decisions == [False] * (_ROUNDS + 1)
+    assert watch.would_flee == {1, 2}
+    assert log.warnings() == [
+        f"P1: no castable damage card and no damage over time on the enemies for {_ROUNDS} rounds;"
+        " P2 is played by hand, so the team would flee and the player decides"
+    ]
+
+
+async def test_a_fight_that_would_flee_is_fled_once_every_player_in_it_is_cast_for_again():
+    by_hand = {22}
+    watch, clients, _log, _gids = await _watch_by_hand(by_hand, 11, 22)
+    phase = SimpleNamespace(round=0)
+
+    async def report(_combat, _gid, _ours):
+        return RoundReport(phase.round, frozenset({11, 22}), False, False)
+
+    with patch.object(combat_runner, "_round_report", side_effect=report):
+        for phase.round in range(1, _ROUNDS + 1):
+            assert await watch.should_flee(_combat(clients[0])) is False
+        by_hand.clear()
+        phase.round += 1
+        assert await _round(watch, clients) == [True, True]
+
+    assert watch.would_flee == frozenset()
+
+
+async def test_a_round_with_damage_ends_would_flee():
+    watch, (p1, _p2), _log, _gids = await _watch_by_hand({22}, 11, 22)
+    fight = {11, 22}
+    with _reports({(11, "*"): (fight, False, False), (11, _ROUNDS + 1): (fight, True, False)}):
+        for _ in range(_ROUNDS):
+            await watch.should_flee(_combat(p1))
+        assert watch.would_flee == {1, 2}
+        await watch.should_flee(_combat(p1))
+
+    assert watch.would_flee == frozenset()
+
+
+async def test_the_time_limit_flees_only_a_fight_with_no_player_played_by_hand():
+    """P1 and P2 share a fight with P2 played by hand; P3 is alone in another."""
+    watch, (p1, _p2, p3), log, _gids = await _watch_by_hand({22}, 11, 22, 33)
+    watch.flee_all("The fight ran past its time limit")
+    with _reports({(11, "*"): ({11, 22}, True, False), (33, "*"): ({33}, True, False)}):
+        assert await watch.should_flee(_combat(p1)) is False
+        assert await watch.should_flee(_combat(p3)) is True
+
+    assert watch.would_flee == {1, 2}
+    assert log.warnings()[-1] == (
+        "The fight ran past its time limit for P1, P2; P2 is played by hand, so the team would flee and the player decides"
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -410,6 +410,11 @@ class Follower:
         return self.last_step.reason in (AT_SIGIL, INTO_RANGE)
 
     @property
+    def joining_fight(self) -> bool:
+        """Whether it is walking into the leader's fight: what a fighter holds its first cast for."""
+        return self.last_step.reason == JOINING_FIGHT
+
+    @property
     def entering(self) -> bool:
         """Whether it holds still in its countdown into a dungeon."""
         return self.sigil.entering

@@ -174,6 +174,26 @@ def test_a_set_with_no_version_of_its_own_loses_to_any_other(tmp_path):
     assert shipped_root(bare, product=OWN, reg=_Keys(buddy)) == buddy.install_dir
 
 
+def test_a_checkout_beside_a_product_with_no_set_of_its_own_supplies_it(tmp_path):
+    """BartleBuddy run from source ships no set: BartleBot's checkout beside it has one."""
+    buddy = tmp_path / "BartleBuddy"
+    buddy.mkdir()
+    checkout = _ship_set(tmp_path / "BartleBot", SHARED_SET_VERSION)
+
+    assert shipped_root(buddy, product="BartleBuddy", reg=NoRegistry(), others=(("BartleBot", checkout),)) == checkout
+
+
+def test_a_checkout_is_weighed_by_the_same_rule_as_an_install(own, tmp_path):
+    older = _ship_set(tmp_path / "older", SHARED_SET_VERSION - 1)
+    newer_install = _installed(tmp_path, "BartleBuilder", SHARED_SET_VERSION + 1)
+    no_set = tmp_path / "bare"
+    no_set.mkdir()
+    others = (("Older", older), ("Bare", no_set))
+
+    assert shipped_root(own, product=OWN, reg=NoRegistry(), others=others) == own
+    assert shipped_root(own, product=OWN, reg=_Keys(newer_install), others=others) == newer_install.install_dir
+
+
 def test_the_default_registry_is_read_once_per_session(tmp_path):
     own = tmp_path / "own"
     buddy = _installed(tmp_path, "BartleBuddy", SHARED_SET_VERSION + 1)

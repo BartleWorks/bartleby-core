@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from bartleby.shared.preferences import PreferenceStore
-    from bartleby.shared.strategy_models import DuelCombatStrategy
+    from bartleby.shared.strategy_models import DuelCombatStrategy, PlayerCombatStrategy
 
 _SEPARATOR = " | "
 
@@ -163,6 +163,38 @@ class DefaultDuel:
     duel: DuelCombatStrategy | None
     source: DefaultSource | None
     reasons: tuple[str, ...] = ()
+
+    @property
+    def label(self) -> str:
+        """One phrase for the log: ``duel strategy 'Default Solo Duel' (the shipped Solo default)``.
+
+        With no duel, the last-resort DSL is what runs, and the phrase says so. Either way any
+        reasons follow, so the log says why the user's default was passed over.
+        """
+        if self.duel is None:
+            return "; ".join(["the built-in default (no strategy file could be read)", *self.reasons])
+        whose = "your" if self.source is DefaultSource.YOURS else "the shipped"
+        where = "; ".join([f"{whose} {self.size.value} default", *self.reasons])
+        return f"duel strategy '{self.duel.name}' ({where})"
+
+
+def slot_dsls(
+    duel: DuelCombatStrategy | None, player: Callable[[str], PlayerCombatStrategy | None], players: int
+) -> list[str]:
+    """The DSL each of *players* player slots runs in *duel*, P1 first.
+
+    A slot's assignment's own DSL, or its linked player strategy's, found by *player*, which
+    returns None for one it cannot read. A slot with neither, and every slot with no duel,
+    runs :data:`LAST_RESORT_DSL`: a fight always has something to run.
+    """
+    if duel is None:
+        return [LAST_RESORT_DSL] * players
+    linked: dict[str, str] = {}
+    for strategy_id in duel.linked_pcs_ids():
+        if strategy_id not in linked:
+            found = player(strategy_id)
+            linked[strategy_id] = found.dsl if found is not None else LAST_RESORT_DSL
+    return [duel.resolve_dsl_for_player(slot, linked) or LAST_RESORT_DSL for slot in range(1, players + 1)]
 
 
 def chosen_default(prefs: PreferenceStore, size: TeamSize) -> str | None:
