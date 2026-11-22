@@ -629,3 +629,69 @@ async def test_a_run_cancelled_before_its_result_leaves_no_unretrieved_error(mon
         loop.set_exception_handler(previous)
 
     assert unretrieved == []
+
+
+# --- The team's order: what wizsprinter counts ally(-N) through ------------------------
+
+
+async def test_the_duels_order_becomes_the_players_ids_in_that_order():
+    watch, _clients, _log = await _watch(11, 22, 33, 44)
+    watch.order = (4, 3, 2, 1)
+
+    assert watch.team_order() == [44, 33, 22, 11]
+
+
+async def test_with_no_order_the_seats_decide():
+    watch, _clients, _log = await _watch(11, 22)
+
+    assert watch.team_order() is None
+
+
+async def test_a_number_in_the_order_no_player_has_is_left_out():
+    watch, _clients, _log = await _watch(11, 22, 33)
+    watch.order = (4, 3, 2, 1)
+
+    assert watch.team_order() == [33, 22, 11]
+
+
+async def test_an_unreadable_id_leaves_the_order_to_the_seats():
+    good, bad = _client(11), FakeClient()
+    bad.client_object.global_id_full = AsyncMock(side_effect=OSError("gone"))
+    watch = FightWatch({good: 1, bad: 2}, _Log(), order=(2, 1))
+    await watch.identify()
+
+    assert watch.team_order() is None
+
+
+async def test_each_round_hands_the_order_to_the_combat_before_it_casts():
+    from wizwalker.extensions.wizsprinter import SprintyCombat
+
+    p1, p2 = _client(11), _client(22)
+    run = combat_runner.CombatRun({p1: 1, p2: 2}, _Log(), None)
+    await run.identify()
+    run.watch.should_flee = AsyncMock(return_value=False)
+    combat = combat_runner._watched_combat_class()(p1, MagicMock(), run.watch)
+    seen = []
+
+    async def cast(self):
+        seen.append(self.team_order)
+
+    with patch.object(SprintyCombat, "handle_round", cast):
+        await combat.handle_round()
+        # The duel is known once the fight has begun: from the next round on, it counts.
+        run.order = [2, 1]
+        await combat.handle_round()
+
+    assert seen == [None, [22, 11]]
+
+
+async def test_run_fight_hands_its_order_to_the_watch(monkeypatch):
+    orders = []
+
+    async def fight(_client, _dsl, watch, number=None):
+        orders.append(watch.team_order())
+
+    monkeypatch.setattr(combat_runner, "_run_combat", fight)
+    await run_fight([_client(11), _client(22)], ["a", "b"], [1, 2], time_limit=None, log=_Log(), order=[2, 1])
+
+    assert orders == [[22, 11], [22, 11]]

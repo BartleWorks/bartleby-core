@@ -20,9 +20,11 @@ belongs to team fights only: a solo wizard buffs first.
 when one is set and fits the team, and the shipped one otherwise. BartleBuddy calls the same
 function, so a default set in either product is the default in both.
 
-An ambient fight, one no node started, gets Everyone Attacks as its shipped Team default
-instead. Its players fill the slots in whatever order they arrive, so Default Support's
-blade on ``ally(last)`` would land on whoever happened to join last, not on P1.
+A fight no node started, an ambient one, gets the same defaults. Its players fill the seats
+in whatever order they arrive, but the fight runner hands wizsprinter the duel's combat order
+(:mod:`bartleby.runtime.combat.fight`, "The team's order"), so Default Support's blade on
+``ally(last)`` lands on P1 however they sat. Until BartleBuddy #31's Stage 4 it got Everyone
+Attacks instead.
 """
 
 from __future__ import annotations
@@ -129,13 +131,6 @@ SHIPPED_DUEL_IDS = {
     TeamSize.TEAM: SHIPPED_TEAM_DUEL_ID,
 }
 
-#: The shipped default for an ambient fight. Nothing orders who joins it, so no slot is
-#: known to be the hitter's, and every player hits.
-SHIPPED_AMBIENT_DUEL_IDS = {
-    TeamSize.SOLO: SHIPPED_SOLO_DUEL_ID,
-    TeamSize.TEAM: SHIPPED_EVERYONE_ATTACKS_DUEL_ID,
-}
-
 
 def players_text(duel: DuelCombatStrategy) -> str:
     """``1 player``, ``4 players`` or ``2 to 4 players``: how many *duel* takes."""
@@ -201,8 +196,8 @@ def chosen_default(prefs: PreferenceStore, size: TeamSize) -> str | None:
     """The duel id the user chose for *size*, or None for the recommended one.
 
     The shipped duel stored by its id is the recommended one too, as ``set_default_choice``
-    treats it: BartleBuddy or a hand edit can store it, and read as the user's it would
-    answer an ambient fight that the shipped default hands to a different duel.
+    treats it: BartleBuddy or a hand edit can store it, and it reads as no choice, so the
+    fight's source says the shipped default, as it is.
     """
     stored = prefs.get(PREFERENCE_KEYS[size])
     if not isinstance(stored, str) or not stored or stored == SHIPPED_DUEL_IDS[size]:
@@ -226,15 +221,12 @@ def default_duel(
     clients: int,
     prefs: PreferenceStore,
     library: Callable[[str], DuelCombatStrategy | None],
-    *,
-    ambient: bool = False,
 ) -> DefaultDuel:
     """The default duel strategy for *clients* connected clients.
 
     The user's duel for the team size when one is stored, readable, and accepts *clients*;
-    otherwise the shipped one, from :data:`SHIPPED_AMBIENT_DUEL_IDS` for an *ambient* fight.
-    The user's default answers an ambient fight too: they chose it. The shipped duel is never
-    checked against *clients*: it was written for its size, and the alternative to it is the
+    otherwise the shipped one, for a fight a node started and an ambient one alike. The
+    shipped duel is never checked against *clients*: it was written for its size, and the alternative to it is the
     last-resort DSL.
 
     *library* finds a duel by id and returns None for one it cannot. Nothing is written.
@@ -250,7 +242,7 @@ def default_duel(
             reasons.append(f"your {size.value} default {shortfall_text(mine, clients)}")
         else:
             return DefaultDuel(size, mine, DefaultSource.YOURS)
-    shipped = library((SHIPPED_AMBIENT_DUEL_IDS if ambient else SHIPPED_DUEL_IDS)[size])
+    shipped = library(SHIPPED_DUEL_IDS[size])
     if shipped is None:
         return DefaultDuel(size, None, None, tuple(reasons))
     return DefaultDuel(size, shipped, DefaultSource.SHIPPED, tuple(reasons))

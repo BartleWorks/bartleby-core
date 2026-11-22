@@ -119,6 +119,8 @@ BartleBot supplies what core's copies cut away:
 | `apply_app_theme(app, mode, custom)` | its theme setting, at startup and on Settings' OK |
 | `StartCard(pill=)` | a template's Source pill, on New Bot's and the Templates dialog's cards |
 | `run_fight(clients, dsls, numbers, time_limit=, log=)` and `CombatRun(numbers, log, time_limit)` | the DSLs `resolve_combat` reads from its four levels, `machine.log`, and what follows from the result itself: the flee limit (`note_flee`), the drop poll, a stopped bot |
+| `run_fight(..., order=)` and `CombatRun(..., order=)`, the duel's combat order | the combat order `resolve_combat` returns, for a node's fight and an ambient one. BartleBuddy sets `CombatRun.order` once it resolves a fight's duel |
+| `Follower(..., join_gate=)` and `JoinOrder` | nothing: BartleBot walks its clients in itself (`join_fight`). BartleBuddy's followers share a `JoinOrder`, set to the duel's combat order as the leader's fight starts |
 | `FirstCastHold.ready(fighter, settled, joined_at)` | `AmbientSession`'s join tasks, and when each helper read in battle |
 | `CombatRun(..., casts=, hold=)` | nothing: every player is cast for, under no hold. BartleBuddy hands the session's answer to who is cast for, asked at each planning phase, and its `Owner.COMBAT` lease |
 | `dsl_check_cache.cache_path()`, by `product.current()` | `product.use`, at startup, so the cache stays under `BartleBot/cache/` |

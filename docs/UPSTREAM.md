@@ -210,6 +210,12 @@ Current pins, both on `main`:
   where they were fixed waits, and the round waits read the duel every 0.2 s, not 0.5 s.
   On top of `7900369` (`bartlebot-pin-20261021`), which polls for the friend-teleport
   confirmation.
+- **wizsprinter `bcd5758`** (`bartlebot-pin-20261121`): the host's team order
+  (BartleBuddy #31, Stage 4). `SprintyCombat.team_order`, owner ids in the duel's combat
+  order, which a backward `ally(-N)` counts through instead of the seats, so `ally(last)` is
+  the duel's P1 however the team sat; core's runner hands it over each round. With none,
+  nothing changes. `main` also takes `dev`'s suite pins of wizwalker, up to `991c257`.
+  On top of `088fc83`, below.
 - **wizsprinter `088fc83`** (`bartlebot-pin-20261023d`): casts that land. Reads by path
   are fast enough to catch the game mid-layout, and a Heretical Academy run lost five
   casts in 173 rounds, three Balaur fights ending in the idle popup's flee. A fused card's

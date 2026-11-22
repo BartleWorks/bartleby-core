@@ -10,7 +10,32 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ## Unreleased
 
+### Breaking
+
+- **`default_duel` takes no `ambient`, and `SHIPPED_AMBIENT_DUEL_IDS` is gone** (BartleBuddy
+  #31, Stage 4). A fight no node started gets Default Team Duel as its shipped Team default,
+  as every other fight does, not Everyone Attacks: the runner hands wizsprinter the duel's
+  combat order, so its supports' `ally(last)` is P1 however the team sat. A product drops the
+  argument; one that listed the ambient ids, as BartleBot's `--self-check` did, lists
+  `SHIPPED_EVERYONE_ATTACKS_DUEL_ID` itself if it still ships it.
+- **wizsprinter moves to `bcd5758`** (`bartlebot-pin-20261121`), the commit with
+  `SprintyCombat.team_order`, which the runner now sets every round. A product pins the same
+  commit.
+
 ### Added
+
+- **The team's order, for `ally(-N)`** (BartleBuddy #31, Stage 4). `run_fight(..., order=)`,
+  `CombatRun(..., order=)` and its settable `order` take the duel's combat order as player
+  numbers, and each round the watch hands the players' global ids in that order to their
+  combat as wizsprinter's `team_order` (`FightWatch.team_order`). Without one, the seats
+  decide, as before.
+- **`movement.join_order.JoinOrder`** and **`Follower(..., join_gate=)`**: a leader's followers
+  walk into its fight one after another, each once the one before has joined. While that one is
+  on its way (`on_its_way=`, a `Follower`'s `walking`) the next waits however long it takes, and
+  one waiting its own turn holds up everyone behind it; one that stopped trying, or never asks,
+  holds up the next by `timing.JOIN_ORDER_HOLD` from its turn. A follower waiting at its gate stands, says
+  `WAITING_TO_JOIN`, and counts as `joining_fight`. The gate is asked before any port, since a
+  port that lands beside a fight is pulled into it at once, out of turn.
 
 - **Who is cast for, at each planning phase** (BartleBuddy #31, Stage 3). `CombatRun` and
   `FightWatch` take `casts`, asked of each player at the start of every planning phase, and
@@ -26,6 +51,13 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   the last resort where it runs nothing; and **`DefaultDuel.label`**, a default's phrase for the
   log. BartleBot's `resolve_combat` still builds its own list; Stage 5 (BartleBot #332) moves it
   onto `slot_dsls`.
+
+### Changed
+
+- **A follower made with `port_when_far` ports beyond `follow.PORT_FAR`, 3,000 units**, not
+  `RESYNC`'s 1,500, when it starts or is let go. Nearer, it walks, which joins a fight in its
+  turn where a port lands in it at once, at the cost of up to about 5 s at a wizard's own speed. `RESYNC` still says when a follower has
+  lost the trail, and how near the leader it reads a dungeon sigil's prompt.
 
 ## 0.7.0
 

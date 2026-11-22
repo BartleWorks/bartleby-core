@@ -735,23 +735,32 @@ def test_let_go_it_waits_no_more_and_walks_back_to_a_leader_nearby():
     held[0] = False
 
     step = f.plan(snap(0, 0), (0, 0, 0), snap(1260, 0), 1)
-    assert step.kind is StepKind.WALK, "a leader within RESYNC is walked to, with no wait"
+    assert step.kind is StepKind.WALK, "a leader within PORT_FAR is walked to, with no wait"
     assert not f.awaiting_move and not f.held
 
 
-def test_let_go_beyond_resync_it_ports():
+def test_let_go_beyond_port_far_it_ports():
     held = [True]
-    f = made(laid_trail(*range(0, 2000, 60)), hold=lambda: held[0], port_when_far=True)
-    f.plan(snap(0, 0), (0, 0, 0), snap(1980, 0), 0)
+    f = made(laid_trail(*range(0, 3600, 60)), hold=lambda: held[0], port_when_far=True)
+    f.plan(snap(0, 0), (0, 0, 0), snap(3540, 0), 0)
     held[0] = False
-    step = f.plan(snap(0, 0), (0, 0, 0), snap(1980, 0), 1)
+    step = f.plan(snap(0, 0), (0, 0, 0), snap(3540, 0), 1)
     assert step.kind is StepKind.PORT and step.reason == "far from the leader"
 
 
+def test_let_go_within_port_far_it_walks_back_however_far_past_resync():
+    """2,000 units walks at 2.0x in under 2 s, where a port costs two loading screens."""
+    held = [True]
+    f = made(laid_trail(*range(0, 2100, 60)), hold=lambda: held[0], port_when_far=True)
+    f.plan(snap(0, 0), (0, 0, 0), snap(2040, 0), 0)
+    held[0] = False
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(2040, 0), 1).kind is StepKind.WALK
+
+
 def test_a_new_follower_far_from_its_leader_ports_once_the_leader_has_moved():
-    f = made(laid_trail(*range(0, 2000, 60)), wait_for_move=True, port_when_far=True)
-    assert f.plan(snap(0, 0), (0, 0, 0), snap(1980, 0), 0).kind is StepKind.WAIT
-    assert f.plan(snap(0, 0), (0, 0, 0), snap(1980 + follow.STILL + 1, 0), 1).kind is StepKind.PORT
+    f = made(laid_trail(*range(0, 3600, 60)), wait_for_move=True, port_when_far=True)
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(3540, 0), 0).kind is StepKind.WAIT
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(3540 + follow.STILL + 1, 0), 1).kind is StepKind.PORT
 
 
 def test_a_new_follower_near_its_leader_walks_and_asks_only_once():
@@ -762,19 +771,19 @@ def test_a_new_follower_near_its_leader_walks_and_asks_only_once():
 
 
 def test_without_port_when_far_a_far_follower_walks_as_before():
-    f = made(laid_trail(*range(0, 2000, 60)))
-    assert f.plan(snap(0, 0), (0, 0, 0), snap(1980, 0), 0).kind is StepKind.WALK
+    f = made(laid_trail(*range(0, 3600, 60)))
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(3540, 0), 0).kind is StepKind.WALK
 
 
 async def test_a_port_that_lands_ends_the_far_check():
-    f = made(laid_trail(*range(0, 2000, 60)), port_when_far=True)
+    f = made(laid_trail(*range(0, 3600, 60)), port_when_far=True)
 
     async def port(_lease):
         return True
 
     f.port = port
     await f._port(Lease(f.client, Owner.MOVEMENT, ClientInput(f.client)), "far from the leader")
-    assert f.plan(snap(0, 0), (0, 0, 0), snap(1980, 0), 0).kind is StepKind.WALK
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(3540, 0), 0).kind is StepKind.WALK
 
 
 async def test_near_the_leader_it_walks_at_the_walking_speed_it_is_given():
