@@ -1,4 +1,5 @@
-"""``held_listings``: one listing per directory for a pass over many ids, and never a stale one after a write.
+"""``held_listings``: one listing per directory for a pass over many ids, and never a stale one after a write;
+and ``unique_name``, one naming rule for Duplicate and + New across every strategy kind.
 
 The filename rules themselves are tested in ``tests/content/test_store_filenames.py``.
 """
@@ -11,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from bartleby.shared import store_files
-from bartleby.shared.store_files import delete_by_id, find_by_id, held_listings, save_by_id
+from bartleby.shared.store_files import delete_by_id, find_by_id, held_listings, save_by_id, unique_name
 
 
 def _write(d: Path, name: str, item_id: str) -> Path:
@@ -96,3 +97,37 @@ def test_the_block_lets_go_when_it_ends(tmp_path, listings):
     find_by_id(tmp_path, "id-a")
 
     assert listings == {tmp_path: 2}
+
+
+# ---------------------------------------------------------------------------
+# unique_name
+# ---------------------------------------------------------------------------
+
+
+def test_unique_name_returns_the_base_when_it_is_free():
+    assert unique_name("Storm AoE", []) == "Storm AoE"
+    assert unique_name("Storm AoE", ["Fire AoE"]) == "Storm AoE"
+
+
+def test_unique_name_starts_at_two():
+    assert unique_name("Storm AoE", ["Storm AoE"]) == "Storm AoE (2)"
+
+
+def test_unique_name_skips_the_gap_it_finds():
+    taken = ["Storm AoE", "Storm AoE (2)", "Storm AoE (3)"]
+    assert unique_name("Storm AoE", taken) == "Storm AoE (4)"
+
+
+def test_duplicating_a_duplicate_counts_from_the_stem():
+    """ "Storm AoE (2)" duplicated is (3), not "Storm AoE (2) (2)"."""
+    assert unique_name("Storm AoE (2)", ["Storm AoE", "Storm AoE (2)"]) == "Storm AoE (3)"
+
+
+def test_unique_name_is_case_sensitive():
+    """These are user-visible labels; two names differing only in case are two names."""
+    assert unique_name("Storm AoE", ["storm aoe"]) == "Storm AoE"
+
+
+def test_unique_name_leaves_a_parenthesized_name_that_is_not_a_suffix_alone():
+    assert unique_name("Boss (Hard)", []) == "Boss (Hard)"
+    assert unique_name("Boss (Hard)", ["Boss (Hard)"]) == "Boss (Hard) (2)"

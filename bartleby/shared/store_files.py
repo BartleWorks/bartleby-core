@@ -57,6 +57,48 @@ class Origin(Enum):
     MISSING = "missing"
 
 
+#: What every surface calls where an item comes from: bots, templates, subgraphs and
+#: strategies alike, so no two of them describe the same origin in two vocabularies.
+#: "Official" means shipped, which means tested and proven in game: it is worked out from
+#: the root a file is in, never read from the file, so nothing a user receives can claim
+#: it (BartleBot #149). "Custom" rather than "User": it is the user's own, in one word.
+SOURCE_LABELS = {
+    Origin.SHIPPED: "Official",
+    Origin.SHIPPED_OVERRIDE: "Official (modified)",
+    Origin.USER: "Custom",
+    Origin.MISSING: "Missing",
+}
+
+#: The origins a list can show, in the order a Source filter offers them. Missing is not
+#: one: a missing item is never listed.
+LISTED_ORIGINS: tuple[Origin, ...] = (Origin.SHIPPED, Origin.SHIPPED_OVERRIDE, Origin.USER)
+
+#: ``base (2)``, ``base (3)`` — the suffix :func:`unique_name` adds and strips.
+_COPY_SUFFIX = re.compile(r"^(?P<stem>.*?)\s*\((?P<n>\d+)\)$")
+
+
+def unique_name(base: str, existing_names) -> str:
+    """``base``, or the first free ``base (2)``, ``base (3)``, … .
+
+    One naming rule for Duplicate and ``+ New`` across every strategy kind, so a copy of
+    a copy reads as ``Storm AoE (3)`` rather than ``Storm AoE copy copy``. A ``base`` that
+    already carries a suffix is counted from its stem for that reason: duplicating
+    ``Storm AoE (2)`` gives ``Storm AoE (3)``, not ``Storm AoE (2) (2)``.
+
+    ``existing_names`` is any iterable of names; comparison is exact, since these are
+    user-visible labels and two names differing only in case are two names.
+    """
+    taken = set(existing_names)
+    if base not in taken:
+        return base
+    match = _COPY_SUFFIX.match(base)
+    stem = match.group("stem") if match else base
+    n = int(match.group("n")) + 1 if match else 2
+    while f"{stem} ({n})" in taken:
+        n += 1
+    return f"{stem} ({n})"
+
+
 #: How much of a name a filename carries. The full name is in the file.
 _MAX_SLUG = 60
 

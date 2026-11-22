@@ -46,7 +46,15 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from bartleby.shared.store_files import delete_by_id, find_by_id, index_dir, record_save_in, save_by_id
+from bartleby.shared.store_files import (
+    Origin,
+    delete_by_id,
+    find_by_id,
+    index_dir,
+    origin_in,
+    record_save_in,
+    save_by_id,
+)
 from bartleby.shared.strategy_models import LIBRARY_FORMAT, DeckPreset, DuelCombatStrategy, PlayerCombatStrategy
 
 logger = logging.getLogger(__name__)
@@ -55,7 +63,7 @@ logger = logging.getLogger(__name__)
 LIBRARY_DIRNAME = "strategies"
 
 
-class LibraryKind(Enum):
+class StrategyKind(Enum):
     """The three kinds the shared library holds."""
 
     PLAYER = "player"
@@ -63,16 +71,16 @@ class LibraryKind(Enum):
     DECK = "deck"
 
 
-_SUBDIRS = {LibraryKind.PLAYER: "player", LibraryKind.DUEL: "duel", LibraryKind.DECK: "decks"}
+_SUBDIRS = {StrategyKind.PLAYER: "player", StrategyKind.DUEL: "duel", StrategyKind.DECK: "decks"}
 
-MODELS: dict[LibraryKind, type[BaseModel]] = {
-    LibraryKind.PLAYER: PlayerCombatStrategy,
-    LibraryKind.DUEL: DuelCombatStrategy,
-    LibraryKind.DECK: DeckPreset,
+MODELS: dict[StrategyKind, type[BaseModel]] = {
+    StrategyKind.PLAYER: PlayerCombatStrategy,
+    StrategyKind.DUEL: DuelCombatStrategy,
+    StrategyKind.DECK: DeckPreset,
 }
 
 
-def kind_dir(root: Path, kind: LibraryKind) -> Path:
+def kind_dir(root: Path, kind: StrategyKind) -> Path:
     """Where ``kind``'s files are under ``root``."""
     return Path(root) / LIBRARY_DIRNAME / _SUBDIRS[kind]
 
@@ -80,7 +88,7 @@ def kind_dir(root: Path, kind: LibraryKind) -> Path:
 class ChangedOnDisk(Exception):
     """Nothing was written: the user-root file is not the one the item was loaded from."""
 
-    def __init__(self, kind: LibraryKind, item_id: str, name: str) -> None:
+    def __init__(self, kind: StrategyKind, item_id: str, name: str) -> None:
         self.kind = kind
         self.item_id = item_id
         self.name = name
@@ -92,7 +100,7 @@ class ChangedOnDisk(Exception):
 class NewerFormat(Exception):
     """Nothing was written: the file is in a format newer than this build knows."""
 
-    def __init__(self, kind: LibraryKind, item_id: str, name: str, file_format: int) -> None:
+    def __init__(self, kind: StrategyKind, item_id: str, name: str, file_format: int) -> None:
         self.kind = kind
         self.item_id = item_id
         self.name = name
@@ -126,11 +134,11 @@ def _digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def _parse(kind: LibraryKind, data: bytes) -> BaseModel:
+def _parse(kind: StrategyKind, data: bytes) -> BaseModel:
     return MODELS[kind].model_validate(json.loads(data))
 
 
-def entries(shipped: Path, user: Path, kind: LibraryKind) -> dict[str, Entry]:
+def entries(shipped: Path, user: Path, kind: StrategyKind) -> dict[str, Entry]:
     """Every ``kind`` item under both roots, by id, the user's winning. One that does not load is skipped.
 
     Each file is read once, so an item and its fingerprint always describe the same bytes.
@@ -151,7 +159,7 @@ def entries(shipped: Path, user: Path, kind: LibraryKind) -> dict[str, Entry]:
     return found
 
 
-def load(shipped: Path, user: Path, kind: LibraryKind, item_id: str) -> Entry:
+def load(shipped: Path, user: Path, kind: StrategyKind, item_id: str) -> Entry:
     """``item_id``, from the user root, else the shipped one. Raises ``FileNotFoundError`` if neither has it."""
     path = find_by_id(kind_dir(user, kind), item_id)
     if path is not None:
@@ -163,7 +171,34 @@ def load(shipped: Path, user: Path, kind: LibraryKind, item_id: str) -> Entry:
     return Entry(_parse(kind, path.read_bytes()), None)
 
 
-def fingerprint(user: Path, kind: LibraryKind, item_id: str) -> str | None:
+def shipped_items(shipped: Path, user: Path, kind: StrategyKind) -> list[BaseModel]:
+    """Every ``kind`` item as it ships, ignoring any user copy that shadows it. One that does not load is skipped.
+
+    What a revert restores, and what a working set compares an entry against to say
+    whether it is still the Official one. Empty when the two roots are one directory
+    (developer mode, or a single-root test sandbox), since nothing ships there.
+    """
+    if shipped == user:
+        return []
+    items = []
+    for path in index_dir(kind_dir(shipped, kind)).values():
+        try:
+            items.append(_parse(kind, path.read_bytes()))
+        except Exception:
+            logger.warning("Skipping unloadable %s", path, exc_info=True)
+    return items
+
+
+def origin(shipped: Path, user: Path, kind: StrategyKind, item_id: str) -> Origin:
+    """Which root(s) hold ``item_id``: what makes a Delete honest (:class:`~bartleby.shared.store_files.Origin`).
+
+    :attr:`Origin.USER` for one in both roots when they are one directory, since nothing
+    ships there.
+    """
+    return origin_in(lambda root: kind_dir(root, kind), item_id, shipped, user)
+
+
+def fingerprint(user: Path, kind: StrategyKind, item_id: str) -> str | None:
     """The fingerprint ``item_id`` would load with now: its user-root file's SHA-256, or ``None``."""
     path = find_by_id(kind_dir(user, kind), item_id)
     if path is None:
@@ -174,7 +209,7 @@ def fingerprint(user: Path, kind: LibraryKind, item_id: str) -> str | None:
         return None
 
 
-def _check(user: Path, kind: LibraryKind, item_id: str, name: str, expected: str | None) -> None:
+def _check(user: Path, kind: StrategyKind, item_id: str, name: str, expected: str | None) -> None:
     """Raise unless the user root still holds what ``expected`` describes, in a format this build may overwrite."""
     path = find_by_id(kind_dir(user, kind), item_id)
     data = None
@@ -199,7 +234,7 @@ def _check(user: Path, kind: LibraryKind, item_id: str, name: str, expected: str
 
 def save(
     user: Path,
-    kind: LibraryKind,
+    kind: StrategyKind,
     item: BaseModel,
     *,
     expected: str | None = None,
@@ -229,7 +264,7 @@ def save(
     return _digest(path.read_bytes())
 
 
-def delete(user: Path, kind: LibraryKind, item_id: str, name: str = "", *, expected: str | None = None) -> None:
+def delete(user: Path, kind: StrategyKind, item_id: str, name: str = "", *, expected: str | None = None) -> None:
     """Remove ``item_id``'s user-root file, if it still holds what ``expected`` describes.
 
     On an override of a shipped item this is a revert. Raises :class:`ChangedOnDisk` or
