@@ -51,8 +51,8 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 ### Changed
 
 - **A follower made with `port_when_far` ports beyond `follow.PORT_FAR`, 3,000 units**, not
-  `RESYNC`'s 1,500, when it starts or is let go. Nearer, it walks, which takes less time than a
-  port's loading screens and joins a fight in its turn. `RESYNC` still says when a follower has
+  `RESYNC`'s 1,500, when it starts or is let go. Nearer, it walks, which joins a fight in its
+  turn where a port lands in it at once, at the cost of up to about 5 s at a wizard's own speed. `RESYNC` still says when a follower has
   lost the trail, and how near the leader it reads a dungeon sigil's prompt.
 
 ## 0.7.0

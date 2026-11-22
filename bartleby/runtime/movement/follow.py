@@ -108,8 +108,9 @@ LOOK_AHEAD = 12
 #: Units from the next point beyond which a follower has lost the trail and finds it again.
 RESYNC = 1500.0
 #: Units from the leader beyond which a follower made with ``port_when_far`` ports rather than walk,
-#: when it starts or is let go. Two loading screens cost more than a walk of this far at 2.0x, about
-#: 2.5 s, and a walk joins the leader's fight in its turn where a port lands in it at once.
+#: when it starts or is let go. A walk joins the leader's fight in its turn, where a port lands
+#: beside it and is pulled in at once. This far takes about 5 s at a wizard's own speed, 600 units a
+#: second, and 2.5 s at 2.0x; a port took about 3.5 s in game (2026-11-21).
 PORT_FAR = 3000.0
 #: Units of progress under which forward held for the stall window is a stall.
 STALL_MIN_MOVE = 60.0
