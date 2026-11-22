@@ -67,8 +67,8 @@ WHAT A PRODUCT ADDS
 
 A product opens this window with its settings, a :class:`StrategySettings`, and nothing else
 is required: BartleBuddy's is this class as it is. What a product can hand in, it can leave
-out, and then the window has no trace of it: a ``deck_link`` for the Deck tab's Import and
-Apply, an ``archmastery_default``, the accounts behind the player slots.
+out, and then the window has no trace of it: a ``deck_link`` for the Deck tab's Import, Apply
+and New, an ``archmastery_default``, the accounts behind the player slots.
 
 What only one product has is a subclass, which plugs in here:
 
@@ -252,6 +252,9 @@ OFFICIAL_UPDATED_NOTE = (
     "The Official version has changed since you made your copy. "
     "Revert to default to use the new one; your changes are discarded."
 )
+#: The detail pane with nothing selected, where New makes one and where it doesn't.
+_EMPTY = "Select a strategy on the left."
+_EMPTY_OR_NEW = "Select a strategy on the left, or press + New."
 #: How far a tab's contents sit inside the tab pane, and how far *each* pane sits from
 #: the splitter between them. Two numbers rather than one because the splitter handle is
 #: already a few pixels of its own: the gap the eye sees beside a handle is the handle
@@ -682,9 +685,7 @@ class KindPage(QWidget):
         self._scroll.setWidget(self._editor)
         box.addWidget(self._scroll, 1)
 
-        self._empty_lbl = QLabel(
-            "Select a strategy on the left, or press + New." if self._editable else "Select a strategy on the left."
-        )
+        self._empty_lbl = QLabel(_EMPTY_OR_NEW if self._editable else _EMPTY)
         apply_muted_color(self._empty_lbl)
         box.addWidget(self._empty_lbl)
         return panel
@@ -1078,9 +1079,15 @@ class KindPage(QWidget):
             return
 
     def set_deck_link(self, link: DeckClientLink | None) -> None:
-        """Give the Deck tab its way to the game clients; any other tab has none to give."""
+        """Give the Deck tab its way to the game clients; any other tab has none to give.
+
+        A preset's cards come from a client, so without one New would make a preset that
+        nothing can fill, and it goes with Import and Apply.
+        """
         if isinstance(self._editor, DeckPresetEditor):
             self._editor.set_link(link)
+            self._new_btn.setVisible(link is not None)
+            self._empty_lbl.setText(_EMPTY_OR_NEW if self._editable and link is not None else _EMPTY)
 
     # -- the detail pane ------------------------------------------------
 
@@ -1144,9 +1151,9 @@ class KindPage(QWidget):
         if revert and self._ws.official_updated(self._kind, entry.id):
             note = OFFICIAL_UPDATED_NOTE
         elif revert:
-            note = f"Your copy of a strategy {product.current().name} ships — reverting restores the original."
+            note = "Your copy of an Official strategy — reverting restores the original."
         elif built_in:
-            note = f"Ships with {product.current().name} — editing it saves your own copy."
+            note = "An Official strategy — editing it saves your own copy."
         else:
             note = ""
         self._about.set_notes(usage, note)
@@ -1223,7 +1230,7 @@ class KindPage(QWidget):
         verb = "Revert" if revert else "Delete"
         if revert:
             # No usage warning: the id stays, so everything linking it keeps working.
-            detail = f"“{entry.name}” will go back to the version {product.current().name} ships."
+            detail = f"“{entry.name}” will go back to the Official version."
         else:
             detail = f"“{entry.name}” will be removed when you save."
             usage = self._ws.usage(entry.id)
@@ -1315,7 +1322,7 @@ class CombatStrategyDialog(QDialog):
         archmastery_default: Callable[[], bool | None] = lambda: None,
     ):
         """*settings* keeps the favorites. *deck_link* is the Deck tab's way to the game clients:
-        without one it has no Import and no Apply. *archmastery_default* is the product's own
+        without one it has no Import, no Apply and no New. *archmastery_default* is the product's own
         setting for a deck that defers to it, asked when it is drawn; None where it has none.
 
         *team_size* opens the Duel tab filtered to the duels a team of that size can run,

@@ -12,9 +12,15 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 The Combat Strategies window, from BartleBot (BartleBuddy #31, Stage 6), with the widgets it is
 drawn from and the read side of the game art; and a wizard's decks, read and equipped by name
-(#22, Stage 8 of BartleBuddy #31). Nothing breaks. A product drops its own copy of a module
-here, as `core_copies` says: BartleBot its window's and its spellbook helpers. It needs
-wizwalker at the pin in `docs/UPSTREAM.md`.
+(#22, Stage 8 of BartleBuddy #31). It needs wizwalker at the pin in `docs/UPSTREAM.md`. A minor
+release: a product with its own copies fixes the Breaking item below.
+
+### Breaking
+
+- **A product's own copy of a module or helper listed under Added fails its `core_copies`
+  guard** until it drops it: BartleBot's Combat Strategies window and the widgets under it, its
+  art read side, its deck contents, and its spellbook helpers. A product with no copy changes
+  nothing.
 
 ### Added
 
@@ -24,7 +30,7 @@ wizwalker at the pin in `docs/UPSTREAM.md`.
   `filter_bar`, `dsl_checks` and `deck_link`. A product hands it a working set and a
   **`strategy_settings.StrategySettings`**, three methods that keep the favorites; a
   `deck_link` and an `archmastery_default` are optional, and without the first the Deck tab has
-  no Import or Apply. A product's own additions are a subclass, through the hooks `dialog.py`
+  no Import, Apply or New. A product's own additions are a subclass, through the hooks `dialog.py`
   lists (`KindPage`, `AboutSection`, `StrategyCard.owner_pill`).
 - **Widgets**: in `bartleby.qt.widgets`, `cards.strategy_card`, `card_art_tile`,
   `deck_card_list`, `archmastery_badge`, `archmastery_editor` and `duel_slot_gem`;

@@ -882,7 +882,7 @@ def test_the_about_section_carries_the_origin_note_for_a_shipped_entry(qapp, roo
     entry = _one_of_each(roots)[StrategyKind.DUEL]
     dlg = _dialog(roots, kind=StrategyKind.DUEL, current_id=entry.id)
 
-    assert "Ships with Sample" in dlg._pages[StrategyKind.DUEL].about.origin_text
+    assert "An Official strategy" in dlg._pages[StrategyKind.DUEL].about.origin_text
 
 
 def test_a_user_owned_entry_has_no_origin_note_to_make(qapp, roots):
@@ -1009,6 +1009,31 @@ def test_a_window_with_a_deck_link_offers_them(qapp, roots):
     assert not editor.apply_button.isHidden()
 
 
+def test_a_deck_tab_with_no_deck_link_makes_no_preset_but_keeps_the_rest(qapp, roots):
+    """A new preset is empty, and only a client can fill it."""
+    entry = _one_of_each(roots)[StrategyKind.DECK]
+    dlg = _dialog(roots, kind=StrategyKind.DECK, current_id=entry.id)
+    page = dlg.page(StrategyKind.DECK)
+
+    assert page.new_button.isHidden()
+    assert not page.duplicate_button.isHidden()
+    assert not page.delete_button.isHidden()
+    page.select(None)
+    assert not page._empty_lbl.isHidden()
+    assert "New" not in page._empty_lbl.text()
+    for kind in (StrategyKind.DUEL, StrategyKind.PLAYER):
+        assert not dlg.page(kind).new_button.isHidden()
+
+
+def test_a_deck_tab_with_a_deck_link_makes_presets(qapp, roots):
+    link = DeckClientLink(lambda: 0, lambda _slot, _done: False, lambda _slot, _deck, _done: False)
+    dlg = _dialog(roots, kind=StrategyKind.DECK, deck_link=link)
+    page = dlg.page(StrategyKind.DECK)
+
+    assert not page.new_button.isHidden()
+    assert "New" in page._empty_lbl.text()
+
+
 def test_a_product_with_no_archmastery_setting_has_no_caption_for_one(qapp, roots):
     deck = DeckPreset(name="Storm 60", deck=DeckData(normal={"Test Card": 1}, archmastery_school="Storm"))
     _dlg, page = _deck_page(roots, deck)
@@ -1018,7 +1043,7 @@ def test_a_product_with_no_archmastery_setting_has_no_caption_for_one(qapp, root
     assert asked.page(StrategyKind.DECK).editor.archmastery.caption_text == APP_SETTING_ON
 
 
-def test_a_revert_and_a_newer_file_name_the_running_product(qapp, roots):
+def test_an_override_says_official_and_a_newer_file_names_the_running_product(qapp, roots):
     shipped, user = roots
     ours = PlayerCombatStrategy(name="Support", dsl="pass")
     newer = PlayerCombatStrategy(name="Later", dsl="pass", format=99)
@@ -1027,7 +1052,7 @@ def test_a_revert_and_a_newer_file_name_the_running_product(qapp, roots):
     save(newer, user)
     dlg = _dialog(roots, kind=StrategyKind.PLAYER, current_id=ours.id)
     page = dlg.page(StrategyKind.PLAYER)
-    assert "a strategy Sample ships" in page.about.origin_text
+    assert "Your copy of an Official strategy" in page.about.origin_text
 
     page.select(newer.id)
 
