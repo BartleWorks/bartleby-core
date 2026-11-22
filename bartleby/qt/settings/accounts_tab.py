@@ -55,6 +55,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from bartleby.qt.dialogs.confirm import confirm_delete as _confirm_delete
 from bartleby.qt.game_embed.card_columns import (
     ACCOUNTS_TITLE,
     ADD_ACCOUNT,
@@ -90,18 +91,6 @@ from bartleby.shared.ordering import apply_order
 #: The account editor's window title, and the title of a message about what it was given.
 ADD_ACCOUNT_TITLE = "Add Wizard101 Account"
 EDIT_ACCOUNT_TITLE = "Edit Wizard101 Account"
-
-
-def _confirm_delete(parent: QWidget | None, title: str, text: str) -> bool:
-    """Ask before a delete, with the verb on the button, and Cancel the default."""
-    box = QMessageBox(parent)
-    box.setWindowTitle(title)
-    box.setIcon(QMessageBox.Icon.Warning)
-    box.setText(text)
-    delete = box.addButton("Delete", QMessageBox.ButtonRole.DestructiveRole)
-    box.setDefaultButton(box.addButton(QMessageBox.StandardButton.Cancel))
-    box.exec()
-    return box.clickedButton() is delete
 
 
 def _slots_in_use(exclude: str = "") -> dict[int, list[str]]:
