@@ -25,12 +25,11 @@ import re
 from functools import cache
 from pathlib import Path
 
+from bartleby.shared.locales import LOCALES
+
 logger = logging.getLogger(__name__)
 
 REALM_NAMES_PATH = Path(__file__).resolve().parent / "data" / "realm_names.json"
-
-# The game ships these seven. Kept in step with worlds.py and dialog_captions.py.
-LOCALES: tuple[str, ...] = ("de", "el", "en-US", "es", "fr", "it", "pl")
 
 
 @cache
