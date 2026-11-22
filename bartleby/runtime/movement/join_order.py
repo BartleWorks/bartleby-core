@@ -13,7 +13,9 @@ gate opened, and no more.
 
 One is shared by a leader's followers, and fed the leader's snapshots (:meth:`note`), so it
 knows when a fight starts and ends. The order is the product's to set, from the duel it will
-fight: an empty order lets every follower walk in at once, as before.
+fight: an empty order lets every follower walk in at once, as before. A product that can't
+say yet, since which duel it is depends on the fight, has them all wait
+(:meth:`JoinOrder.wait`) until it can.
 """
 
 from __future__ import annotations
@@ -51,6 +53,7 @@ class JoinOrder:
         self._hold = hold
         self._clock = clock
         self.order: tuple = ()
+        self.waiting = False  # see wait
         self._started: float | None = None  # when the leader's fight was first seen
         self._opened: dict = {}  # follower -> when its gate opened, this fight
         self._asked: dict = {}  # follower -> when it last asked, this fight
@@ -58,6 +61,15 @@ class JoinOrder:
     def set(self, followers: Sequence) -> None:
         """Walk *followers* in in this order; any other follower walks in at once."""
         self.order = tuple(followers)
+        self.waiting = False
+
+    def wait(self) -> None:
+        """Hold every follower not in yet at its gate, until :meth:`set` gives the order, or the fight ends.
+
+        How long is the caller's to bound: no hold runs out meanwhile.
+        """
+        self.order = ()
+        self.waiting = True
 
     def note(self, leader: Snapshot) -> None:
         """Note the leader's latest snapshot: a fight it is no longer in is over."""
@@ -66,6 +78,7 @@ class JoinOrder:
                 self._started = self._clock()
         else:
             self._started = None
+            self.waiting = False
             self._opened.clear()
             self._asked.clear()
 
@@ -73,6 +86,9 @@ class JoinOrder:
         """Whether *follower* may walk into the leader's fight now. Asked while the leader is in one."""
         if follower in self._opened:
             return True
+        if self.waiting:
+            self._asked[follower] = self._clock()
+            return False
         if follower not in self.order:
             return True
         now = self._clock()

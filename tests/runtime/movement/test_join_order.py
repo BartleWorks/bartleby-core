@@ -75,6 +75,41 @@ def test_a_follower_ahead_that_never_gets_in_holds_the_next_one_up_for_a_hold_on
     assert order.may_join("b")
 
 
+def test_everyone_waits_until_the_order_is_known_and_then_walks_in_in_it():
+    order, clock, fighting = _order()
+    order.wait()
+
+    clock.now = HOLD * 3
+    assert not order.may_join("a")
+    assert not order.may_join("b")
+
+    order.set(["b", "a"])
+    assert order.may_join("b")
+    assert not order.may_join("a")
+    fighting.add("b")
+    assert order.may_join("a")
+
+
+def test_one_let_in_before_the_wait_is_not_called_back():
+    order, _clock, _fighting = _order("a", "b")
+    assert order.may_join("a")
+
+    order.wait()
+
+    assert order.may_join("a")
+    assert not order.may_join("b")
+
+
+def test_a_fight_that_ends_while_the_order_is_awaited_opens_the_gates():
+    order, _clock, _fighting = _order()
+    order.wait()
+
+    order.note(_leader(False))
+
+    assert not order.waiting
+    assert order.may_join("a")
+
+
 def test_one_ahead_that_never_asks_counts_as_opening_a_hold_late():
     order, clock, _fighting = _order("a", "absent", "c")
     assert order.may_join("a")
