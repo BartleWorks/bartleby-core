@@ -8,6 +8,40 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+The strategy layer under the Combat Strategies window, from BartleBot (BartleBuddy #31,
+Stage 5): the working set, the summaries, the tags, the DSL's vocabulary, slot targets, card
+kinds and the spell-school snapshot. A minor release: a product fixes the Breaking item below.
+
+### Breaking
+
+- **`strategy_library.LibraryKind` is `StrategyKind`**, the one enum for the library's three
+  kinds in every product. A product renames its uses; BartleBot's own `StrategyKind`, which
+  had a fourth member for its Bot Combat Strategy, gives way to it.
+
+### Added
+
+- **`bartleby.runtime.combat.strategy_workset`**: `StrategyWorkingSet`, the Save/Cancel
+  boundary over the library's `(shipped, user)` roots, with `Changes`, `Conflict` and
+  `SharedUse`. Beside the library it may hold a **`StrategyOwner`**: what keeps duel and
+  player strategies of its own and names the library's, as BartleBot's Bot Combat Strategy
+  does. One owner may be open, edited inside the boundary (`owner`, `own_items`,
+  `create(..., own=True)`, `move_to_library`, `owner_dirty`); `others` are counted for what
+  uses an entry; `make_owner` lets a window make one (`create_owner`). With none, the working
+  set is the library alone.
+- **`strategy_summary`**: every display string a strategy card draws (`summarize_duel`,
+  `summarize_player`, `summarize_deck`, `format_players`, `find_references`, `UsageCount`),
+  with owners in place of Bot Combat Strategies (`UsageCount.owners`, `nouns`,
+  `StrategySummary.owner_name`).
+- **`strategy_tags`**: the tag vocabulary and its filter rule; `tag_groups(own_source)` puts an
+  owner's Source word first in Source, and `facets_match` and `strategy_tag_group` take the
+  groups.
+- **`dsl_syntax`, `slot_order`, `card_kinds`** in `bartleby.runtime.combat`, and
+  **`runtime/game/spell_schools.py`** with its snapshot, unchanged but for their imports.
+- **`store_files.SOURCE_LABELS`, `LISTED_ORIGINS` and `unique_name`**, and
+  **`strategy_library.shipped_items` and `origin`**.
+
 ## 0.8.1
 
 The last-resort DSL hits a mob once no boss is left. A patch release: nothing breaks.

@@ -10,7 +10,7 @@ stage, and it is complete; this file is the part of it that governs code.
 | tier | holds | may import |
 |---|---|---|
 | `bartleby.shared` | the data every product reads and writes under `%APPDATA%/Bartleby/`: accounts, launch profiles, preferences, the strategy library, the vendor's name, share files; the running product; and two small helpers, a Qt-free signal (`listeners.Listeners`) and a drag's permutation applied (`ordering.apply_order`) | stdlib, pydantic, keyring |
-| `bartleby.runtime` | game clients at run time, with no Qt: launching, the client manager (finding, hooking, naming and ordering clients), the resizer, the state reader, the arbiter and the one input API, movement, the helpers, where the game is installed, the game facts (key bindings, the game's own and a product's hotkeys against them, captions, names, spell names, realms, sizing and tile layouts), combat (running a fight and fleeing one, checking a DSL, holding the first cast: `combat/`), timing and the run trace; and the view models a shared widget draws (`views`) | `shared`, wizwalker, wizsprinter |
+| `bartleby.runtime` | game clients at run time, with no Qt: launching, the client manager (finding, hooking, naming and ordering clients), the resizer, the state reader, the arbiter and the one input API, movement, the helpers, where the game is installed, the game facts (key bindings, the game's own and a product's hotkeys against them, captions, names, spell names and schools, realms, sizing and tile layouts), combat (running a fight and fleeing one, checking a DSL, holding the first cast, and the Combat Strategies window's Qt-free half: the strategy working set, the summaries and the tags: `combat/`), timing and the run trace; and the view models a shared widget draws (`views`) | `shared`, wizwalker, wizsprinter |
 | `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, card columns, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; the player cards and their column; the game view with its launch screen and launch cards, Bar A's game panel and action bar, and the screen fit; the settings rows, the Settings dialog and its Theme and Game tabs, setup's frame and shared pages, and an app's theme; an app's startup (`app/`) and the runtime bridge, with the crossing a client manager's tiles take | `shared`, `runtime`, PyQt6 |
 
 Each tier imports only from those before it, so the runtime runs without a GUI and the data
@@ -25,7 +25,7 @@ and the per-test widget reaping and the `parentless_shows` fixture every repo's 
 ## What stays in a product
 
 Code about a product's own concepts stays in it. In BartleBot that is the canvas, nodes,
-the FSM, bot options, the bot library and combat strategies; in BartleBuddy, control per
+the FSM, bot options, the bot library and the Bot Combat Strategy; in BartleBuddy, control per
 task and the team's objective, the session and the quest map. When a product's need really differs from BartleBot's, for
 example Main and Side tiles where BartleBot has one equal grid, the shared module is extended
 to cover both, and BartleBot's answers stay identical. It is never forked. A thing neither
@@ -92,7 +92,12 @@ BartleBuddy #31, so are its fight runner, its DSL checks with their disk cache, 
 fighter's first cast and the spell-name snapshot (`bartleby.runtime.combat`,
 `runtime/game/spell_names.py`). Its `nodes/combat_runner.py` keeps what reads a bot: resolving
 a fight's DSLs through its four levels, watching chat for drops, and joining a fight under way
-(`FightCenter`, `join_fight`).
+(`FightCenter`, `join_fight`). Since Stage 5, so is the strategy layer under its Combat
+Strategies window: the working set, the summaries and the tags, the DSL's vocabulary, slot
+targets and card kinds (`bartleby.runtime.combat`), and the spell-school snapshot
+(`runtime/game/spell_schools.py`). Its Bot Combat Strategy, which keeps duels and player
+strategies of its own, reaches the working set as a `StrategyOwner`
+(`combat/bot_strategy_owner.py`); summarizing one, `summarize_bot`, stays BartleBot's.
 
 BartleBot supplies what core's copies cut away:
 
@@ -123,6 +128,8 @@ BartleBot supplies what core's copies cut away:
 | `Follower(..., join_gate=)` and `JoinOrder` | nothing: BartleBot walks its clients in itself (`join_fight`). BartleBuddy's followers share a `JoinOrder`, set to the duel's combat order as the leader's fight starts |
 | `FirstCastHold.ready(fighter, settled, joined_at)` | `AmbientSession`'s join tasks, and when each helper read in battle |
 | `CombatRun(..., casts=, hold=)` | nothing: every player is cast for, under no hold. BartleBuddy hands the session's answer to who is cast for, asked at each planning phase, and its `Owner.COMBAT` lease |
+| `StrategyWorkingSet(..., roots=, owner=, others=, make_owner=)` and `StrategyWorkingSet.from_store(roots, ...)` | the shared library's `(shipped, user)` roots, from `store_roots.resolve_shared_roots`; every Bot Combat Strategy as a `BotStrategyOwner` among `others`, the loaded bot's as `owner`, and a `make_owner` for a bot with none (`load_working_set`). BartleBuddy has no owner, so its working set is the library alone |
+| `tag_groups(own_source)`, `facets_match(..., groups)` | `THIS_BOT_SOURCE`, the word on a Bot Combat Strategy's own entries, which its filter chips OR with the library's Source words |
 | `dsl_check_cache.cache_path()`, by `product.current()` | `product.use`, at startup, so the cache stays under `BartleBot/cache/` |
 
 ### The client manager, in two halves
