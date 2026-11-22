@@ -543,6 +543,9 @@ async def test_a_follower_walks_the_leaders_trail_around_a_corner(quick):
     assert not client.held, "it let go of forward when it was cancelled"
 
 
+# A known flake (BartleWorks/bartleby-core#24): under -n auto load the follower isn't there yet when
+# the 0.5 s wait ends, and it passes alone. See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 async def test_a_follower_is_on_the_spot_of_a_leader_that_stopped_well_inside_a_second(quick):
     arbiter = Arbiter()
     leader, client = SimClient(), SimClient(position=(-150.0, 0.0, 0.0))
