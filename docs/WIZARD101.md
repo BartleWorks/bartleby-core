@@ -97,6 +97,10 @@ Stated 2026-09-27 for BartleBot #117; the full write-up is the design comment on
   memory.
 - Duel circles are fixed spots, visible only while a fight is on them; stepping on an active
   one pulls you in.
+- **In a solo zone every wizard has an instance and a duel of its own**, in a zone of the same name
+  as the others'. Only the duel's participants tell them apart (`runtime/combat/duel_members.py`),
+  which is how the fight runner's reports always did; BartleBuddy ran four of them as one team fight
+  on 2026-11-22.
 - Wisps are shared, but simultaneous arrivals both get the reward. A wizard full on a
   resource does not collect that wisp kind.
 
@@ -390,7 +394,8 @@ Stated by the user on 2026-11-21, for BartleBuddy's Auto-combat epic (#31).
   hands wizsprinter the duel's combat order (`team_order`), which `ally(-N)` counts through
   instead of the seats, and BartleBuddy's followers walk in in that order
   (`bartleby.runtime.movement.join_order`). The casting order is still the seats'.
-- **`is_boss` reads correctly at the first planning phase.**
+- **`is_boss` reads correctly at the first planning phase.** `runtime/combat/fight_kind.py` reads it
+  there, from the duel's participants, for which kind of fight it is.
 
 ### Special cards
 

@@ -19,7 +19,7 @@ from types import SimpleNamespace
 import pytest
 from PyQt6.QtCore import QEvent, QPoint, QPointF, Qt
 from PyQt6.QtGui import QMouseEvent
-from PyQt6.QtWidgets import QPushButton, QWidget
+from PyQt6.QtWidgets import QApplication, QDialog, QMenu, QPushButton, QWidget
 
 from bartleby.qt.game_embed import client_tile
 from bartleby.qt.game_embed import game_view as game_view_module
@@ -310,6 +310,179 @@ def test_a_press_on_a_widget_that_keeps_the_keyboard_leaves_it_with_the_game(foc
 
     game.eventFilter(elsewhere, _press_event())
     assert user32.set_focus == [int(game.window().winId())], "any other widget takes it, as before"
+
+
+# -- a dialog or a menu over the games ----------------------------------------------------------
+#
+# Windows refuses the keyboard to a game in a window a modal has disabled, so nothing here asks
+# where the keys went: what matters is that the view gives none, keeps what it owes, and says no
+# game has the player's keys meanwhile (bartleby-core #23).
+
+
+@pytest.fixture
+def watching(focusing, qapp):
+    """``focusing``, whose view hears the app's windows close, as it does in the app."""
+    game, heard = focusing
+    qapp.installEventFilter(game)
+    yield game, heard
+    qapp.removeEventFilter(game)
+
+
+@pytest.fixture
+def dialog(qtbot):
+    """Opens a modal dialog, over another if one is open, and hands it back."""
+
+    def open_(parent=None) -> QDialog:
+        dlg = QDialog(parent)
+        qtbot.addWidget(dlg)
+        dlg.setModal(True)
+        dlg.show()
+        assert QApplication.activeModalWidget() is dlg
+        return dlg
+
+    return open_
+
+
+def _given(game) -> list[int]:
+    return [_tile(game, hwnd)._window.focused for hwnd in (100, 101)]
+
+
+def _refit(game, hwnd: int) -> None:
+    """The game comes out of its tile and is embedded again at the size it was, as a resize ends."""
+    tile = _tile(game, hwnd)
+    size = tile.game_size
+    tile._window.home = False
+    tile.refit(size[0] - 2, size[1] - 2)
+    client_tile._refit_pool.run()
+    game.game_resized(hwnd, size)
+    client_tile._refit_pool.run()
+
+
+def test_a_new_target_under_a_dialog_has_the_keyboard_once_the_dialog_closes(watching, dialog, qtbot):
+    game, heard = watching
+    dlg = dialog()
+
+    game.set_keyboard_target(101)
+    assert _given(game) == [0, 0]
+    assert heard == [], "no game has the player's keys"
+
+    dlg.accept()
+    qtbot.waitUntil(lambda: _given(game) == [0, 1])
+    assert heard == [101]
+
+
+def test_a_refit_under_a_dialog_gives_the_keyboard_once_the_dialog_closes(watching, dialog, qtbot):
+    game, _heard = watching
+    game.set_keyboard_target(101)
+    _tile(game, 101)._window.has_focus = False  # The dialog has it.
+    dlg = dialog()
+
+    _refit(game, 100)
+    assert _given(game) == [0, 1], "only what it was given before the dialog"
+
+    dlg.reject()
+    qtbot.waitUntil(lambda: _given(game) == [0, 2])
+
+
+def test_giving_the_keyboard_back_under_a_dialog_waits_for_it_to_close(watching, dialog, qtbot):
+    game, _heard = watching
+    game.set_keyboard_target(101)
+    _tile(game, 101)._window.has_focus = False
+    dlg = dialog()
+
+    game.give_keyboard_back()
+    assert _given(game) == [0, 1]
+
+    dlg.accept()
+    qtbot.waitUntil(lambda: _given(game) == [0, 2])
+
+
+def test_a_dialog_that_closes_with_nothing_owed_gives_the_game_back_its_keyboard(watching, dialog, qtbot):
+    """It took the keyboard as it opened, so a product gives nothing back after a dialog of its own."""
+    game, _heard = watching
+    game.set_keyboard_target(101)
+    dlg = dialog()
+    _tile(game, 101)._window.has_focus = False
+
+    dlg.accept()
+
+    qtbot.waitUntil(lambda: _given(game) == [0, 2])
+
+
+def test_a_dialog_that_closes_onto_another_gives_nothing(watching, dialog, qtbot):
+    game, _heard = watching
+    under = dialog()
+    over = dialog(under)
+    game.set_keyboard_target(101)
+
+    over.accept()
+    qtbot.wait(20)
+    assert _given(game) == [0, 0]
+
+    under.accept()
+    qtbot.waitUntil(lambda: _given(game) == [0, 1])
+
+
+def test_a_dialog_closed_mid_refit_gives_the_keyboard_once_the_refit_is_in(watching, dialog, qtbot):
+    game, _heard = watching
+    game.set_keyboard_target(101)
+    small = _tile(game, 101)
+    small._window.has_focus = False
+    dlg = dialog()
+    size = small.game_size
+    client_tile._refit_pool.held = True
+    small.refit(size[0] - 2, size[1] - 2)
+
+    dlg.accept()
+    qtbot.wait(20)
+    assert _given(game) == [0, 1]
+
+    client_tile._refit_pool.run()
+    game.game_resized(101, size)
+    client_tile._refit_pool.run()
+    assert _given(game) == [0, 2]
+
+
+def test_a_menu_open_as_the_target_changes_keeps_its_keys(watching, qtbot):
+    game, heard = watching
+    menu = QMenu()
+    qtbot.addWidget(menu)
+    menu.addAction("Quester")
+    menu.popup(QPoint(5, 5))
+    assert QApplication.activePopupWidget() is menu
+
+    game.set_keyboard_target(101)
+    assert _given(game) == [0, 0]
+
+    menu.close()
+    qtbot.waitUntil(lambda: _given(game) == [0, 1])
+    assert heard == [101]
+
+
+def test_a_menu_that_closes_with_nothing_owed_moves_no_keyboard(watching, qtbot):
+    """A field of the app's own may have had it: the product gives it back after its own menus."""
+    game, _heard = watching
+    game.set_keyboard_target(101)
+    _tile(game, 101)._window.has_focus = False
+    menu = QMenu()
+    qtbot.addWidget(menu)
+    menu.addAction("Quester")
+    menu.popup(QPoint(5, 5))
+
+    menu.close()
+    qtbot.wait(20)
+
+    assert _given(game) == [0, 1]
+
+
+def test_with_no_target_a_dialog_that_closes_gives_nothing(watching, dialog, qtbot):
+    """BartleBot names none."""
+    game, _heard = watching
+
+    dialog().accept()
+    qtbot.wait(20)
+
+    assert _given(game) == [0, 0]
 
 
 # -- detached windows --------------------------------------------------------------------------

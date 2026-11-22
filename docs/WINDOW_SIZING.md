@@ -988,6 +988,16 @@ The window's half is the product's two crossings around that:
   once nothing is asked for, no refit is under way and every game is at its target, or at once
   when nothing is moving, and not at all to a game that has the keyboard already. BartleBuddy
   names the game the player is on. BartleBot names none, and its keyboard is never moved.
+- **Under a dialog or a popup menu** no game is given the keyboard: it stays owed, and the target's
+  game has it once the last dialog closes, or the menu does (`GameView._keyboard_is_the_apps`, #23).
+  Windows refuses the keyboard to a game inside a window a modal dialog has disabled, so typing was
+  never lost to a game under one: a new target, an embed, a refit and a game's own `SetFocus` all
+  left it in the dialog's field. The refused attempt is what lost the keyboard, since it dropped
+  what was owed and named the game as the player's, and the game had none after the dialog. A popup
+  menu disables nothing, and its keys did go to the game. Measured on 2026-11-22 with stand-in
+  windows embedded from processes of their own, on a desktop of their own. The view hears the
+  close itself, through the app's event filter, and gives the keyboard back after any dialog, so a
+  product calls `give_keyboard_back()` only after a button or a menu of its own.
 - **The ring through a swap.** Asking at once, each tile whose game is about to be asked for a new
   size shows the ring in its body, and not its game, from before any tile changes shape until every
   refit is in (`ClientTile.show_ring`). The view works the targets out from where the tiles are

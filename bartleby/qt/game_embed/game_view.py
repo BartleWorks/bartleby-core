@@ -677,6 +677,12 @@ class GameView(ThemedMixin, QWidget):
         # whether it is still owed one since the target changed or a refit took it away.
         self._keyboard_target: int | None = None
         self._keyboard_owed = False
+        # See _keyboard_is_the_apps: runs once a dialog or a popup has closed, and whether a dialog did.
+        self._dialog_closed = False
+        self._closed_timer = QTimer(self)
+        self._closed_timer.setSingleShot(True)
+        self._closed_timer.setInterval(0)
+        self._closed_timer.timeout.connect(self._after_close)
         # See set_captions: a product's caption per player index, over the manager's label.
         self._captions: list[str | None] = []
         # See set_pill_roles and set_active_player, by player index as the captions are.
@@ -1285,6 +1291,10 @@ class GameView(ThemedMixin, QWidget):
         one the player just clicked does. BartleBuddy's window names the game the player is
         on: the Active wizard's, or one they clicked into since. BartleBot never calls this,
         and nothing here moves its keyboard.
+
+        While a dialog or a popup menu is open, no game is given it: it stays owed, and the
+        target's game has it once the last dialog closes, whatever the dialog took it from
+        (bartleby-core #23). So a product gives nothing back after a dialog of its own.
         """
         if hwnd == self._keyboard_target:
             return
@@ -1296,8 +1306,9 @@ class GameView(ThemedMixin, QWidget):
         """Give the keyboard target's game the keyboard again, after a press on the app took it.
 
         For a product's buttons and menus that act on the games, so the player's keys go on
-        reaching the game they were in. As after a refit, it waits until nothing is moving,
-        and does nothing with no target or when the game still has the keyboard.
+        reaching the game they were in. As after a refit, it waits until nothing is moving and
+        no dialog or popup is open, and does nothing with no target or when the game still has
+        the keyboard.
         """
         if self._keyboard_target is None or self._has_keyboard(self._keyboard_target):
             return
@@ -1345,8 +1356,43 @@ class GameView(ThemedMixin, QWidget):
             tile is not None and tile.is_game_focused() and _user32.GetForegroundWindow() == int(self.window().winId())
         )
 
+    @staticmethod
+    def _keyboard_is_the_apps() -> bool:
+        """Whether a dialog or a popup menu is open, whose keys a game must not be given.
+
+        Windows refuses the keyboard to a game inside a window a modal dialog has disabled, so
+        the attempt would only lose what is owed and say the player's keys went there. A popup
+        menu disables nothing, and the game would take its keys.
+        """
+        return QApplication.activeModalWidget() is not None or QApplication.activePopupWidget() is not None
+
+    def _note_close(self, obj, event) -> None:
+        """A dialog or a popup is closing, as the app's event filter sees it: the keyboard's owner is asked again.
+
+        Asked on the next turn of the loop, when the window has gone from Qt's lists and the app's
+        has been enabled again. A dialog that closes onto another leaves one open, and gives nothing.
+        """
+        if event.spontaneous() or not isinstance(obj, QWidget) or not obj.isWindow():
+            return
+        if obj.isModal():
+            self._dialog_closed = True
+        elif obj.windowType() != Qt.WindowType.Popup:
+            return
+        self._closed_timer.start()
+
+    def _after_close(self) -> None:
+        if self._keyboard_is_the_apps():
+            return
+        closed, self._dialog_closed = self._dialog_closed, False
+        if closed:
+            # A dialog took the keyboard as it opened, so its game is owed it, whatever moved meanwhile.
+            self.give_keyboard_back()
+        self._give_keyboard()
+
     def _give_keyboard(self) -> None:
         if not self._keyboard_owed or self._keyboard_target is None or not self._settled():
+            return
+        if self._keyboard_is_the_apps():
             return
         tile = next((tile for tile in self._tiles.values() if tile.hwnd == self._keyboard_target), None)
         if tile is None:
@@ -1895,7 +1941,9 @@ class GameView(ThemedMixin, QWidget):
     # ------------------------------------------------------------------
 
     def eventFilter(self, obj, event) -> bool:
-        if event.type() == QEvent.Type.MouseButtonPress:
+        if event.type() == QEvent.Type.Hide:
+            self._note_close(obj, event)
+        elif event.type() == QEvent.Type.MouseButtonPress:
             widget = obj if isinstance(obj, QWidget) else None
             while widget is not None:
                 if isinstance(widget, ClientTile):

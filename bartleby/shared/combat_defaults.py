@@ -29,7 +29,7 @@ Attacks instead.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -109,11 +109,26 @@ class TeamSize(Enum):
     TEAM = "Team"
 
 
+class FightKind(Enum):
+    """The two kinds of fight a product may have a duel for each of.
+
+    Read from the fight's enemies (:func:`bartleby.runtime.combat.fight_kind.fight_kind`). The
+    defaults here are the same for both.
+    """
+
+    MOB = "mob"
+    BOSS = "boss"
+
+
 class DefaultSource(Enum):
     """Whose default answered: the user's own, or the one that ships."""
 
     YOURS = "yours"
     SHIPPED = "shipped"
+
+
+#: The team sizes each default answers for.
+SIZE_RANGE = {TeamSize.SOLO: (1,), TeamSize.TEAM: (2, 3, 4)}
 
 
 def team_size(clients: int) -> TeamSize:
@@ -141,10 +156,52 @@ def players_text(duel: DuelCombatStrategy) -> str:
     return f"{low} {noun}" if low == high else f"{low} to {high} {noun}"
 
 
-def shortfall_text(duel: DuelCombatStrategy, clients: int) -> str:
-    """``'Boss' takes 4 players, and 2 are connected``: why *duel* does not accept the team."""
+def shortfall_text(duel: DuelCombatStrategy, clients: int, *, where: str = "connected") -> str:
+    """``'Boss' takes 4 players, and 2 are connected``: why *duel* does not accept the team.
+
+    *where* is where the product counts them: BartleBuddy's are ``in the fight``.
+    """
     verb = "is" if clients == 1 else "are"
-    return f"'{duel.name}' takes {players_text(duel)}, and {clients} {verb} connected"
+    return f"'{duel.name}' takes {players_text(duel)}, and {clients} {verb} {where}"
+
+
+def _counts_text(counts: Sequence[int]) -> str:
+    """``2``, ``2 or 3``, ``2, 3 or 4``."""
+    words = [str(n) for n in counts]
+    return words[0] if len(words) == 1 else f"{', '.join(words[:-1])} or {words[-1]}"
+
+
+def choice_notes(
+    size: TeamSize,
+    duel_id: str | None,
+    duel: Callable[[str], DuelCombatStrategy | None],
+    player: Callable[[str], PlayerCombatStrategy | None],
+    *,
+    instead: str = "the recommended one",
+    nouns: tuple[str, str] = ("client", "clients"),
+    where: str = "connected",
+) -> list[str]:
+    """What is wrong with *duel_id* as the user's duel for *size*, in the user's words; empty when nothing is.
+
+    None is no choice, which is never checked: what answers then was written for its size. A
+    choice that is gone, or does not fit some of the sizes it answers for, leaves those to
+    *instead* at run time, as :func:`default_duel` does. A player strategy it links that is gone
+    runs the built-in DSL in that slot. *duel* and *player* find one by id. *nouns* and *where*
+    are how the product counts its players: ``clients connected``, ``wizards in the fight``.
+    """
+    if not duel_id:
+        return []
+    found = duel(duel_id)
+    if found is None:
+        return [f"It is no longer in the library, so {instead} is used."]
+    notes = []
+    unfit = [n for n in SIZE_RANGE[size] if not found.accepts(n)]
+    if unfit:
+        noun = nouns[0] if unfit == [1] else nouns[1]
+        notes.append(f"It takes {players_text(found)}, so with {_counts_text(unfit)} {noun} {where} {instead} is used.")
+    if any(linked and player(linked) is None for linked in found.linked_pcs_ids()):
+        notes.append("It links a player strategy that is missing, so those players fight with the built-in DSL.")
+    return notes
 
 
 @dataclass(frozen=True)

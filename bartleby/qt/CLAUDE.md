@@ -646,6 +646,10 @@ the editors of its three tabs, the filter bar, and the checks of its DSLs. It op
   the working set does; its pill, its Source word and its section come from the subclass.
 - **A message naming the app names the running one** (`product.current().name`).
 - **Open it from a synchronous slot**: it is modal, and the qasync rule below is about it too.
+- **A duel kept in settings is a `DuelCard`** (`duel_card.py`): the duel in use, Change…, which opens
+  the product's window in Pick, and a verb back to no choice. It stores nothing. What answers with
+  no choice, its words and its notes are the product's, handed in, and a card that answers as another
+  does is redrawn when the other changes.
 
 ## Never parse a combat DSL on the GUI thread
 
