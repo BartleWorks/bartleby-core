@@ -10,8 +10,8 @@ stage, and it is complete; this file is the part of it that governs code.
 | tier | holds | may import |
 |---|---|---|
 | `bartleby.shared` | the data every product reads and writes under `%APPDATA%/Bartleby/`: accounts, launch profiles, preferences, the strategy library, the vendor's name, share files; the game's deck names by key, with their text per locale (`deck_names`), and its locales; the running product; and two small helpers, a Qt-free signal (`listeners.Listeners`) and a drag's permutation applied (`ordering.apply_order`) | stdlib, pydantic, keyring |
-| `bartleby.runtime` | game clients at run time, with no Qt: launching, the client manager (finding, hooking, naming and ordering clients), the resizer, the state reader, the arbiter and the one input API, movement, the helpers, a wizard's decks and equipping one by its name (`decks`), where the game is installed, the game facts (key bindings, the game's own and a product's hotkeys against them, captions, names, spell names and schools, realms, sizing and tile layouts), combat (running a fight and fleeing one, checking a DSL, holding the first cast, and the Combat Strategies window's Qt-free half: the strategy working set, the summaries and the tags: `combat/`), timing and the run trace; and the view models a shared widget draws (`views`) | `shared`, wizwalker, wizsprinter |
-| `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, card columns, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; the player cards and their column; the game view with its launch screen and launch cards, Bar A's game panel and action bar, and the screen fit; the settings rows, the Settings dialog and its Theme and Game tabs, setup's frame and shared pages, and an app's theme; an app's startup (`app/`) and the runtime bridge, with the crossing a client manager's tiles take | `shared`, `runtime`, PyQt6 |
+| `bartleby.runtime` | game clients at run time, with no Qt: launching, the client manager (finding, hooking, naming and ordering clients), the resizer, the state reader, the arbiter and the one input API, movement, the helpers, a wizard's decks and equipping one by its name (`decks`), where the game is installed, the game facts (key bindings, the game's own and a product's hotkeys against them, captions, names, spell names and schools, realms, sizing and tile layouts), combat (running a fight and fleeing one, checking a DSL, holding the first cast, and the Combat Strategies window's Qt-free half: the strategy working set, the summaries, the tags, what a deck holds and the DSL check's child process: `combat/`), reading the extracted game art (`game/card_art.py`), timing and the run trace; and the view models a shared widget draws (`views`) | `shared`, wizwalker, wizsprinter |
+| `bartleby.qt` | theming and icons, buttons, labels and pills, the title bar and native frame, window embedding and the client tile, global hotkeys, Streamer Mode; cards and their drag reordering, card columns, sidebar sections, popup menus, dialog footers, the art signal and the Log tab; the player cards and their column; the game view with its launch screen and launch cards, Bar A's game panel and action bar, and the screen fit; the settings rows, the Settings dialog and its Theme and Game tabs, setup's frame and shared pages, and an app's theme; the Combat Strategies window and its editors (`combat/`), with the strategy and deck cards, tag and school pickers and tag pills it is drawn from; an app's startup (`app/`) and the runtime bridge, with the crossing a client manager's tiles take | `shared`, `runtime`, PyQt6 |
 
 Each tier imports only from those before it, so the runtime runs without a GUI and the data
 without a game. Core imports neither product. `tests/test_layers.py` holds both rules.
@@ -20,7 +20,7 @@ Each tier's `testing/` holds what a product's tests run against core: `SimClient
 with no game behind it, `SimHandler`, the windows a client manager polls (`runtime/testing/sim_client.py`), `SimBackpack`, a simulated client's decks and backpack (`runtime/testing/sim_backpack.py`), the guards (`runtime/testing/guards.py`
 and `qt/testing/guards.py`), the render sheet (`qt/testing/render_sheet.py`), the startup
 check (`qt/testing/startup.py`), a drag on a `DragReorder` card list (`qt/testing/drag_helpers.py`),
-and the per-test widget reaping and the `parentless_shows` fixture every repo's `conftest.py` imports (`qt/testing/widget_lifetime.py`).
+a sample strategy library for a sheet that draws the Combat Strategies window (`qt/testing/sample_library.py`), a made-up art cache (`qt/testing/extracted_art.py`), picking rows in a picker (`qt/testing/picker_helpers.py`), and the per-test widget reaping and the `parentless_shows` fixture every repo's `conftest.py` imports (`qt/testing/widget_lifetime.py`).
 
 ## What stays in a product
 
@@ -97,7 +97,12 @@ Strategies window: the working set, the summaries and the tags, the DSL's vocabu
 targets and card kinds (`bartleby.runtime.combat`), and the spell-school snapshot
 (`runtime/game/spell_schools.py`). Its Bot Combat Strategy, which keeps duels and player
 strategies of its own, reaches the working set as a `StrategyOwner`
-(`combat/bot_strategy_owner.py`); summarizing one, `summarize_bot`, stays BartleBot's.
+(`combat/bot_strategy_owner.py`); summarizing one, `summarize_bot`, stays BartleBot's. Since
+Stage 6, so is the window itself (`bartleby.qt.combat`), with the widgets it is drawn from,
+the read side of the game art (`runtime/game/card_art.py`) and what a deck holds
+(`runtime/combat/deck_content.py`). Its own `gui/combat_strategies/dialog.py` is a subclass
+(below); reading a deck from a client and putting one on it stay `combat/deck_io.py`'s, and
+art extraction `game/art_extraction.py`'s, which writes to BartleBot's own folder as before.
 
 BartleBot supplies what core's copies cut away:
 
@@ -130,6 +135,10 @@ BartleBot supplies what core's copies cut away:
 | `CombatRun(..., casts=, hold=)` | nothing: every player is cast for, under no hold. BartleBuddy hands the session's answer to who is cast for, asked at each planning phase, and its `Owner.COMBAT` lease |
 | `StrategyWorkingSet(..., roots=, owner=, others=, make_owner=)` and `StrategyWorkingSet.from_store(roots, ...)` | the shared library's `(shipped, user)` roots, from `store_roots.resolve_shared_roots`; every Bot Combat Strategy as a `BotStrategyOwner` among `others`, the loaded bot's as `owner`, and a `make_owner` for a bot with none (`load_working_set`). BartleBuddy has no owner, so its working set is the library alone |
 | `tag_groups(own_source)`, `facets_match(..., groups)` | `THIS_BOT_SOURCE`, the word on a Bot Combat Strategy's own entries, which its filter chips OR with the library's Source words |
+| `CombatStrategyDialog(ws, settings, ...)`, a `StrategySettings` | its `SettingsManager`, for the favorites, from its own `CombatStrategyDialog`, a subclass adding the Bot Combat Strategy's mode and section, Add to library, Export… and F1 |
+| `CombatStrategyDialog(deck_link=, archmastery_default=)` | the controller's deck jobs as a `DeckClientLink`, and `deck_io.app_default_apply_archmastery`. BartleBuddy hands neither: its Deck tab has no Import, Apply or New |
+| `TagPickerButton`, `TagPill`, `TagChip` and `tag_sections`, which take a `TagVocabulary` | the bot and subgraph vocabularies, `gui/widgets/pickers/tag_vocabularies.py` |
+| `card_art.own_art_dir()` and `card_art.icon_path(key)` | where its extractor writes, and its own icon keys (`game/bot_art.py`) |
 | `dsl_check_cache.cache_path()`, by `product.current()` | `product.use`, at startup, so the cache stays under `BartleBot/cache/` |
 
 ### The client manager, in two halves
@@ -233,6 +242,22 @@ waits for its phase 2.
 A product applies its theme with `apply_app_theme`, at startup and when Settings closes
 with OK. BartleBuddy passes its orange as the accents; a custom theme keeps the colors the
 user chose.
+
+### The Combat Strategies window, and a product's part of it
+
+Core's `CombatStrategyDialog` (`qt/combat/dialog.py`) edits the shared library, in Library
+mode, or picks one entry of it, in Pick. It is a view of a `StrategyWorkingSet`, whose Save is
+the only write, so an edit made in one product is there at the other's next open, and one made
+meanwhile is a conflict the window asks about. Each product keeps its own favorites.
+
+BartleBot subclasses the window, its page, its card and its About section, through hook
+methods core's docstring lists, and keeps what only it has: the Bot Combat Strategy's mode
+(its Duel and Player tabs, with the strategy's own entries in a section at the top), the This
+bot pill and Source word, Add to library, Export…, the F1 topic, and the bot's name in the Save
+confirmation. A subclass, not flags: each hook is one place core asks what to draw, and the
+answer core gives itself is the one a product with no owner wants.
+
+BartleBuddy opens core's window as it is, in Library mode.
 
 ## Starting an app
 

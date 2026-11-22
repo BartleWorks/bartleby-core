@@ -90,11 +90,11 @@ class PlayerCombatStrategy(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     name: str
     dsl: str = ""
-    # Each one of deck_io.PIP_SCHOOLS; empty means any school. Authored, never
+    # Each one of spell_schools.PIP_SCHOOLS; empty means any school. Authored, never
     # inferred from dsl.  See DuelConfig.school_requirements.
     schools: list[str] = Field(default_factory=list)
     description: str = ""
-    # Stored tags — the Role group of bartlebot.combat.strategy_tags. Source is derived, never here.
+    # Stored tags — the Role group of runtime/combat/strategy_tags. Source is derived, never here.
     tags: list[str] = Field(default_factory=list)
     #: The file format; see the module docstring.
     format: int = 1
@@ -154,7 +154,7 @@ class DeckData(BaseModel):
     # to the one above.  Three-state: True/False pin an answer for this deck,
     # None (the default) defers to the app setting.  Off by default because the
     # school is a persistent character setting that outlives the run, and most
-    # decks do not care what it is -- see deck_io.resolve_apply_archmastery.
+    # decks do not care what it is -- see deck_content.resolve_apply_archmastery.
     apply_archmastery: bool | None = None
 
     def is_empty(self) -> bool:
@@ -174,9 +174,9 @@ class DeckPreset(BaseModel):
     name: str
     deck: DeckData = Field(default_factory=DeckData)
     description: str = ""
-    # Stored tags — the Role group of bartlebot.combat.strategy_tags.
+    # Stored tags — the Role group of runtime/combat/strategy_tags.
     tags: list[str] = Field(default_factory=list)
-    # The schools the deck is built for (#174), each one of deck_io.PIP_SCHOOLS; empty
+    # The schools the deck is built for (#174), each one of spell_schools.PIP_SCHOOLS; empty
     # means any. Authored, never inferred from the cards: most spells can be trained on
     # any wizard, so a card list cannot say whose deck it is. Not the archmastery school
     # the deck captured (DeckData.archmastery_school), which is the wizard's, not the deck's.
@@ -220,7 +220,7 @@ class PlayerAssignment(BaseModel):
     players: list[int]  # 1-based player numbers, e.g. [1, 2]
     dsl: str = ""  # inline DSL — used when player_combat_strategy_id is None
     player_combat_strategy_id: str | None = None  # UUID of a PlayerCombatStrategy preset
-    # Each one of deck_io.PIP_SCHOOLS; empty means any. Authored, never inferred
+    # Each one of spell_schools.PIP_SCHOOLS; empty means any. Authored, never inferred
     # from dsl — see DuelConfig.school_requirements. A non-empty set takes
     # precedence over a linked preset's own schools.
     schools: list[str] = Field(default_factory=list)
