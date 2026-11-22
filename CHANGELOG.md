@@ -30,7 +30,9 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 - **`movement.join_order.JoinOrder`** and **`Follower(..., join_gate=)`**: a leader's followers
   walk into its fight one after another, each once the one before has joined or
   `timing.JOIN_ORDER_HOLD` after that one started. A follower waiting at its gate stands, says
-  `WAITING_TO_JOIN`, and counts as `joining_fight`.
+  `WAITING_TO_JOIN`, and counts as `joining_fight`. The gate is asked before any port, since a
+  port that lands beside a fight is pulled into it at once, out of turn.
+
 - **Who is cast for, at each planning phase** (BartleBuddy #31, Stage 3). `CombatRun` and
   `FightWatch` take `casts`, asked of each player at the start of every planning phase, and
   `hold`, the async context a cast or a flee is made under. A player played by hand is not cast
@@ -45,6 +47,13 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   the last resort where it runs nothing; and **`DefaultDuel.label`**, a default's phrase for the
   log. BartleBot's `resolve_combat` still builds its own list; Stage 5 (BartleBot #332) moves it
   onto `slot_dsls`.
+
+### Changed
+
+- **A follower made with `port_when_far` ports beyond `follow.PORT_FAR`, 3,000 units**, not
+  `RESYNC`'s 1,500, when it starts or is let go. Nearer, it walks, which takes less time than a
+  port's loading screens and joins a fight in its turn. `RESYNC` still says when a follower has
+  lost the trail, and how near the leader it reads a dungeon sigil's prompt.
 
 ## 0.7.0
 

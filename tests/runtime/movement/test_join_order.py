@@ -152,6 +152,38 @@ async def test_a_follower_stands_at_its_closed_gate_and_counts_as_joining(caplog
     ]
 
 
+def _gated(gate, **kwargs) -> Follower:
+    client, leader = SimClient(), SimClient()
+    trail = Trail()
+    for i, x in enumerate(range(0, 3600, 60)):
+        trail.note(Snapshot(key=1, time=i * 0.1, position=(float(x), 0.0, 0.0), zone=ZONE))
+    return Follower(client, StateReader(client), StateReader(leader), trail, Arbiter(), join_gate=gate, **kwargs)
+
+
+def test_a_far_follower_at_its_closed_gate_waits_rather_than_port_into_the_fight():
+    """A port lands beside the fight, and the game pulls it in at once, out of its turn."""
+    open_ = [False]
+    f = _gated(lambda: open_[0], port_when_far=True)
+    me = Snapshot(key=2, position=(0.0, 0.0, 0.0), zone=ZONE)
+    fight = Snapshot(key=1, position=(3540.0, 0.0, 0.0), zone=ZONE, in_battle=True)
+
+    step = f.plan(me, (0.0, 0.0, 0.0), fight, 0)
+    assert step.kind is StepKind.STOP and step.reason == follow.WAITING_TO_JOIN
+
+    open_[0] = True
+    step = f.plan(me, (0.0, 0.0, 0.0), fight, 1)
+    assert step.kind is StepKind.PORT, "its turn: far, it ports as before"
+
+
+def test_a_follower_behind_the_trail_waits_at_its_closed_gate_too():
+    f = _gated(lambda: False)
+    f.cursor = -1  # fallen behind the trail's start, which is a port
+    me = Snapshot(key=2, position=(0.0, 0.0, 0.0), zone=ZONE)
+    fight = Snapshot(key=1, position=(600.0, 0.0, 0.0), zone=ZONE, in_battle=True)
+
+    assert f.plan(me, (0.0, 0.0, 0.0), fight, 0).reason == follow.WAITING_TO_JOIN
+
+
 async def test_a_gate_is_asked_only_while_the_leader_is_in_a_fight():
     asked = []
     f = _fight_follower(_Clock(), lambda: asked.append(1) or False)

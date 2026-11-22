@@ -35,7 +35,8 @@ reading the position back every tick, and a stall backed off from.
   starts and as it ends, joined or not, with how long it took. With a ``join_gate`` it stands
   where it is until the gate opens, so a team walks in in the order its duel seats it, and so
   casts in it (:mod:`bartleby.runtime.movement.join_order`); a follower waiting at its gate
-  counts as joining.
+  counts as joining. The gate is asked before any port, since a port that lands beside the
+  fight is pulled into it at once, out of turn.
 * **Waiting for the leader to move**, when asked to (``wait_for_move``): nothing until the
   leader has passed :data:`STILL`, changed zone or entered a fight. A product that picks a
   new leader for the player, as BartleBuddy's swap does, uses it so that looking at a
@@ -44,7 +45,7 @@ reading the position back every tick, and a stall backed off from.
 * **Held**, while ``hold`` says so: it stands where it is, unless the leader is in a fight,
   which it still joins, and stays where the fight leaves it. Let go, it stops waiting for the
   leader to move, since the player just asked for the team back.
-* **Far means port**, when asked to (``port_when_far``): a follower beyond :data:`RESYNC` of
+* **Far means port**, when asked to (``port_when_far``): a follower beyond :data:`PORT_FAR` of
   its leader when it starts, once any wait is over, or when it's let go, ports rather than
   walking at the leader through whatever is between them.
 
@@ -106,6 +107,10 @@ CATCH_UP = 500.0
 LOOK_AHEAD = 12
 #: Units from the next point beyond which a follower has lost the trail and finds it again.
 RESYNC = 1500.0
+#: Units from the leader beyond which a follower made with ``port_when_far`` ports rather than walk,
+#: when it starts or is let go. Two loading screens cost more than a walk of this far at 2.0x, about
+#: 2.5 s, and a walk joins the leader's fight in its turn where a port lands in it at once.
+PORT_FAR = 3000.0
 #: Units of progress under which forward held for the stall window is a stall.
 STALL_MIN_MOVE = 60.0
 #: Stalls on the way to one point before a follower gives up walking and ports.
@@ -187,7 +192,7 @@ class Follower:
         """With *wait_for_move*, it stands until the leader has moved from where it first reads it.
 
         While *hold* answers True it stands, joining only the leader's fights. With
-        *port_when_far*, it ports when it starts, or is let go, beyond :data:`RESYNC` of the
+        *port_when_far*, it ports when it starts, or is let go, beyond :data:`PORT_FAR` of the
         leader. *walking_speed* is the speed field's value to walk at when not catching up,
         or None for the leader's own; a follower given one stands at its own speed when it
         says None, since nothing else then holds the field. *speed_ledger* is shared with any other writer of the
@@ -260,6 +265,9 @@ class Follower:
             return Step(StepKind.WAIT, reason=AWAITING_MOVE)
         if held and not leader.in_battle:
             return Step(StepKind.STOP, reason=HELD)
+        if leader.in_battle and self._join_gate is not None and not self._join_gate():
+            # Asked before any port: a port lands beside the fight, and the game pulls it in at once.
+            return Step(StepKind.STOP, reason=WAITING_TO_JOIN)
         if now < self._port_after:
             return Step(StepKind.WAIT, reason="waiting to port again")
         self._note_leader(leader, now)
@@ -282,12 +290,10 @@ class Follower:
 
         distance = flat_distance(position, leader.position)
         if self._far_check:
-            if distance > RESYNC:
+            if distance > PORT_FAR:
                 return Step(StepKind.PORT, reason="far from the leader")
             self._far_check = False
         if leader.in_battle:
-            if self._join_gate is not None and not self._join_gate():
-                return Step(StepKind.STOP, reason=WAITING_TO_JOIN)
             return Step(StepKind.WALK, leader.position, fast=True, reason=JOINING_FIGHT)
 
         point = self._advance(position, me.zone)
