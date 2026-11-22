@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from PyQt6.QtWidgets import QDialog, QMessageBox
+from PyQt6.QtWidgets import QDialog, QFrame, QMessageBox
 
 from bartleby.qt import streamer_mode
 from bartleby.qt.combat import deck_sets
@@ -311,3 +311,10 @@ def test_the_other_product_s_change_is_drawn_and_asked_about_again(cards, store,
 
     assert "Another app changed this deck set" in shown[-1]
     assert [c.texts[0] for c in cards.cards] == ["Theirs", "Boss decks"]
+
+
+def test_the_card_that_adds_one_starts_at_the_edge_the_sets_do(cards):
+    cards.resize(600, 400)
+    cards.show()
+
+    assert cards.cards[0].frame.x() == cards.add_card.findChild(QFrame).x() == 0

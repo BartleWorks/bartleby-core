@@ -40,6 +40,7 @@ from PyQt6.QtWidgets import (
 from bartleby.qt import streamer_mode
 from bartleby.qt.dialogs.confirm import confirm_delete
 from bartleby.qt.menu_utils import popup_menu
+from bartleby.qt.settings.rows import CARD_GAP_PX
 from bartleby.qt.theming.theme import THEME
 from bartleby.qt.widgets.buttons.action_button import ActionButton
 from bartleby.qt.widgets.buttons.icon_button import IconButton
@@ -267,12 +268,13 @@ class DeckSetList(QWidget):
         self._accounts = accounts
         self._cards: list[DeckSetCard] = []
         self._column = QVBoxLayout(self)
-        self._column.setContentsMargins(0, 0, 0, 0)
-        self._column.setSpacing(6)
+        # The card gap of the settings column it sits in, below it too.
+        self._column.setContentsMargins(0, 0, 0, CARD_GAP_PX)
+        self._column.setSpacing(CARD_GAP_PX)
         self._hint = ThemedTextLabel(EMPTY_HINT)
         self._hint.setWordWrap(True)
         self._column.addWidget(self._hint)
-        self._add = AddCard(ADD_SET)
+        self._add = AddCard(ADD_SET, gutter=False)
         self._add.add_requested.connect(self.add)
         self._column.addWidget(self._add)
         wizards.changed.connect(self.refresh)
@@ -432,7 +434,7 @@ class DeckSetDialog(QDialog):
         layout = QVBoxLayout(self)
         form = QFormLayout()
         self._name = QLineEdit(deck_set.name)
-        self._name.setPlaceholderText("Boss decks")
+        self._name.setPlaceholderText("Bosses")
         form.addRow("Name:", self._name)
         self._everyone = DeckNamePicker(deck_set.everyone, none_text=EVERYONE_NONE, parent=self)
         form.addRow("Everyone:", self._everyone)

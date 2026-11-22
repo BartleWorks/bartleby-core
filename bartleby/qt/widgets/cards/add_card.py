@@ -60,8 +60,10 @@ class AddCard(ThemedMixin, QWidget):
 
     add_requested = pyqtSignal()
 
-    def __init__(self, text: str, parent=None) -> None:
+    def __init__(self, text: str, parent=None, *, gutter: bool = True) -> None:
+        """*gutter* False starts it at the edge, for cards that have no drag gutter to line up with."""
         super().__init__(parent)
+        self._indent = GRIP_GUTTER if gutter else 0
         # Framed like a launch card, and for the same reason: the dashed outline is drawn
         # on an inner frame so that this card can carry the drag gutter's indent without
         # its border reaching back across it. A terminator whose frame starts twenty-two
@@ -113,7 +115,7 @@ class AddCard(ThemedMixin, QWidget):
 
     def _build(self) -> None:
         row = QHBoxLayout(self)
-        row.setContentsMargins(GRIP_GUTTER, 0, 0, 0)
+        row.setContentsMargins(self._indent, 0, 0, 0)
         row.setSpacing(0)
         row.addWidget(self._body)
 

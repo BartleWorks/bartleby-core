@@ -73,6 +73,7 @@ def test_the_shared_layer_has_no_stray_files():
         "combat_defaults.py",
         "content_hash.py",
         "deck_names.py",
+        "deck_sets.py",
         "file_types.py",
         "first_run.py",
         "game_dpi.py",
