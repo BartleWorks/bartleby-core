@@ -11,8 +11,10 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 ## Unreleased
 
 The Combat Strategies window, from BartleBot (BartleBuddy #31, Stage 6), with the widgets it is
-drawn from and the read side of the game art. Nothing breaks: BartleBot's modules moved here,
-and no name core already had changed.
+drawn from and the read side of the game art; and a wizard's decks, read and equipped by name
+(#22, Stage 8 of BartleBuddy #31). Nothing breaks. A product drops its own copy of a module
+here, as `core_copies` says: BartleBot its window's and its spellbook helpers. It needs
+wizwalker at the pin in `docs/UPSTREAM.md`.
 
 ### Added
 
@@ -38,6 +40,24 @@ and no name core already had changed.
   `spell_schools.PIP_SCHOOLS`; `store_files.pill_text` and `OFFICIAL_UPDATED`.
 - **For tests and render sheets**: `qt/testing/sample_library.py`, a small strategy library;
   `extracted_art.py`, a made-up art cache; `picker_helpers.py`.
+- **`bartleby.shared.deck_names`**: `DeckName`, a deck's name by its three lang keys, so it is
+  the same in every language and a wheel left empty is left out of a file
+  (`model_dump(exclude_defaults=True)`); `text(locale)`; `matches` and `same_text`, for reading
+  a backpack row; `Wheel`, `choices(wheel, locale)` and `locales()`, for a picker. Its snapshot
+  is `bartleby/shared/data/deck_names.json`, which a packaged build that names decks bundles,
+  written by `tools/dump_deck_names.py`.
+- **`bartleby.runtime.decks`**: `owned_decks(client)`, each `OwnedDeck` by name, id and cards,
+  with the equipped one marked; `equip_deck(client, name)`, under the caller's lease, with an
+  `EquipResult` (`EquipOutcome`: equipped, already on, not owned, owned twice, empty, in a
+  fight, the backpack can't open, failed).
+- **`node_helpers.is_spellbook_open` and `close_spellbook`**, BartleBot's, which drops its
+  copies when it takes this release.
+- **`dialog_captions.EQUIP_EMPTY_DECK`**, the question equipping an empty deck raises, and
+  `paths`' `BACKPACK_*`, `backpack_row_path`, `backpack_row_equipped_path` and
+  `WORLD_MESSAGE_BOX_*`.
+- **`runtime.testing.sim_backpack.SimBackpack`**, a simulated client's decks and backpack.
+- **`bartleby.shared.locales.LOCALES`**, which `realms.LOCALES` now is.
+- **`tools/equip_deck.py`**, which lists each client's decks and equips by name on live clients.
 
 ## 0.9.0
 

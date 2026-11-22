@@ -115,6 +115,10 @@ none named and treasure cards. They share the literal run this one is recognized
 this key stands for all four, and adding the others would only make --verify report them
 as colliding."""
 
+# Kept out of CONFIRM_TO_PROCEED too: Yes copies the old deck's spells into the new one.
+EQUIP_EMPTY_DECK = "GUI2:00000417"
+"""'Would you like to copy the spells from your old deck to your empty deck?' No equips it empty."""
+
 # The client has fallen out of the game. Nothing to click -- ClientHealthMonitor kills the
 # process and lets the relaunch/re-hook path recover it.
 DISCONNECTED_IDLE = "ConnectionAFK"
@@ -171,6 +175,7 @@ KNOWN_KEYS: tuple[str, ...] = (
     SELL_PET,
     SELL_PETS,
     SELL_NEAR_GOLD_LIMIT,
+    EQUIP_EMPTY_DECK,
 )
 
 # ---------------------------------------------------------------------------
@@ -262,6 +267,7 @@ REASONS: dict[str, str] = {
     SELL_PET: "selling a pet",
     SELL_PETS: "selling pets",
     SELL_NEAR_GOLD_LIMIT: "the sale passing the gold limit",
+    EQUIP_EMPTY_DECK: "equipping an empty deck",
     UNRECOGNIZED_REFUSAL: (
         "the game refused with a dialog this build does not recognize — if this is "
         "reproducible, add its lang key to KNOWN_KEYS and re-run tools/dump_dialog_captions.py"

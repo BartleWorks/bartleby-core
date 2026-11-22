@@ -304,6 +304,36 @@ CROWNS_SHOP_PATH = [*CROWNS_SHOP_WINDOW_PATH, "permanentShop"]
 # Backpack / Quicksell UI
 BACKPACK_CLOSE_BUTTON_PATH = ["WorldView", "DeckConfiguration", "Close_Button"]
 
+# The backpack: the spellbook's inventory page, whichever of its tabs shows. Read and clicked on
+# four live clients by BartleBuddy's tools/probe_combat_facts.py (2026-11-21, r814353).
+# Each row is a deck on the Decks tab, its `fist` icon showing on the one that is equipped, and
+# the page number reads "1/2". The previous-page arrow reads visible on page 1 too, so the page
+# number is what says where the list is.
+BACKPACK_PAGE_PATH = [*DECK_CONFIGURATION_PATH, "InventorySpellbookPage"]
+BACKPACK_DECKS_TAB_PATH = [*BACKPACK_PAGE_PATH, "ButtonLayout", "Tab_Deck"]
+BACKPACK_EQUIP_BUTTON_PATH = [*BACKPACK_PAGE_PATH, "windowForBtns", "Layout", "Equip_Item"]
+BACKPACK_NEXT_PAGE_PATH = [*BACKPACK_PAGE_PATH, "rightscroll"]
+BACKPACK_PREVIOUS_PAGE_PATH = [*BACKPACK_PAGE_PATH, "leftscroll"]
+BACKPACK_PAGE_NUMBER_PATH = [*BACKPACK_PAGE_PATH, "PageNumber"]
+BACKPACK_ROWS = 8
+
+
+def backpack_row_path(row: int) -> list[str]:
+    """The path of a row of the backpack's list, 1 to :data:`BACKPACK_ROWS`."""
+    return [*BACKPACK_PAGE_PATH, f"Item_{row}"]
+
+
+def backpack_row_equipped_path(row: int) -> list[str]:
+    """The path of the icon that shows on a row of the backpack whose item is equipped."""
+    return [*backpack_row_path(row), "fist"]
+
+
+# The message box equipping an empty deck raises: the one MESSAGE_BOX_* names, but under
+# WorldView rather than the root, so those paths don't find it. centerButton is Yes, rightButton No.
+WORLD_MESSAGE_BOX_PATH = ["WorldView", "MessageBoxModalWindow"]
+WORLD_MESSAGE_BOX_CAPTION_PATH = ["WorldView", *MESSAGE_BOX_CAPTION_PATH]
+WORLD_MESSAGE_BOX_RIGHT = ["WorldView", *MESSAGE_BOX_RIGHT]
+
 # Quicksell entry buttons — one per backpack type (main inventory vs. jewel pouch)
 QUICKSELL_INVENTORY_OPEN_PATH = ["WorldView", "DeckConfiguration", "InventorySpellbookPage", "QuickSell_Item"]
 QUICKSELL_JEWEL_OPEN_PATH = [

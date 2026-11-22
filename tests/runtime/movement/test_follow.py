@@ -571,6 +571,8 @@ async def test_a_follower_runs_at_2x_to_catch_up_and_never_above(quick):
     f = Follower(client, me, leader_reader, trail, arbiter)
     task = asyncio.create_task(f.run())
     await _drive_leader(leader, leader_reader, [(0, 0), (1500, 0)], speed=1500)
+    # Waited for, not slept for: on a loaded machine 0.1 s went by before the follower's first step.
+    await _until(lambda: any(r.kind == "speed" for r in client.inputs))
     await asyncio.sleep(0.1)
     task.cancel()
     await asyncio.gather(task, return_exceptions=True)
