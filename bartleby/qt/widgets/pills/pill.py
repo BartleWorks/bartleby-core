@@ -1,9 +1,9 @@
 """The family's pills: the shape every product's small captions share, and the metrics behind it.
 
-Moved from BartleBot's ``gui/widgets/pills/tag_pill.py``, which keeps the pills that
-name a bot tag (``TagPill``, ``TagChip``, ``SuggestedTagPill``, ``KeywordChip``,
-``ThisBotPill``) and the tag palette they share. A tag is colored by its group
-everywhere it appears, so color on a pill means "tag group" in BartleBot, and the pills
+Moved from BartleBot's ``gui/widgets/pills/tag_pill.py``. The pills that name a tag are
+``tag_pill.py``'s beside this (``TagPill``, ``TagChip``), and BartleBot's own file keeps
+``SuggestedTagPill``, ``KeywordChip`` and ``ThisBotPill``. A tag is colored by its group
+everywhere it appears, so color on a pill means "tag group", and the pills
 here are the ones that claim no tag color, or claim another palette's.
 
 :class:`NeutralPill` is a caption that wants to look like a pill without claiming a
