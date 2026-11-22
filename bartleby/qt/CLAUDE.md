@@ -634,8 +634,9 @@ the editors of its three tabs, the filter bar, and the checks of its DSLs. It op
 - **A product hands it a working set and its settings, and nothing else is required**:
   `CombatStrategyDialog(ws, settings)`, with `settings` a `StrategySettings`
   (`strategy_settings.py`), which is the favorites, kept per app. Without a `deck_link` the
-  Deck tab has no Import, no Apply and no New, since only a client fills a preset; without an `archmastery_default` it says nothing of an
-  app setting; without account colors the player slots are uncolored.
+  Deck tab has no Import, no Apply and no New, since only a client fills a preset; without an
+  `archmastery_default` it says nothing of an app setting; without account colors the player
+  slots are uncolored.
 - **What one product has is a subclass**, through the hooks the module docstring lists, never
   a flag in core and never a copy. BartleBot's window is one
   (`bartlebot/gui/combat_strategies/dialog.py`): its Bot Combat Strategy's section and mode,

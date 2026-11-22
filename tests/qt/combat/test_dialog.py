@@ -280,10 +280,11 @@ def test_reverting_an_override_restores_the_shipped_version_on_save(qapp, roots)
     save(dcs.model_copy(update={"name": "Mine"}), user)
     dlg = _dialog(roots, kind=StrategyKind.DUEL, current_id=dcs.id)
 
-    with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes):
+    with patch.object(QMessageBox, "question", return_value=QMessageBox.StandardButton.Yes) as asked:
         dlg._pages[StrategyKind.DUEL]._on_delete()
     dlg._on_commit()
 
+    assert "will go back to the Official version" in asked.call_args.args[2]
     assert stored(StrategyKind.DUEL, roots)[0].name == "Frenzy AoE"
 
 
