@@ -127,6 +127,19 @@ def test_the_other_product_s_write_is_seen_at_the_next_read(store):
     assert [s.name for s in store.sets()] == ["B"]
 
 
+def test_a_read_refused_keeps_the_sets_as_they_were_and_is_tried_again(store, monkeypatch):
+    other = DeckSetStore(store.path.parent)
+    other.save(DeckSet(id="a", name="A"), expected=None)
+    assert [s.name for s in store.sets()] == ["A"]
+    other.save(DeckSet(id="a", name="Bee"), expected=other.fingerprint("a"))
+
+    with monkeypatch.context() as refused:
+        refused.setattr(type(store.path), "read_text", lambda *_a, **_k: (_ for _ in ()).throw(PermissionError()))
+        assert [s.name for s in store.sets()] == ["A"]
+
+    assert [s.name for s in store.sets()] == ["Bee"]
+
+
 def test_an_unchanged_file_is_not_parsed_again(store, monkeypatch):
     store.save(DeckSet(id="a", name="A"), expected=None)
     store.sets()

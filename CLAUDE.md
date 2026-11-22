@@ -127,7 +127,8 @@ and what every product shares lives at the root itself: the account records in
 `accounts.json`, the user's preferences in `preferences.json` (both written through
 `shared/json_update.py`, which changes one key and never rewrites the file from memory,
 since two products may be open at once), among them `game.install_dir`, the game folder
-both products launch from (`shared/game_install.py`), and the library of duel strategies,
+both products launch from (`shared/game_install.py`), the deck sets in `deck_sets.json`
+(`shared/deck_sets.py`), and the library of duel strategies,
 player strategies and decks in `strategies/` (BartleBot's `docs/COMBAT_CONFIG.md`). The
 prefix is defined once, in `bartleby/shared/vendor.py`, and imported — never spelled out
 again, on disk or in Credential Manager. Credentials go through `keyring` (Windows

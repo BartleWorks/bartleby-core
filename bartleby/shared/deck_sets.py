@@ -145,11 +145,13 @@ class DeckSetStore:
             return
         try:
             record = json.loads(self._path.read_text(encoding="utf-8"))
-        except (OSError, ValueError) as exc:
-            # A read refused while the other product renames is tried again at the next ask.
+        except OSError:
+            # Refused while the other product renames: the sets as they were, and another read at the next ask.
+            logger.debug("The deck sets can't be read just now", exc_info=True)
+            return
+        except ValueError as exc:
             logger.warning("The deck sets at %s are not readable: %s", self._path, exc)
-            self._stamp = stamp if isinstance(exc, ValueError) else None
-            self._sets, self._prints = (), {}
+            self._stamp, self._sets, self._prints = stamp, (), {}
             return
         self._stamp = stamp
         sets, prints = [], {}

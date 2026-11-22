@@ -270,7 +270,8 @@ BartleBuddy.
 - **The equipped deck is only in the equipment's `item_list`**
   (`ClientWizEquipmentBehavior`); every other deck is in the inventory's
   (`ClientWizInventoryBehavior`), the equipped one never. A wizard's decks are the two
-  together: `bartleby.runtime.decks.owned_decks`.
+  together: `bartleby.runtime.decks.owned_decks`. `worn_deck` reads the equipped one alone.
+  Which deck each wizard wants is a deck set's (`bartleby.shared.deck_sets`), by these names.
 - **The backpack's Decks tab** (`InventorySpellbookPage`, `ButtonLayout/Tab_Deck`) lists the
   equipped deck first, its `fist` icon visible, then the rest alphabetically: eight rows a page,
   `Item_1` to `Item_8`, paged by `rightscroll` and `leftscroll`, with `PageNumber` reading "1/2".
