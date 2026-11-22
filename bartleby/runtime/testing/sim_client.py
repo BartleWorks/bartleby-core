@@ -7,7 +7,9 @@ input they send (keys pressed and held, yaw and speed written), logs every input
 time it came, and walks while its forward key is held, at the speed its speed field says.
 Its ``hook_handler`` is the few bytes a resize finds its config nodes in, laid out as the
 game's, with the config object's static slot and map of sections above them, and its
-``video_manager`` a fake apply of the size those nodes say.
+``video_manager`` a fake apply of the size those nodes say. Its decks and its backpack's
+windows are a :class:`~bartleby.runtime.testing.sim_backpack.SimBackpack`'s, for a test that
+makes one.
 
 Movement is integrated on demand against a clock the test can drive (:class:`SimClock`),
 so a test runs as fast as it likes and lands where the arithmetic says. Walking speed is
@@ -25,12 +27,16 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from types import SimpleNamespace
+from typing import TYPE_CHECKING
 
 from wizwalker import XYZ
 from wizwalker.errors import MemoryReadError, PatternFailed, PatternMultipleResults
 
 from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction, KeyMap
+
+if TYPE_CHECKING:
+    from bartleby.runtime.testing.sim_backpack import SimBackpack
 
 #: Units a second on foot, on flat ground.
 WALK_SPEED = 600.0
@@ -144,6 +150,12 @@ class _ClientObject:
         self.sim.advance()
         self.sim.speed = value
         self.sim.log("speed", value)
+
+    async def try_get_inventory_behavior(self):
+        return self.sim.backpack.inventory_behavior() if self.sim.backpack is not None else None
+
+    async def try_get_equipment_behavior(self):
+        return self.sim.backpack.equipment_behavior() if self.sim.backpack is not None else None
 
 
 @dataclass
@@ -454,6 +466,8 @@ class SimClient:
         game_keys.use_map(self, self._keys)
         self._actions = {self._keys.choose(a).code: a for a in GameAction}
         self.hooked = True
+        #: Its decks and backpack, once a ``SimBackpack`` is made for it, and with them its windows.
+        self.backpack: SimBackpack | None = None
 
     # -- the scene ------------------------------------------------------------------
 
@@ -504,6 +518,8 @@ class SimClient:
         self.advance()
         code = key.value
         self.log("press", code)
+        if self.backpack is not None:
+            self.backpack.pressed(self._actions.get(code, code))
         if self.on_press is not None:
             self.on_press(self._actions.get(code, code))
 
