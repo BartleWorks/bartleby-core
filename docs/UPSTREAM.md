@@ -168,7 +168,15 @@ forks' scheme alone: core has releases, tagged `vX.Y.Z` (*Core's releases*, belo
 
 Current pins, both on `main`:
 
-- **wizwalker `a1559cf`** (`bartlebot-pin-20261116c`): `wizwalker.login.memory_login`, which
+- **wizwalker `WIZWALKER_SHA`** (`bartlebot-pin-TAG`): a deck's name
+  (`ClientDeckBehavior.name_indices`), the three wheels at +0xF0 of its behavior, past the
+  reflected fields, measured on live r814353 (core #22; `docs/WIZARD101.md`, *Decks and the
+  backpack*). On top of `d68082c` (`bartlebot-pin-20261121`): a module scan's result kept per
+  build and shared by its clients, checked in each before it is used. On top of `0857de9`
+  (`bartlebot-pin-20261120`): the mouseless hook never leaves its jump at `GetCursorPos`. On
+  top of `991c257` (`bartlebot-pin-20261119`): hooks and reads r814353, the old compiler's
+  build, as well as r813697. On top of `a1559cf` (`bartlebot-pin-20261116c`):
+  `wizwalker.login.memory_login`, which
   logs a client in from its login screen through the game's own login command, as Deimos'
   wizlaunch does, since r813697's login window moved the focus and tab order the typed
   `instance_login` relied on. A stub on `RootWindowHook`'s site makes the call once on the main

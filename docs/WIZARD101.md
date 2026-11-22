@@ -249,22 +249,29 @@ BartleBuddy.
   text differs by locale, and so can the wheels: en-US has a `Class_36` (Ahmarra) that de does
   not yet. Two `Type` entries share their English text (`Healer` is 12 and 18, `Tank` 13 and
   21), so a name's text doesn't always say its keys. Equipment sets are named the same way,
-  from `EquipmentSetNames.lang`'s `Wheel0` to `Wheel2`.
+  from `EquipmentSetNames.lang`'s `Wheel0` to `Wheel2`. `bartleby.shared.deck_names` holds a
+  name by its keys (`DeckName`), with its text in every locale and each wheel's choices, from
+  a snapshot `tools/dump_deck_names.py` writes. Only en-US's text has been compared with a
+  backpack; another locale's is composed the same way, and matched whatever its spacing. A few
+  locales' parts are a verb the game conjugates (it's `Class_7`, Storm), and what it shows for
+  one is not known.
 - **Two decks of one wizard can share a name**: the rename window accepts a name another deck
   already has.
 - **In memory, a deck's name is three uint32 wheel indices** in its `BasicDeckBehavior`, past
   the fields the type dump reflects: +0xF0 `Class`, +0xF4 `Type`, +0xF8 `Num`. The deck item
-  itself (`WizClientObjectItem`) holds no name; `m_displayKey` is empty. **A deck never named
-  reads (0, 0, 0)**, and the game shows it by its item's own name ("Headmistress' Dynamic
+  itself (`WizClientObjectItem`) holds no name; `m_displayKey` is empty. wizwalker reads them
+  (`ClientDeckBehavior.name_indices`). **A deck never named reads (0, 0, 0)**, and the game shows it by its item's own name ("Headmistress' Dynamic
   Deck"), not as "Deck". An equipment set's `m_equipmentSetName` packs its wheels a byte each
   (`[0, 1, 0, 0]` is `Wheel1_1`).
 - **The equipped deck is only in the equipment's `item_list`**
   (`ClientWizEquipmentBehavior`); every other deck is in the inventory's
-  (`ClientWizInventoryBehavior`), the equipped one never. A wizard's decks are the two together.
+  (`ClientWizInventoryBehavior`), the equipped one never. A wizard's decks are the two
+  together: `bartleby.runtime.decks.owned_decks`.
 - **The backpack's Decks tab** (`InventorySpellbookPage`, `ButtonLayout/Tab_Deck`) lists the
   equipped deck first, its `fist` icon visible, then the rest alphabetically: eight rows a page,
-  `Item_1` to `Item_8`, paged by `rightscroll`. A row's text is the deck's name as the game shows
-  it. The order is fixed when the backpack opens and stays until it is reopened.
+  `Item_1` to `Item_8`, paged by `rightscroll` and `leftscroll`, with `PageNumber` reading "1/2".
+  A row's text is the deck's name as the game shows it. The order is fixed when the backpack
+  opens and stays until it is reopened; the `fist` follows the deck on.
 - **Equipping a deck is select, then `Equip_Item`**: click the row, then the button under the
   list (`windowForBtns/Layout/Equip_Item`). Double-clicking a row, or selecting it alone, equips
   nothing. From a closed backpack to closed again takes **1.7 to 2.1 s a wizard**, and four
@@ -273,7 +280,18 @@ BartleBuddy.
   an equip is confirmed by polling it.
 - **Equipping an empty deck asks first**: a message box, "Equipping Empty Deck", offers to copy
   the old deck's spells into it (`centerButton` Yes, `rightButton` No). **No equips it empty**,
-  as it is. Until it is answered the backpack won't close.
+  as it is. Until it is answered the backpack won't close. The box is under `WorldView`, not at
+  the root where other message boxes are, so `MESSAGE_BOX_*` doesn't find it
+  (`WORLD_MESSAGE_BOX_*`).
+- **In code, `bartleby.runtime.decks.equip_deck(client, name)`** takes that route, under the
+  caller's lease. Already on, not owned, owned twice, empty, in a fight, and a backpack that
+  can't open are results with nothing pressed. Empty is the spell list reading 0 cards; what a
+  deck holding only item cards reads is not known yet. The deck is confirmed by its global id,
+  and a row whose deck turns out to be another that reads the same is passed over for the next.
+  The worn row is never clicked, on the assumption that Equip on it takes the deck off, as it
+  does a castle. The backpack is closed on every way out, a cancel included, unless the player
+  had it open. `tools/equip_deck.py` lists and equips on live clients. Turning a page of the
+  list, and a list in a language other than English, have not been seen in game.
 
 ## Combat as players fight it
 
