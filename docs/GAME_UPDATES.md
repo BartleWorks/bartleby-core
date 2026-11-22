@@ -51,6 +51,11 @@ Regenerates every snapshot from the Test realm into a scratch folder, never into
 zone wad (zone names, entity names, reagent nodes) need `--zone-wads` and a complete
 install, so on the Test realm they wait.
 
+Core's own are not among them: in a core checkout, run `dump_dialog_captions.py`,
+`dump_name_tables.py`, `dump_realm_names.py` and `dump_deck_names.py` from `tools/`, each with
+`--wad` naming the update's `Root.wad` and `--out` a scratch file, and diff those.
+`dump_deck_names.py --verify --wad <Root.wad>` is that diff: a new world adds a `Class_N`.
+
 What a diff usually means:
 
 | the diff shows | change |

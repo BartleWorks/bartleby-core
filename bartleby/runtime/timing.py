@@ -479,6 +479,42 @@ DECK_PAGE_POLL = 0.02
 # finer than POLL_INTERVAL because the wait itself is only ~200 ms — polling at a
 # quarter second would more than double it.
 
+BACKPACK_OPEN_TIMEOUT = 5.0
+# Ceiling on waiting for the backpack to show after its key. Measured at 0.1 to 0.5 s, so it
+# only elapses where the game does not open it.
+
+BACKPACK_LATE_OPEN = 1.0
+# How long a visit cut short just after the key was pressed waits for the backpack to show, so
+# that it is closed again rather than opening behind whoever took the client.
+
+BACKPACK_POLL = 0.05
+# Gap between reads while waiting on the backpack: to open, to turn a page, to offer Equip.
+
+BACKPACK_TAB_SETTLE = 0.3
+# Pause after clicking a backpack tab, before its list is read: nothing on the page says which
+# tab shows. Every list read this long after the click was the new tab's.
+
+BACKPACK_PAGE_TIMEOUT = 1.0
+# Ceiling on waiting for the page number to follow a click on a page arrow.
+
+BACKPACK_ROW_SETTLE = 0.2
+# Pause after a row is clicked, before its Equip button is used, and after a page turns,
+# before its rows are read.
+
+BACKPACK_BUTTON_TIMEOUT = 1.0
+# Ceiling on waiting for Equip to be offered for the row selected.
+
+DECK_EQUIP_TIMEOUT = 3.0
+# Ceiling on waiting for the equipment to show another deck after Equip is clicked. Measured at
+# 0.0 to 0.6 s.
+
+DECK_EQUIP_POLL = 0.05
+# Gap between reads of the equipment meanwhile. A read walks the dozen items worn.
+
+DECK_EQUIP_ATTEMPTS = 2
+# How many times a click on the way to equipping a deck is tried, since the game drops some:
+# the Decks tab when no row of the list reads the deck's name, and a row with its Equip.
+
 DECK_SETTLE_TIMEOUT = 15.0
 # Ceiling on waiting for a rewritten deck to read back as expected before the
 # deck page is closed. Cards are added by clicking, and the list the game shows
