@@ -520,6 +520,12 @@ def isolated_appdata(_appdata_root, monkeypatch):
     monkeypatch.setattr(game_dpi, "LAYERS_KEY", rf"{UNGUARDED_REGISTRY_KEY}\Layers")
     monkeypatch.setattr(game_install, "_places", game_install.NoPlaces())
 
+    # The art index is cached, and one read under the last test's APPDATA describes art
+    # folders this test does not have.
+    from bartleby.runtime.game import card_art  # noqa: PLC0415
+
+    card_art.forget_cache()
+
 
 #: The product every test runs as, named for no real one, so a product's name written into core fails a test.
 SAMPLE_PRODUCT = Product(

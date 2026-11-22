@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 from bartleby.shared import store_files
-from bartleby.shared.store_files import delete_by_id, find_by_id, held_listings, save_by_id, unique_name
+from bartleby.shared.store_files import Origin, delete_by_id, find_by_id, held_listings, save_by_id, unique_name
 
 
 def _write(d: Path, name: str, item_id: str) -> Path:
@@ -131,3 +131,17 @@ def test_unique_name_is_case_sensitive():
 def test_unique_name_leaves_a_parenthesized_name_that_is_not_a_suffix_alone():
     assert unique_name("Boss (Hard)", []) == "Boss (Hard)"
     assert unique_name("Boss (Hard)", ["Boss (Hard)"]) == "Boss (Hard) (2)"
+
+
+# ---------------------------------------------------------------------------
+# The Source pill's words
+# ---------------------------------------------------------------------------
+
+
+def test_the_pill_adds_official_updated_to_a_modified_official_item_only():
+    assert store_files.pill_text(Origin.SHIPPED_OVERRIDE, official_updated=True) == (
+        "Official (modified) · Official updated"
+    )
+    assert store_files.pill_text(Origin.SHIPPED_OVERRIDE) == "Official (modified)"
+    assert store_files.pill_text(Origin.SHIPPED, official_updated=True) == "Official"
+    assert store_files.pill_text(Origin.USER, official_updated=True) == "Custom"

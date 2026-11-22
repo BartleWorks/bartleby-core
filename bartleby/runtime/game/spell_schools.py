@@ -48,6 +48,12 @@ SCHOOL_ORDER = (
     "Shadow",
 )
 
+#: The seven schools an archmastery pip can be pointed at, and so the only ones the game's
+#: archmastery selector has a mark for. A strategy's schools are chosen from these too: they
+#: are what a wizard is. wizwalker's school table also holds Sun, Moon, Star, Shadow and the
+#: non-combat schools, which no wizard is of.
+PIP_SCHOOLS = ("Fire", "Ice", "Storm", "Myth", "Life", "Death", "Balance")
+
 _ORDER = {school: index for index, school in enumerate(SCHOOL_ORDER)}
 
 #: Where a card with no school, or a school that is not one of the eleven, sorts.

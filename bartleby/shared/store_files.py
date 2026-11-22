@@ -73,6 +73,20 @@ SOURCE_LABELS = {
 #: one: a missing item is never listed.
 LISTED_ORIGINS: tuple[Origin, ...] = (Origin.SHIPPED, Origin.SHIPPED_OVERRIDE, Origin.USER)
 
+#: What an override's pill adds when the Official item under it has changed since the
+#: override was made (BartleBot #169): Revert takes the new one. Never a filter word: the
+#: item is still Official (modified).
+OFFICIAL_UPDATED = "Official updated"
+
+
+def pill_text(origin: Origin, *, official_updated: bool = False) -> str:
+    """What an item's Source pill says: its label, and on a stale override, *· Official updated*."""
+    text = SOURCE_LABELS.get(origin, origin.value)
+    if official_updated and origin is Origin.SHIPPED_OVERRIDE:
+        text = f"{text} · {OFFICIAL_UPDATED}"
+    return text
+
+
 #: ``base (2)``, ``base (3)`` — the suffix :func:`unique_name` adds and strips.
 _COPY_SUFFIX = re.compile(r"^(?P<stem>.*?)\s*\((?P<n>\d+)\)$")
 
