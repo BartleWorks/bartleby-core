@@ -1,7 +1,8 @@
 """A wizard's decks, and equipping one by its name.
 
 :func:`owned_decks` reads every deck item a wizard has: the inventory's, and the equipped one,
-which is only in the equipment. Reads alone, so it needs no lease.
+which is only in the equipment. Reads alone, so it needs no lease. :func:`worn_deck` reads the
+equipped one alone, cheaply enough to be asked again every few seconds.
 
 :func:`equip_deck` puts the deck of a :class:`~bartleby.shared.deck_names.DeckName` on, by the
 quickest route Stage 1 of BartleBuddy's Auto-combat epic measured: the backpack's Decks tab,
@@ -89,6 +90,14 @@ class OwnedDeck:
     @property
     def empty(self) -> bool:
         return self.cards == 0
+
+
+@dataclass(frozen=True)
+class WornDeck:
+    """The deck a wizard has on. *name* is None for a deck never named."""
+
+    global_id: int
+    name: DeckName | None
 
 
 class DecksUnreadable(RuntimeError):
@@ -189,6 +198,29 @@ async def _read_deck(item, equipped: bool) -> OwnedDeck | None:
         equipped=equipped,
         cards=sum([await spell.quantity() for spell in await deck.spell_list()]),
     )
+
+
+async def worn_deck(client) -> WornDeck | None:
+    """The deck the wizard has on, or None for a wizard wearing none.
+
+    Walks the dozen items worn, and neither the inventory nor the deck's cards. Raises
+    :class:`DecksUnreadable` where there is nothing to read, as on a loading screen, or the
+    memory moved under the read.
+    """
+    try:
+        equipment = await client.client_object.try_get_equipment_behavior()
+        if equipment is None:
+            raise DecksUnreadable("no character is loaded")
+        for item in await equipment.item_list():
+            behavior = await item.search_behavior_by_name(DECK_BEHAVIOR)
+            if behavior is not None:
+                deck = ClientDeckBehavior(behavior.hook_handler, await behavior.read_base_address())
+                return WornDeck(await item.global_id_full(), DeckName.from_indices(*await deck.name_indices()))
+    except DecksUnreadable:
+        raise
+    except Exception as e:
+        raise DecksUnreadable("the equipped deck could not be read") from e
+    return None
 
 
 async def _equipped_id(client) -> int | None:
