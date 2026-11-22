@@ -5,9 +5,11 @@ order, so the order the followers join a fight in is the order they cast in. Bar
 it by walking its clients in one at a time, in the duel's combat order. A product whose
 leader the player walks in by hand can fix it only for the followers, and :class:`JoinOrder`
 is how: it hands each :class:`~bartleby.runtime.movement.follow.Follower` a gate
-(``Follower(join_gate=)``) that opens once the follower before it in the order has joined,
-or :data:`~bartleby.runtime.timing.JOIN_ORDER_HOLD` after that one's gate opened, so one
-that never gets in holds up the rest by that much and no more.
+(``Follower(join_gate=)``) that opens once the follower before it in the order has joined.
+While that one is on its way in, walking or porting, the next waits however long it takes,
+since a follower walking at its own speed can take seconds. One that stopped trying, or never
+set off, holds up the rest by :data:`~bartleby.runtime.timing.JOIN_ORDER_HOLD` after its own
+gate opened, and no more.
 
 One is shared by a leader's followers, and fed the leader's snapshots (:meth:`note`), so it
 knows when a fight starts and ends. The order is the product's to set, from the duel it will
@@ -22,27 +24,36 @@ from collections.abc import Callable, Sequence
 from bartleby.runtime.state import Snapshot
 from bartleby.runtime.timing import JOIN_ORDER_HOLD
 
+#: Seconds since a follower last asked within which it counts as waiting its turn. A waiting
+#: follower asks every tick; one that stopped asking has dropped out, and holds no one up.
+STILL_ASKING = 1.0
+
 
 class JoinOrder:
     """Which of a leader's followers may walk into its fight now: each waits for the one before.
 
-    *in_battle* says whether a follower is in a fight. *hold* is how long after a follower's
-    gate opened the next one's opens anyway.
+    *in_battle* says whether a follower is in a fight, and *on_its_way* whether it is moving
+    just now (a ``Follower``'s ``walking``), which, once its gate is open, is toward the fight.
+    *hold* is how long after a follower's gate opened the next one's opens anyway, unless that
+    one is still on its way.
     """
 
     def __init__(
         self,
         in_battle: Callable[[object], bool],
         *,
+        on_its_way: Callable[[object], bool] = lambda _follower: False,
         hold: float = JOIN_ORDER_HOLD,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self._in_battle = in_battle
+        self._on_its_way = on_its_way
         self._hold = hold
         self._clock = clock
         self.order: tuple = ()
         self._started: float | None = None  # when the leader's fight was first seen
         self._opened: dict = {}  # follower -> when its gate opened, this fight
+        self._asked: dict = {}  # follower -> when it last asked, this fight
 
     def set(self, followers: Sequence) -> None:
         """Walk *followers* in in this order; any other follower walks in at once."""
@@ -56,6 +67,7 @@ class JoinOrder:
         else:
             self._started = None
             self._opened.clear()
+            self._asked.clear()
 
     def may_join(self, follower) -> bool:
         """Whether *follower* may walk into the leader's fight now. Asked while the leader is in one."""
@@ -66,18 +78,30 @@ class JoinOrder:
         now = self._clock()
         if self._started is None:
             self._started = now
+        self._asked[follower] = now
         place = self.order.index(follower)
-        if place == 0 or self._in_battle(self.order[place - 1]) or now >= self._opens_by(place):
+        if place == 0 or self._may_follow(self.order[place - 1], place, now):
             self._opened[follower] = now
             return True
         return False
 
+    def _may_follow(self, ahead, place: int, now: float) -> bool:
+        """Whether the follower at *place* may go, with *ahead* the one before it in the order."""
+        if self._in_battle(ahead):
+            return True
+        if ahead in self._opened:
+            # Its turn came: wait while it walks or ports in, and a hold once it has stopped.
+            return not self._on_its_way(ahead) and now >= self._opened[ahead] + self._hold
+        if ahead in self._asked and now - self._asked[ahead] < STILL_ASKING:
+            return False  # waiting its own turn
+        return now >= self._opens_by(place)
+
     def _opens_by(self, place: int) -> float:
         """When the gate at *place* opens at the latest: a hold after the one before it opened.
 
-        A follower ahead that has not opened yet is counted as opening when it would at the
-        latest, so a follower that is not walking in at all, never asking, holds up the rest by
-        one hold, not forever.
+        Only for a follower ahead that isn't asking: it is counted as opening when it would
+        at the latest, so a follower that is not walking in at all holds up the rest by one hold,
+        not forever.
         """
         opened = self._opened.get(self.order[0], self._started)
         for ahead in self.order[1:place]:

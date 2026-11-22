@@ -28,8 +28,10 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   combat as wizsprinter's `team_order` (`FightWatch.team_order`). Without one, the seats
   decide, as before.
 - **`movement.join_order.JoinOrder`** and **`Follower(..., join_gate=)`**: a leader's followers
-  walk into its fight one after another, each once the one before has joined or
-  `timing.JOIN_ORDER_HOLD` after that one started. A follower waiting at its gate stands, says
+  walk into its fight one after another, each once the one before has joined. While that one is
+  on its way (`on_its_way=`, a `Follower`'s `walking`) the next waits however long it takes, and
+  one waiting its own turn holds up everyone behind it; one that stopped trying, or never asks,
+  holds up the next by `timing.JOIN_ORDER_HOLD` from its turn. A follower waiting at its gate stands, says
   `WAITING_TO_JOIN`, and counts as `joining_fight`. The gate is asked before any port, since a
   port that lands beside a fight is pulled into it at once, out of turn.
 
