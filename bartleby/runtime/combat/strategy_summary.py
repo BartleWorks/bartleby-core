@@ -26,7 +26,7 @@ from bartleby.shared.store_files import Origin
 from bartleby.shared.strategy_library import StrategyKind
 
 #: Answers a DSL's parse error, or None: :func:`validate_dsl`, or a stand-in that answers
-#: only from checks already known (BartleBot's ``gui/combat_strategies/dsl_checks.py``).
+#: only from checks already known (``bartleby/qt/combat/dsl_checks.py``).
 Validate = Callable[[str], str | None]
 
 if TYPE_CHECKING:

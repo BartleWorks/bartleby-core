@@ -31,7 +31,7 @@ def _lark_parser():
     (``CombatConfigProvider.from_string``) parses with wizsprinter's own parser, cached
     the same way since e82212b. Lark parsers are reusable across ``parse()`` calls, and
     one shared instance is safe across threads too: the GUI's background checks
-    (BartleBot's ``gui/combat_strategies/dsl_checks.py``) parse on a worker while the event loop may
+    (``bartleby/qt/combat/dsl_checks.py``) parse on a worker while the event loop may
     check another. lark's Earley parser sets its state when it is built and keeps each
     parse's in locals.
     """
@@ -210,7 +210,7 @@ def known_dsl_check(dsl: str) -> DslCheck | None:
 def store_dsl_check(dsl: str, check: DslCheck) -> None:
     """Record *check*, worked out elsewhere, as the answer for ``dsl``.
 
-    For a check run in another process (BartleBot's ``gui/combat_strategies/dsl_checks.py``): once
+    For a check run in another process (``bartleby/qt/combat/dsl_checks.py``): once
     stored, :func:`known_dsl_check` and :func:`dsl_check` answer it without parsing.
     """
     if dsl and dsl.strip():

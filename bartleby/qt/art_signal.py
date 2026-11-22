@@ -1,6 +1,6 @@
 """One app-wide signal that the extracted game art changed, and how a surface follows it (#239).
 
-Art can be extracted while the app is open: setup's Game art page runs straight after an
+Art can be extracted while BartleBot is open: setup's Game art page runs straight after an
 install, and Settings › General › Game art runs again after a game patch. When a run
 ends, BartleBot's ``game.art_extraction.extract_art`` calls ``card_art.forget_cache()``,
 so the next lookup reads the new files. Nothing already on screen looks again by itself,
