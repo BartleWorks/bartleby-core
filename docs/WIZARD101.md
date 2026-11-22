@@ -390,7 +390,8 @@ Stated by the user on 2026-11-21, for BartleBuddy's Auto-combat epic (#31).
   hands wizsprinter the duel's combat order (`team_order`), which `ally(-N)` counts through
   instead of the seats, and BartleBuddy's followers walk in in that order
   (`bartleby.runtime.movement.join_order`). The casting order is still the seats'.
-- **`is_boss` reads correctly at the first planning phase.**
+- **`is_boss` reads correctly at the first planning phase.** `runtime/combat/fight_kind.py` reads it
+  there, from the duel's participants, for which kind of fight it is.
 
 ### Special cards
 

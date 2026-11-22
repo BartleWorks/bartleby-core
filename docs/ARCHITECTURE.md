@@ -103,6 +103,9 @@ the read side of the game art (`runtime/game/card_art.py`) and what a deck holds
 (`runtime/combat/deck_content.py`). Its own `gui/combat_strategies/dialog.py` is a subclass
 (below); reading a deck from a client and putting one on it stay `combat/deck_io.py`'s, and
 art extraction `game/art_extraction.py`'s, which writes to BartleBot's own folder as before.
+Since Stage 7, so is the card of its Settings › Combat (`qt/combat/duel_card.py`), which
+BartleBuddy's mob and boss duels are chosen on too, with what is wrong with a choice
+(`combat_defaults.choice_notes`).
 
 BartleBot supplies what core's copies cut away:
 
@@ -130,13 +133,15 @@ BartleBot supplies what core's copies cut away:
 | `StartCard(pill=)` | a template's Source pill, on New Bot's and the Templates dialog's cards |
 | `run_fight(clients, dsls, numbers, time_limit=, log=)` and `CombatRun(numbers, log, time_limit)` | the DSLs `resolve_combat` reads from its four levels, `machine.log`, and what follows from the result itself: the flee limit (`note_flee`), the drop poll, a stopped bot |
 | `run_fight(..., order=)` and `CombatRun(..., order=)`, the duel's combat order | the combat order `resolve_combat` returns, for a node's fight and an ambient one. BartleBuddy sets `CombatRun.order` once it resolves a fight's duel |
-| `Follower(..., join_gate=)` and `JoinOrder` | nothing: BartleBot walks its clients in itself (`join_fight`). BartleBuddy's followers share a `JoinOrder`, set to the duel's combat order as the leader's fight starts |
+| `Follower(..., join_gate=)` and `JoinOrder` | nothing: BartleBot walks its clients in itself (`join_fight`). BartleBuddy's followers share a `JoinOrder`, set to the duel's combat order as the leader's fight starts, or held with `wait()` while which duel it is depends on the fight's kind |
 | `FirstCastHold.ready(fighter, settled, joined_at)` | `AmbientSession`'s join tasks, and when each helper read in battle |
 | `CombatRun(..., casts=, hold=)` | nothing: every player is cast for, under no hold. BartleBuddy hands the session's answer to who is cast for, asked at each planning phase, and its `Owner.COMBAT` lease |
 | `StrategyWorkingSet(..., roots=, owner=, others=, make_owner=)` and `StrategyWorkingSet.from_store(roots, ...)` | the shared library's `(shipped, user)` roots, from `store_roots.resolve_shared_roots`; every Bot Combat Strategy as a `BotStrategyOwner` among `others`, the loaded bot's as `owner`, and a `make_owner` for a bot with none (`load_working_set`). BartleBuddy has no owner, so its working set is the library alone |
 | `tag_groups(own_source)`, `facets_match(..., groups)` | `THIS_BOT_SOURCE`, the word on a Bot Combat Strategy's own entries, which its filter chips OR with the library's Source words |
 | `CombatStrategyDialog(ws, settings, ...)`, a `StrategySettings` | its `SettingsManager`, for the favorites, from its own `CombatStrategyDialog`, a subclass adding the Bot Combat Strategy's mode and section, Add to library, Export… and F1 |
 | `CombatStrategyDialog(deck_link=, archmastery_default=)` | the controller's deck jobs as a `DeckClientLink`, and `deck_io.app_default_apply_archmastery`. BartleBuddy hands neither: its Deck tab has no Import, Apply or New |
+| `DuelCard(size, text, chosen, library=, unset=, notes=, window=, same_as_unset=)` | its words, `load_working_set`, the shipped duel as what answers with no choice and as the same as none, `default_choice_notes`, and its own dialog. BartleBuddy hands its library and words, a shared default or the mob duel as what answers, and no `same_as_unset` |
+| `fight_kind(client)` | nothing: its fights are its nodes', and an ambient one runs the same default either way. BartleBuddy picks the duel by it |
 | `TagPickerButton`, `TagPill`, `TagChip` and `tag_sections`, which take a `TagVocabulary` | the bot and subgraph vocabularies, `gui/widgets/pickers/tag_vocabularies.py` |
 | `card_art.own_art_dir()` and `card_art.icon_path(key)` | where its extractor writes, and its own icon keys (`game/bot_art.py`) |
 | `dsl_check_cache.cache_path()`, by `product.current()` | `product.use`, at startup, so the cache stays under `BartleBot/cache/` |

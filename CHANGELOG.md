@@ -8,6 +8,31 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Mob and boss duels for BartleBuddy, and the card both apps' Settings › Combat choose a duel on
+(BartleBuddy #31, Stage 7); and the keyboard under a dialog (#23). A patch release: it breaks
+nothing.
+
+### Added
+
+- **`bartleby.qt.combat.duel_card.DuelCard`**, BartleBot's card, for a duel a product's settings
+  hold: the product hands it its words (`DuelCardText`), its library, what answers with no choice
+  (`Unset`), what is wrong with a choice, and its Combat Strategies window.
+- **`combat_defaults.FightKind`** (`MOB`, `BOSS`) and **`runtime.combat.fight_kind.fight_kind(client)`**,
+  which reads it from the duel's participants: boss when any living enemy is one, None while it
+  can't be told.
+- **`combat_defaults.choice_notes`**, what is wrong with a duel chosen for a team size, and
+  `SIZE_RANGE`; `shortfall_text` takes `where=`.
+- **`JoinOrder.wait()`** holds every follower at its gate until the order is set, or the fight ends.
+
+### Fixed
+
+- **`GameView` gives no game the keyboard while a dialog or a popup menu is open**, and gives the
+  keyboard target its own once the last dialog, or the menu, has closed (#23). It used to drop what
+  it owed and name the game as the player's. A product that called `give_keyboard_back()` after a
+  dialog of its own can drop the call.
+
 ## 0.10.0
 
 The Combat Strategies window, from BartleBot (BartleBuddy #31, Stage 6), with the widgets it is
