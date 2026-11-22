@@ -8,7 +8,12 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
-## Unreleased
+## 0.8.0
+
+Who is cast for at each planning phase (BartleBuddy #31, Stage 3), and the team's order: the
+duel's combat order handed to wizsprinter, and a leader's followers joining a fight in it
+(Stage 4). A minor release: a product fixes the Breaking items below, and pins wizsprinter at
+`bcd5758`.
 
 ### Breaking
 
