@@ -17,8 +17,10 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
   as every other fight does, not Everyone Attacks: the runner hands wizsprinter the duel's
   combat order, so its supports' `ally(last)` is P1 however the team sat. A product drops the
   argument; one that listed the ambient ids, as BartleBot's `--self-check` did, lists
-  `SHIPPED_EVERYONE_ATTACKS_DUEL_ID` itself if it still ships it. Takes wizsprinter at the
-  commit with `team_order`.
+  `SHIPPED_EVERYONE_ATTACKS_DUEL_ID` itself if it still ships it.
+- **wizsprinter moves to `bcd5758`** (`bartlebot-pin-20261121`), the commit with
+  `SprintyCombat.team_order`, which the runner now sets every round. A product pins the same
+  commit.
 
 ### Added
 
