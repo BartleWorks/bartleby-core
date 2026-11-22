@@ -1036,6 +1036,40 @@ def test_a_revert_and_a_newer_file_name_the_running_product(qapp, roots):
     assert not page.duplicate_button.isEnabled()
 
 
+def _files(roots) -> dict:
+    return {path: path.read_bytes() for root in roots for path in sorted(root.rglob("*.json"))}
+
+
+def test_a_library_looked_through_and_saved_is_byte_identical(qapp, roots):
+    """The library is every product's: opening it in one, and Save with nothing edited, writes nothing."""
+    made = _one_of_each(roots)
+    before = _files(roots)
+    dlg = _dialog(roots)
+    for kind, entry in made.items():
+        dlg.page(kind).select(entry.id)
+
+    dlg._on_commit()
+
+    assert _files(roots) == before
+
+
+def test_an_edit_saved_in_one_window_is_in_the_next_one_opened(qapp, roots):
+    """The other product's next open reads the same two folders."""
+    entry = _one_of_each(roots)[StrategyKind.PLAYER]
+    before = _files(roots)
+    first = _dialog(roots, kind=StrategyKind.PLAYER, current_id=entry.id)
+    first.page(StrategyKind.PLAYER).editor.dsl_edit.setPlainText("pass")
+    first._on_commit()
+
+    second = _dialog(roots, kind=StrategyKind.PLAYER, current_id=entry.id)
+
+    assert second.page(StrategyKind.PLAYER).editor.dsl_edit.toPlainText() == "pass"
+    assert second.page(StrategyKind.PLAYER).card_for(entry.id).source_text == "Official (modified)"
+    after = _files(roots)
+    assert {path: after[path] for path in before} == before, "only the user's own copy was written"
+    assert len(after) == len(before) + 1
+
+
 # ---------------------------------------------------------------------------
 # An owner's entries: the page knows them from the library's, and draws none of its own accord
 # ---------------------------------------------------------------------------

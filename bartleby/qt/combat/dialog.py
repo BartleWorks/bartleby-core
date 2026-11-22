@@ -283,7 +283,7 @@ def summary_haystack(summary: StrategySummary, own_source: str | None = None) ->
     parses every DSL the entry references.
     """
     if summary.owner_name is not None:
-        source = f"{own_source or ''} {summary.owner_name}"
+        source = f"{own_source} {summary.owner_name}" if own_source else summary.owner_name
     else:
         source = SOURCE_LABELS[summary.source] if summary.source is not None else ""
     tags = " ".join(summary.tags)
@@ -872,7 +872,7 @@ class KindPage(QWidget):
 
         Signals stay blocked throughout: hiding the current row can make Qt move
         the current item, and that would reload the detail pane mid-keystroke —
-        the defect ``tests/qt/combat/test_dialog_filter.py`` exists for. The
+        the defect ``tests/qt/combat/test_strategy_library_filter.py`` exists for. The
         selected row is restored afterwards even when the query hides it, so the
         editor keeps the entry it was given.
         """
