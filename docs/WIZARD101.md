@@ -97,6 +97,10 @@ Stated 2026-09-27 for BartleBot #117; the full write-up is the design comment on
   memory.
 - Duel circles are fixed spots, visible only while a fight is on them; stepping on an active
   one pulls you in.
+- **In a solo zone every wizard has an instance and a duel of its own**, in a zone of the same name
+  as the others'. Only the duel's participants tell them apart (`runtime/combat/duel_members.py`),
+  which is how the fight runner's reports always did; BartleBuddy ran four of them as one team fight
+  on 2026-11-22.
 - Wisps are shared, but simultaneous arrivals both get the reward. A wizard full on a
   resource does not collect that wisp kind.
 

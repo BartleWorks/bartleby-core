@@ -22,6 +22,9 @@ nothing.
 - **`combat_defaults.FightKind`** (`MOB`, `BOSS`) and **`runtime.combat.fight_kind.fight_kind(client)`**,
   which reads it from the duel's participants: boss when any living enemy is one, None while it
   can't be told.
+- **`runtime.combat.duel_members.duel_members(client)`**, the global ids of everyone in a client's
+  duel, or None when it can't be read, and **`own_id(client)`**: two clients share a fight when each
+  one's duel lists the other.
 - **`combat_defaults.choice_notes`**, what is wrong with a duel chosen for a team size, and
   `SIZE_RANGE`; `shortfall_text` takes `where=`.
 - **`JoinOrder.wait()`** holds every follower at its gate until the order is set, or the fight ends.

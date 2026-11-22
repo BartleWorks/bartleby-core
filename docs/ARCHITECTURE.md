@@ -142,6 +142,7 @@ BartleBot supplies what core's copies cut away:
 | `CombatStrategyDialog(deck_link=, archmastery_default=)` | the controller's deck jobs as a `DeckClientLink`, and `deck_io.app_default_apply_archmastery`. BartleBuddy hands neither: its Deck tab has no Import, Apply or New |
 | `DuelCard(size, text, chosen, library=, unset=, notes=, window=, same_as_unset=)` | its words, `load_working_set`, the shipped duel as what answers with no choice and as the same as none, `default_choice_notes`, and its own dialog. BartleBuddy hands its library and words, a shared default or the mob duel as what answers, and no `same_as_unset` |
 | `fight_kind(client)` | nothing: its fights are its nodes', and an ambient one runs the same default either way. BartleBuddy picks the duel by it |
+| `duel_members(client)` and `own_id(client)` | nothing: its fights are its nodes', and `FightWatch` groups an ambient one's players itself. BartleBuddy tells its wizards' fights apart by them |
 | `TagPickerButton`, `TagPill`, `TagChip` and `tag_sections`, which take a `TagVocabulary` | the bot and subgraph vocabularies, `gui/widgets/pickers/tag_vocabularies.py` |
 | `card_art.own_art_dir()` and `card_art.icon_path(key)` | where its extractor writes, and its own icon keys (`game/bot_art.py`) |
 | `dsl_check_cache.cache_path()`, by `product.current()` | `product.use`, at startup, so the cache stays under `BartleBot/cache/` |
