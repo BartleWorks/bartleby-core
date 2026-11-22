@@ -233,7 +233,7 @@ Five rules that are easy to get wrong:
   its width evenly. A dialog's `[Cancel] [Save]` sits *after* a stretch, and an
   expanding button there eats the stretch and spreads the pair across the whole footer.
 
-BartleBot's issue #47 is the rollout; its `gui/combat_strategies/dialog.py` is the worked example.
+BartleBot's issue #47 is the rollout; `bartleby/qt/combat/dialog.py` is the worked example.
 
 `bare_buttons`, `extra_primaries` and `compound_widget_qss` (`testing/guards.py`) keep it
 from eroding: they fail on a bare
@@ -624,6 +624,46 @@ shape and colors at its original size, and a focused window's border is its acco
 color, falling back to the accent. `GameView.sync_tiles` pushes the key from
 `TileSlot.username` on every tick, alongside the captions.
 
+## The Combat Strategies window is one window, and a product adds to it
+
+`bartleby/qt/combat/` is the shared strategy library's one editor, moved from BartleBot in
+Stage 6 of BartleBuddy #31: `CombatStrategyDialog` (`dialog.py`) over a `StrategyWorkingSet`,
+the editors of its three tabs, the filter bar, and the checks of its DSLs. It opens in
+`LIBRARY`, to edit, or `PICK`, to choose one entry of one kind and edit nothing.
+
+- **A product hands it a working set and its settings, and nothing else is required**:
+  `CombatStrategyDialog(ws, settings)`, with `settings` a `StrategySettings`
+  (`strategy_settings.py`), which is the favorites, kept per app. Without a `deck_link` the
+  Deck tab has no Import and no Apply; without an `archmastery_default` it says nothing of an
+  app setting; without account colors the player slots are uncolored.
+- **What one product has is a subclass**, through the hooks the module docstring lists, never
+  a flag in core and never a copy. BartleBot's window is one
+  (`bartlebot/gui/combat_strategies/dialog.py`): its Bot Combat Strategy's section and mode,
+  Add to library, Export… and F1. A hook core's constructor calls is called before the
+  subclass's own constructor continues, so what it reads is set before `super().__init__`.
+- **Core has no word for an owner.** The page knows an owner's entry from the library's, since
+  the working set does; its pill, its Source word and its section come from the subclass.
+- **A message naming the app names the running one** (`product.current().name`).
+- **Open it from a synchronous slot**: it is modal, and the qasync rule below is about it too.
+
+## Never parse a combat DSL on the GUI thread
+
+A DSL check is an Earley parse, up to ~800 ms for a long strategy. `bartleby.runtime.combat.dsl.dsl_check`
+caches answers in memory and on disk, but a strategy just written or imported, or every
+strategy after a wizsprinter bump, has none, and asking for it from a widget freezes the
+window -- once per card in a list, and once per *keystroke* in a DSL box, since every
+edit redraws the strategy's card. A surface drawing health passes
+`DeferredDslChecks.validator(key)` to `summarize_duel`/`summarize_player` and calls
+`request_unknown()` afterwards; an editor's debounce calls `checker().request(text)` and
+listens for `checked`. Both live in `bartleby/qt/combat/dsl_checks.py`, which also has
+why the checks run in a child process rather than a thread (the interpreter lock). The child
+imports no Qt: its initializer is `bartleby/runtime/combat/dsl_check_worker.py`.
+
+One known exception, kept on purpose: loading a strategy into `PlayerStrategyEditor`, or
+refreshing an `AssignmentCard`, still parses an unknown DSL on the GUI thread, because a
+loaded strategy shows its error at once and tests hold it to that. It costs up to ~800 ms
+only for a DSL with no answer yet (just imported, or after a wizsprinter bump).
+
 ## Never show a widget before it has a parent
 
 `setVisible(True)` — or `show()` — on a widget with no parent makes that widget a
@@ -692,9 +732,15 @@ is still asked about.)
 
 ## Game art is optional, and missing is the ordinary case
 
-Spell art is the game's own and is never in this repo: the app extracts it on the user's
-machine (BartleBot's `game/art_extraction.py`, from setup's last page or Settings › General › Game
-art), and `bartlebot/game/card_art.py` is the only thing that knows where it lands.
+Spell art is the game's own and is never in this repo: BartleBot extracts it on the user's
+machine (its `game/art_extraction.py`, from setup's last page or Settings › General › Game
+art), and `bartleby/runtime/game/card_art.py` is the only thing that knows where it is. A
+product reads its own `%APPDATA%/Bartleby/<product>/art`, and where it has none, another
+Bartleby product's, found by looking through the vendor folder, so BartleBuddy draws the art
+BartleBot extracted. An extractor writes to `own_art_dir()`, whatever is read. Icon keys only
+one product draws stay in it, over core's `icon_path`: BartleBot's `game/bot_art.py` has its
+worlds, badges and drops.
+
 **Every lookup can return `None`** — a user can turn the art off in Custom setup, an
 extraction can fail and setup still finishes, an install from before setup asked has none
 until the user extracts it, a few templates name a texture the game's own files do not
@@ -707,15 +753,15 @@ the summary line carries the counts either way, and a single card with no art is
 skipped rather than given a placeholder — a placeholder per missing card turns an
 install with no art at all into a grid of gray squares.
 
-**A deck is listed by `DeckCardList` (BartleBot's `widgets/cards/deck_card_list.py`), on both surfaces
-that list one** — the sidebar card's unfolded rows and the dialog's Deck Presets page.
+**A deck is listed by `DeckCardList` (`widgets/cards/deck_card_list.py`), on both surfaces
+that list one** — BartleBot's sidebar card's unfolded rows and the dialog's Deck Presets page.
 It was the sidebar's own rows against `QLabel(f"  {name} × {count}")` off the raw dict,
 so the library page listed a deck unsorted, unheaded and unillustrated while the
 sidebar three panels away did all three. The grouping and the order are
 `deck_groups`' on both, never the surface's, and a row whose card has no art is the
 row minus its tile — the count and the name still carry it.
 
-Look art up by the **template name** (`deck_io`'s own key), never the display name: one
+Look art up by the **template name** (a saved deck's own key), never the display name: one
 display name covers many templates, and a tiered variant draws its base spell's
 texture, so two identical-looking tiles can be different cards. That is what the tile's
 tooltip names the template for.
@@ -734,10 +780,11 @@ rules it is easy to lose:
   can carry a school it will never apply: the override resolves through an app setting
   whose shipped default is off. A Fire medallion on a card whose apply leaves
   archmastery alone is a claim about the wizard that the deck does not make, so the
-  universal mark stands in. That means the badge asks `resolve_apply_archmastery`, not
-  `deck.archmastery_school` alone.
+  universal mark stands in. That means the badge asks `resolve_apply_archmastery`
+  (`runtime/combat/deck_content.py`), not `deck.archmastery_school` alone. The app setting
+  is the product's, handed in; a product with none answers None, and the mark is universal.
 
-The bot library's category list uses these too, under the same rule: each folder under
+BartleBot's library's category list uses these too, under the same rule: each folder under
 `bots/` is a game badge category (`bartlebot/content/bot_folders.py`), the row wears that
 category's badge when one was extracted, and a row with none is its caption alone — at
 the compact height, since only a row with an icon reserves room for one. Rows are looked
@@ -758,13 +805,13 @@ Drop categories use them in the Category column of both drop tables (Possible Dr
 the quicksell keep-list picker), through `drop_tree.drop_icon`, drawn at `DROP_ICON_PX` = 20
 for the same reason as the tags. The icon sits beside the category text, never in place of
 it, and an uncategorized row or an install with no art keeps the text alone. A pin row's
-icon depends on its name (`card_art.drop_icon_name`), so pass the item name as well as the
+icon depends on its name (BartleBot's `bot_art.drop_icon_name`), so pass the item name as well as the
 category.
 
 **The combat order is drawn right to left, and it is not a style choice.** A duel puts
 four wizards around a circle and turns run clockwise, which puts a team's own players
 right to left: slot 1 is the rightmost, and the game's own "Set Sigil Slot Preference"
-dialog lists 4, 3, 2, 1 in that order with a gold gem on each. BartleBot's `duel_slot_gem.py` holds
+dialog lists 4, 3, 2, 1 in that order with a gold gem on each. `widgets/cards/duel_slot_gem.py` holds
 the reasoning and the lookup; `CombatOrderWidget` (where an order is set) and
 `PlayerBadgeRow(duel_order=True)` (where it is summarized) both mirror, and
 `strategy_summary.format_combat_order` mirrors the text with them. **All four have to
@@ -871,7 +918,7 @@ shadow went on, and no later one did. Call `warm_offscreen_render(widget)`
 because the flush is, so a dialog does not inherit the main window's.
 `DragReorder.watch_for_show` is the pattern, and every card list that drags gets it. It is per window *and* once: the flag means the layouts outstanding at
 that moment ran, not that the window is immune. Nothing warms the other offscreen sites
-(`favorites_bar`, `combat_order_widget`, `duel_strategy_editor`) — if one ever stalls,
+(BartleBot's `favorites_bar`, `combat_order_widget`) — if one ever stalls,
 warm its window; do not add a call per widget class.
 
 ## qasync + Python 3.13 task re-entrancy rule

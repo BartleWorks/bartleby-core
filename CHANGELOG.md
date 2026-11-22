@@ -8,6 +8,37 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+The Combat Strategies window, from BartleBot (BartleBuddy #31, Stage 6), with the widgets it is
+drawn from and the read side of the game art. Nothing breaks: BartleBot's modules moved here,
+and no name core already had changed.
+
+### Added
+
+- **`bartleby.qt.combat`**: `dialog.CombatStrategyDialog(ws, settings)`, the shared strategy
+  library's window in `DialogMode.LIBRARY` and `DialogMode.PICK`, with its editors
+  (`duel_editor`, `player_editor`, `assignment_card`, `deck_editor`, `combat_order_widget`),
+  `filter_bar`, `dsl_checks` and `deck_link`. A product hands it a working set and a
+  **`strategy_settings.StrategySettings`**, three methods that keep the favorites; a
+  `deck_link` and an `archmastery_default` are optional, and without the first the Deck tab has
+  no Import or Apply. A product's own additions are a subclass, through the hooks `dialog.py`
+  lists (`KindPage`, `AboutSection`, `StrategyCard.owner_pill`).
+- **Widgets**: in `bartleby.qt.widgets`, `cards.strategy_card`, `card_art_tile`,
+  `deck_card_list`, `archmastery_badge`, `archmastery_editor` and `duel_slot_gem`;
+  `pickers.tag_picker`, `school_picker` and `player_picker`; `pills.tag_pill`, `source_pill` and
+  `player_pills`; `inputs.dsl_edit` and `growing_text_edit`; `labels.step_heading`. A tag
+  picker, pill, chip or section takes its `TagVocabulary`, with no default.
+- **`runtime/game/card_art.py`**: the extracted game art's read side. It reads the running
+  product's own `art/` folder, and where there is none, another Bartleby product's, so a
+  product that extracts nothing draws what another did. `own_art_dir()` is where an extractor
+  writes.
+- **`runtime/combat/deck_content.py`**, what a saved deck holds, with
+  `resolve_apply_archmastery(deck, app_default)`; **`runtime/combat/dsl_check_worker.py`**;
+  `spell_schools.PIP_SCHOOLS`; `store_files.pill_text` and `OFFICIAL_UPDATED`.
+- **For tests and render sheets**: `qt/testing/sample_library.py`, a small strategy library;
+  `extracted_art.py`, a made-up art cache; `picker_helpers.py`.
+
 ## 0.9.0
 
 The strategy layer under the Combat Strategies window, from BartleBot (BartleBuddy #31,
