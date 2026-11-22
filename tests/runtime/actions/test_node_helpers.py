@@ -604,6 +604,46 @@ class _Spellbook:
         return True
 
 
+@pytest.fixture
+def spellbook(monkeypatch):
+    """Put a spellbook behind the helpers."""
+    monkeypatch.setattr(nh, "WINDOW_CLOSE_RETRY_INTERVAL", 0.01)
+
+    def put(**kwargs) -> _Spellbook:
+        book = _Spellbook(**kwargs)
+        monkeypatch.setattr(nh, "is_visible_by_path", book.visible)
+        monkeypatch.setattr(nh, "click_by_path", book.click)
+        return book
+
+    return put
+
+
+async def test_close_spellbook_clicks_again_until_the_spellbook_is_gone(spellbook):
+    """Straight after a quicksell sale the game dropped the one close click it got."""
+    book = spellbook(dropped=2)
+
+    assert await nh.is_spellbook_open(None)
+    assert await nh.close_spellbook(None) is True
+
+    assert book.clicks == [nh.BACKPACK_CLOSE_BUTTON_PATH] * 3
+    assert not await nh.is_spellbook_open(None)
+
+
+async def test_close_spellbook_leaves_a_closed_spellbook_alone(spellbook):
+    book = spellbook(open_=False)
+
+    assert await nh.close_spellbook(None) is True
+    assert book.clicks == []
+
+
+async def test_close_spellbook_is_false_when_the_spellbook_stays_open(spellbook, monkeypatch):
+    monkeypatch.setattr(nh, "WINDOW_CLOSE_TIMEOUT", 0.05)
+    book = spellbook(dropped=10**6)
+
+    assert await nh.close_spellbook(None) is False
+    assert book.open
+
+
 # ---------------------------------------------------------------------------
 # open_friends_list and the two friends-list windows
 # ---------------------------------------------------------------------------
