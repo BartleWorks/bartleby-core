@@ -14,8 +14,8 @@ import pytest
 
 from bartleby.shared.strategy_library import (
     ChangedOnDisk,
-    LibraryKind,
     NewerFormat,
+    StrategyKind,
     delete,
     entries,
     fingerprint,
@@ -25,10 +25,10 @@ from bartleby.shared.strategy_library import (
 )
 from bartleby.shared.strategy_models import LIBRARY_FORMAT, DeckPreset, DuelCombatStrategy, PlayerCombatStrategy
 
-PLAYER = LibraryKind.PLAYER
+PLAYER = StrategyKind.PLAYER
 
 
-def _only_file(root: Path, kind: LibraryKind = PLAYER) -> Path:
+def _only_file(root: Path, kind: StrategyKind = PLAYER) -> Path:
     (path,) = kind_dir(root, kind).glob("*.json")
     return path
 
