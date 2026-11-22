@@ -58,8 +58,9 @@ _ENCHANT_AHEAD = " & ".join(
 #: The hitter's ladder, first line that can cast wins (``docs/COMBAT_CONFIG.md``, "What the
 #: hitter does"): heal below 30%; a shield while none is up, for a deck that carries one;
 #: Mass Feint; Feint on the boss and blades and an aura on
-#: itself while one adds to the next hit; then the hit, AoE or single-target at the boss;
-#: then fillers, the buffs that won't stack, and a pass. Short of pips for a hit, it keeps
+#: itself while one adds to the next hit; then the hit, AoE or single-target at the boss,
+#: or with no boss left, single-target at a mob, so a leftover minion is never only passed
+#: at; then fillers, the buffs that won't stack, and a pass. Short of pips for a hit, it keeps
 #: its buffs. Generic to any school.
 _PRIORITY = [
     _ENCHANT_AHEAD,
@@ -71,6 +72,7 @@ _PRIORITY = [
     "?(self.beneficial_auras == 0) any<aura & out_damage>",
     "any<damage & aoe>[any<mod_damage>]",
     "any<damage>[any<mod_damage>] @ boss",
+    "?(all(enemies).is_boss == 0) any<damage>[any<mod_damage>] @ enemy",
     "any<global>",
     "any<shadow>",
     "any<trap & !aoe>[potent] @ boss",

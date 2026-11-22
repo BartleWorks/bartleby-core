@@ -8,6 +8,16 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+### Changed
+
+- **`LAST_RESORT_DSL` hits a mob once no boss is left.** After its single-target hit at the
+  boss it carries `?(all(enemies).is_boss == 0) any<damage>[any<mod_damage>] @ enemy`, as
+  BartleBot's shipped Default does from its Official set 10. Before it, a wizard short of pips
+  for an AoE, or holding none, only buffed and passed at a minion left after its boss died. A
+  product shipping Default keeps its text equal to this one.
+
 ## 0.8.0
 
 Who is cast for at each planning phase (BartleBuddy #31, Stage 3), and the team's order: the
