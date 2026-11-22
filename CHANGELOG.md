@@ -8,7 +8,7 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
-## Unreleased
+## 0.9.0
 
 The strategy layer under the Combat Strategies window, from BartleBot (BartleBuddy #31,
 Stage 5): the working set, the summaries, the tags, the DSL's vocabulary, slot targets, card
