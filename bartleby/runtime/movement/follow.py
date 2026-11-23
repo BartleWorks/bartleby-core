@@ -15,6 +15,10 @@ reading the position back every tick, and a stall backed off from.
   without ``writes_speed`` never writes the field, and walks at whatever it holds.
 * **Shortcuts follow the trail.** At a jump it presses Interact; a trail ending at a gate
   takes it through after the leader.
+* **Moved, it finds the trail again.** A follower that something other than its own walk
+  moved, by :data:`DISPLACED` or into another zone (Gather, the player, a port that wasn't
+  its own), picks the trail up from where it stands, on the leader's newest pass over that
+  ground (:meth:`~bartleby.runtime.movement.trail.Trail.rejoin`), never back where it was.
 * **Ports are the fallback**, for a follower too far behind, a jump or gate that did not
   take it, a stall it cannot back out of, or a leader somewhere the trail does not reach.
 * **Onto the leader's spot.** Every follower walks the trail all the way to the leader and
@@ -107,6 +111,9 @@ CATCH_UP = 500.0
 LOOK_AHEAD = 12
 #: Units from the next point beyond which a follower has lost the trail and finds it again.
 RESYNC = 1500.0
+#: Units a follower moved between two readings beyond which something other than its own walk
+#: moved it: Gather, a port, the player. Its place on the trail is lost, and found again.
+DISPLACED = 300.0
 #: Units from the leader beyond which a follower made with ``port_when_far`` ports rather than walk,
 #: when it starts or is let go. A walk joins the leader's fight in its turn, where a port lands
 #: beside it and is pulled in at once. This far takes about 5 s at a wizard's own speed, 600 units a
@@ -214,6 +221,8 @@ class Follower:
         self._clock = clock
         self.cursor: int | None = None
         self.position: Point | None = None
+        # Where it stood, and in which zone, at its last readable plan: a move past DISPLACED loses its place.
+        self._was: tuple[Point, str] | None = None
         # Where the leader stands, and since when: a move past STILL starts it again.
         self._leader_still_at: tuple[Point, float] | None = None
         self._on_spot = False
@@ -252,6 +261,7 @@ class Follower:
         """The next step, from the follower's snapshot and position and the leader's."""
         if position is None or not me.readable or not leader.readable:
             return Step(StepKind.WAIT, reason="not readable")
+        self._note_where(position, me.zone)
         if me.in_battle:
             return Step(StepKind.WAIT, reason="in a fight")
         sigil = self._sigil_step(me, position, leader, now)
@@ -273,8 +283,8 @@ class Follower:
             return Step(StepKind.WAIT, reason="waiting to port again")
         self._note_leader(leader, now)
         if self.cursor is None:
-            nearest = self.trail.nearest(position, me.zone, self.trail.first_seq)
-            self.cursor = nearest.seq if nearest else self.trail.end_seq
+            joined = self.trail.rejoin(position, me.zone, self.trail.first_seq)
+            self.cursor = joined.seq if joined else self.trail.end_seq
         if self.cursor < self.trail.first_seq:
             return Step(StepKind.PORT, reason="fell too far behind the trail")
 
@@ -375,10 +385,10 @@ class Follower:
         next_point = next((p for p in self.trail.after(self.cursor) if p.zone == zone), None)
         if next_point is not None and flat_distance(next_point.position, position) > RESYNC:
             # Moved off the trail, by a jump or a reset: find it again from here.
-            nearest = self.trail.nearest(position, zone, self.cursor)
-            if nearest is not None and flat_distance(nearest.position, position) < RESYNC:
-                self._reached(nearest.seq)
-                next_point = nearest
+            joined = self.trail.rejoin(position, zone, self.cursor)
+            if joined is not None and flat_distance(joined.position, position) < RESYNC:
+                self._reached(joined.seq)
+                next_point = joined
         return next_point
 
     def _beyond(self, gate: TrailPoint) -> Point:
@@ -389,6 +399,30 @@ class Follower:
         dx, dy = gate.position[0] - before.position[0], gate.position[1] - before.position[1]
         length = math.hypot(dx, dy)
         return gate.position[0] + dx / length * GATE_PUSH, gate.position[1] + dy / length * GATE_PUSH, gate.position[2]
+
+    def _note_where(self, position: Point, zone: str) -> None:
+        """Lose its place on the trail if something other than its own walk moved it since the last plan.
+
+        Its place is where it last walked to, so a follower that Gather or the player moved,
+        held or not, would walk back there before going on: back to where the leader left by a
+        teleport, or out through a door it took long before. It finds the trail again from
+        where it stands instead, on the leader's newest pass (:meth:`Trail.rejoin`). Its own
+        port and its own jump forget where it was, so neither counts.
+        """
+        was, self._was = self._was, (position, zone)
+        if was is None:
+            return
+        moved = flat_distance(was[0], position)
+        if was[1] == zone and moved <= DISPLACED:
+            return
+        if was[1] != zone:
+            logger.info("%s was moved to another zone, not by its own walk: it finds the trail again", self.label)
+        else:
+            logger.info("%s was moved %.0f units, not by its own walk: it finds the trail again", self.label, moved)
+        self.cursor = None
+        self._stalls, self._stall_from, self._stall_at, self._stood_for = 0, None, None, None
+        self._jump_failed = None
+        self._gate_since = None
 
     def _reached(self, seq: int) -> None:
         if seq != self.cursor:
@@ -596,7 +630,8 @@ class Follower:
                 await self._interact(lease, step)
             elif step.kind is StepKind.PORT:
                 await keys.release_all()
-                await self._port(lease, step.reason)
+                if await self._still_a_port(step):
+                    await self._port(lease, step.reason)
             elif step.kind is StepKind.CANCEL:
                 # Any turn cancels a countdown; Move Left turns a wizard where it stands.
                 await keys.release_all()
@@ -650,11 +685,26 @@ class Follower:
             await self._read_position()
             if self.position is not None and flat_distance(self.position, start) > LINK_MOVED:
                 self._reached(step.point.seq + 1)
+                self._was = None  # its own jump: not a move to find the trail again after
                 return
             if self.me.latest.loading:
                 return
         logger.info("%s was not moved at a jump the leader took", self.label)
         self._jump_failed = step.point.seq
+
+    async def _still_a_port(self, step: Step) -> bool:
+        """Whether a port planned from the snapshots still is one once both clients are read afresh.
+
+        A zone is read about once a second, and Gather lets go of a wizard as its loading
+        screen starts, so a plan just after it can see the follower still in the zone it left
+        and port it again, through a friends list a loading screen hides.
+        """
+        await asyncio.gather(self.me.read_now(), self.leader.read_now())
+        again = await self._next_step()
+        if again.kind is StepKind.PORT:
+            return True
+        logger.debug("%s does not port after all (%s): read afresh, it is %s", self.label, step.reason, again.kind)
+        return False
 
     async def _port(self, lease: Lease, reason: str) -> None:
         if self.port is None:
@@ -671,6 +721,7 @@ class Follower:
             logger.exception("%s could not port to its leader", self.label)
         if ok:
             self.cursor = None
+            self._was = None
             self._far_check = False
             self._stalls = 0
             self._jump_failed = None

@@ -40,6 +40,8 @@ RESET_MATCH = 150.0
 RESET_LOOKBACK = 60
 #: Points kept. At SPACING apart, far more trail than a follower should fall behind.
 MAX_POINTS = 5000
+#: Units further than the nearest point a newer one may be, and still be where a follower rejoins.
+REJOIN_SLACK = 80.0
 
 
 class Mark(StrEnum):
@@ -136,13 +138,16 @@ class Trail:
         for i in range(start, len(self.points)):
             yield self.points[i]
 
-    def nearest(self, position: Point, zone: str, start: int) -> TrailPoint | None:
-        """The point from *start* on in *zone* closest to *position*."""
-        best, best_d = None, float("inf")
-        for point in self.after(start):
-            if point.zone != zone:
-                continue
-            d = flat_distance(point.position, position)
-            if d < best_d:
-                best, best_d = point, d
-        return best
+    def rejoin(self, position: Point, zone: str, start: int) -> TrailPoint | None:
+        """The point from *start* on in *zone* a follower at *position* picks the trail up at.
+
+        The newest within :data:`REJOIN_SLACK` of the nearest, not the nearest itself: a
+        leader that comes back past ground it crossed earlier, by a teleport, a zone it
+        left and came back to, or a loop, leaves two passes over it, and the nearest point
+        can be on the older one, which walks the follower the whole way round again.
+        """
+        points = [(p, flat_distance(p.position, position)) for p in self.after(start) if p.zone == zone]
+        if not points:
+            return None
+        nearest = min(d for _, d in points)
+        return next(p for p, d in reversed(points) if d <= nearest + REJOIN_SLACK)
