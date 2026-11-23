@@ -212,8 +212,9 @@ class DeckSetCard(CardFrame):
             exceptions_text(deck_set, wizards), css=f"font-size: {THEME.font_subtext_px}px;"
         )
         self._exceptions.setWordWrap(True)
-        self._exceptions.setVisible(bool(deck_set.exceptions))
+        # Laid out first: shown with no parent yet, a label is a window of its own for a moment.
         layout.addWidget(self._exceptions)
+        self._exceptions.setVisible(bool(deck_set.exceptions))
         self.activated.connect(lambda: self.edit_requested.emit(self._set.id))
         self.refresh_theme_styles()
 

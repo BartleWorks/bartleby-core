@@ -318,3 +318,42 @@ def test_the_card_that_adds_one_starts_at_the_edge_the_sets_do(cards):
     cards.show()
 
     assert cards.cards[0].frame.x() == cards.add_card.findChild(QFrame).x() == 0
+
+
+def test_nothing_is_shown_before_it_has_a_parent_as_a_set_is_saved_and_drawn(
+    store, wizards, parentless_shows, monkeypatch
+):
+    """A label shown before it was laid out flashed as a window of its own (bartleby/qt/CLAUDE.md)."""
+    wizards.show([P1, P2])
+    sets = DeckSetList(store, wizards, lambda: ACCOUNTS)
+    sets.resize(600, 400)
+    sets.show()
+    parentless_shows.clear()  # the list itself, shown on purpose
+
+    def save_one(dialog):
+        dialog.name_edit.setText("Boss decks")
+        dialog.everyone.set_name(BOSS)
+        for wizard in dialog.addable()[:2]:
+            dialog.add_wizard(wizard)
+        dialog.rows[0].picker.set_name(PIERCING)
+        dialog.save()
+        return 1
+
+    monkeypatch.setattr(DeckSetDialog, "exec", save_one)
+    sets.add_card.add_requested.emit()
+
+    assert [c.texts[0] for c in sets.cards] == ["Boss decks"]
+    assert parentless_shows == []
+
+
+def test_the_editor_shows_nothing_before_it_has_a_parent(store, wizards, parentless_shows):
+    wizards.show([P1, P2])
+    dialog = _dialog(store, wizards, DeckSet(name="A", everyone=BOSS, exceptions={102: PIERCING, 999: None}))
+    dialog.show()
+    parentless_shows.clear()  # the dialog itself, shown on purpose
+
+    dialog.add_wizard(next(w for w in dialog.addable() if w.character_id == 101))
+    dialog.rows[0].remove_button.click()
+    wizards.show([P1])
+
+    assert parentless_shows == []
