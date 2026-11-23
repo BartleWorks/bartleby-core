@@ -564,6 +564,9 @@ async def test_a_follower_is_on_the_spot_of_a_leader_that_stopped_well_inside_a_
         await asyncio.gather(task, return_exceptions=True)
 
 
+# A known flake (BartleWorks/bartleby-core#25): under -n auto load the follower writes no speed before
+# the wait ends, and it passes alone. See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 async def test_a_follower_runs_at_2x_to_catch_up_and_never_above(quick):
     arbiter = Arbiter()
     leader, client = SimClient(), SimClient()

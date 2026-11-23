@@ -515,6 +515,17 @@ DECK_EQUIP_ATTEMPTS = 2
 # How many times a click on the way to equipping a deck is tried, since the game drops some:
 # the Decks tab when no row of the list reads the deck's name, and a row with its Equip.
 
+DECK_SET_RETRY_INTERVAL = 3.0
+# Gap between tries at putting a wizard's deck on, where the backpack can't open just now or an
+# equip failed: a victory screen, a level-up box or a loading screen goes by itself.
+
+DECK_SET_GIVE_UP = 60.0
+# How long those tries go on, from the first that could be made, before the wizard keeps its deck.
+
+WORN_DECK_INTERVAL = 3.0
+# How often the deck each wizard has on is read while it is shown. The player can change it by
+# hand at any time. A read walks the dozen items worn.
+
 DECK_SETTLE_TIMEOUT = 15.0
 # Ceiling on waiting for a rewritten deck to read back as expected before the
 # deck page is closed. Cards are added by clicking, and the list the game shows

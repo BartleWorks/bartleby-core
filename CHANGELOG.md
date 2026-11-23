@@ -8,6 +8,23 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Deck sets (BartleBuddy #31, Stage 9). Nothing breaks.
+
+### Added
+
+- **`bartleby.shared.deck_sets`**: a `DeckSet` names one deck for everyone and exceptions by character
+  id, in the vendor's `deck_sets.json`, and `DeckSetStore` reads it and writes a set at a time, refusing
+  one another product has changed since it was read (`DeckSetChanged`).
+- **`bartleby.qt.combat.deck_sets`**: `DeckSetList`, a product's deck sets in its settings, the editor
+  `DeckSetDialog`, and `DeckWizards`, which carries the team's wizards and the decks each owns to it
+  (`runtime.views.DeckWizard`).
+- **`bartleby.qt.widgets.pickers.deck_name_picker.DeckNamePicker`**, a deck's name on the game's three
+  wheels, or one of the decks the user's wizards own.
+- **`runtime.decks.worn_deck(client)`**, the deck a wizard has on, read without its inventory.
+- `bartleby.qt.dialogs.confirm.confirm_delete`, `AddCard(gutter=)`, the `boss_decks` glyph.
+
 ## 0.10.1
 
 Mob and boss duels for BartleBuddy, and the card both apps' Settings › Combat choose a duel on

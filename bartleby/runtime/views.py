@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from bartleby.shared.deck_names import DeckName
+
 #: :attr:`CardBadge.kind` values, each drawn as one of core's pills.
 BADGE_ACCENT = "accent"
 BADGE_NEUTRAL = "neutral"
@@ -85,3 +87,22 @@ class PlayerView:
     rows: tuple[PlayerRow, ...] = ()
     badges: tuple[CardBadge, ...] = ()
     verbs: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class DeckWizard:
+    """One wizard a deck set can make an exception of, as the set editor lists it (``qt/combat/deck_sets``).
+
+    *character_id* is what the set keeps, and the rest is only shown. *slot* is its place on the
+    team, counting from one, or None for a wizard not in the game just now. *wizard_name* is
+    shown through Streamer Mode, and *roster_place*, its place among its account's wizards, is
+    what that counts by. *decks* are the names of the decks it owns, where they were read.
+    """
+
+    character_id: int
+    wizard_name: str | None = None
+    slot: int | None = None
+    color_key: int | None = None
+    account_label: str = ""
+    roster_place: int = 0
+    decks: tuple[DeckName, ...] = ()

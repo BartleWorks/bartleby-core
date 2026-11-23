@@ -774,3 +774,31 @@ async def test_a_cleanup_that_fails_does_not_hide_the_cancel(monkeypatch):
 
     monkeypatch.setattr(node_helpers, "close_spellbook", close_spellbook)
     await _cancel_when(asyncio.create_task(equip_deck(sim, BOSS)), lambda: sim.backpack.clicks)
+
+
+# -- the deck on, alone ---------------------------------------------------------------------
+
+
+async def test_the_deck_on_is_read_by_its_id_and_name():
+    sim, backpack = _three()
+
+    worn = await decks.worn_deck(sim)
+    assert (worn.global_id, worn.name) == (backpack.decks[0].global_id, MAIN)
+
+    backpack.equip(backpack.decks[2])
+    assert (await decks.worn_deck(sim)).name == DUNGEON
+
+
+async def test_a_worn_deck_never_named_has_no_name_and_no_deck_on_is_none():
+    sim = SimClient()
+    backpack = SimBackpack(sim, [SimDeck(item="Headmistress' Dynamic Deck")])
+
+    assert (await decks.worn_deck(sim)).name is None
+
+    backpack.equip(None)
+    assert await decks.worn_deck(sim) is None
+
+
+async def test_the_deck_on_cannot_be_read_with_no_character():
+    with pytest.raises(DecksUnreadable):
+        await decks.worn_deck(SimClient())
