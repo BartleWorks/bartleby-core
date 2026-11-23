@@ -24,12 +24,12 @@ from bartleby.shared.deck_sets import DeckSet, DeckSetStore
 
 MAIN, BOSS, PIERCING = (DeckName(type_key=f"Type_{n}") for n in (1, 2, 24))
 P1 = DeckWizard(101, wizard_name="Luke SkullHunter", slot=1, account_label="Storm", decks=(MAIN, BOSS))
-P2 = DeckWizard(102, wizard_name="Wolf Deathblade", slot=2, account_label="Ice", decks=(PIERCING,))
+P2 = DeckWizard(102, wizard_name="Misha SkullSeer", slot=2, account_label="Ice", decks=(PIERCING,))
 #: Two accounts whose rosters hold the team's two and one wizard more.
 ACCOUNTS = [{"username": "one"}, {"username": "two"}]
 ROSTERS = {
-    "one": [{"gid": 101, "name": "Luke SkullHunter"}, {"gid": 103, "name": "Amber Frost"}],
-    "two": [{"gid": 102, "name": "Wolf Deathblade"}],
+    "one": [{"gid": 101, "name": "Luke SkullHunter"}, {"gid": 103, "name": "Naomi HexPaint"}],
+    "two": [{"gid": 102, "name": "Misha SkullSeer"}],
 }
 
 
@@ -99,7 +99,7 @@ def test_streamer_mode_hides_every_wizard_s_name(qapp, store, wizards):
     sets = DeckSetList(store, wizards, lambda: ACCOUNTS)
 
     shown = [dialog.rows[0].who_text, *[a.text() for a in dialog.add_menu().actions()], *sets.cards[0].texts]
-    assert not any("Amber" in text or "Luke" in text or "Wolf" in text for text in shown)
+    assert not any("Naomi" in text or "Luke" in text or "Misha" in text for text in shown)
     assert dialog.rows[0].who_text == "Character 2 (Account one)"
 
 
@@ -112,11 +112,11 @@ def test_the_editor_asks_for_the_team_s_decks_as_it_opens_and_shows_them_when_th
     dialog = _dialog(store, wizards, DeckSet(name="A", exceptions={102: PIERCING}))
 
     assert asked and not dialog.everyone.owned_button.isEnabled()
-    assert dialog.rows[0].who_text == "Wolf Deathblade (Account two)"
+    assert dialog.rows[0].who_text == "Misha SkullSeer (Account two)"
 
     wizards.show([P1, P2])
     assert dialog.everyone.owned_button.isEnabled()
-    assert dialog.rows[0].who_text == "Wolf Deathblade (Ice)"
+    assert dialog.rows[0].who_text == "Misha SkullSeer (Ice)"
     assert [a.text() for a in dialog.rows[0].picker.owned_menu().actions()] == ["Piercing Deck\tP2"], (
         "an exception's list is that wizard's own decks"
     )
@@ -247,7 +247,7 @@ def cards(store, wizards):
 def test_each_card_reads_its_set(cards):
     assert [card.texts for card in cards.cards] == [
         ["Mob decks", "Main Deck"],
-        ["Boss decks", "Boss Deck", "P2 Piercing Deck, Amber Frost keeps its deck"],
+        ["Boss decks", "Boss Deck", "P2 Piercing Deck, Naomi HexPaint keeps its deck"],
     ]
 
 
