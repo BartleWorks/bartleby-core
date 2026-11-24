@@ -311,6 +311,7 @@ def test_the_leader_s_prompt_back_as_its_countdown_ends_is_no_cancel_and_it_goes
     s.tick(leader=snap(260, loading=True), me=snap(0, loading=True))
     assert s.tick(leader=snap(0, zone="Dungeon"), me=snap(0, zone="Dungeon")) == "went in"
     assert not s.state.cancel_pending
+    assert s.state.went_in, "the follower takes it, so its zone change is no move to log"
 
 
 def test_the_leader_moving_as_its_countdown_ends_is_no_cancel():

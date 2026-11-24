@@ -34,9 +34,17 @@ moved them. A minor release: a product that called `Trail.nearest` fixes the Bre
   wizard as its loading screen starts, so a follower that saw itself still in the zone it left
   ported again, through a friends list the loading screen hid, and then stood for
   `FOLLOW_PORT_RETRY`.
+- **A follower going into a dungeon by its own press logs no move** (`SigilState.went_in`, which
+  the follower takes): "went in" is enough.
 
 ### Added
 
+- **`Follower(paused=)`**: while it answers True the follower sends nothing at all, a fight's
+  join and a sigil's cancel included, but goes on reading its sigil and the X presses on it.
+  Resumed, it finds the trail again from where it stands, and ports if that is beyond
+  `PORT_FAR`. BartleBuddy pauses a follower the player is on with it, where it used to stop the
+  follower and make a new one: that one knew nothing of an X pressed meanwhile, and walked the
+  wizard off its seat in its countdown (2026-11-23).
 - **`bartleby.shared.deck_sets`**: a `DeckSet` names one deck for everyone and exceptions by character
   id, in the vendor's `deck_sets.json`, and `DeckSetStore` reads it and writes a set at a time, refusing
   one another product has changed since it was read (`DeckSetChanged`).

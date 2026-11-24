@@ -141,6 +141,8 @@ class SigilState:
         self._my_seen_gone = False
         self._my_ending_since: float | None = None
         self.cancel_pending = False
+        #: Set as the follower goes in, for the follower to take: its zone changed by its own press.
+        self.went_in = False
         #: What it saw of the leader at a sigil, oldest first, for the log to take.
         self.seen: list[str] = []
 
@@ -295,6 +297,7 @@ class SigilState:
         since = now - self._entering_since
         if me.zone != self._entering_zone:
             self._stop_entering()
+            self.went_in = True
             return "went in"
         if self._my_ending_since is not None:
             if now - self._my_ending_since > SIGIL_END_GRACE:

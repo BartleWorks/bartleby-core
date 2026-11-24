@@ -985,3 +985,87 @@ async def test_a_port_still_planned_once_read_afresh_is_made():
     f.client.zone = "Dungeon/Left_Behind"
     await f._drive(Lease(f.client, Owner.MOVEMENT, ClientInput(f.client)), await f._next_step())
     assert ports == [True]
+
+
+def test_into_a_dungeon_by_its_own_press_is_no_move_to_log(caplog):
+    caplog.set_level("INFO", logger=follow.__name__)
+    f = made(laid_trail(*_LONG), label="P2")
+    f.plan(snap(0, 0), (0, 0, 0), snap(60, 0), 0)
+    f.sigil.went_in = True
+    f.plan(snap(0, 0, zone="Dungeon"), (0, 0, 0), snap(60, 0, zone="Dungeon"), 1)
+    assert "was moved" not in caplog.text
+    assert not f.sigil.went_in, "taken, so a later move is logged again"
+
+
+# -- paused while the player has the wizard -------------------------------------------------------
+
+
+def test_paused_it_sends_nothing_not_even_into_the_leaders_fight():
+    f = made(laid_trail(*_LONG), paused=lambda: True)
+    for leader in (snap(1260, 0), snap(120, 0, in_battle=True), snap(9000, 0)):
+        assert f.plan(snap(0, 0), (0, 0, 0), leader, 0) == follow.Step(StepKind.WAIT, reason=follow.PAUSED)
+    assert not f.joining_fight
+
+
+def test_resumed_it_goes_on_from_where_the_player_walked_it_not_back_to_where_it_paused():
+    """The player's own walk is in steps no reading takes for a move, so the pause itself loses its place."""
+    paused = [False]
+    trail = laid_trail(*_LONG)
+    _walked(trail, [(1260, y) for y in range(60, 1300, 60)], 3.0)
+    f = made(trail, paused=lambda: paused[0])
+    f.plan(snap(0, 0), (0, 0, 0), snap(1260, 1260), 0)
+    paused[0] = True
+    for i, x in enumerate(range(60, 1261, 60)):  # the player walks it east along the trail and up
+        f.plan(snap(x, 0), (x, 0, 0), snap(1260, 1260), 1 + i * 0.1)
+    for i, y in enumerate(range(60, 601, 60)):
+        f.plan(snap(1260, y), (1260, y, 0), snap(1260, 1260), 4 + i * 0.1)
+    paused[0] = False
+
+    step = f.plan(snap(1260, 600), (1260, 600, 0), snap(1260, 1260), 6)
+    assert step.kind is StepKind.WALK and step.point.position[1] >= 600, "on up the trail, not back east to x=0"
+
+
+def test_resumed_far_from_the_leader_it_ports():
+    paused = [True]
+    f = made(laid_trail(*range(0, 3600, 60)), paused=lambda: paused[0], port_when_far=True)
+    f.plan(snap(3500, 0), (3500, 0, 0), snap(3540, 0), 0)
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(3540, 0), 0.1).reason == follow.PAUSED
+    paused[0] = False
+    step = f.plan(snap(0, 0), (0, 0, 0), snap(3540, 0), 0.2)
+    assert (step.kind, step.reason) == (StepKind.PORT, "far from the leader")
+
+
+def test_resumed_it_still_waits_for_a_leader_that_has_not_moved():
+    paused = [True]
+    f = made(laid_trail(*_LONG), paused=lambda: paused[0], wait_for_move=True)
+    f.plan(snap(0, 0), (0, 0, 0), snap(1260, 0), 0)
+    paused[0] = False
+    assert f.plan(snap(0, 0), (0, 0, 0), snap(1260, 0), 1).reason == follow.AWAITING_MOVE
+
+
+async def test_x_pressed_on_it_while_paused_holds_it_still_through_its_countdown_once_resumed(quick, monkeypatch):
+    """In game, 2026-11-23: Interact pressed X on a wizard the player was on, and on its return it walked off its seat."""
+    monkeypatch.setattr(sigil_module, "SIGIL_SETTLE", 0.05)
+    monkeypatch.setattr(sigil_module, "SIGIL_SEAT_SETTLE", 0.05)
+    shown, arbiter, paused = {}, Arbiter(), [False]
+    f, leader, client, leader_reader = _sigil_team(shown, arbiter)
+    f._paused = lambda: paused[0]
+    task = asyncio.create_task(f.run())
+    try:
+        await _until(lambda: f.at_sigil)
+        paused[0] = True
+        await helpers.interact(arbiter, [Member(leader, 1), Member(client, 2)])
+        shown.update({leader.window_handle: False, client.window_handle: False})
+        await _until(lambda: f.entering)
+        client.place((120.0, 40.0, 0.0))  # the game's walk to its seat, away from the leader's
+        leader_reader.publish(position=(340.0, 0.0, 0.0))
+        await asyncio.sleep(0.1)
+        sent = len(client.inputs)
+
+        paused[0] = False
+        await asyncio.sleep(0.3)
+        assert f.entering
+        assert len(client.inputs) == sent and not client.held, "resumed, it still sends nothing in its countdown"
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)

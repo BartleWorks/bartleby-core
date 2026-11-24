@@ -49,6 +49,11 @@ reading the position back every tick, and a stall backed off from.
 * **Held**, while ``hold`` says so: it stands where it is, unless the leader is in a fight,
   which it still joins, and stays where the fight leaves it. Let go, it stops waiting for the
   leader to move, since the player just asked for the team back.
+* **Paused**, while ``paused`` says so, as while the player has the wizard's keyboard: it sends
+  nothing at all, a fight's join and a sigil's cancel included, but goes on watching the leader
+  and its own sigil, so an X pressed on it meanwhile still holds it still for its countdown once
+  it resumes. Resumed, it finds the trail again from where it stands, since the player may have
+  walked it anywhere, and ports if that is beyond :data:`PORT_FAR`.
 * **Far means port**, when asked to (``port_when_far``): a follower beyond :data:`PORT_FAR` of
   its leader when it starts, once any wait is over, or when it's let go, ports rather than
   walking at the leader through whatever is between them.
@@ -135,6 +140,8 @@ AS_NEAR_AS_IT_GETS = "as near as it gets"
 AWAITING_MOVE = "waiting for the leader to move"
 #: Why a held follower stands.
 HELD = "held where it is"
+#: Why a paused follower sends nothing: the wizard is the player's just now.
+PAUSED = "paused"
 #: Why a follower walks straight at the leader: the leader is in a fight.
 JOINING_FIGHT = "joining the fight"
 #: Why a follower stands while the leader is in a fight: its join gate has not opened yet.
@@ -190,6 +197,7 @@ class Follower:
         clock: Callable[[], float] = time.monotonic,
         wait_for_move: bool = False,
         hold: Callable[[], bool] = lambda: False,
+        paused: Callable[[], bool] = lambda: False,
         port_when_far: bool = False,
         walking_speed: Callable[[], int | None] | None = None,
         speed_ledger: SpeedLedger | None = None,
@@ -199,7 +207,8 @@ class Follower:
     ) -> None:
         """With *wait_for_move*, it stands until the leader has moved from where it first reads it.
 
-        While *hold* answers True it stands, joining only the leader's fights. With
+        While *hold* answers True it stands, joining only the leader's fights. While *paused*
+        answers True it sends nothing at all, and only watches. With
         *port_when_far*, it ports when it starts, or is let go, beyond :data:`PORT_FAR` of the
         leader. *walking_speed* is the speed field's value to walk at when not catching up,
         or None for the leader's own; a follower given one stands at its own speed when it
@@ -243,6 +252,8 @@ class Follower:
         self._leader_from: Snapshot | None = None
         self._hold = hold
         self._held = False
+        self._paused = paused
+        self._was_paused = False
         self._port_when_far = port_when_far
         self._far_check = port_when_far
         self._walking = False
@@ -262,6 +273,11 @@ class Follower:
         if position is None or not me.readable or not leader.readable:
             return Step(StepKind.WAIT, reason="not readable")
         self._note_where(position, me.zone)
+        if self._paused():
+            self._was_paused = True
+            return Step(StepKind.WAIT, reason=PAUSED)
+        if self._was_paused:
+            self._resume()
         if me.in_battle:
             return Step(StepKind.WAIT, reason="in a fight")
         sigil = self._sigil_step(me, position, leader, now)
@@ -410,15 +426,22 @@ class Follower:
         port and its own jump forget where it was, so neither counts.
         """
         was, self._was = self._was, (position, zone)
+        went_in, self.sigil.went_in = self.sigil.went_in, False
         if was is None:
             return
         moved = flat_distance(was[0], position)
         if was[1] == zone and moved <= DISPLACED:
             return
-        if was[1] != zone:
+        if went_in:
+            pass  # into the dungeon by its own press: its sigil has said so already
+        elif was[1] != zone:
             logger.info("%s was moved to another zone, not by its own walk: it finds the trail again", self.label)
         else:
             logger.info("%s was moved %.0f units, not by its own walk: it finds the trail again", self.label, moved)
+        self._lose_place()
+
+    def _lose_place(self) -> None:
+        """Forget its place on the trail, and what it was doing there, to find the trail again from where it stands."""
         self.cursor = None
         self._stalls, self._stall_from, self._stall_at, self._stood_for = 0, None, None, None
         self._jump_failed = None
@@ -429,6 +452,16 @@ class Follower:
             self._stalls = 0
             self._stall_from = None
         self.cursor = seq
+
+    def _resume(self) -> None:
+        """No longer paused: on from where the player left it, by port if that's far.
+
+        The player may have walked it anywhere, in steps no reading takes for a move, so its
+        place is lost whatever. A wait for the leader to move stays: it is the team's, not the pause's.
+        """
+        self._was_paused = False
+        self._far_check = self._port_when_far
+        self._lose_place()
 
     def _let_go(self) -> None:
         """No longer held: back to the leader at once, by port if it's far."""
