@@ -55,6 +55,9 @@ moved them. A minor release: a product that called `Trail.nearest` fixes the Bre
   wheels, or one of the decks the user's wizards own.
 - **`runtime.decks.worn_deck(client)`**, the deck a wizard has on, read without its inventory.
 - `bartleby.qt.dialogs.confirm.confirm_delete`, `AddCard(gutter=)`, the `boss_decks` glyph.
+- **`DeckSetList(card_factory=, add_card=)`**: a product draws each set on a `DeckSetCard` of its own,
+  with what it adds, and leaves the add card out where its surface has an add button of its own,
+  calling `DeckSetList.add`. BartleBuddy's sidebar Combat tab does both.
 
 ## 0.10.1
 
