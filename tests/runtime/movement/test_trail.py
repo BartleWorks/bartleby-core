@@ -73,3 +73,36 @@ def test_sequence_numbers_survive_dropping_the_oldest_points(monkeypatch):
     assert trail.first_seq == first + 1
     assert trail.at(first) is None
     assert trail.at(first + 1) is trail.points[0]
+
+
+def _back_by_another_zone(trail, t):
+    """Out to another zone and back into this one beside (600, 0), then a walk north to (600, 1200)."""
+    trail.note(snap(0, 0, t + 0.1, loading=True))
+    trail.note(snap(0, 0, t + 3, zone="WizardCity/WC_Hub"))
+    trail.note(snap(0, 0, t + 3.1, loading=True))
+    t += 6
+    for y in range(40, 1201, 60):
+        trail.note(Snapshot(key=1, time=t, position=(600.0, float(y), 0.0), zone=ZONE))
+        t += 0.1
+
+
+def test_rejoining_takes_the_newest_pass_over_the_ground_not_the_nearest_point():
+    trail = Trail()
+    _back_by_another_zone(trail, walk(trail, 0, 1200))
+    gate = next(p for p in trail.points if p.mark is Mark.GATE)
+    point = trail.rejoin((610.0, 10.0, 0.0), ZONE, trail.first_seq)
+    assert point.seq > gate.seq and point.position[0] == 600.0, "the second pass, though the first runs nearer"
+
+
+def test_rejoining_takes_the_nearest_point_where_no_newer_one_is_as_near():
+    trail = Trail()
+    _back_by_another_zone(trail, walk(trail, 0, 1200))
+    point = trail.rejoin((1200.0, -10.0, 0.0), ZONE, trail.first_seq)
+    assert point.position == (1200.0, 0.0, 0.0)
+
+
+def test_rejoining_looks_only_from_the_start_it_is_given_and_in_its_own_zone():
+    trail = Trail()
+    walk(trail, 0, 600)
+    assert trail.rejoin((0.0, 0.0, 0.0), ZONE, trail.end_seq) is None
+    assert trail.rejoin((0.0, 0.0, 0.0), "WizardCity/WC_Hub", trail.first_seq) is None

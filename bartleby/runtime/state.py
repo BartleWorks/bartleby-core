@@ -104,6 +104,16 @@ class StateReader:
             self.publish(**changes)
             await asyncio.sleep(position_every)
 
+    async def read_now(self) -> Snapshot:
+        """Read the zone, loading and battle, and the position, at once, and publish them.
+
+        For a decision a zone up to a second old would get wrong, as a follower's port is.
+        """
+        changes = await self._read_zone()
+        if not changes.get("loading", self.latest.loading):
+            changes |= await self._read_position()
+        return self.publish(**changes)
+
     def publish(self, **changes) -> Snapshot:
         """Make a new snapshot from the latest with *changes*, and hand it to every listener."""
         self.latest = dataclasses.replace(self.latest, time=self._clock(), **changes)

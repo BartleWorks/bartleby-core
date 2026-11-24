@@ -10,10 +10,41 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ## Unreleased
 
-Deck sets (BartleBuddy #31, Stage 9). Nothing breaks.
+Deck sets (BartleBuddy #31, Stage 9), and followers that find the trail again once something
+moved them. A minor release: a product that called `Trail.nearest` fixes the Breaking item below.
+
+### Breaking
+
+- **`Trail.nearest` is gone**, replaced by `Trail.rejoin`, which takes the leader's newest pass
+  over the ground rather than the nearest point (under Fixed). No product called it.
+
+### Fixed
+
+- **A follower that something other than its own walk moved finds the trail again from where it
+  stands** (`movement.follow`): Gather, the player, or a zone change. It moved more than
+  `DISPLACED`, 300 units, or changed zone between two plans. It kept its old place on the trail
+  before, so after Stop following, a teleport and Gather it walked back to where the leader had
+  left: to the teleport's spot, where it pressed Interact, or out through a door taken long before.
+  Each such move is logged at INFO.
+- **A follower made afresh, or one finding the trail again, rejoins the leader's newest pass**
+  (`Trail.rejoin`): the newest point within `REJOIN_SLACK` of the nearest. The nearest alone could
+  be on an older pass over the same ground, which walked the follower the whole way round again.
+- **A follower re-reads both clients before a port** (`StateReader.read_now`), and ports only
+  if the port is still the plan. A zone is read about once a second, and Gather lets go of a
+  wizard as its loading screen starts, so a follower that saw itself still in the zone it left
+  ported again, through a friends list the loading screen hid, and then stood for
+  `FOLLOW_PORT_RETRY`.
+- **A follower going into a dungeon by its own press logs no move** (`SigilState.went_in`, which
+  the follower takes): "went in" is enough.
 
 ### Added
 
+- **`Follower(paused=)`**: while it answers True the follower sends nothing at all, a fight's
+  join and a sigil's cancel included, but goes on reading its sigil and the X presses on it.
+  Resumed, it finds the trail again from where it stands, and ports if that is beyond
+  `PORT_FAR`. BartleBuddy pauses a follower the player is on with it, where it used to stop the
+  follower and make a new one: that one knew nothing of an X pressed meanwhile, and walked the
+  wizard off its seat in its countdown (2026-11-23).
 - **`bartleby.shared.deck_sets`**: a `DeckSet` names one deck for everyone and exceptions by character
   id, in the vendor's `deck_sets.json`, and `DeckSetStore` reads it and writes a set at a time, refusing
   one another product has changed since it was read (`DeckSetChanged`).

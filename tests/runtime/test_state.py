@@ -55,3 +55,20 @@ def test_a_listener_that_raises_does_not_stop_the_others():
     reader.subscribe(heard.append)
     reader.publish(zone="X")
     assert heard and heard[0].zone == "X"
+
+
+async def test_read_now_reads_the_zone_and_position_at_once_and_publishes_them():
+    client = SimClient(position=(5.0, 5.0, 0.0), zone="WizardCity/WC_Hub")
+    reader = StateReader(client)
+    reader.publish(position=(0.0, 0.0, 0.0), zone="Dungeon/Left_Behind", loading=False)
+    seen: list[Snapshot] = []
+    reader.subscribe(seen.append)
+    latest = await reader.read_now()
+    assert (latest.zone, latest.position) == ("WizardCity/WC_Hub", (5.0, 5.0, 0.0))
+    assert seen == [latest]
+
+
+async def test_read_now_on_a_loading_client_is_not_readable():
+    reader = StateReader(SimClient(loading=True))
+    reader.publish(position=(0.0, 0.0, 0.0), zone="Dungeon/Left_Behind", loading=False)
+    assert not (await reader.read_now()).readable
