@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Polaris/Interiors/PL_Z07_SkyAnchorPeak",
  "named": {
   "Start": [
@@ -33,6 +33,31 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "SnowGlobetoHubFromSkyAnchor",
+   "template": "PL_SnowGlobe_Teleporter_Hub_FromSkyAnchorPeak",
+   "at": [
+    -1811.9830322265625,
+    -1650.6600341796875,
+    -9.71478271484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1810.2944322265625,
+      -1652.2444341796875
+     ],
+     "radius": 21.4716,
+     "zlo": -9.223382714843751,
+     "zhi": 40.24641728515625,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

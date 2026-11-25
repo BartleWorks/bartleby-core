@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Plague/Interiors/MS_Plague3_T1",
  "named": {
   "FromPlague3": [
@@ -82,6 +82,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MS_EarthShrine instance",
+   "template": "MS_EarthShrine",
+   "at": [
+    8.0,
+    1591.2359619140625,
+    -99.99976348876953
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -335.0797634887695,
+     "zhi": 335.08023651123045,
+     "firm": true,
+     "hull": [
+      [
+       -176.73,
+       1408.8309619140625
+      ],
+      [
+       192.73,
+       1408.8309619140625
+      ],
+      [
+       192.73,
+       1773.6409619140625
+      ],
+      [
+       -176.73,
+       1773.6409619140625
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

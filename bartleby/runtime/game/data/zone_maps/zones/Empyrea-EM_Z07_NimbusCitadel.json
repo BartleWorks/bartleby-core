@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z07_NimbusCitadel",
  "named": {
   "Start": [
@@ -133,6 +133,424 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM-SecurityDoor",
+   "template": "EM-SecurityDoor",
+   "at": [
+    -3748.805908203125,
+    12.068659782409668,
+    -3.103026074313675e-06
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -250.00001450475912,
+     "zhi": 250.00000808111918,
+     "firm": true,
+     "hull": [
+      [
+       -3760.7664101915757,
+       261.74770388235237
+      ],
+      [
+       -3759.234773885875,
+       -238.24995020237088
+      ],
+      [
+       -3759.2347520302965,
+       -238.24997198819426
+      ],
+      [
+       -3742.4094309722227,
+       -238.19843120119833
+      ],
+      [
+       -3743.9410672779236,
+       261.7992228835249
+      ],
+      [
+       -3743.941089133502,
+       261.7992446693483
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-Stronghold",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -2355.799072265625,
+    -2167.656005859375,
+    -0.0006103516207076609
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2355.799072265625,
+      -2167.656005859375
+     ],
+     "radius": 26.2597,
+     "zlo": -250.0006103516207,
+     "zhi": 208.4293896483793,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-Academy",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -3475.041015625,
+    1135.5999755859375,
+    -6.103516352595761e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3475.041015625,
+      1135.5999755859375
+     ],
+     "radius": 26.2597,
+     "zlo": -250.00006103516353,
+     "zhi": 208.42993896483648,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-Courtyard",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -1902.60302734375,
+    2361.22998046875,
+    -0.0010986330453306437
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1902.60302734375,
+      2361.22998046875
+     ],
+     "radius": 26.2597,
+     "zlo": -250.00109863304533,
+     "zhi": 208.42890136695468,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-AudienceChamber",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -944.3187255859375,
+    2618.5869140625,
+    0.19588249921798706
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -944.3187255859375,
+      2618.5869140625
+     ],
+     "radius": 26.2597,
+     "zlo": -249.804117500782,
+     "zhi": 208.625882499218,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-PrivateWing",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    192.9593048095703,
+    2699.507080078125,
+    1.002305030822754
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      192.9593048095703,
+      2699.507080078125
+     ],
+     "radius": 26.2597,
+     "zlo": -248.99769496917725,
+     "zhi": 209.43230503082276,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-ControlRoom",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    1352.458984375,
+    2526.382080078125,
+    1.000177025794983
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1352.458984375,
+      2526.382080078125
+     ],
+     "radius": 26.2597,
+     "zlo": -248.99982297420502,
+     "zhi": 209.430177025795,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-SecondDock",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    2320.177978515625,
+    2140.248046875,
+    1.0002620220184326
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2320.177978515625,
+      2140.248046875
+     ],
+     "radius": 26.2597,
+     "zlo": -248.99973797798157,
+     "zhi": 209.43026202201844,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-Stronghold",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -2784.4130859375,
+    -1850.574951171875,
+    -0.0006103516207076609
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2784.4130859375,
+      -1850.574951171875
+     ],
+     "radius": 26.2597,
+     "zlo": -250.0006103516207,
+     "zhi": 208.4293896483793,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-Academy",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -3116.659912109375,
+    1549.04296875,
+    -6.103516352595761e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3116.659912109375,
+      1549.04296875
+     ],
+     "radius": 26.2597,
+     "zlo": -250.00006103516353,
+     "zhi": 208.42993896483648,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-Courtyard",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -1402.5870361328125,
+    2547.428955078125,
+    -0.0010986330453306437
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1402.5870361328125,
+      2547.428955078125
+     ],
+     "radius": 26.2597,
+     "zlo": -250.00109863304533,
+     "zhi": 208.42890136695468,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-AudienceChamber",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -202.34219360351562,
+    2749.010986328125,
+    0.19588249921798706
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -202.34219360351562,
+      2749.010986328125
+     ],
+     "radius": 26.2597,
+     "zlo": -249.804117500782,
+     "zhi": 208.625882499218,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-PrivateWing",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    894.8193969726562,
+    2565.384033203125,
+    1.002305030822754
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      894.8193969726562,
+      2565.384033203125
+     ],
+     "radius": 26.2597,
+     "zlo": -248.99769496917725,
+     "zhi": 209.43230503082276,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-ControlRoom",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    1923.1929931640625,
+    2355.47802734375,
+    1.000177025794983
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1923.1929931640625,
+      2355.47802734375
+     ],
+     "radius": 26.2597,
+     "zlo": -248.99982297420502,
+     "zhi": 209.430177025795,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-SecondDock",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    2770.215087890625,
+    1821.0439453125,
+    1.0002620220184326
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2770.215087890625,
+      1821.0439453125
+     ],
+     "radius": 26.2597,
+     "zlo": -248.99973797798157,
+     "zhi": 209.43026202201844,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight_ATestLab",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -3461.35595703125,
+    -1141.52001953125,
+    -0.0006103516207076609
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3461.35595703125,
+      -1141.52001953125
+     ],
+     "radius": 26.2597,
+     "zlo": -250.0006103516207,
+     "zhi": 208.4293896483793,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight_ATestLab",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -3124.60400390625,
+    -1552.7149658203125,
+    -0.0006103516207076609
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3124.60400390625,
+      -1552.7149658203125
+     ],
+     "radius": 26.2597,
+     "zlo": -250.0006103516207,
+     "zhi": 208.4293896483793,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

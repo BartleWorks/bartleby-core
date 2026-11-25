@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "G14_DM/Interiors/DM_Z05_I03_Staircase",
  "named": {
   "Start": [
@@ -42,5 +42,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Marleybone/Interiors/MB_ScotlandYard",
  "named": {
   "Start2": [
@@ -52,5 +52,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

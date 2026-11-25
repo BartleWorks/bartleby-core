@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Pyramid/KT_Chamber",
  "named": {
   "Start": [
@@ -560,6 +560,194 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT_TeleporterB_ChamberOfFire instance",
+   "template": "KT_TeleporterB_ChamberOfFire",
+   "at": [
+    -1414.2149658203125,
+    -350.935791015625,
+    -0.00012207029794808477
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -1414.2149658203125,
+      -350.935791015625
+     ],
+     "radius": 43.32,
+     "zlo": -5.155122070297949,
+     "zhi": 205.15487792970205,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterC_ChamberOfFire instance",
+   "template": "KT_TeleporterC_ChamberOfFire",
+   "at": [
+    -1396.14501953125,
+    278.1618957519531,
+    0.0
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -1396.14501953125,
+      278.1618957519531
+     ],
+     "radius": 43.32,
+     "zlo": -5.155000000000001,
+     "zhi": 205.155,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Teleporter_Hub instance",
+   "template": "KT_Teleporter_Hub",
+   "at": [
+    -1062.0560302734375,
+    -20.45948028564453,
+    -0.00012207029794808477
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1062.0560302734375,
+      -20.45948028564453
+     ],
+     "radius": 138.1714,
+     "zlo": -250.00017207029794,
+     "zhi": 131.84492792970207,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterC_ToHub_ChamberOfFire instance",
+   "template": "KT_TeleporterC_ToHub_ChamberOfFire",
+   "at": [
+    -9460.619140625,
+    -14327.5703125,
+    -611.0
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -9460.619140976454,
+      -14327.570312485852
+     ],
+     "radius": 43.32,
+     "zlo": -616.155,
+     "zhi": -405.845,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterB_ToHub_ChamberOfFire instance",
+   "template": "KT_TeleporterB_ToHub_ChamberOfFire",
+   "at": [
+    -21019.7109375,
+    -24013.380859375,
+    2500.0
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -21019.710941870642,
+      -24013.38085506934
+     ],
+     "radius": 43.32,
+     "zlo": 2494.845,
+     "zhi": 2705.155,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Crate_Unique instance (1)",
+   "template": "KT_Crate_Unique",
+   "at": [
+    -10125.5302734375,
+    -14120.0595703125,
+    -615.844482421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -645.3543841912199,
+     "zhi": -452.9113806525302,
+     "firm": true,
+     "hull": [
+      [
+       -10227.41840914802,
+       -14155.366644716993
+      ],
+      [
+       -10089.003089930526,
+       -14221.51668255462
+      ],
+      [
+       -10089.003086303801,
+       -14221.516683376616
+      ],
+      [
+       -10023.642140241434,
+       -14084.752495338107
+      ],
+      [
+       -10162.057459458929,
+       -14018.60245750048
+      ],
+      [
+       -10162.057463085654,
+       -14018.602456678484
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT_Fire_Basin instance",
+   "template": "KT_Fire_Basin",
+   "at": [
+    -14710.849609375,
+    -4294.6201171875,
+    6.103516352595761e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -14710.849609375,
+      -4294.6201171875
+     ],
+     "radius": 176.4114,
+     "zlo": -1.4950389648364748,
+     "zhi": 104.80696103516354,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

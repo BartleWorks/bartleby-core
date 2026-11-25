@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z08_SWAeroplains",
  "named": {
   "Start": [
@@ -170,6 +170,146 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM-StormTurbineA",
+   "template": "EM-StormTurbineA",
+   "at": [
+    1944.31396484375,
+    -4084.375,
+    306.43341064453125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1946.433504573701,
+      -4083.1675052857477
+     ],
+     "radius": 258.0595,
+     "zlo": 71.48676059940232,
+     "zhi": 769.6544605994022,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_MeowlDen",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    8778.189453125,
+    3570.193115234375,
+    15.505789756774902
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8783.329898572863,
+      3564.268861046819
+     ],
+     "radius": 36.2277,
+     "zlo": 37.69029035680434,
+     "zhi": 265.50589035680434,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_DarkCloud",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    12883.599609375,
+    -5157.48779296875,
+    128.68609619140625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12891.441278413266,
+      -5157.3167190281065
+     ],
+     "radius": 36.2277,
+     "zlo": 150.8705965250075,
+     "zhi": 378.6861965250075,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_BullCave",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -7720.81689453125,
+    5012.65576171875,
+    -311.3927917480469
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7726.398749655083,
+      5018.166115292122
+     ],
+     "radius": 36.2277,
+     "zlo": -289.2082916478466,
+     "zhi": -61.392691647846604,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero-HookwormTunnel",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -9919.064453125,
+    -9720.322265625,
+    -389.0960998535156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9926.160610634532,
+      -9716.98076507536
+     ],
+     "radius": 36.2277,
+     "zlo": -366.9115996585132,
+     "zhi": -139.09599965851316,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_BullField",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -8864.7841796875,
+    14850.6796875,
+    -43.42662048339844
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8865.5825796875,
+      14858.4824875
+     ],
+     "radius": 36.2277,
+     "zlo": -21.242120483398438,
+     "zhi": 206.57347951660154,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

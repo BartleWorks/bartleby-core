@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z12_LandingZone",
  "named": {
   "Start": [
@@ -25,5 +25,30 @@
  },
  "patrols": [],
  "links": [],
- "exits": []
+ "exits": [],
+ "gates": [
+  {
+   "name": "EM_QuestLight_EM_Z12_I09_Clearing_C",
+   "template": "EM_QuestLight_Hub_Aeriel",
+   "at": [
+    -644.7255249023438,
+    1891.1710205078125,
+    -8.20442008972168
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -645.5239249023438,
+      1898.9738205078124
+     ],
+     "radius": 36.2277,
+     "zlo": 13.98007991027832,
+     "zhi": 241.7956799102783,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  }
+ ]
 }

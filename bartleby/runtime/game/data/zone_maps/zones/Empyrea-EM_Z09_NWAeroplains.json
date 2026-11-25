@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z09_NWAeroplains",
  "named": {
   "Start": [
@@ -94,6 +94,123 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM-QuestLight-Aero_HumongishB",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -45.300228118896484,
+    10913.5400390625,
+    235.00509643554688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -45.42640142146918,
+      10921.382564878228
+     ],
+     "radius": 36.2277,
+     "zlo": 257.1895964338104,
+     "zhi": 485.0051964338104,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_TrollCave",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -2898.60498046875,
+    -5679.509765625,
+    -300.53741455078125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2905.2981660484043,
+      -5675.420468250715
+     ],
+     "radius": 36.2277,
+     "zlo": -278.35291438846133,
+     "zhi": -50.537314388461354,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_SphinxCavern",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -8517.50390625,
+    6718.8232421875,
+    -103.1530990600586
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8511.9104894023,
+      6724.3218593729425
+     ],
+     "radius": 36.2277,
+     "zlo": -80.96859895933345,
+     "zhi": 146.84700104066656,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_GrandmasHouse",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    9722.02734375,
+    -11325.33984375,
+    114.53450012207031
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9729.826734998147,
+      -11326.170821388416
+     ],
+     "radius": 36.2277,
+     "zlo": 136.71900049947146,
+     "zhi": 364.5346004994715,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_Voltergeist",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -9734.9912109375,
+    -9475.708984375,
+    -397.1134948730469
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9741.091007350702,
+      -9480.639852718208
+     ],
+     "radius": 36.2277,
+     "zlo": -374.92899431644145,
+     "zhi": -147.11339431644143,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

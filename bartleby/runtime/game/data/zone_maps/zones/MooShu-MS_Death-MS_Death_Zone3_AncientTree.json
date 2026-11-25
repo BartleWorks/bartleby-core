@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Death/MS_Death_Zone3_AncientTree",
  "named": {
   "From Death Hub": [
@@ -1431,6 +1431,324 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MS_LifeTree instance",
+   "template": "MS_LifeTree",
+   "at": [
+    0.0,
+    8314.38671875,
+    -290.1141052246094
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -462.2791052246094,
+     "zhi": 82.05089477539065,
+     "firm": true,
+     "hull": [
+      [
+       -281.78,
+       8009.78671875
+      ],
+      [
+       281.78,
+       8009.78671875
+      ],
+      [
+       281.78,
+       8618.98671875
+      ],
+      [
+       -281.78,
+       8618.98671875
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance",
+   "template": "MS_DirtPile",
+   "at": [
+    -3757.756103515625,
+    42530.1015625,
+    -3.8146970382513246e-06
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3757.756103515625,
+      42530.1015625
+     ],
+     "radius": 47.75,
+     "zlo": 19.129346185302964,
+     "zhi": 85.22684618530296,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (1)",
+   "template": "MS_DirtPile",
+   "at": [
+    -7528.73291015625,
+    38249.23046875,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7528.732909254304,
+      38249.23046893593
+     ],
+     "radius": 47.75,
+     "zlo": 19.129349999999995,
+     "zhi": 85.22684999999998,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (2)",
+   "template": "MS_DirtPile",
+   "at": [
+    3624.77001953125,
+    41573.609375,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3624.7700183277193,
+      41573.609375343374
+     ],
+     "radius": 47.75,
+     "zlo": 19.129349999999988,
+     "zhi": 85.22684999999998,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (3)",
+   "template": "MS_DirtPile",
+   "at": [
+    7440.47705078125,
+    38458.98046875,
+    -3.8146970382513246e-06
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7440.477048692862,
+      38458.98047194756
+     ],
+     "radius": 47.75,
+     "zlo": 19.129346185302822,
+     "zhi": 85.22684618530282,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (4)",
+   "template": "MS_DirtPile",
+   "at": [
+    10497.26953125,
+    34565.51171875,
+    -3.146209110127529e-06
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10497.269529925903,
+      34565.51172288784
+     ],
+     "radius": 47.75,
+     "zlo": 19.129346853790715,
+     "zhi": 85.2268468537907,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (5)",
+   "template": "MS_DirtPile",
+   "at": [
+    7456.19384765625,
+    30338.720703125,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7456.193845466419,
+      30338.720706043383
+     ],
+     "radius": 47.75,
+     "zlo": 19.129349999999874,
+     "zhi": 85.22684999999987,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_TreeOfLife_TeleportA instance",
+   "template": "MS_NEW_TreeOfLife_TeleportA",
+   "at": [
+    -1232.699951171875,
+    14466.6396484375,
+    3.000030994415283
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1232.69994680119,
+      14466.639652746146
+     ],
+     "radius": 43.32,
+     "zlo": -2.1549690055849027,
+     "zhi": 208.15503099441509,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_TreeOfLife_TeleportA_ToMain instance",
+   "template": "MS_NEW_TreeOfLife_TeleportA_ToMain",
+   "at": [
+    -5034.94482421875,
+    36145.6015625,
+    10.000089645385742
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5034.944819853821,
+      36145.60156663877
+     ],
+     "radius": 43.32,
+     "zlo": 4.845089645385556,
+     "zhi": 215.15508964538554,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_TreeOfLife_TeleportB instance",
+   "template": "MS_NEW_TreeOfLife_TeleportB",
+   "at": [
+    -851.6107177734375,
+    13976.01953125,
+    1.8660600185394287
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -851.6107134041661,
+      13976.019535749469
+     ],
+     "radius": 43.32,
+     "zlo": -3.2889399814607714,
+     "zhi": 207.02106001853923,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_TreeOfLife_TeleportB_ToMain instance",
+   "template": "MS_NEW_TreeOfLife_TeleportB_ToMain",
+   "at": [
+    8120.40478515625,
+    32935.0390625,
+    10.000009536743164
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8120.40478515625,
+      32935.0390625
+     ],
+     "radius": 43.32,
+     "zlo": 4.845009536743163,
+     "zhi": 215.15500953674317,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_TreeOfLife_TeleportC instance",
+   "template": "MS_NEW_TreeOfLife_TeleportC",
+   "at": [
+    -831.771484375,
+    14814.490234375,
+    1.8265719413757324
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -831.7714800059397,
+      14814.4902388815
+     ],
+     "radius": 43.32,
+     "zlo": -3.3284280586244677,
+     "zhi": 206.98157194137553,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_TreeOfLife_TeleportC_ToMain instance",
+   "template": "MS_NEW_TreeOfLife_TeleportC_ToMain",
+   "at": [
+    8840.9384765625,
+    50249.359375,
+    9.992950439453125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8840.938480781286,
+      50249.35937822716
+     ],
+     "radius": 43.32,
+     "zlo": 4.837950439452982,
+     "zhi": 215.14795043945298,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

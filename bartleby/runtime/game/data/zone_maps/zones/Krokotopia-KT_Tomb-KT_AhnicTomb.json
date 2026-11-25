@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Tomb/KT_AhnicTomb",
  "named": {
   "Start": [
@@ -600,6 +600,77 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT_Teleporter_Hub instance",
+   "template": "KT_Teleporter_Hub",
+   "at": [
+    -1091.9329833984375,
+    752.4691772460938,
+    -0.00012207029794808477
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1091.9329833984375,
+      752.4691772460938
+     ],
+     "radius": 138.1714,
+     "zlo": -250.00017207029794,
+     "zhi": 131.84492792970207,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterC_AhnicTomb instance",
+   "template": "KT_TeleporterC_AhnicTomb",
+   "at": [
+    -1594.969970703125,
+    765.9077758789062,
+    0.0
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -1594.969970703125,
+      765.9077758789062
+     ],
+     "radius": 43.32,
+     "zlo": -5.155000000000001,
+     "zhi": 205.155,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterC_BackToHub_AhnicTomb instance",
+   "template": "KT_TeleporterC_BackToHub_AhnicTomb",
+   "at": [
+    -21757.01953125,
+    -5633.51416015625,
+    -75.00054931640625
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -21757.01953125,
+      -5633.51416015625
+     ],
+     "radius": 43.32,
+     "zlo": -80.15554931640625,
+     "zhi": 130.15445068359375,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

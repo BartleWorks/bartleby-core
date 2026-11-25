@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Avalon/AV_Z05_TheWyrd",
  "named": {
   "Start": [
@@ -498,6 +498,215 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "AV-QuestLight_Lost_Abbey",
+   "template": "AV-QuestLight",
+   "at": [
+    -7342.02783203125,
+    2191.248046875,
+    -1311.156982421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7342.0278365061195,
+      2191.2480524097955
+     ],
+     "radius": 50.0,
+     "zlo": -1317.1582324218753,
+     "zhi": -1095.7671324218754,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight_Spinny_Spriggan",
+   "template": "AV-QuestLight",
+   "at": [
+    -3310.77587890625,
+    7928.626953125,
+    -899.9951171875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3310.775882841767,
+      7928.626955365918
+     ],
+     "radius": 50.0,
+     "zlo": -905.9963671875001,
+     "zhi": -684.6052671875001,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight_Ginther_House",
+   "template": "AV-QuestLight",
+   "at": [
+    7695.4091796875,
+    6766.19287109375,
+    -890.4423828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7695.409177370316,
+      6766.192879616379
+     ],
+     "radius": 50.0,
+     "zlo": -896.4436328125004,
+     "zhi": -675.0525328125003,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight_Cave_Night",
+   "template": "AV-QuestLight",
+   "at": [
+    1129.333984375,
+    8893.7431640625,
+    -1038.85498046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1129.333984375,
+      8893.7431640625
+     ],
+     "radius": 50.0,
+     "zlo": -1044.85623046875,
+     "zhi": -823.46513046875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight-Chromatic_Tower",
+   "template": "AV-QuestLight",
+   "at": [
+    -417.5338134765625,
+    -5688.85205078125,
+    -1554.887939453125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -417.53380922699364,
+      -5688.852044506817
+     ],
+     "radius": 50.0,
+     "zlo": -1560.8891894531253,
+     "zhi": -1339.4980894531254,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight_Tomb_Nameless",
+   "template": "AV-QuestLight",
+   "at": [
+    3112.514892578125,
+    -9173.208984375,
+    -1352.18505859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3112.5148970516666,
+      -9173.20898076303
+     ],
+     "radius": 50.0,
+     "zlo": -1358.18630859375,
+     "zhi": -1136.7952085937502,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight_Indigo_Giant",
+   "template": "AV-QuestLight",
+   "at": [
+    7056.3271484375,
+    -121.73090362548828,
+    -1218.9100341796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7056.327144485085,
+      -121.73089674230367
+     ],
+     "radius": 50.0,
+     "zlo": -1224.9112841796878,
+     "zhi": -1003.5201841796878,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance (8)",
+   "template": "AV-QuestLight",
+   "at": [
+    7958.9267578125,
+    -8409.755859375,
+    -1527.7060546875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7958.9267578125,
+      -8409.755859375
+     ],
+     "radius": 50.0,
+     "zlo": -1533.7073046874998,
+     "zhi": -1312.3162046875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight-Eurgh",
+   "template": "AV-QuestLight",
+   "at": [
+    3854.3798828125,
+    5317.744140625,
+    -1045.6409912109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3854.379880345071,
+      5317.744149055469
+     ],
+     "radius": 50.0,
+     "zlo": -1051.6422412109378,
+     "zhi": -830.2511412109378,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

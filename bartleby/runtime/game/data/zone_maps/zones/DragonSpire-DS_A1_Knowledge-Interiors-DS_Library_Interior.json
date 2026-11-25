@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "DragonSpire/DS_A1_Knowledge/Interiors/DS_Library_Interior",
  "named": {
   "Start": [
@@ -38,6 +38,102 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DS_CrystalStandGreenBlue instance",
+   "template": "DS_CrystalStandGreenBlue",
+   "at": [
+    -16.51041030883789,
+    1055.248046875,
+    -10.677849769592285
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -16.51041030883789,
+      1055.248046875
+     ],
+     "radius": 76.84,
+     "zlo": 11.84215023040771,
+     "zhi": 166.80215023040773,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "CrystalReadingStand",
+   "template": "DS_BlueCrystalStand_03",
+   "at": [
+    -820.8760986328125,
+    6.431853771209717,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -820.8760986328125,
+      6.431853771209717
+     ],
+     "radius": 76.84,
+     "zlo": 22.519999999999996,
+     "zhi": 177.48000000000002,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DW_TaleOfFallenWarriors_Book_Pedestal instance",
+   "template": "DW_TaleOfFallenWarriors_Book_Pedestal",
+   "at": [
+    2017.0059814453125,
+    2702.615966796875,
+    0.00023899080406408757
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -4.49966293541862,
+     "zhi": 104.49834080053665,
+     "firm": true,
+     "hull": [
+      [
+       1954.1212757726164,
+       2701.0702330733266
+      ],
+      [
+       2013.3532899129984,
+       2641.682358638611
+      ],
+      [
+       2013.353293286121,
+       2641.682357239025
+      ],
+      [
+       2076.217833312558,
+       2704.3819126485696
+      ],
+      [
+       2016.9858191721758,
+       2763.7697870832853
+      ],
+      [
+       2016.9858157990532,
+       2763.7697884828713
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

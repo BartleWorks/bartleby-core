@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Zafaria/ZF_Z01_Baobab_Crown",
  "named": {
   "Start": [
@@ -64,6 +64,77 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "QL_ZF_Z01_Dorm",
+   "template": "ZF-QuestLight",
+   "at": [
+    7122.837890625,
+    -2120.797119140625,
+    394.8970031738281
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7122.83789147974,
+      -2120.797119056249
+     ],
+     "radius": 50.0,
+     "zlo": 244.89700317382812,
+     "zhi": 744.8970031738281,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "QL_ZF_Z01_Library",
+   "template": "ZF-QuestLight",
+   "at": [
+    642.2564697265625,
+    4492.8662109375,
+    570.6212768554688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      642.2564667573098,
+      4492.866218516478
+     ],
+     "radius": 50.0,
+     "zlo": 420.6212768554684,
+     "zhi": 920.6212768554684,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "QL_ZF_Z01_Briar",
+   "template": "ZF-QuestLight",
+   "at": [
+    8918.052734375,
+    3092.5009765625,
+    540.6978149414062
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8918.05273550808,
+      3092.500985155365
+     ],
+     "radius": 50.0,
+     "zlo": 390.6978149414059,
+     "zhi": 890.6978149414059,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

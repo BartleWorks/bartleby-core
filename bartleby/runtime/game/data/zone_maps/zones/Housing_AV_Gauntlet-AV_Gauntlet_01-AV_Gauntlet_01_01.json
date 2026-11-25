@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Housing_AV_Gauntlet/AV_Gauntlet_01/AV_Gauntlet_01_01",
  "named": {
   "Start": [
@@ -167,6 +167,140 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "Universe Teleport instance",
+   "template": "UniverseMap",
+   "at": [
+    -1003.4439697265625,
+    566.2493896484375,
+    55.345428466796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 25.845428466796875,
+     "zhi": 350.8454284667969,
+     "firm": true,
+     "hull": [
+      [
+       -1108.9439697265625,
+       555.2493896484375
+      ],
+      [
+       -897.9439697265625,
+       555.2493896484375
+      ],
+      [
+       -897.9439697265625,
+       577.2493896484375
+      ],
+      [
+       -1108.9439697265625,
+       577.2493896484375
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AV-GAUNT-QuestLightLadyTanselle",
+   "template": "AV-GAUNT-QuestLight",
+   "at": [
+    -1994.6610107421875,
+    -3141.781005859375,
+    -6.324720743577927e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1994.661008603521,
+      -3141.7810043711597
+     ],
+     "radius": 47.75,
+     "zlo": 19.129286752792495,
+     "zhi": 85.22678675279249,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-GAUNT-QuestLightSirLyonel",
+   "template": "AV-GAUNT-QuestLight",
+   "at": [
+    -1039.3609619140625,
+    -3573.93603515625,
+    0.00012207029794808477
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1039.3609596350477,
+      -3573.936032785497
+     ],
+     "radius": 47.75,
+     "zlo": 19.129472070297844,
+     "zhi": 85.22697207029785,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-GAUNT-QuestLightCrab",
+   "template": "AV-GAUNT-QuestLight",
+   "at": [
+    624.5172729492188,
+    -1186.56298828125,
+    -0.00012207029794808477
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      624.5172729200591,
+      -1186.5629837198805
+     ],
+     "radius": 47.75,
+     "zlo": 19.129227929701855,
+     "zhi": 85.22672792970185,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-GAUNT-QuestLightSirDunk",
+   "template": "AV-GAUNT-QuestLight",
+   "at": [
+    -122.82589721679688,
+    -3412.830078125,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -122.82589494667579,
+      -3412.8300756237604
+     ],
+     "radius": 47.75,
+     "zlo": 19.129349999999896,
+     "zhi": 85.2268499999999,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

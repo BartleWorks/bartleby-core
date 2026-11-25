@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Death/MS_Death_Hub_RuinedTemple",
  "named": {
   "From MooShu Main Hub": [
@@ -113,5 +113,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

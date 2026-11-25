@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/Interiors/EM_Z05_NodoChord",
  "named": {
   "From_Stomach": [
@@ -54,5 +54,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

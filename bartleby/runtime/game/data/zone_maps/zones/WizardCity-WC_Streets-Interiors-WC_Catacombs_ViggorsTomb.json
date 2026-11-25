@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "WizardCity/WC_Streets/Interiors/WC_Catacombs_ViggorsTomb",
  "named": {
   "Start": [
@@ -117,6 +117,31 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WC_KnowledgeCrystal_Viggor",
+   "template": "WC_KnowledgeCrystal_Viggor",
+   "at": [
+    6705.5732421875,
+    27672.30078125,
+    -3790.22998046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6729.138205937741,
+      27683.644875811646
+     ],
+     "radius": 59.5758,
+     "zlo": -3835.897180094322,
+     "zhi": -3680.822180094322,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

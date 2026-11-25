@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Khrysalis/Interiors/KR_Z12_I02_Entry",
  "named": {
   "Start": [
@@ -33,6 +33,54 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KR-Galleries-QL",
+   "template": "KR-QuestLight-Umbra",
+   "at": [
+    -1082.5279541015625,
+    -2904.883056640625,
+    0.0005021719262003899
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1083.7984541015626,
+      -2903.877956640625
+     ],
+     "radius": 61.4071,
+     "zlo": 23.08045217192621,
+     "zhi": 204.0441521719262,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-MorgantheFinale-QL",
+   "template": "KR-QuestLight-Umbra",
+   "at": [
+    575.5385131835938,
+    -2173.7060546875,
+    0.0005143071175552905
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      574.2680131835938,
+      -2172.7009546875
+     ],
+     "radius": 61.4071,
+     "zlo": 23.080464307117566,
+     "zhi": 204.04416430711757,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

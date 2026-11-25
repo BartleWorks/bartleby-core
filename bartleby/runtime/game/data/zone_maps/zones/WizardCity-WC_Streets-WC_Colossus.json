@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "WizardCity/WC_Streets/WC_Colossus",
  "named": {
   "Target Cinematic location": [
@@ -1367,6 +1367,608 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WC_CB_ShipmentBarrel instance",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    2113.49609375,
+    -1616.758056640625,
+    17.67700958251953
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2113.49609375,
+      -1616.758056640625
+     ],
+     "radius": 47.75,
+     "zlo": 36.80635958251953,
+     "zhi": 102.90385958251953,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (1)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    36171.5390625,
+    9404.00390625,
+    3.512058973312378
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      36171.5390625,
+      9404.00390625
+     ],
+     "radius": 47.75,
+     "zlo": 22.64140897331238,
+     "zhi": 88.73890897331238,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (2)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    34881.0703125,
+    8992.197265625,
+    22.709590911865234
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      34881.0703125,
+      8992.197265625
+     ],
+     "radius": 47.75,
+     "zlo": 41.83894091186524,
+     "zhi": 107.93644091186523,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (3)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    36761.171875,
+    1252.7850341796875,
+    8.733818054199219
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      36761.171875,
+      1252.7850341796875
+     ],
+     "radius": 47.75,
+     "zlo": 27.86316805419922,
+     "zhi": 93.96066805419922,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (4)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    33703.25,
+    14196.4599609375,
+    28.011510848999023
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      33703.25,
+      14196.4599609375
+     ],
+     "radius": 47.75,
+     "zlo": 47.140860848999026,
+     "zhi": 113.23836084899902,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (5)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    33649.5390625,
+    4354.8349609375,
+    19.828500747680664
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      33649.5390625,
+      4354.8349609375
+     ],
+     "radius": 47.75,
+     "zlo": 38.957850747680666,
+     "zhi": 105.05535074768066,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (6)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    -6350.873046875,
+    -4943.22705078125,
+    28.080169677734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6350.873046875,
+      -4943.22705078125
+     ],
+     "radius": 47.75,
+     "zlo": 47.20951967773438,
+     "zhi": 113.30701967773437,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (7)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    4653.1328125,
+    -4381.39501953125,
+    28.080350875854492
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4653.1328125,
+      -4381.39501953125
+     ],
+     "radius": 47.75,
+     "zlo": 47.209700875854494,
+     "zhi": 113.30720087585449,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (8)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    7433.7109375,
+    -7567.2880859375,
+    28.93886947631836
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7433.7109375,
+      -7567.2880859375
+     ],
+     "radius": 47.75,
+     "zlo": 48.06821947631836,
+     "zhi": 114.16571947631836,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (9)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    8190.30078125,
+    -8817.7197265625,
+    -647.3380737304688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8190.30078125,
+      -8817.7197265625
+     ],
+     "radius": 47.75,
+     "zlo": -628.2087237304688,
+     "zhi": -562.1112237304687,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (10)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    11011.169921875,
+    -13060.849609375,
+    18.979740142822266
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      11011.169921875,
+      -13060.849609375
+     ],
+     "radius": 47.75,
+     "zlo": 38.10909014282227,
+     "zhi": 104.20659014282226,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (11)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    14592.58984375,
+    -13924.0400390625,
+    33.665340423583984
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      14592.58984375,
+      -13924.0400390625
+     ],
+     "radius": 47.75,
+     "zlo": 52.79469042358399,
+     "zhi": 118.89219042358398,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_CB_ShipmentBarrel instance (12)",
+   "template": "WC_CB_ShipmentBarrel",
+   "at": [
+    19147.720703125,
+    -10133.150390625,
+    16.601659774780273
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      19147.720703125,
+      -10133.150390625
+     ],
+     "radius": 47.75,
+     "zlo": 35.731009774780276,
+     "zhi": 101.82850977478027,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "CH_CaneStandee instance",
+   "template": "CH_CaneStandee",
+   "at": [
+    5353.8251953125,
+    -12010.66015625,
+    -379.9674072265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5353.8251953125,
+      -12010.66015625
+     ],
+     "radius": 10.0,
+     "zlo": -416.5724072265625,
+     "zhi": -143.3624072265625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "CH_CaneStandee instance",
+   "template": "CH_CaneStandee",
+   "at": [
+    5347.15576171875,
+    -12162.2197265625,
+    -379.9671936035156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5347.155764688422,
+      -12162.219725398865
+     ],
+     "radius": 10.0,
+     "zlo": -416.57219360351564,
+     "zhi": -143.3621936035157,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "CH_CaneStandee instance",
+   "template": "CH_CaneStandee",
+   "at": [
+    5528.75,
+    -12329.0,
+    -379.9674072265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5528.750003211148,
+      -12328.999998594532
+     ],
+     "radius": 10.0,
+     "zlo": -416.5724072265625,
+     "zhi": -143.36240722656257,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "CH_CaneStandee instance",
+   "template": "CH_CaneStandee",
+   "at": [
+    5686.880859375,
+    -12243.1201171875,
+    -379.9674072265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5686.880863732579,
+      -12243.12011315993
+     ],
+     "radius": 10.0,
+     "zlo": -416.57240722656263,
+     "zhi": -143.36240722656268,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "Krampus_Door instance",
+   "template": "Krampus_Door",
+   "at": [
+    5613.2080078125,
+    -12036.73046875,
+    -384.1531066894531
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -390.6772099681157,
+     "zhi": -62.23520355264492,
+     "firm": true,
+     "hull": [
+      [
+       5529.517779148691,
+       -11991.142351104061
+      ],
+      [
+       5650.633838616036,
+       -12119.062080354332
+      ],
+      [
+       5650.633849040058,
+       -12119.062084839312
+      ],
+      [
+       5694.482079092602,
+       -12077.546011676028
+      ],
+      [
+       5573.366019625258,
+       -11949.626282425757
+      ],
+      [
+       5573.366009201236,
+       -11949.626277940777
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "WC_Colossus_TeleporterC_ToMain instance",
+   "template": "WC_Colossus_TeleporterC_ToMain",
+   "at": [
+    42016.9609375,
+    11136.330078125,
+    -618.14208984375
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      42016.9609375,
+      11136.330078125
+     ],
+     "radius": 43.32,
+     "zlo": -623.29708984375,
+     "zhi": -412.98708984375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Colossus_TeleporterB_ToMain instance",
+   "template": "WC_Colossus_TeleporterB_ToMain",
+   "at": [
+    30652.9296875,
+    -4925.9931640625,
+    -397.69189453125
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      30652.9296875,
+      -4925.9931640625
+     ],
+     "radius": 43.32,
+     "zlo": -402.84689453125,
+     "zhi": -192.53689453125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Colossus_TeleporterA instance",
+   "template": "WC_Colossus_TeleporterA",
+   "at": [
+    7140.1328125,
+    -13174.6904296875,
+    -396.8739013671875
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      7140.1328125,
+      -13174.6904296875
+     ],
+     "radius": 43.32,
+     "zlo": -402.0289013671875,
+     "zhi": -191.7189013671875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Colossus_TeleporterB instance",
+   "template": "WC_Colossus_TeleporterB",
+   "at": [
+    7170.72705078125,
+    -13752.4296875,
+    -397.3013916015625
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      7170.72705078125,
+      -13752.4296875
+     ],
+     "radius": 43.32,
+     "zlo": -402.4563916015625,
+     "zhi": -192.1463916015625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Colossus_TeleporterC instance",
+   "template": "WC_Colossus_TeleporterC",
+   "at": [
+    7706.7080078125,
+    -13237.7197265625,
+    -397.2828063964844
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      7706.7080078125,
+      -13237.7197265625
+     ],
+     "radius": 43.32,
+     "zlo": -402.43780639648435,
+     "zhi": -192.12780639648437,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Colossus_TeleporterA_ToMain instance",
+   "template": "WC_Colossus_TeleporterA_ToMain",
+   "at": [
+    -5270.5078125,
+    -2237.64892578125,
+    95.83370971679688
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -5270.5078125,
+      -2237.64892578125
+     ],
+     "radius": 43.32,
+     "zlo": 90.67870971679687,
+     "zhi": 300.98870971679685,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Teleporter_Hub instance",
+   "template": "WC_Teleporter_Hub",
+   "at": [
+    7334.205078125,
+    -13479.240234375,
+    -397.3192138671875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7334.205078125,
+      -13479.240234375
+     ],
+     "radius": 138.1714,
+     "zlo": -647.3192638671875,
+     "zhi": -265.4741638671875,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

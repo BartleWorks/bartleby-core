@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "DragonSpire/DS_A2_Battle/DS_A2Hub_Necropolis",
  "named": {
   "FromConquest": [
@@ -198,5 +198,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

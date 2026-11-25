@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Pyramid/KT_PalaceOfFire",
  "named": {
   "Start": [
@@ -910,6 +910,146 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT_Teleporter_Hub instance",
+   "template": "KT_Teleporter_Hub",
+   "at": [
+    949.76171875,
+    -801.0609741210938,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      949.76171875,
+      -801.0609741210938
+     ],
+     "radius": 138.1714,
+     "zlo": -250.00005,
+     "zhi": 131.84505000000001,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_PalaceOfFire_TeleporterA instance",
+   "template": "KT_TeleporterA_PalaceOfFire",
+   "at": [
+    948.6328125,
+    -369.60870361328125,
+    -6.103516352595761e-05
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      948.6328125,
+      -369.60870361328125
+     ],
+     "radius": 43.32,
+     "zlo": -5.155061035163527,
+     "zhi": 205.15493896483648,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_PalaceOfFire_TeleporterC instance",
+   "template": "KT_TeleporterC_PalaceOfFire",
+   "at": [
+    965.0565795898438,
+    -1260.2259521484375,
+    6.103516352595761e-05
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      965.0565795898438,
+      -1260.2259521484375
+     ],
+     "radius": 43.32,
+     "zlo": -5.154938964836475,
+     "zhi": 205.15506103516353,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_PalaceOfFire_TeleporterA_ToMain instance",
+   "template": "KT_TeleporterA_ToMain_PalaceOfFire",
+   "at": [
+    -10419.75,
+    -20748.55078125,
+    -6.103516352595761e-05
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -10419.75,
+      -20748.55078125
+     ],
+     "radius": 43.32,
+     "zlo": -5.155061035163527,
+     "zhi": 205.15493896483648,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_PalaceOfFirel_TeleporterC_ToMain instance",
+   "template": "KT_TeleporterC_ToMain_PalaceOfFire",
+   "at": [
+    10499.98046875,
+    -22047.73046875,
+    6.103516352595761e-05
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      10499.98046875,
+      -22047.73046875
+     ],
+     "radius": 43.32,
+     "zlo": -5.154938964836475,
+     "zhi": 205.15506103516353,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_KrokonominautLair",
+   "template": "KT_Questlight",
+   "at": [
+    -4605.5927734375,
+    -8592.4599609375,
+    98.07428741455078
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4605.592776105602,
+      -8592.4599609375
+     ],
+     "radius": 59.4191,
+     "zlo": 45.12118741455072,
+     "zhi": 273.5477874145507,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

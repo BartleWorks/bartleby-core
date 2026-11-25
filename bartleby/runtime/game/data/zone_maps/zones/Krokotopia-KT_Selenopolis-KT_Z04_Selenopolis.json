@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Selenopolis/KT_Z04_Selenopolis",
  "named": {
   "Start": [
@@ -228,6 +228,146 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT_Questlight_MoonFestival",
+   "template": "KT_Questlight",
+   "at": [
+    6434.01123046875,
+    -3351.860107421875,
+    378.6498107910156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6434.011233096866,
+      -3351.860107421488
+     ],
+     "radius": 59.4191,
+     "zlo": 325.69671079101556,
+     "zhi": 554.1233107910156,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight instance-Cere",
+   "template": "KT_Questlight",
+   "at": [
+    8925.486328125,
+    -5307.755859375,
+    561.3521728515625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8925.486330852422,
+      -5307.755859375001
+     ],
+     "radius": 59.4191,
+     "zlo": 508.39907285156244,
+     "zhi": 736.8256728515624,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight instance-Quasar",
+   "template": "KT_Questlight",
+   "at": [
+    10478.83984375,
+    -5293.662109375,
+    559.663818359375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10478.839841022578,
+      -5293.662109375001
+     ],
+     "radius": 59.4191,
+     "zlo": 506.71071835937494,
+     "zhi": 735.137318359375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_SafeHouse",
+   "template": "KT_Questlight",
+   "at": [
+    13088.6103515625,
+    -8691.986328125,
+    560.5264282226562
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13088.6103515625,
+      -8691.986328125
+     ],
+     "radius": 59.4191,
+     "zlo": 507.5733282226562,
+     "zhi": 735.9999282226562,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_SELE_Pyramid",
+   "template": "KT_Questlight",
+   "at": [
+    21227.810546875,
+    347.8008117675781,
+    2007.157958984375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      21227.810544157648,
+      347.8008117675773
+     ],
+     "radius": 59.4191,
+     "zlo": 1954.2048589843748,
+     "zhi": 2182.6314589843746,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_Sanctum",
+   "template": "KT_Questlight",
+   "at": [
+    26725.98046875,
+    -2163.777099609375,
+    3372.85595703125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      26725.98046875,
+      -2163.777099609375
+     ],
+     "radius": 59.4191,
+     "zlo": 3319.9028570312503,
+     "zhi": 3548.32945703125,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

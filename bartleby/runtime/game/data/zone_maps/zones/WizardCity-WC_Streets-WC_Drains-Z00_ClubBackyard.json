@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "WizardCity/WC_Streets/WC_Drains/Z00_ClubBackyard",
  "named": {
   "Start": [
@@ -39,5 +39,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

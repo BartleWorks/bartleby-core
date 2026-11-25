@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Plague/Interiors/MS_Plague3_T4",
  "named": {
   "FromPlague1": [
@@ -73,6 +73,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MS_SpiritShrine instance",
+   "template": "MS_SpiritShrine",
+   "at": [
+    8.0,
+    1591.239990234375,
+    -100.00019836425781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -335.0801983642578,
+     "zhi": 335.0798016357422,
+     "firm": true,
+     "hull": [
+      [
+       -176.73,
+       1408.834990234375
+      ],
+      [
+       192.73,
+       1408.834990234375
+      ],
+      [
+       192.73,
+       1773.644990234375
+      ],
+      [
+       -176.73,
+       1773.644990234375
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

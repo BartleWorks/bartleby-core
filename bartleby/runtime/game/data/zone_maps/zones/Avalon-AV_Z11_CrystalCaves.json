@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Avalon/AV_Z11_CrystalCaves",
  "named": {
   "Start": [
@@ -38,6 +38,146 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "AV-CRYS-Lanterns1",
+   "template": "AV-CRYS-Lanterns",
+   "at": [
+    11210.830078125,
+    17672.220703125,
+    -1835.217041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      11201.987878125,
+      17686.188803125
+     ],
+     "radius": 57.9719,
+     "zlo": -1833.357141015625,
+     "zhi": -1538.493141015625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-CRYS-Lanterns2",
+   "template": "AV-CRYS-Lanterns2",
+   "at": [
+    11058.759765625,
+    15229.5703125,
+    -1835.217041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      11049.917565625,
+      15243.5384125
+     ],
+     "radius": 57.9719,
+     "zlo": -1833.357141015625,
+     "zhi": -1538.493141015625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-CRYS-Lanterns3",
+   "template": "AV-CRYS-Lanterns3",
+   "at": [
+    11333.9697265625,
+    13546.6904296875,
+    -1835.217041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      11325.1275265625,
+      13560.6585296875
+     ],
+     "radius": 57.9719,
+     "zlo": -1833.357141015625,
+     "zhi": -1538.493141015625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-CRYS-Lanterns4",
+   "template": "AV-CRYS-Lanterns4",
+   "at": [
+    12542.48046875,
+    13528.3603515625,
+    -1835.217041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12533.63826875,
+      13542.3284515625
+     ],
+     "radius": 57.9719,
+     "zlo": -1833.357141015625,
+     "zhi": -1538.493141015625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-CRYS-Lanterns5",
+   "template": "AV-CRYS-Lanterns5",
+   "at": [
+    12347.4404296875,
+    15299.669921875,
+    -1835.217041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12338.5982296875,
+      15313.638021875
+     ],
+     "radius": 57.9719,
+     "zlo": -1833.357141015625,
+     "zhi": -1538.493141015625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-CRYS-Lanterns6",
+   "template": "AV-CRYS-Lanterns6",
+   "at": [
+    12272.4599609375,
+    17781.390625,
+    -1833.217041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12263.6177609375,
+      17795.358725
+     ],
+     "radius": 57.9719,
+     "zlo": -1831.357141015625,
+     "zhi": -1536.493141015625,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

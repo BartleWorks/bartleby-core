@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Avalon/Interiors/AV_MaestroEvent/AV_Z00_LandingZone",
  "named": {
   "From Drake House": [
@@ -132,5 +132,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

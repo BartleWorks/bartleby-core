@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z12_SamsaraVillage",
  "named": {
   "Start": [
@@ -15,5 +15,76 @@
  },
  "patrols": [],
  "links": [],
- "exits": []
+ "exits": [],
+ "gates": [
+  {
+   "name": "EM-Urn_Red instance",
+   "template": "EM-Urn_Red",
+   "at": [
+    -4261.755859375,
+    -18212.16015625,
+    -58.392391204833984
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4263.104459375,
+      -18213.69655625
+     ],
+     "radius": 50.0882,
+     "zlo": -57.13379120483398,
+     "zhi": 31.134608795166017,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-Urn_Gold instance",
+   "template": "EM-Urn_Gold",
+   "at": [
+    -9536.0732421875,
+    -8358.4833984375,
+    -449.9471130371094
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9537.4218421875,
+      -8360.0197984375
+     ],
+     "radius": 50.0882,
+     "zlo": -448.6885130371094,
+     "zhi": -360.42011303710933,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-Urn_Black instance",
+   "template": "EM-Urn_Black",
+   "at": [
+    -9859.1904296875,
+    -18451.33984375,
+    281.81829833984375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9860.5390296875,
+      -18452.87624375
+     ],
+     "radius": 50.0882,
+     "zlo": 283.07689833984375,
+     "zhi": 371.3452983398438,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  }
+ ]
 }

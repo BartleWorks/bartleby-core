@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "WizardCity/Gauntlets/WC_Triton_Gauntlet1/WC_Triton_Gauntlet_06",
  "named": {
   "FromLevel7": [
@@ -28,6 +28,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "Tri_Gauntlet_Lever_3 instance",
+   "template": "Tri_Gauntlet_Lever_3",
+   "at": [
+    -1325.2239990234375,
+    -232.13209533691406,
+    -48.924320220947266
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -80.99387022094726,
+     "zhi": 22.038629779052734,
+     "firm": true,
+     "hull": [
+      [
+       -1334.6301194634375,
+       -205.95261305691406
+      ],
+      [
+       -1319.8034125834374,
+       -262.8657596169141
+      ],
+      [
+       -1295.2044785834373,
+       -256.4573776169141
+      ],
+      [
+       -1310.0311854634374,
+       -199.54423105691407
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

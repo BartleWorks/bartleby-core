@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z14_ChaosJungle",
  "named": {
   "Target location - spider scene": [
@@ -482,6 +482,169 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM-AnchorFragment instance",
+   "template": "EM-AnchorFragment",
+   "at": [
+    -5776.8818359375,
+    -3810.625,
+    133.0937957763672
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5789.881810837116,
+      -3798.6157446548477
+     ],
+     "radius": 114.2258,
+     "zlo": 150.0627957366033,
+     "zhi": 383.0937957366033,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Hub_Aeriel EM_Z14_FeralClearing",
+   "template": "EM_QuestLight_Hub_Aeriel",
+   "at": [
+    4841.72021484375,
+    -5113.02978515625,
+    -150.4346923828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4840.92181484375,
+      -5105.22698515625
+     ],
+     "radius": 36.2277,
+     "zlo": -128.2501923828125,
+     "zhi": 99.56540761718749,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Hub_Aeriel EM_Z14_Cave Refuge",
+   "template": "EM_QuestLight_Hub_Aeriel",
+   "at": [
+    -977.1630859375,
+    -6039.1611328125,
+    28.349950790405273
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -977.9614859375,
+      -6031.3583328125
+     ],
+     "radius": 36.2277,
+     "zlo": 50.53445079040527,
+     "zhi": 278.35005079040525,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Hub_Aeriel EM_Z14_BatBattle",
+   "template": "EM_QuestLight_Hub_Aeriel",
+   "at": [
+    -3077.4150390625,
+    -3100.10205078125,
+    -139.00869750976562
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3078.2134390625,
+      -3092.29925078125
+     ],
+     "radius": 36.2277,
+     "zlo": -116.82419750976563,
+     "zhi": 110.99140249023436,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Hub_Aeriel EM_Z14_Rift",
+   "template": "EM_QuestLight_Hub_Aeriel",
+   "at": [
+    -7551.34814453125,
+    7404.18408203125,
+    17.33363914489746
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7552.14654453125,
+      7411.98688203125
+     ],
+     "radius": 36.2277,
+     "zlo": 39.51813914489746,
+     "zhi": 267.33373914489744,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Hub_Aeriel_EM_Z12_GladeOfShavarram",
+   "template": "EM_QuestLight_Hub_Aeriel",
+   "at": [
+    -6137.4609375,
+    -1267.844970703125,
+    130.84230041503906
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6138.2593375,
+      -1260.042170703125
+     ],
+     "radius": 36.2277,
+     "zlo": 153.02680041503908,
+     "zhi": 380.8424004150391,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Hub_Aeriel_EM_Z14_SecondClearing",
+   "template": "EM_QuestLight_Hub_Aeriel",
+   "at": [
+    7479.10302734375,
+    -739.1422729492188,
+    12.08230972290039
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7478.30462734375,
+      -731.3394729492187
+     ],
+     "radius": 36.2277,
+     "zlo": 34.26680972290039,
+     "zhi": 262.08240972290037,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "WizardCity/WC_Streets/Interiors/WC_OldeTown_AuctionHouse",
  "named": {
   "FromOldeTown": [
@@ -34,5 +34,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

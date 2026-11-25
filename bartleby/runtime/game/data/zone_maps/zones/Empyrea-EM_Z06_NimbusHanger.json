@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z06_NimbusHanger",
  "named": {
   "Start": [
@@ -38,6 +38,100 @@
    "length": 492.5696105957031,
    "width": 3675.25390625,
    "height": 400.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM_NimbariQuestLight-Citadel",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    9061.25390625,
+    1473.1639404296875,
+    1.9998819828033447
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9061.25390625,
+      1473.1639404296875
+     ],
+     "radius": 26.2597,
+     "zlo": -248.00011801719666,
+     "zhi": 210.42988198280335,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-Citadel",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    9071.958984375,
+    -1555.051025390625,
+    2.0000040531158447
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9071.958984375,
+      -1555.051025390625
+     ],
+     "radius": 26.2597,
+     "zlo": -247.99999594688416,
+     "zhi": 210.43000405311585,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-Aero",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -2199.430908203125,
+    1465.8470458984375,
+    2.00020694732666
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2199.430908203125,
+      1465.8470458984375
+     ],
+     "radius": 26.2597,
+     "zlo": -247.99979305267334,
+     "zhi": 210.43020694732667,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_NimbariQuestLight-Aero",
+   "template": "EM_NimbariQuestLight",
+   "at": [
+    -1548.8909912109375,
+    1423.530029296875,
+    2.0002949237823486
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1548.8909912109375,
+      1423.530029296875
+     ],
+     "radius": 26.2597,
+     "zlo": -247.99970507621765,
+     "zhi": 210.43029492378236,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

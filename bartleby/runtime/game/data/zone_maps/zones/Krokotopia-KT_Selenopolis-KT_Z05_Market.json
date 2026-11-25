@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Selenopolis/KT_Z05_Market",
  "named": {
   "Start": [
@@ -97,6 +97,238 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT_MoonTrinket_01",
+   "template": "KT_MoonTrinket_01",
+   "at": [
+    -1300.3310546875,
+    3647.988037109375,
+    268.1000061035156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1300.3310546875,
+      3647.988037109375
+     ],
+     "radius": 47.75,
+     "zlo": 287.2293561035156,
+     "zhi": 353.3268561035156,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_MoonTrinket_02",
+   "template": "KT_MoonTrinket_02",
+   "at": [
+    -3895.842041015625,
+    -1658.281005859375,
+    -6.103516352595761e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3895.842041015625,
+      -1658.281005859375
+     ],
+     "radius": 47.75,
+     "zlo": 19.129288964836476,
+     "zhi": 85.22678896483647,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_MoonTrinket_03",
+   "template": "KT_MoonTrinket_03",
+   "at": [
+    1770.2010498046875,
+    -2272.2548828125,
+    0.00024414059589616954
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1770.2010498046875,
+      -2272.2548828125
+     ],
+     "radius": 47.75,
+     "zlo": 19.1295941405959,
+     "zhi": 85.2270941405959,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_CloudK9",
+   "template": "KT_Questlight",
+   "at": [
+    -2735.885986328125,
+    -2597.430908203125,
+    5.186761882214341e-06
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2735.885986328125,
+      -2597.430908203125
+     ],
+     "radius": 59.4191,
+     "zlo": -52.953094813238124,
+     "zhi": 175.47350518676188,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_MARK_PrologueHall_01",
+   "template": "KT_Questlight",
+   "at": [
+    -1326.4759521484375,
+    1794.4859619140625,
+    6.631055293837562e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1326.4759521484375,
+      1794.4859619140625
+     ],
+     "radius": 59.4191,
+     "zlo": -52.95303368944707,
+     "zhi": 175.47356631055294,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_MARK_Solo_RogueTheater_01",
+   "template": "KT_Questlight",
+   "at": [
+    -283.8829040527344,
+    8387.3994140625,
+    -135.00360107421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -283.8829040527344,
+      8387.3994140625
+     ],
+     "radius": 59.4191,
+     "zlo": -187.95670107421876,
+     "zhi": 40.46989892578125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_MARK_Multi_RogueTheater_01",
+   "template": "KT_Questlight",
+   "at": [
+    1069.3919677734375,
+    8226.0419921875,
+    -234.64149475097656
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1069.3919677734375,
+      8226.0419921875
+     ],
+     "radius": 59.4191,
+     "zlo": -287.59459475097657,
+     "zhi": -59.16799475097656,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT-SE-Chair instance",
+   "template": "KT-SE-Chair",
+   "at": [
+    1653.863037109375,
+    -854.5457763671875,
+    0.0002430619060760364
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1674.5243895570568,
+      -834.7955772191731
+     ],
+     "radius": 57.4652,
+     "zlo": -19.248658097307796,
+     "zhi": 92.3103419026922,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_MARK_Story_Tellers_Den",
+   "template": "KT_Questlight",
+   "at": [
+    -2467.85400390625,
+    1239.5870361328125,
+    6.631055293837562e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2467.85400390625,
+      1239.5870361328125
+     ],
+     "radius": 59.4191,
+     "zlo": -52.95303368944707,
+     "zhi": 175.47356631055294,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_SE_Questlight_LegendOfSutekh_01",
+   "template": "KT_Questlight",
+   "at": [
+    -3744.172119140625,
+    -1234.58203125,
+    7.290367753931548e-10
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3744.1721163298444,
+      -1234.582028576254
+     ],
+     "radius": 59.4191,
+     "zlo": -52.95309999927109,
+     "zhi": 175.4735000007289,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

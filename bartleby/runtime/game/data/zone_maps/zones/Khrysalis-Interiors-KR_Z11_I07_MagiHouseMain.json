@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Khrysalis/Interiors/KR_Z11_I07_MagiHouseMain",
  "named": {
   "Start": [
@@ -79,6 +79,123 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KR-OrbWeavers-QL",
+   "template": "KR-QuestLight-Umbra",
+   "at": [
+    -1650.219970703125,
+    -1631.2149658203125,
+    5.60107421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1651.490470703125,
+      -1630.2098658203124
+     ],
+     "radius": 61.4071,
+     "zlo": 28.68102421875001,
+     "zhi": 209.64472421875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-SpiderAdept-QL",
+   "template": "KR-QuestLight-Umbra",
+   "at": [
+    -2168.113037109375,
+    -586.7542724609375,
+    7.109801769256592
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2169.383537109375,
+      -585.7491724609375
+     ],
+     "radius": 61.4071,
+     "zlo": 30.189751769256603,
+     "zhi": 211.1534517692566,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-ReflectionChamber-QL",
+   "template": "KR-QuestLight-Umbra",
+   "at": [
+    2131.748046875,
+    -625.6591186523438,
+    7.109801769256592
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2130.477546875,
+      -624.6540186523438
+     ],
+     "radius": 61.4071,
+     "zlo": 30.189751769256603,
+     "zhi": 211.1534517692566,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Metastasis-QL",
+   "template": "KR-QuestLight-Umbra",
+   "at": [
+    -1947.342041015625,
+    1769.4110107421875,
+    622.8223266601562
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1948.612541015625,
+      1770.4161107421876
+     ],
+     "radius": 61.4071,
+     "zlo": 645.9022766601562,
+     "zhi": 826.8659766601562,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-MetastasisArch-QL",
+   "template": "KR-QuestLight-Umbra",
+   "at": [
+    1948.1190185546875,
+    1803.8289794921875,
+    622.43017578125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1946.8485185546874,
+      1804.8340794921876
+     ],
+     "radius": 61.4071,
+     "zlo": 645.5101257812499,
+     "zhi": 826.47382578125,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

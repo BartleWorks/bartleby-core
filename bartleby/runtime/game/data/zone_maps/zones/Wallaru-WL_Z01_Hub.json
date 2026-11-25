@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Wallaru/WL_Z01_Hub",
  "named": {
   "Start": [
@@ -183,6 +183,401 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WL-TeleportGate instance",
+   "template": "WL-TeleportGate-NoNif",
+   "at": [
+    2988.18994140625,
+    15840.509765625,
+    170.28919982910156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 176.83068961792173,
+     "zhi": 351.3699109316001,
+     "firm": true,
+     "hull": [
+      [
+       2818.342180957877,
+       15909.880254448533
+      ],
+      [
+       2822.844448748619,
+       15754.274274615012
+      ],
+      [
+       3145.390865013761,
+       15763.606758768405
+      ],
+      [
+       3145.390872639979,
+       15763.606766617384
+      ],
+      [
+       3140.8886048492373,
+       15919.212746450905
+      ],
+      [
+       2818.3421885840953,
+       15909.880262297513
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "WL-GoldenWattle instance",
+   "template": "WL-GoldenWattle",
+   "at": [
+    9021.876953125,
+    7113.083984375,
+    2.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9029.903053125,
+      7113.980184375
+     ],
+     "radius": 49.187,
+     "zlo": 8.127800000000002,
+     "zhi": 26.175400000000003,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-MidnightOil instance",
+   "template": "WL-MidnightOil",
+   "at": [
+    -10221.2998046875,
+    15123.16015625,
+    1.9997559785842896
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10213.2737046875,
+      15124.05635625
+     ],
+     "radius": 49.187,
+     "zlo": 8.127555978584292,
+     "zhi": 26.175155978584293,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight-MonquistanEmbassy",
+   "template": "WL-QuestLight",
+   "at": [
+    5114.97900390625,
+    13526.5,
+    35.8054313659668
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5076.1724308709145,
+      13530.991707913832
+     ],
+     "radius": 73.4886,
+     "zlo": 23.105079485643245,
+     "zhi": 285.80537948564324,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight-WL_Z01_I10_DundarasTunnel",
+   "template": "WL-QuestLight",
+   "at": [
+    -7633.35595703125,
+    17244.58984375,
+    2.00014591217041
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7653.776500939826,
+      17211.286292210036
+     ],
+     "radius": 73.4886,
+     "zlo": -10.700204316094755,
+     "zhi": 252.00009568390527,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight_WL_Z01_BingBangBoomerang",
+   "template": "WL-QuestLight",
+   "at": [
+    -5764.7421875,
+    14079.83984375,
+    35.82202911376953
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5759.887471190708,
+      14118.602682084953
+     ],
+     "radius": 73.4886,
+     "zlo": 23.121675735359275,
+     "zhi": 285.8219757353593,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight-WL_Z01_I00_PrimeMinister",
+   "template": "WL-QuestLight",
+   "at": [
+    -5218.43701171875,
+    16218.6904296875,
+    35.82225036621094
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5219.367958827749,
+      16179.635872507435
+     ],
+     "radius": 73.4886,
+     "zlo": 23.121900389300862,
+     "zhi": 285.82220038930086,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight-WL_Z01_JuggernautCrabTheater",
+   "template": "WL-QuestLight",
+   "at": [
+    6938.7470703125,
+    2548.972900390625,
+    35.79866027832031
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6944.472225639871,
+      2587.6167679697
+     ],
+     "radius": 73.4886,
+     "zlo": 23.09830690510921,
+     "zhi": 285.79860690510924,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight_WL_Z01_I07_GroceryStore",
+   "template": "WL-QuestLight",
+   "at": [
+    -949.6182250976562,
+    6108.6591796875,
+    35.80902099609375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -910.8339380692427,
+      6103.978951561328
+     ],
+     "radius": 73.4886,
+     "zlo": 23.108669516591107,
+     "zhi": 285.8089695165911,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight-WL_Z01_I09_DundarasAlley",
+   "template": "WL-QuestLight",
+   "at": [
+    6703.2998046875,
+    5247.2568359375,
+    1.9994800090789795
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6700.532825001727,
+      5208.2892991489
+     ],
+     "radius": 73.4886,
+     "zlo": -10.700869971630553,
+     "zhi": 251.9994300283695,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight-WL_Z01_OutbackStakeHouse",
+   "template": "WL-QuestLight",
+   "at": [
+    1038.9969482421875,
+    9830.498046875,
+    35.80902099609375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1000.2189314417238,
+      9835.229956240673
+     ],
+     "radius": 73.4886,
+     "zlo": 23.10866910526883,
+     "zhi": 285.80896910526883,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight-WL_Z01_I01_Bank",
+   "template": "WL-QuestLight",
+   "at": [
+    1002.197998046875,
+    11227.2998046875,
+    35.808868408203125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      963.7995748759855,
+      11234.489149351984
+     ],
+     "radius": 73.4886,
+     "zlo": 23.108516409946702,
+     "zhi": 285.80881640994676,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight-WL_Z01_I13_WitnessAlley",
+   "template": "WL-QuestLight",
+   "at": [
+    -883.8726806640625,
+    7253.75,
+    1.9998879432678223
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -845.346477682047,
+      7247.280293088049
+     ],
+     "radius": 73.4886,
+     "zlo": -10.700463401900961,
+     "zhi": 251.99983659809908,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight-WL_Z01_I03_HallOfJudgement",
+   "template": "WL-QuestLight",
+   "at": [
+    -6906.591796875,
+    14791.23046875,
+    35.819339752197266
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6867.877385782387,
+      14786.00363187702
+     ],
+     "radius": 73.4886,
+     "zlo": 23.11898829659188,
+     "zhi": 285.81928829659194,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight WL_Z01_I03_MarleyboneEmbassy",
+   "template": "WL-QuestLight",
+   "at": [
+    5109.9619140625,
+    15598.2900390625,
+    35.805511474609375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5071.1553410271645,
+      15602.781746976332
+     ],
+     "radius": 73.4886,
+     "zlo": 23.105159594285823,
+     "zhi": 285.8054595942858,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight_AR-SPELL-MYTH-160_01",
+   "template": "WL-QuestLight",
+   "at": [
+    2715.6630859375,
+    8228.18359375,
+    2.0001220703125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2676.840563659826,
+      8232.535296092427
+     ],
+     "radius": 73.4886,
+     "zlo": -10.70022980389038,
+     "zhi": 252.00007019610965,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

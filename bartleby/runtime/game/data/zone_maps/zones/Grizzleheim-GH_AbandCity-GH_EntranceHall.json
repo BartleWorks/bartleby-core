@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Grizzleheim/GH_AbandCity/GH_EntranceHall",
  "named": {
   "Start": [
@@ -49,5 +49,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Khrysalis/KR_Z02_MoonCliffs",
  "named": {
   "Start": [
@@ -380,6 +380,1074 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KR-MoonCliffsBumblerGate",
+   "template": "KR-MoonCliffsBumblerGate",
+   "at": [
+    7396.76123046875,
+    -5059.2841796875,
+    471.10540771484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 221.10539430675163,
+     "zhi": 721.105421509596,
+     "firm": true,
+     "hull": [
+      [
+       7309.302250020187,
+       -5294.703026911742
+      ],
+      [
+       7359.074873544596,
+       -5307.964751170203
+      ],
+      [
+       7489.718708244067,
+       -4817.644919936082
+      ],
+      [
+       7489.718713871281,
+       -4817.644893830395
+      ],
+      [
+       7439.946090346872,
+       -4804.383169571934
+      ],
+      [
+       7309.302255647401,
+       -5294.703000806055
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KR-Pollen instance",
+   "template": "KR-Pollen",
+   "at": [
+    9691.080078125,
+    4971.67822265625,
+    879.38671875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9692.198878125,
+      4971.03147265625
+     ],
+     "radius": 18.49535,
+     "zlo": 891.55621875,
+     "zhi": 917.0899187499999,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Pollen instance",
+   "template": "KR-Pollen",
+   "at": [
+    12409.83984375,
+    6441.46923828125,
+    923.9611206054688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12410.95864375,
+      6440.82248828125
+     ],
+     "radius": 18.49535,
+     "zlo": 936.1306206054687,
+     "zhi": 961.6643206054687,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Pollen instance",
+   "template": "KR-Pollen",
+   "at": [
+    13367.080078125,
+    4780.51416015625,
+    906.5028076171875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13368.198878125,
+      4779.86741015625
+     ],
+     "radius": 18.49535,
+     "zlo": 918.6723076171875,
+     "zhi": 944.2060076171874,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Pollen instance",
+   "template": "KR-Pollen",
+   "at": [
+    13787.2099609375,
+    1551.5780029296875,
+    817.0421752929688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13788.3287609375,
+      1550.9312529296874
+     ],
+     "radius": 18.49535,
+     "zlo": 829.2116752929687,
+     "zhi": 854.7453752929687,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Pollen instance",
+   "template": "KR-Pollen",
+   "at": [
+    10453.1103515625,
+    2573.738037109375,
+    904.8778076171875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10454.2291515625,
+      2573.091287109375
+     ],
+     "radius": 18.49535,
+     "zlo": 917.0473076171875,
+     "zhi": 942.5810076171874,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Pollen instance",
+   "template": "KR-Pollen",
+   "at": [
+    12694.2197265625,
+    -1902.0179443359375,
+    684.6691284179688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12695.3385265625,
+      -1902.6646943359376
+     ],
+     "radius": 18.49535,
+     "zlo": 696.8386284179687,
+     "zhi": 722.3723284179687,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Pollen instance",
+   "template": "KR-Pollen",
+   "at": [
+    10222.16015625,
+    3901.716064453125,
+    891.2449951171875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10223.27895625,
+      3901.069314453125
+     ],
+     "radius": 18.49535,
+     "zlo": 903.4144951171875,
+     "zhi": 928.9481951171874,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Pollen instance",
+   "template": "KR-Pollen",
+   "at": [
+    7312.69189453125,
+    -5787.93408203125,
+    116.76609802246094
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7313.81069453125,
+      -5788.58083203125
+     ],
+     "radius": 18.49535,
+     "zlo": 128.93559802246094,
+     "zhi": 154.46929802246095,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Pollen instance",
+   "template": "KR-Pollen",
+   "at": [
+    8046.4638671875,
+    -2575.23095703125,
+    520.6013793945312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8047.5826671875,
+      -2575.87770703125
+     ],
+     "radius": 18.49535,
+     "zlo": 532.7708793945312,
+     "zhi": 558.3045793945312,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Frond instance",
+   "template": "KR-Frond",
+   "at": [
+    10199.240234375,
+    5487.923828125,
+    916.1923217773438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10201.477834375,
+      5486.630328125
+     ],
+     "radius": 36.9907,
+     "zlo": 940.5313217773438,
+     "zhi": 991.5987217773437,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Frond instance",
+   "template": "KR-Frond",
+   "at": [
+    12888.349609375,
+    5612.0908203125,
+    951.080078125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12890.587209375,
+      5610.7973203125
+     ],
+     "radius": 36.9907,
+     "zlo": 975.419078125,
+     "zhi": 1026.486478125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Frond instance",
+   "template": "KR-Frond",
+   "at": [
+    13967.900390625,
+    3499.550048828125,
+    897.4105834960938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13970.137990625,
+      3498.256548828125
+     ],
+     "radius": 36.9907,
+     "zlo": 921.7495834960938,
+     "zhi": 972.8169834960937,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Frond instance",
+   "template": "KR-Frond",
+   "at": [
+    13768.150390625,
+    80.76934814453125,
+    734.0731811523438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13770.387990625,
+      79.47584814453126
+     ],
+     "radius": 36.9907,
+     "zlo": 758.4121811523438,
+     "zhi": 809.4795811523437,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Frond instance",
+   "template": "KR-Frond",
+   "at": [
+    12983.8095703125,
+    -3167.72705078125,
+    578.9168090820312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12986.0471703125,
+      -3169.02055078125
+     ],
+     "radius": 36.9907,
+     "zlo": 603.2558090820313,
+     "zhi": 654.3232090820312,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Frond instance",
+   "template": "KR-Frond",
+   "at": [
+    9515.46875,
+    -1380.43994140625,
+    733.9727172851562
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9517.70635,
+      -1381.73344140625
+     ],
+     "radius": 36.9907,
+     "zlo": 758.3117172851563,
+     "zhi": 809.3791172851562,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-Frond instance",
+   "template": "KR-Frond",
+   "at": [
+    8075.28515625,
+    -2794.721923828125,
+    547.70068359375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8077.52275625,
+      -2796.015423828125
+     ],
+     "radius": 36.9907,
+     "zlo": 572.03968359375,
+     "zhi": 623.10708359375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-DanceShrine",
+   "template": "KR-DanceShrine",
+   "at": [
+    10265.7099609375,
+    3175.508056640625,
+    941.2777709960938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 957.4128595280379,
+     "zhi": 1100.6692831460598,
+     "firm": true,
+     "hull": [
+      [
+       10132.135305262775,
+       3296.749198583533
+      ],
+      [
+       10211.246955914163,
+       2995.880343520048
+      ],
+      [
+       10395.904374310247,
+       3044.4348978665107
+      ],
+      [
+       10395.90438036653,
+       3044.4349057200707
+      ],
+      [
+       10316.792729715142,
+       3345.303760783556
+      ],
+      [
+       10132.135311319058,
+       3296.749206437093
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KR-MoonCliffs-BeeGateCollision",
+   "template": "KR-MoonCliffs-BeeGateCollision",
+   "at": [
+    10973.4296875,
+    6235.47607421875,
+    1163.7850341796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 913.7850302223171,
+     "zhi": 1413.7850383475773,
+     "firm": true,
+     "hull": [
+      [
+       10779.414073703245,
+       6076.011207137232
+      ],
+      [
+       10815.758865063111,
+       6039.511295852167
+      ],
+      [
+       10815.758880548978,
+       6039.511289419312
+      ],
+      [
+       11175.326632338818,
+       6397.550924542632
+      ],
+      [
+       11138.981840978951,
+       6434.0508358276975
+      ],
+      [
+       11138.981825493085,
+       6434.050842260553
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-GoldenHoardChamber",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    7416.955078125,
+    9020.6181640625,
+    1030.448974609375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7415.684578125,
+      9021.6232640625
+     ],
+     "radius": 61.4071,
+     "zlo": 1053.528924609375,
+     "zhi": 1234.4926246093748,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-MoonCliffsBridgeBlocker",
+   "template": "KR-MoonCliffsBridgeBlocker",
+   "at": [
+    3415.908935546875,
+    5073.333984375,
+    -167.6905059814453
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -417.6908158052707,
+     "zhi": 82.30920508622478,
+     "firm": true,
+     "hull": [
+      [
+       2246.350732615891,
+       4948.29637381
+      ],
+      [
+       4637.2244504059145,
+       4474.944983675874
+      ],
+      [
+       4637.224454650195,
+       4474.944983259839
+      ],
+      [
+       4684.486938620939,
+       4713.6653781257055
+      ],
+      [
+       2293.613220830916,
+       5187.016768259831
+      ],
+      [
+       2293.6132165866356,
+       5187.016768675866
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-CavedInCave",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    4205.6298828125,
+    -5823.02197265625,
+    29.104610443115234
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4204.3593828125,
+      -5822.01687265625
+     ],
+     "radius": 61.4071,
+     "zlo": 52.184560443115245,
+     "zhi": 233.14826044311525,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-VespaCave",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    1199.876953125,
+    -3749.572021484375,
+    -14.434009552001953
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1198.606453125,
+      -3748.566921484375
+     ],
+     "radius": 61.4071,
+     "zlo": 8.645940447998058,
+     "zhi": 189.60964044799806,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee BumblerTower",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    6972.16796875,
+    -5650.9990234375,
+    157.14109802246094
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6970.89746875,
+      -5649.9939234375
+     ],
+     "radius": 61.4071,
+     "zlo": 180.22104802246093,
+     "zhi": 361.18474802246095,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-KahzriCave",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    10637.75,
+    -6063.10009765625,
+    508.12469482421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10636.4795,
+      -6062.09499765625
+     ],
+     "radius": 61.4071,
+     "zlo": 531.2046448242187,
+     "zhi": 712.1683448242187,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-HoneyMill",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    12277.3701171875,
+    -3920.012939453125,
+    574.0468139648438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12276.0996171875,
+      -3919.007839453125
+     ],
+     "radius": 61.4071,
+     "zlo": 597.1267639648437,
+     "zhi": 778.0904639648437,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-GrottoCave",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    13919.0703125,
+    -241.74270629882812,
+    756.4108276367188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13917.7998125,
+      -240.73760629882813
+     ],
+     "radius": 61.4071,
+     "zlo": 779.4907776367187,
+     "zhi": 960.4544776367187,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-DetentionBlock",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    6925.01904296875,
+    9099.9482421875,
+    2390.592041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6923.74854296875,
+      9100.9533421875
+     ],
+     "radius": 61.4071,
+     "zlo": 2413.671991015625,
+     "zhi": 2594.635691015625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-TamarindTower",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    9306.7880859375,
+    8855.4443359375,
+    2421.214111328125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9305.5175859375,
+      8856.4494359375
+     ],
+     "radius": 61.4071,
+     "zlo": 2444.294061328125,
+     "zhi": 2625.257761328125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-QueenChamber",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    7790.658203125,
+    9202.470703125,
+    2440.2099609375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7789.387703125,
+      9203.475803125
+     ],
+     "radius": 61.4071,
+     "zlo": 2463.2899109375,
+     "zhi": 2644.2536109375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-EclipseTower",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    4486.90576171875,
+    232.7570037841797,
+    1129.6800537109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4485.63526171875,
+      233.7621037841797
+     ],
+     "radius": 61.4071,
+     "zlo": 1152.7600037109376,
+     "zhi": 1333.7237037109373,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-MandibleCave",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    1508.5760498046875,
+    -4293.26904296875,
+    -11.801819801330566
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1507.3055498046874,
+      -4292.26394296875
+     ],
+     "radius": 61.4071,
+     "zlo": 11.278130198669444,
+     "zhi": 192.24183019866945,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-ButternutTower",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    10432.08984375,
+    491.89459228515625,
+    845.9180297851562
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10430.81934375,
+      492.8996922851563
+     ],
+     "radius": 61.4071,
+     "zlo": 868.9979797851562,
+     "zhi": 1049.961679785156,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-BeeHouse",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    7094.3330078125,
+    4961.93798828125,
+    1016.2239990234375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7093.0625078125,
+      4962.94308828125
+     ],
+     "radius": 61.4071,
+     "zlo": 1039.3039490234376,
+     "zhi": 1220.2676490234373,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-HiddenCave",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    13377.5498046875,
+    8040.083984375,
+    868.8505859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13376.2793046875,
+      8041.089084375
+     ],
+     "radius": 61.4071,
+     "zlo": 891.9305359374999,
+     "zhi": 1072.8942359374998,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Bee-StingerCave",
+   "template": "KR-QuestLight-Bee",
+   "at": [
+    13970.26953125,
+    3657.660888671875,
+    896.7081909179688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13968.99903125,
+      3658.665988671875
+     ],
+     "radius": 61.4071,
+     "zlo": 919.7881409179687,
+     "zhi": 1100.7518409179686,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-CrystalBeeStatue",
+   "template": "KR-CrystalBeeStatue",
+   "at": [
+    778.65087890625,
+    770.3790283203125,
+    -285.5340881347656
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      773.85457890625,
+      774.8786283203125
+     ],
+     "radius": 105.0791,
+     "zlo": -289.2784881347656,
+     "zhi": -19.85448813476563,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-CrystalBeeStatue",
+   "template": "KR-CrystalBeeStatue",
+   "at": [
+    2341.971923828125,
+    -2048.01708984375,
+    -44.577388763427734
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2337.175623828125,
+      -2043.51748984375
+     ],
+     "radius": 105.0791,
+     "zlo": -48.32178876342772,
+     "zhi": 221.10221123657226,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-CrystalBeeStatue",
+   "template": "KR-CrystalBeeStatue",
+   "at": [
+    6958.703125,
+    -4078.73193359375,
+    124.51190185546875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6953.906825,
+      -4074.23233359375
+     ],
+     "radius": 105.0791,
+     "zlo": 120.76750185546877,
+     "zhi": 390.19150185546874,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-CrystalBeeStatue",
+   "template": "KR-CrystalBeeStatue",
+   "at": [
+    6738.2060546875,
+    4619.98876953125,
+    491.0137023925781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6731.632028051284,
+      4620.170478649198
+     ],
+     "radius": 105.0791,
+     "zlo": 487.2693025812995,
+     "zhi": 756.6933025812995,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-CrystalBeeStatue",
+   "template": "KR-CrystalBeeStatue",
+   "at": [
+    8776.400390625,
+    8375.1962890625,
+    949.98876953125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8777.189629468396,
+      8381.72530270378
+     ],
+     "radius": 105.0791,
+     "zlo": 946.2443694425642,
+     "zhi": 1215.6683694425642,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-CrystalBeeStatue",
+   "template": "KR-CrystalBeeStatue",
+   "at": [
+    3861.280029296875,
+    5895.15478515625,
+    1033.72802734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3860.156646908213,
+      5888.674910145515
+     ],
+     "radius": 105.0791,
+     "zlo": 1029.9836278236553,
+     "zhi": 1299.4076278236553,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

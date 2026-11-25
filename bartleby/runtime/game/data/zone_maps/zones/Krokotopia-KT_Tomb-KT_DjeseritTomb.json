@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Tomb/KT_DjeseritTomb",
  "named": {
   "Start": [
@@ -881,6 +881,188 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT_TeleporterA_ToMain_DkeserotTomb instance",
+   "template": "KT_TeleporterA_ToMain_DkeserotTomb",
+   "at": [
+    21642.830078125,
+    3120.5869140625,
+    -75.0001220703125
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      21642.830078125,
+      3120.5869140625
+     ],
+     "radius": 43.32,
+     "zlo": -80.1551220703125,
+     "zhi": 130.1548779296875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterA_DjeseritTomb instance",
+   "template": "KT_TeleporterA_DjeseritTomb",
+   "at": [
+    714.10498046875,
+    960.986328125,
+    0.0
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      714.1049808514234,
+      960.9863281417792
+     ],
+     "radius": 43.32,
+     "zlo": -5.155000000000001,
+     "zhi": 205.155,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Teleporter_Hub instance",
+   "template": "KT_Teleporter_Hub",
+   "at": [
+    1144.9930419921875,
+    996.0692749023438,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1144.9930419921875,
+      996.0692749023438
+     ],
+     "radius": 138.1714,
+     "zlo": -250.00005,
+     "zhi": 131.84505000000001,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_BookPedestal_Crypt2 instance",
+   "template": "KT_BookPedestal_Crypt2",
+   "at": [
+    18917.279296875,
+    1184.1590576171875,
+    -75.00006103515625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -79.49996103515625,
+     "zhi": 29.49803896484375,
+     "firm": true,
+     "hull": [
+      [
+       18874.10813327824,
+       1140.845771169325
+      ],
+      [
+       18962.895433278238,
+       1140.8457432975283
+      ],
+      [
+       18962.89545960861,
+       1224.7227432975242
+      ],
+      [
+       18874.108159608615,
+       1224.7227711693208
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Pedestal2",
+   "template": "KT_BookPedestal_Crypt2",
+   "at": [
+    18932.369140625,
+    1639.4339599609375,
+    -75.00000762939453
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -79.49991137375133,
+     "zhi": 29.49809612942157,
+     "firm": true,
+     "hull": [
+      [
+       18889.197976833726,
+       1596.120673316443
+      ],
+      [
+       18977.985276833722,
+       1596.1206454446462
+      ],
+      [
+       18977.98528154537,
+       1596.1206502075304
+      ],
+      [
+       18977.985307875744,
+       1679.9976502075262
+      ],
+      [
+       18889.198007875748,
+       1679.997678079323
+      ],
+      [
+       18889.1980031641,
+       1679.9976733164387
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_WV-S02-TombOfSutekh",
+   "template": "KT_Questlight",
+   "at": [
+    16266.580078125,
+    -395.4231872558594,
+    0.999745786190033
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      16266.58007544771,
+      -395.4231845270988
+     ],
+     "radius": 59.4191,
+     "zlo": -51.953354213810094,
+     "zhi": 176.47324578618992,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "WizardCity/WC_Streets/WC_Triton_Underwater/WC_Triton_Warren01",
  "named": {
   "FromDeepWarrens02": [
@@ -252,6 +252,265 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WC-TU-Fortwall instance",
+   "template": "WC-TU-Fortwall",
+   "at": [
+    126.32009887695312,
+    2563.125,
+    -399.4999084472656
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -831.499910737447,
+     "zhi": 32.500093533085476,
+     "firm": true,
+     "hull": [
+      [
+       -233.17133847265592,
+       2452.69879899113
+      ],
+      [
+       391.2558729398651,
+       2358.487819906563
+      ],
+      [
+       391.2558785738667,
+       2358.4878194840308
+      ],
+      [
+       437.8096806502369,
+       2667.044859158828
+      ],
+      [
+       -186.61753076228416,
+       2761.255838243395
+      ],
+      [
+       -186.61753639628574,
+       2761.255838665927
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "WC-TU-Fortwall instance (1)",
+   "template": "WC-TU-Fortwall",
+   "at": [
+    1300.156982421875,
+    7658.5859375,
+    -399.4993896484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -831.499405583711,
+     "zhi": 32.50062538531944,
+     "firm": true,
+     "hull": [
+      [
+       989.8186954907278,
+       7551.276793793219
+      ],
+      [
+       1615.235763161157,
+       7463.878038658996
+      ],
+      [
+       1658.423344776114,
+       7772.9242099908715
+      ],
+      [
+       1658.4233500032633,
+       7772.9242851605695
+      ],
+      [
+       1033.0062823328342,
+       7860.323040294793
+      ],
+      [
+       989.8187007178772,
+       7551.276868962917
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "WC-TU-Scarefish instance",
+   "template": "WC-TU-Scarefish",
+   "at": [
+    1536.241943359375,
+    11056.7802734375,
+    -945.2617797851562
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1536.015741020282,
+      11057.916744916096
+     ],
+     "radius": 36.1319,
+     "zlo": -1009.7982798532826,
+     "zhi": -509.79827985328257,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC-TU-BatteryPieces instance",
+   "template": "WC-TU-BatteryPieces",
+   "at": [
+    -259.406494140625,
+    17503.380859375,
+    -887.1312255859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -259.406494140625,
+      17503.380859375
+     ],
+     "radius": 90.0,
+     "zlo": -919.6312255859375,
+     "zhi": -814.6312255859375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC-TU-BatteryPieces instance (1)",
+   "template": "WC-TU-BatteryPieces",
+   "at": [
+    5460.546875,
+    13514.490234375,
+    -709.5103149414062
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5460.546875,
+      13514.490234375
+     ],
+     "radius": 90.0,
+     "zlo": -742.0103149414062,
+     "zhi": -637.0103149414062,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC-TU-BatteryPieces instance (2)",
+   "template": "WC-TU-BatteryPieces",
+   "at": [
+    6620.076171875,
+    14964.4501953125,
+    -709.5103149414062
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6620.076171875,
+      14964.4501953125
+     ],
+     "radius": 90.0,
+     "zlo": -742.0103149414062,
+     "zhi": -637.0103149414062,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC-TU-BatteryPieces instance (3)",
+   "template": "WC-TU-BatteryPieces",
+   "at": [
+    -1696.98095703125,
+    15244.7197265625,
+    -901.7288818359375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1696.98095703125,
+      15244.7197265625
+     ],
+     "radius": 90.0,
+     "zlo": -934.2288818359375,
+     "zhi": -829.2288818359375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC-TU-BatteryPieces instance (4)",
+   "template": "WC-TU-BatteryPieces",
+   "at": [
+    1676.532958984375,
+    13314.0595703125,
+    -899.5006103515625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1676.532958984375,
+      13314.0595703125
+     ],
+     "radius": 90.0,
+     "zlo": -932.0006103515625,
+     "zhi": -827.0006103515625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC-TU-BatteryPieces instance (5)",
+   "template": "WC-TU-BatteryPieces",
+   "at": [
+    1604.176025390625,
+    6458.76611328125,
+    -379.5
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1604.176025390625,
+      6458.76611328125
+     ],
+     "radius": 90.0,
+     "zlo": -412.0,
+     "zhi": -307.0,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

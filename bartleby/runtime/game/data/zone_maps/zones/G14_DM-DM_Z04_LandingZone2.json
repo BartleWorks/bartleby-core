@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "G14_DM/DM_Z04_LandingZone2",
  "named": {
   "Start": [
@@ -25,5 +25,6 @@
  },
  "patrols": [],
  "links": [],
- "exits": []
+ "exits": [],
+ "gates": []
 }

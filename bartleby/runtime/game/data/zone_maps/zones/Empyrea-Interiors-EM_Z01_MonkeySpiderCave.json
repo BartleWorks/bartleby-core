@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/Interiors/EM_Z01_MonkeySpiderCave",
  "named": {
   "Target location Avatar": [
@@ -247,6 +247,54 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM_QuestLight_Hub_Aeriel_Z01_BookwormsCave",
+   "template": "EM_QuestLight_Hub_Aeriel",
+   "at": [
+    -1678.551025390625,
+    -18306.6796875,
+    -1214.4119873046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1679.349425390625,
+      -18298.8768875
+     ],
+     "radius": 36.2277,
+     "zlo": -1192.2274873046874,
+     "zhi": -964.4118873046875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Hub_Aeriel_MonkeySpiderNest",
+   "template": "EM_QuestLight_Hub_Aeriel",
+   "at": [
+    6398.36279296875,
+    -13373.0498046875,
+    -925.0222778320312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6403.863062909892,
+      -13367.45801296505
+     ],
+     "radius": 36.2277,
+     "zlo": -902.8377777353787,
+     "zhi": -675.0221777353788,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

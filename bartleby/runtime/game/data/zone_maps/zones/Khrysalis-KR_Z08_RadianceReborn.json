@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Khrysalis/KR_Z08_RadianceReborn",
  "named": {
   "Start": [
@@ -136,6 +136,192 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KR-QuestLight-Jerboa-Dream1",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    -1507.2659912109375,
+    4828.1640625,
+    125.78759765625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1508.8849235754365,
+      4828.22275546675
+     ],
+     "radius": 61.4071,
+     "zlo": 148.86754769761438,
+     "zhi": 329.8312476976144,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Jerboa-Dream1",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    -845.4935302734375,
+    5470.216796875,
+    125.78759765625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -847.1088952773862,
+      5470.094400096414
+     ],
+     "radius": 61.4071,
+     "zlo": 148.86754770552983,
+     "zhi": 329.8312477055298,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Jerboa-Dream2",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    -463.6416015625,
+    5687.0,
+    125.78759765625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -464.7646306624654,
+      5688.167563066154
+     ],
+     "radius": 61.4071,
+     "zlo": 148.86754764914895,
+     "zhi": 329.83124764914896,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Jerboa-Dream2",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    475.8898010253906,
+    5714.412109375,
+    125.78759765625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      474.76677192542525,
+      5715.579672441154
+     ],
+     "radius": 61.4071,
+     "zlo": 148.86754764914895,
+     "zhi": 329.83124764914896,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Jerboa-Dream3",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    867.8123779296875,
+    5492.90283203125,
+    125.78759765625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      867.7615164774106,
+      5494.522034139735
+     ],
+     "radius": 61.4071,
+     "zlo": 148.8675476294124,
+     "zhi": 329.8312476294124,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Jerboa-Dream3",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    1526.5810546875,
+    4841.10986328125,
+    125.78759765625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1526.4924240713403,
+      4842.727437685471
+     ],
+     "radius": 61.4071,
+     "zlo": 148.86754762948345,
+     "zhi": 329.83124762948347,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-TempleRadiantTeleporter",
+   "template": "KR-TempleRadiantTeleporter",
+   "at": [
+    0.7203701138496399,
+    -18.14068031311035,
+    114.16079711914062
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.2811701138496399,
+      -15.826080313110351
+     ],
+     "radius": 182.9204,
+     "zlo": -135.83920288085938,
+     "zhi": 364.1607971191406,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-ObeliskOrb03 instance",
+   "template": "KR-ObeliskOrb03",
+   "at": [
+    -4683.80078125,
+    -25.39735984802246,
+    125.78759765625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4683.44838125,
+      -26.86065984802246
+     ],
+     "radius": 31.1372,
+     "zlo": 131.11664765625,
+     "zhi": 190.41634765625003,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

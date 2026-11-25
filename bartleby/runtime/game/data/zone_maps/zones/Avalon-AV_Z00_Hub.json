@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Avalon/AV_Z00_Hub",
  "named": {
   "Start": [
@@ -96,6 +96,381 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "Universe Teleport instance",
+   "template": "UniverseMap",
+   "at": [
+    13.779359817504883,
+    -3761.10791015625,
+    0.4000549018383026
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -29.099945098161697,
+     "zhi": 295.9000549018383,
+     "firm": true,
+     "hull": [
+      [
+       -91.72064018249512,
+       -3772.10791015625
+      ],
+      [
+       119.27935981750488,
+       -3772.10791015625
+      ],
+      [
+       119.27935981750488,
+       -3750.10791015625
+      ],
+      [
+       -91.72064018249512,
+       -3750.10791015625
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AV_FishingGear_01 instance",
+   "template": "AV_FishingGear_01",
+   "at": [
+    -3520.113037109375,
+    2596.3330078125,
+    -399.6000061035156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3520.481237109375,
+      2594.8231078125
+     ],
+     "radius": 55.1888,
+     "zlo": -435.07300610351564,
+     "zhi": -324.6954061035156,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV_Knights_Tent_BlackKnight_Good",
+   "template": "AV_Knights_Tent_BlackKnight",
+   "at": [
+    3701.14404296875,
+    -3743.964111328125,
+    -599.5999755859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3289.6097028483473,
+      -4090.3741083503446
+     ],
+     "radius": 26.0922,
+     "zlo": -852.8739595768411,
+     "zhi": 25.486440423158854,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV_Knights_Tent_Sir GuyGascoigne_Good",
+   "template": "AV_Knights_Tent_Sir GuyGascoigne",
+   "at": [
+    -4593.7578125,
+    -662.1920776367188,
+    -399.6000061035156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4493.65303408401,
+      -133.66634818598266
+     ],
+     "radius": 26.0922,
+     "zlo": -652.874028333806,
+     "zhi": 225.486371666194,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV_Knights_Tent_SirBrennanOnehand_Good",
+   "template": "AV_Knights_Tent_SirBrennanOnehand",
+   "at": [
+    -4040.751953125,
+    2148.947998046875,
+    -399.99139404296875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3682.0878792084814,
+      2549.8476031363143
+     ],
+     "radius": 26.0922,
+     "zlo": -653.2654106954859,
+     "zhi": 225.0949893045141,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV_Knights_Tent_SirDrustanSilverharp_Good",
+   "template": "AV_Knights_Tent_SirDrustanSilverharp",
+   "at": [
+    -6673.375,
+    -2467.39208984375,
+    -400.7138977050781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6340.9367971684605,
+      -2044.4910932324249
+     ],
+     "radius": 26.0922,
+     "zlo": -653.9879153189776,
+     "zhi": 224.37248468102243,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV_Knights_Tent_SirJeanPaulJouster_Good",
+   "template": "AV_Knights_Tent_SirJeanPaulJouster",
+   "at": [
+    -970.2908935546875,
+    -5370.64306640625,
+    -500.0002136230469
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1507.8455935546876,
+      -5350.75966640625
+     ],
+     "radius": 26.0922,
+     "zlo": -753.2742136230469,
+     "zhi": 125.08618637695315,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV_Knights_Tent_SirPerryGilliam_Good",
+   "template": "AV_Knights_Tent_SirPerryGilliam",
+   "at": [
+    4397.19921875,
+    -510.67181396484375,
+    -599.5999755859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4582.276008624994,
+      -1015.752974182
+     ],
+     "radius": 26.0922,
+     "zlo": -852.873952641817,
+     "zhi": 25.486447358183,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV_Knights_Tent_StewardKay_Good",
+   "template": "AV_Knights_Tent_StewardKay",
+   "at": [
+    -4609.7861328125,
+    1642.31298828125,
+    -395.8039855957031
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4609.786141721102,
+      1642.313004416189
+     ],
+     "radius": 190.6653,
+     "zlo": -404.9796855957038,
+     "zhi": 95.02031440429619,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV_Knights_Tent_SirRobinBravely_Good",
+   "template": "AV_Knights_Tent_SirRobinBravely",
+   "at": [
+    2280.9150390625,
+    1321.2669677734375,
+    -499.6000061035156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2057.1462852123605,
+      832.0963006073871
+     ],
+     "radius": 26.0922,
+     "zlo": -752.8739838548589,
+     "zhi": 125.4864161451411,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-ShrubTall-Caliburn instance",
+   "template": "AV-ShrubTall",
+   "at": [
+    1781.071044921875,
+    2749.68310546875,
+    -469.7972106933594
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -474.3520356933594,
+     "zhi": -149.6742856933594,
+     "firm": true,
+     "hull": [
+      [
+       1711.6420449218751,
+       2673.39010546875
+      ],
+      [
+       1864.856044921875,
+       2673.39010546875
+      ],
+      [
+       1864.856044921875,
+       2843.59240546875
+      ],
+      [
+       1711.6420449218751,
+       2843.59240546875
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AV-ShrubShort-Caliburn instance",
+   "template": "AV-ShrubShort",
+   "at": [
+    1201.553955078125,
+    2814.3779296875,
+    -468.9422912597656
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -473.4971162597656,
+     "zhi": -310.58716625976564,
+     "firm": true,
+     "hull": [
+      [
+       1132.1249550781251,
+       2738.0849296875
+      ],
+      [
+       1285.338955078125,
+       2738.0849296875
+      ],
+      [
+       1285.338955078125,
+       2908.2872296875
+      ],
+      [
+       1132.1249550781251,
+       2908.2872296875
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance",
+   "template": "AV-QuestLight",
+   "at": [
+    3405.9609375,
+    -5118.0087890625,
+    -512.0211791992188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3405.9609375,
+      -5118.0087890625
+     ],
+     "radius": 50.0,
+     "zlo": -518.0224291992188,
+     "zhi": -296.6313291992187,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight to AV_Z00_Cave01",
+   "template": "AV-QuestLight",
+   "at": [
+    -6408.28076171875,
+    3216.197998046875,
+    -393.40350341796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6408.28076171875,
+      3216.197998046875
+     ],
+     "radius": 50.0,
+     "zlo": -399.4047534179688,
+     "zhi": -178.01365341796875,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

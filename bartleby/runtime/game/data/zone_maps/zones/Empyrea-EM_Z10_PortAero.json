@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z10_PortAero",
  "named": {
   "Start": [
@@ -81,6 +81,123 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM-QuestLight-Aero_1stHouse",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    567.27392578125,
+    -1835.1319580078125,
+    -163.14039611816406
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      573.0414415209401,
+      -1840.4476645942382
+     ],
+     "radius": 36.2277,
+     "zlo": -140.95589554473167,
+     "zhi": 86.8597044552683,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_2ndHouse",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -230.78619384765625,
+    2813.05908203125,
+    -148.83599853515625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -223.81766459952024,
+      2816.659176545817
+     ],
+     "radius": 36.2277,
+     "zlo": -126.65149835144247,
+     "zhi": 101.16410164855752,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_3rdHouse",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -4452.3310546875,
+    2783.52490234375,
+    -59.331668853759766
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4460.128220156625,
+      2784.376523355079
+     ],
+     "radius": 36.2277,
+     "zlo": -37.14716854992129,
+     "zhi": 190.66843145007869,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_EbenezerHouse",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -3731.742919921875,
+    -3946.62890625,
+    -41.20711898803711
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3737.7876480367554,
+      -3951.6271299461196
+     ],
+     "radius": 36.2277,
+     "zlo": -19.022618428487746,
+     "zhi": 208.79298157151226,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Aero_EvidenceRoom",
+   "template": "EM-QuestLight-Aero",
+   "at": [
+    -6582.4658203125,
+    201.16409301757812,
+    565.7457275390625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6574.637945431052,
+      200.6687078038461
+     ],
+     "radius": 36.2277,
+     "zlo": 587.9302279017958,
+     "zhi": 815.7458279017957,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "WizardCity/WC_Streets/WC_HauntedCave",
  "named": {
   "PointFinder": [
@@ -371,6 +371,31 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "HO_AppleTub instance",
+   "template": "HO_AppleTub04",
+   "at": [
+    12115.23046875,
+    9177.1123046875,
+    23.311189651489258
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12115.23046875,
+      9177.1123046875
+     ],
+     "radius": 90.0,
+     "zlo": -9.188810348510742,
+     "zhi": 95.81118965148926,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

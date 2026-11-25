@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Novus/NV_Z06_NucleusGallery",
  "named": {
   "Start": [
@@ -50,5 +50,76 @@
  },
  "patrols": [],
  "links": [],
- "exits": []
+ "exits": [],
+ "gates": [
+  {
+   "name": "NV-QuestLight_DuelingSpace",
+   "template": "NV-QuestLight",
+   "at": [
+    -20.194339752197266,
+    -6209.37109375,
+    -0.9998816847801208
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -19.24273868867064,
+      -6211.453782606661
+     ],
+     "radius": 58.1317,
+     "zlo": 21.184618500065895,
+     "zhi": 249.0002185000659,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_ManticoresMadness",
+   "template": "NV-QuestLight",
+   "at": [
+    -1077.3580322265625,
+    -5605.15185546875,
+    -0.9999083876609802
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1078.6019227709996,
+      -5607.074321509672
+     ],
+     "radius": 58.1317,
+     "zlo": 21.18459179017772,
+     "zhi": 249.00019179017772,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_ManticoresPlan",
+   "template": "NV-QuestLight",
+   "at": [
+    1114.2650146484375,
+    -5619.7568359375,
+    -0.9998664855957031
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1116.4850282526993,
+      -5620.317812904966
+     ],
+     "radius": 58.1317,
+     "zlo": 21.184633632738937,
+     "zhi": 249.0002336327389,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  }
+ ]
 }

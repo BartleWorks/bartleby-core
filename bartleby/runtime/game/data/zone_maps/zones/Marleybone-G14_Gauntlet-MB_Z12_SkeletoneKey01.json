@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Marleybone/G14_Gauntlet/MB_Z12_SkeletoneKey01",
  "named": {
   "Start": [
@@ -24,5 +24,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_WorldTeleporter",
  "named": {
   "Target(KT_Hub KT_WorldTeleporter Entrance)": [
@@ -28,6 +28,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "Universe Teleport instance",
+   "template": "UniverseMap",
+   "at": [
+    -10.578129768371582,
+    -26.165800094604492,
+    134.36680603027344
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 104.86680603027344,
+     "zhi": 429.86680603027344,
+     "firm": true,
+     "hull": [
+      [
+       -116.07812976837158,
+       -37.16580009460449
+      ],
+      [
+       94.92187023162842,
+       -37.16580009460449
+      ],
+      [
+       94.92187023162842,
+       -15.165800094604492
+      ],
+      [
+       -116.07812976837158,
+       -15.165800094604492
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

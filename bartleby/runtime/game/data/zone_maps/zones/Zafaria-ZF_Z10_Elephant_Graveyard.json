@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Zafaria/ZF_Z10_Elephant_Graveyard",
  "named": {
   "Start": [
@@ -118,6 +118,286 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "ZF_TeleportStone_BackToHub instance",
+   "template": "ZF_TeleportStone_BackToHub",
+   "at": [
+    1315.406982421875,
+    -7836.4169921875,
+    -3.939321994781494
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -9.028776693189982,
+     "zhi": 207.78293292854335,
+     "firm": true,
+     "hull": [
+      [
+       1225.4199200332537,
+       -7871.509355806873
+      ],
+      [
+       1225.4199259001343,
+       -7871.509372726916
+      ],
+      [
+       1262.0606501970624,
+       -7918.001365026628
+      ],
+      [
+       1407.2801297786777,
+       -7803.552690089411
+      ],
+      [
+       1407.280123911797,
+       -7803.552673169368
+      ],
+      [
+       1370.639399614869,
+       -7757.060680869656
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z10_DidosTomb_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    412.64410400390625,
+    3802.43798828125,
+    830.6275024414062
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      412.6441024678009,
+      3802.437996744744
+     ],
+     "radius": 50.0,
+     "zlo": 680.6275024414059,
+     "zhi": 1180.6275024414058,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z10_DrumHouse_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    -5522.962890625,
+    -861.2938842773438,
+    -94.96698760986328
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5522.962893073056,
+      -861.2938762849225
+     ],
+     "radius": 50.0,
+     "zlo": -244.96698760986362,
+     "zhi": 255.03301239013638,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z10_Tomb01_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    -3157.7900390625,
+    4633.77099609375,
+    638.0601196289062
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3157.7900393106256,
+      4633.770996100796
+     ],
+     "radius": 50.0,
+     "zlo": 488.06011962890625,
+     "zhi": 988.0601196289062,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z10_Tomb02_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    -2564.97509765625,
+    7127.6259765625,
+    634.7169799804688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2564.9751020070576,
+      7127.625980513005
+     ],
+     "radius": 50.0,
+     "zlo": 484.7169799804685,
+     "zhi": 984.7169799804685,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z10_Tomb03_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    3388.007080078125,
+    6523.43310546875,
+    638.3034057617188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3388.0070819639454,
+      6523.433113783319
+     ],
+     "radius": 50.0,
+     "zlo": 488.3034057617184,
+     "zhi": 988.3034057617184,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z10_Tomb04_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    2860.656005859375,
+    4058.5380859375,
+    636.7216186523438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2860.6560070170053,
+      4058.5380860935784
+     ],
+     "radius": 50.0,
+     "zlo": 486.72161865234375,
+     "zhi": 986.7216186523438,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLight-CryptOfAges",
+   "template": "ZF-QuestLight",
+   "at": [
+    -3349.9169921875,
+    -3334.282958984375,
+    -91.58424377441406
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3349.916993723605,
+      -3334.282950520881
+     ],
+     "radius": 50.0,
+     "zlo": -241.58424377441443,
+     "zhi": 258.4157562255856,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_ElephantGraveyard_Brazier instance",
+   "template": "ZF_ElephantGraveyard_Brazier",
+   "at": [
+    636.9227294921875,
+    -6885.1181640625,
+    204.6654052734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      636.9227294921875,
+      -6885.1181640625
+     ],
+     "radius": 74.5077,
+     "zlo": 54.66545527343749,
+     "zhi": 231.41775527343748,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_ElephantGraveyard_Brazier2 instance",
+   "template": "ZF_ElephantGraveyard_Brazier2",
+   "at": [
+    -660.3555297851562,
+    -6884.56591796875,
+    204.45030212402344
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -660.3555297851562,
+      -6884.56591796875
+     ],
+     "radius": 74.5077,
+     "zlo": 54.450352124023425,
+     "zhi": 231.20265212402342,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Placed_Coals instance",
+   "template": "ZF_Placed_Coals",
+   "at": [
+    27.99073028564453,
+    -1553.4429931640625,
+    69.53827667236328
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      27.99073028564453,
+      -1553.4429931640625
+     ],
+     "radius": 74.5077,
+     "zlo": -80.46167332763672,
+     "zhi": 96.29062667236327,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

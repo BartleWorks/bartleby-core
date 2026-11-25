@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Novus/NV_Z05_LaVilleRose",
  "named": {
   "Target location-OutsideGallery": [
@@ -202,6 +202,332 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "NV-QuestLight instance-Cafe",
+   "template": "NV-QuestLight",
+   "at": [
+    687.4174194335938,
+    19691.380859375,
+    288.2550964355469
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      687.1354095194247,
+      19693.653228112762
+     ],
+     "radius": 58.1317,
+     "zlo": 310.4395964300284,
+     "zhi": 538.2551964300284,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-SournoisPas",
+   "template": "NV-QuestLight",
+   "at": [
+    1076.0760498046875,
+    18039.9296875,
+    288.2549133300781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1078.3655752490797,
+      18039.894544120467
+     ],
+     "radius": 58.1317,
+     "zlo": 310.4394134254265,
+     "zhi": 538.2550134254265,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-Theater",
+   "template": "NV-QuestLight",
+   "at": [
+    -1448.5469970703125,
+    17492.640625,
+    288.2549133300781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1449.8648458112746,
+      17494.5131791946
+     ],
+     "radius": 58.1317,
+     "zlo": 310.4394133420341,
+     "zhi": 538.2550133420341,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-Hall",
+   "template": "NV-QuestLight",
+   "at": [
+    -2644.31591796875,
+    16190.0703125,
+    288.2550964355469
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2643.1735506990763,
+      16188.085838855084
+     ],
+     "radius": 58.1317,
+     "zlo": 310.4395966161001,
+     "zhi": 538.2551966161001,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-CabalBase",
+   "template": "NV-QuestLight",
+   "at": [
+    -4065.083984375,
+    18911.30078125,
+    288.2550964355469
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4067.0975873199823,
+      18912.3910006722
+     ],
+     "radius": 58.1317,
+     "zlo": 310.4395964816972,
+     "zhi": 538.2551964816972,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-ToGallery",
+   "template": "NV-QuestLight",
+   "at": [
+    -5009.72802734375,
+    17917.5703125,
+    288.25518798828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5011.500912626384,
+      17916.121166968544
+     ],
+     "radius": 58.1317,
+     "zlo": 310.4396881454293,
+     "zhi": 538.2552881454293,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-1stHouse",
+   "template": "NV-QuestLight",
+   "at": [
+    5810.61181640625,
+    13309.349609375,
+    293.9681091308594
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5809.72585967854,
+      13311.461070488664
+     ],
+     "radius": 58.1317,
+     "zlo": 316.15260913237347,
+     "zhi": 543.9682091323734,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-2ndHouse",
+   "template": "NV-QuestLight",
+   "at": [
+    7022.244140625,
+    12356.400390625,
+    254.0572967529297
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7024.3783469587615,
+      12357.230050453652
+     ],
+     "radius": 58.1317,
+     "zlo": 276.2417968104776,
+     "zhi": 504.0573968104776,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-NegotationChamber",
+   "template": "NV-QuestLight",
+   "at": [
+    -10566.3896484375,
+    9381.6865234375,
+    253.39630126953125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10567.489984024385,
+      9379.67843978819
+     ],
+     "radius": 58.1317,
+     "zlo": 275.58080145111245,
+     "zhi": 503.39640145111247,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-ToBasstille",
+   "template": "NV-QuestLight",
+   "at": [
+    -10776.26953125,
+    11236.3798828125,
+    253.39610290527344
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10777.996684847038,
+      11237.883252552732
+     ],
+     "radius": 58.1317,
+     "zlo": 275.5806029333661,
+     "zhi": 503.3962029333661,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-MaxineOffice",
+   "template": "NV-QuestLight",
+   "at": [
+    -1384.406005859375,
+    5030.376953125,
+    250.5648956298828
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1385.7751820934072,
+      5032.212311540545
+     ],
+     "radius": 58.1317,
+     "zlo": 272.7493956434642,
+     "zhi": 500.5649956434642,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight instance-SafeHouse",
+   "template": "NV-QuestLight",
+   "at": [
+    2723.464111328125,
+    11467.98046875,
+    242.20509338378906
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2723.2219609850567,
+      11465.703519396506
+     ],
+     "radius": 58.1317,
+     "zlo": 264.3895935771247,
+     "zhi": 492.2051935771247,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-LeyLineDoor_LVR instance",
+   "template": "NV-LeyLineDoor_LVR",
+   "at": [
+    404.1878967285156,
+    -3761.847900390625,
+    315.1365051269531
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 309.97215304324675,
+     "zhi": 621.3888572778059,
+     "firm": true,
+     "hull": [
+      [
+       302.2641112152289,
+       -3769.6125212427432
+      ],
+      [
+       302.26411403163354,
+       -3769.612548173092
+      ],
+      [
+       308.0084621546283,
+       -3796.778455855366
+      ],
+      [
+       506.38251676022514,
+       -3754.8314080499995
+      ],
+      [
+       506.3825139438205,
+       -3754.831381119651
+      ],
+      [
+       500.63816582082575,
+       -3727.665473437377
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

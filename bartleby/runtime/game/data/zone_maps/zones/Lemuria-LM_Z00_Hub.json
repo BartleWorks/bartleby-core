@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Lemuria/LM_Z00_Hub",
  "named": {
   "Start": [
@@ -443,6 +443,672 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "UniverseTeleport instance",
+   "template": "UniverseMap",
+   "at": [
+    8.040191650390625,
+    727.7459716796875,
+    171.90170288085938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 142.40170288085938,
+     "zhi": 467.4017028808594,
+     "firm": true,
+     "hull": [
+      [
+       -97.45980834960938,
+       716.7459716796875
+      ],
+      [
+       113.54019165039062,
+       716.7459716796875
+      ],
+      [
+       113.54019165039062,
+       738.7459716796875
+      ],
+      [
+       -97.45980834960938,
+       738.7459716796875
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    -6988.4169921875,
+    1113.56494140625,
+    255.4868927001953
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6987.618589645025,
+      1105.7621416664022
+     ],
+     "radius": 36.2277,
+     "zlo": 277.6713927001953,
+     "zhi": 505.48699270019534,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    -6441.22021484375,
+    1113.56494140625,
+    255.4868927001953
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6440.421812301275,
+      1105.7621416664022
+     ],
+     "radius": 36.2277,
+     "zlo": 277.6713927001953,
+     "zhi": 505.48699270019534,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    -7585.15380859375,
+    -13287.01953125,
+    255.4875946044922
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7577.351014506977,
+      -13286.221128800575
+     ],
+     "radius": 36.2277,
+     "zlo": 277.67209492915475,
+     "zhi": 505.48769492915477,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    -7585.15380859375,
+    -12919.5595703125,
+    255.4875946044922
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7577.351014506977,
+      -12918.761167863075
+     ],
+     "radius": 36.2277,
+     "zlo": 277.67209492915475,
+     "zhi": 505.48769492915477,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight-SanctumOfMana",
+   "template": "LM-QuestLight",
+   "at": [
+    -5436.05615234375,
+    -674.1458740234375,
+    -679.8558959960938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5443.865089257732,
+      -674.8817633393048
+     ],
+     "radius": 36.2277,
+     "zlo": -657.6713956228608,
+     "zhi": -429.85579562286085,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight-SupremeHierarch",
+   "template": "LM-QuestLight",
+   "at": [
+    6362.15576171875,
+    -6060.69921875,
+    -428.21258544921875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6369.957456834939,
+      -6059.890144894015
+     ],
+     "radius": 36.2277,
+     "zlo": -406.0280851435086,
+     "zhi": -178.21248514350856,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight_DonnyKong",
+   "template": "LM-QuestLight",
+   "at": [
+    3764.77490234375,
+    -9097.6943359375,
+    -635.4708251953125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3765.573304886221,
+      -9105.497123780777
+     ],
+     "radius": 36.2277,
+     "zlo": -613.2863245132277,
+     "zhi": -385.4707245132277,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-RocketCollision instance",
+   "template": "LM-RocketCollision",
+   "at": [
+    -3199.487060546875,
+    -9150.0400390625,
+    -635.470703125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3184.955460546875,
+      -9002.3340390625
+     ],
+     "radius": 178.5965,
+     "zlo": -663.517053125,
+     "zhi": -385.470753125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight_SactumOfPurpose",
+   "template": "LM-QuestLight",
+   "at": [
+    5796.14306640625,
+    -11798.4296875,
+    -679.8557739257812
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5796.941468948725,
+      -11806.232487239848
+     ],
+     "radius": 36.2277,
+     "zlo": -657.6712739257812,
+     "zhi": -429.8556739257812,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight_SanctumOfDiscord",
+   "template": "LM-QuestLight",
+   "at": [
+    -5447.43701171875,
+    -13003.849609375,
+    -679.855712890625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5455.279319931153,
+      -13003.988309841136
+     ],
+     "radius": 36.2277,
+     "zlo": -657.6712125434989,
+     "zhi": -429.8556125434989,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight_SanctumOLifeforce",
+   "template": "LM-QuestLight",
+   "at": [
+    5430.80078125,
+    -627.6276245117188,
+    -679.8557739257812
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5438.603574845284,
+      -626.8292220622932
+     ],
+     "radius": 36.2277,
+     "zlo": -657.6712735729393,
+     "zhi": -429.85567357293934,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-TeleportGate instance",
+   "template": "LM-TeleportGate",
+   "at": [
+    5.014476776123047,
+    -3058.219970703125,
+    -695.3693237304688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -695.3693237304688,
+     "zhi": -661.9739237304686,
+     "firm": true,
+     "hull": [
+      [
+       -138.77752322387695,
+       -3058.220001220725
+      ],
+      [
+       -115.34952322387696,
+       -3161.868970703125
+      ],
+      [
+       -98.63452322387695,
+       -3178.583970703125
+      ],
+      [
+       5.0144615173230465,
+       -3202.011970703125
+      ],
+      [
+       108.66347677612305,
+       -3178.583970703125
+      ],
+      [
+       125.37847677612305,
+       -3161.868970703125
+      ],
+      [
+       148.80647677612305,
+       -3058.219970703125
+      ],
+      [
+       125.37847677612305,
+       -2954.570970703125
+      ],
+      [
+       108.66347677612305,
+       -2937.855970703125
+      ],
+      [
+       5.014476776123047,
+       -2914.427970703125
+      ],
+      [
+       -98.63452322387695,
+       -2937.855970703125
+      ],
+      [
+       -115.34952322387696,
+       -2954.570970703125
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    6993.14892578125,
+    1136.115966796875,
+    255.49000549316406
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6993.947328323725,
+      1128.3131670570272
+     ],
+     "radius": 36.2277,
+     "zlo": 277.6745054931641,
+     "zhi": 505.4901054931641,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    6376.73388671875,
+    1086.3050537109375,
+    255.4866943359375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6377.532288681772,
+      1078.5022658403523
+     ],
+     "radius": 36.2277,
+     "zlo": 277.67119501985604,
+     "zhi": 505.48679501985606,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    -7567.51318359375,
+    526.6646728515625,
+    255.49049377441406
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7559.710383844381,
+      527.46307530099
+     ],
+     "radius": 36.2277,
+     "zlo": 277.6749937744141,
+     "zhi": 505.4905937744141,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    -7594.8779296875,
+    66.20069122314453,
+    255.48959350585938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7587.075129938131,
+      66.99909367257199
+     ],
+     "radius": 36.2277,
+     "zlo": 277.6740935058594,
+     "zhi": 505.4896935058594,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    -6877.28076171875,
+    -13987.6396484375,
+    255.4875946044922
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6878.07916171875,
+      -13979.8368484375
+     ],
+     "radius": 36.2277,
+     "zlo": 277.6720946044922,
+     "zhi": 505.4876946044922,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    -6512.40185546875,
+    -13990.099609375,
+    255.48680114746094
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6513.20025546875,
+      -13982.296809375
+     ],
+     "radius": 36.2277,
+     "zlo": 277.67130114746095,
+     "zhi": 505.48690114746097,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    7619.56787109375,
+    -13385.1103515625,
+    272.9353942871094
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7611.765076420419,
+      -13385.908743177493
+     ],
+     "radius": 36.2277,
+     "zlo": 295.11989464170307,
+     "zhi": 522.935494641703,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    7601.73095703125,
+    -12948.3203125,
+    255.48890686035156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7593.928156780619,
+      -12949.118710050572
+     ],
+     "radius": 36.2277,
+     "zlo": 277.6734068603516,
+     "zhi": 505.4890068603516,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    6545.1328125,
+    -13984.1904296875,
+    272.935302734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6544.3344125,
+      -13976.387629692521
+     ],
+     "radius": 36.2277,
+     "zlo": 295.11980273466287,
+     "zhi": 522.9354027346628,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    6875.716796875,
+    -13985.9697265625,
+    272.935302734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6874.918396875,
+      -13978.166926567521
+     ],
+     "radius": 36.2277,
+     "zlo": 295.11980273466287,
+     "zhi": 522.9354027346628,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    7594.4990234375,
+    405.1474914550781,
+    255.48910522460938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7586.696223186869,
+      404.34909390450565
+     ],
+     "radius": 36.2277,
+     "zlo": 277.6736052246094,
+     "zhi": 505.4892052246094,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight instance",
+   "template": "LM-QuestLight",
+   "at": [
+    7580.31103515625,
+    82.13031005859375,
+    255.48910522460938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7572.508234905619,
+      81.33191250802129
+     ],
+     "radius": 36.2277,
+     "zlo": 277.6736052246094,
+     "zhi": 505.4892052246094,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "LM-QuestLight-ShrineTatteredUnity",
+   "template": "LM-QuestLight",
+   "at": [
+    3336.7548828125,
+    -2076.091064453125,
+    -640.4802856445312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3337.553285150013,
+      -2083.893858233376
+     ],
+     "radius": 36.2277,
+     "zlo": -618.2957853016377,
+     "zhi": -390.48018530163773,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

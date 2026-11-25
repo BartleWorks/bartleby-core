@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Karamelle/KM_Z08_LicoriceForest",
  "named": {
   "Start": [
@@ -251,6 +251,171 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KM-TeleportGate instance",
+   "template": "KM-TeleportGate",
+   "at": [
+    -1466.9959716796875,
+    6355.8671875,
+    -89.2512435913086
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -92.83534817190585,
+     "zhi": 315.57886106131025,
+     "firm": true,
+     "hull": [
+      [
+       -1584.2363279863484,
+       6375.059611159539
+      ],
+      [
+       -1490.7304987904981,
+       6239.504794333886
+      ],
+      [
+       -1490.7304840964737,
+       6239.5047866199775
+      ],
+      [
+       -1346.5559815325146,
+       6338.9564824492845
+      ],
+      [
+       -1440.061810728365,
+       6474.511299274937
+      ],
+      [
+       -1440.0618254223893,
+       6474.511306988846
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance CinnamonTrollCave",
+   "template": "KM-QuestLight",
+   "at": [
+    -6039.31396484375,
+    474.19268798828125,
+    -91.301513671875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6039.02846484375,
+      475.09558798828124
+     ],
+     "radius": 24.8997,
+     "zlo": -96.51181367187499,
+     "zhi": 94.780586328125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance BlackGoatCave",
+   "template": "KM-QuestLight",
+   "at": [
+    -10407.5400390625,
+    5256.02294921875,
+    -90.988037109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10407.2545390625,
+      5256.92584921875
+     ],
+     "radius": 24.8997,
+     "zlo": -96.19833710937499,
+     "zhi": 95.094062890625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance KM_Z09_Warehouse",
+   "template": "KM-QuestLight",
+   "at": [
+    -1946.35400390625,
+    18997.98046875,
+    -511.73199462890625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1946.06850390625,
+      18998.88336875
+     ],
+     "radius": 24.8997,
+     "zlo": -516.9422946289062,
+     "zhi": -325.6498946289063,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance RosinasHouse",
+   "template": "KM-QuestLight",
+   "at": [
+    -10582.650390625,
+    16645.5390625,
+    -893.4625244140625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10582.364890625,
+      16646.4419625
+     ],
+     "radius": 24.8997,
+     "zlo": -898.6728244140626,
+     "zhi": -707.3804244140625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance KM-Z08-WitchTreeHouse",
+   "template": "KM-QuestLight",
+   "at": [
+    5069.72119140625,
+    2932.777099609375,
+    -90.98812866210938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5070.00669140625,
+      2933.679999609375
+     ],
+     "radius": 24.8997,
+     "zlo": -96.19842866210936,
+     "zhi": 95.09397133789062,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

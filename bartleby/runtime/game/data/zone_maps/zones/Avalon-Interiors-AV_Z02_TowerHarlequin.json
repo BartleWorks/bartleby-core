@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Avalon/Interiors/AV_Z02_TowerHarlequin",
  "named": {
   "Start": [
@@ -92,5 +92,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

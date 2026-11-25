@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Darkmoor/DM_Z04_BlackLagoon",
  "named": {
   "HairdiniBogExit": [
@@ -426,6 +426,416 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DM-QuestLight_Z04101_Shrine",
+   "template": "DM-QuestLight",
+   "at": [
+    14.450679779052734,
+    8029.97412109375,
+    535.30322265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      14.481079779052735,
+      8029.94942109375
+     ],
+     "radius": 46.3633,
+     "zlo": 285.30327265625,
+     "zhi": 766.22077265625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_OldShack_01",
+   "template": "DM-QuestLight",
+   "at": [
+    6880.98876953125,
+    2612.193115234375,
+    280.0220031738281
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6881.01916953125,
+      2612.168415234375
+     ],
+     "radius": 46.3633,
+     "zlo": 30.022053173828112,
+     "zhi": 510.93955317382813,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_To_CloudyBog_01",
+   "template": "DM-QuestLight",
+   "at": [
+    10077.1904296875,
+    3635.81689453125,
+    49.99993896484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10077.2208296875,
+      3635.79219453125
+     ],
+     "radius": 46.3633,
+     "zlo": -200.00001103515626,
+     "zhi": 280.91748896484376,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_To_DarkBog_01",
+   "template": "DM-QuestLight",
+   "at": [
+    7321.9521484375,
+    6845.63623046875,
+    67.86907958984375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7321.9825484375,
+      6845.61153046875
+     ],
+     "radius": 46.3633,
+     "zlo": -182.13087041015626,
+     "zhi": 298.78662958984376,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_DM_Z04101_Shrine_01",
+   "template": "DM-QuestLight",
+   "at": [
+    1592.739013671875,
+    9226.419921875,
+    569.3115234375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1592.769413671875,
+      9226.395221875
+     ],
+     "radius": 46.3633,
+     "zlo": 319.3115734375,
+     "zhi": 800.2290734375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_Music_Rooms_01",
+   "template": "DM-QuestLight",
+   "at": [
+    3240.2041015625,
+    7193.57177734375,
+    559.614501953125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3240.2345015625,
+      7193.54707734375
+     ],
+     "radius": 46.3633,
+     "zlo": 309.614551953125,
+     "zhi": 790.532051953125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_DM_Z04I05_BogOfSwords_01",
+   "template": "DM-QuestLight",
+   "at": [
+    -9772.80078125,
+    2481.26806640625,
+    82.58812713623047
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9772.77038125,
+      2481.24336640625
+     ],
+     "radius": 46.3633,
+     "zlo": -167.41182286376954,
+     "zhi": 313.5056771362305,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight instance_BogOfCups",
+   "template": "DM-QuestLight",
+   "at": [
+    7594.3662109375,
+    -4770.1982421875,
+    49.99993896484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7594.3966109375,
+      -4770.2229421875
+     ],
+     "radius": 46.3633,
+     "zlo": -200.00001103515626,
+     "zhi": 280.91748896484376,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_DM_Z04I15_BurblingBog",
+   "template": "DM-QuestLight",
+   "at": [
+    -4544.7001953125,
+    -7247.88720703125,
+    54.17919921875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4544.6697953125,
+      -7247.91190703125
+     ],
+     "radius": 46.3633,
+     "zlo": -195.82075078125,
+     "zhi": 285.09674921875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_To_MysteriousBogHairdini",
+   "template": "DM-QuestLight",
+   "at": [
+    1408.5860595703125,
+    -8064.44580078125,
+    58.591129302978516
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1408.6164595703126,
+      -8064.47050078125
+     ],
+     "radius": 46.3633,
+     "zlo": -191.4088206970215,
+     "zhi": 289.5086793029785,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight instance_BogOfVengeance",
+   "template": "DM-QuestLight",
+   "at": [
+    -9235.623046875,
+    -2797.176025390625,
+    49.99993896484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9235.592646875,
+      -2797.200725390625
+     ],
+     "radius": 46.3633,
+     "zlo": -200.00001103515626,
+     "zhi": 280.91748896484376,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight instance_ScholomanceMusicRoom",
+   "template": "DM-QuestLight",
+   "at": [
+    -2411.43896484375,
+    -7560.80517578125,
+    312.5116882324219
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2411.40856484375,
+      -7560.82987578125
+     ],
+     "radius": 46.3633,
+     "zlo": 62.51173823242186,
+     "zhi": 543.4292382324219,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight instance_RitualBog",
+   "template": "DM-QuestLight",
+   "at": [
+    -8461.326171875,
+    -5565.89794921875,
+    49.99993896484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8461.295771875,
+      -5565.92264921875
+     ],
+     "radius": 46.3633,
+     "zlo": -200.00001103515626,
+     "zhi": 280.91748896484376,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-CollectTotem_DM-GRAVE-SIDE-008_01 instance",
+   "template": "DM-CollectTotem_DM-GRAVE-SIDE-008_01",
+   "at": [
+    8115.67919921875,
+    2756.9169921875,
+    466.85791015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8114.916687130982,
+      2758.3146356757893
+     ],
+     "radius": 17.10960067987442,
+     "zlo": 391.85790718425625,
+     "zhi": 541.8579131447207,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-BLACK-InstrumentOfSwords instance",
+   "template": "DM-BLACK-InstrumentOfSwords",
+   "at": [
+    3069.64404296875,
+    5906.81005859375,
+    537.9326171875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3072.087891922511,
+      5908.554840639558
+     ],
+     "radius": 27.3721,
+     "zlo": 545.8584672249568,
+     "zhi": 582.1687672249569,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-BLACK-InstrumentOfWands instance",
+   "template": "DM-BLACK-InstrumentOfWands",
+   "at": [
+    1181.9859619140625,
+    6894.740234375,
+    534.7697143554688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1184.9759951307692,
+      6895.016567708436
+     ],
+     "radius": 27.3721,
+     "zlo": 542.6955644571102,
+     "zhi": 579.0058644571103,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-BLACK-Shadow-Gift instance",
+   "template": "DM-BLACK-Shadow-Gift",
+   "at": [
+    9817.40625,
+    3157.18310546875,
+    54.9775390625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 52.51153906249999,
+     "zhi": 114.7387390625,
+     "firm": true,
+     "hull": [
+      [
+       9769.68065,
+       3112.50610546875
+      ],
+      [
+       9865.831049999999,
+       3112.50610546875
+      ],
+      [
+       9865.831049999999,
+       3208.66490546875
+      ],
+      [
+       9769.68065,
+       3208.66490546875
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

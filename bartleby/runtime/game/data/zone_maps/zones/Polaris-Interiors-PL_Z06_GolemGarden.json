@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Polaris/Interiors/PL_Z06_GolemGarden",
  "named": {
   "From__TitanForge": [
@@ -85,5 +85,53 @@
   }
  ],
  "links": [],
- "exits": []
+ "exits": [],
+ "gates": [
+  {
+   "name": "PL_SnowGlobe_Teleporter_Hub_GollumGarden instance",
+   "template": "PL_SnowGlobe_Teleporter_Hub_GollumGarden",
+   "at": [
+    -8.9306640625,
+    606.1326293945312,
+    -6.953551769256592
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7.2420640625,
+      604.5482293945313
+     ],
+     "radius": 21.4716,
+     "zlo": -6.462151769256593,
+     "zhi": 43.007648230743406,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "PL-Gollem-Collision instance",
+   "template": "PL-Gollem-Collision",
+   "at": [
+    -612.5416259765625,
+    446.3663024902344,
+    -4.805510997772217
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -612.8600259765625,
+      444.9433024902344
+     ],
+     "radius": 104.3723,
+     "zlo": -10.246860997772217,
+     "zhi": 60.03943900222778,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  }
+ ]
 }

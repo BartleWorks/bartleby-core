@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Selenopolis/KT_Z06_Forgotten",
  "named": {
   "Start": [
@@ -1091,6 +1091,622 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT_Questlight_ToShrineOfAnubis",
+   "template": "KT_Questlight",
+   "at": [
+    -36385.19921875,
+    34000.66015625,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -36385.19921875,
+      34000.66015625
+     ],
+     "radius": 59.4191,
+     "zlo": -52.953100000000006,
+     "zhi": 175.4735,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT-SE-TOMBS-Puzzle-Object-A instance",
+   "template": "KT-SE-TOMBS-Puzzle-Object-A",
+   "at": [
+    -18999.7109375,
+    20509.650390625,
+    0.0028076169546693563
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -149.99719238304533,
+     "zhi": 350.00280761695467,
+     "firm": true,
+     "hull": [
+      [
+       -19112.2109375,
+       20397.150390625
+      ],
+      [
+       -18887.2109375,
+       20397.150390625
+      ],
+      [
+       -18887.2109375,
+       20622.150390625
+      ],
+      [
+       -19112.2109375,
+       20622.150390625
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT-SE-TOMBS-FOR-CanopicJarStand instance",
+   "template": "KT-SE-TOMBS-FOR-CanopicJarStand",
+   "at": [
+    -38136.4296875,
+    41461.16015625,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -150.0,
+     "zhi": 350.0,
+     "firm": true,
+     "hull": [
+      [
+       -38248.9296875,
+       41348.66015625
+      ],
+      [
+       -38023.9296875,
+       41348.66015625
+      ],
+      [
+       -38023.9296875,
+       41573.66015625
+      ],
+      [
+       -38248.9296875,
+       41573.66015625
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT-SE-TOMBS-Puzzle-Object-B instance",
+   "template": "KT-SE-TOMBS-Puzzle-Object-B",
+   "at": [
+    -18998.060546875,
+    21266.80078125,
+    1.001343011856079
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -148.99865698814392,
+     "zhi": 351.0013430118561,
+     "firm": true,
+     "hull": [
+      [
+       -19110.560546875,
+       21154.30078125
+      ],
+      [
+       -18885.560546875,
+       21154.30078125
+      ],
+      [
+       -18885.560546875,
+       21379.30078125
+      ],
+      [
+       -19110.560546875,
+       21379.30078125
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT-SE-TOMBS-Puzzle-Object-C instance",
+   "template": "KT-SE-TOMBS-Puzzle-Object-C",
+   "at": [
+    -19004.5,
+    20116.900390625,
+    1.0019530057907104
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -148.9980469942093,
+     "zhi": 351.0019530057907,
+     "firm": true,
+     "hull": [
+      [
+       -19117.0,
+       20004.400390625
+      ],
+      [
+       -18892.0,
+       20004.400390625
+      ],
+      [
+       -18892.0,
+       20229.400390625
+      ],
+      [
+       -19117.0,
+       20229.400390625
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT-SE-TOMBS-Puzzle-Object-D instance",
+   "template": "KT-SE-TOMBS-Puzzle-Object-D",
+   "at": [
+    -19011.41015625,
+    20914.490234375,
+    1.0018310546875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -148.9981689453125,
+     "zhi": 351.0018310546875,
+     "firm": true,
+     "hull": [
+      [
+       -19123.91015625,
+       20801.990234375
+      ],
+      [
+       -18898.91015625,
+       20801.990234375
+      ],
+      [
+       -18898.91015625,
+       21026.990234375
+      ],
+      [
+       -19123.91015625,
+       21026.990234375
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_Tombs_Callisto",
+   "template": "KT_Questlight",
+   "at": [
+    -30395.4609375,
+    3945.389892578125,
+    0.6703621745109558
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -30395.4609375,
+      3945.389892578125
+     ],
+     "radius": 59.4191,
+     "zlo": -52.28273782548905,
+     "zhi": 176.14386217451096,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_Tombs_Tethys",
+   "template": "KT_Questlight",
+   "at": [
+    -12407.330078125,
+    3971.656982421875,
+    0.6703621745109558
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -12407.330078125,
+      3971.656982421875
+     ],
+     "radius": 59.4191,
+     "zlo": -52.28273782548905,
+     "zhi": 176.14386217451096,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_Mimas",
+   "template": "KT_Questlight",
+   "at": [
+    -26006.5390625,
+    18412.33984375,
+    0.669831395149231
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -26006.539065176476,
+      18412.339846345
+     ],
+     "radius": 59.4191,
+     "zlo": -52.28326860485089,
+     "zhi": 176.14333139514912,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_Amalthea",
+   "template": "KT_Questlight",
+   "at": [
+    -33949.6796875,
+    17599.060546875,
+    2.2692111087962985e-06
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -33949.67968482296,
+      17599.06054949083
+     ],
+     "radius": 59.4191,
+     "zlo": -52.95309773078901,
+     "zhi": 175.473502269211,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_TombNight",
+   "template": "KT_Questlight",
+   "at": [
+    -14032.3603515625,
+    18376.2109375,
+    0.6693068146705627
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -14032.360354238977,
+      18376.210940095
+     ],
+     "radius": 59.4191,
+     "zlo": -52.28379318532956,
+     "zhi": 176.14280681467045,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_TombLight",
+   "template": "KT_Questlight",
+   "at": [
+    -21979.19921875,
+    17641.8203125,
+    0.6690027713775635
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -21979.19921613382,
+      17641.820315176345
+     ],
+     "radius": 59.4191,
+     "zlo": -52.28409722862256,
+     "zhi": 176.14250277137745,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_Tombs_Darkness",
+   "template": "KT_Questlight",
+   "at": [
+    -18383.470703125,
+    21993.73046875,
+    0.6693285703659058
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -18383.47070302048,
+      21993.73046875204
+     ],
+     "radius": 59.4191,
+     "zlo": -52.2837714296341,
+     "zhi": 176.1428285703659,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_CryptofRa",
+   "template": "KT_Questlight",
+   "at": [
+    -24359.869140625,
+    33933.4296875,
+    0.669318675994873
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -24359.86914052048,
+      33933.429687502045
+     ],
+     "radius": 59.4191,
+     "zlo": -52.28378132400513,
+     "zhi": 176.14281867599487,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_Tombs_FieldOfReeds",
+   "template": "KT_Questlight",
+   "at": [
+    -38312.51953125,
+    42501.30078125,
+    0.6695737838745117
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -38312.51952857646,
+      42501.30078407852
+     ],
+     "radius": 59.4191,
+     "zlo": -52.28352621612562,
+     "zhi": 176.1430737838744,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight _Tombs_Phoebe",
+   "template": "KT_Questlight",
+   "at": [
+    -11607.2197265625,
+    8032.98779296875,
+    0.99969482421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -11607.219726562502,
+      8032.9877982914595
+     ],
+     "radius": 59.4191,
+     "zlo": -51.95340517578149,
+     "zhi": 176.47319482421852,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT-Teleporter_ForgottenTombs_01 instance",
+   "template": "KT-Teleporter_ForgottenTombs_01",
+   "at": [
+    829.8551025390625,
+    -1409.781982421875,
+    1.0029300451278687
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      829.8551025390625,
+      -1409.781982421875
+     ],
+     "radius": 43.32,
+     "zlo": -4.1520699548721325,
+     "zhi": 206.15793004512787,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT-Teleporter_ForgottenTombs_01_B instance",
+   "template": "KT-Teleporter_ForgottenTombs_01_B",
+   "at": [
+    -29207.779296875,
+    8315.3271484375,
+    0.9998779296875
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -29207.779296875,
+      8315.3271484375
+     ],
+     "radius": 43.32,
+     "zlo": -4.155122070312501,
+     "zhi": 206.1548779296875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT-Teleporter_ForgottenTombs_02 instance",
+   "template": "KT-Teleporter_ForgottenTombs_02",
+   "at": [
+    8.005462646484375,
+    -1409.781982421875,
+    1.0029300451278687
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      8.005462646484375,
+      -1409.781982421875
+     ],
+     "radius": 43.32,
+     "zlo": -4.1520699548721325,
+     "zhi": 206.15793004512787,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT-Teleporter_ForgottenTombs_02_B instance",
+   "template": "KT-Teleporter_ForgottenTombs_02_B",
+   "at": [
+    -23316.970703125,
+    38394.80078125,
+    0.99945068359375
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -23316.970703125,
+      38394.80078125
+     ],
+     "radius": 43.32,
+     "zlo": -4.155549316406251,
+     "zhi": 206.15445068359375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT-Teleporter_ForgottenTombs_03 instance",
+   "template": "KT-Teleporter_ForgottenTombs_03",
+   "at": [
+    420.9800109863281,
+    -1000.9860229492188,
+    1.0029300451278687
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      420.9800109863281,
+      -1000.9860229492188
+     ],
+     "radius": 43.32,
+     "zlo": -4.1520699548721325,
+     "zhi": 206.15793004512787,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT-Teleporter_ForgottenTombs_03_B instance",
+   "template": "KT-Teleporter_ForgottenTombs_03_B",
+   "at": [
+    -23273.7890625,
+    33505.44921875,
+    0.6693181991577148
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -23273.7890625,
+      33505.44921875
+     ],
+     "radius": 43.32,
+     "zlo": -4.485681800842286,
+     "zhi": 205.82431819915772,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Teleporter_Hub_01",
+   "template": "KT_Teleporter_Hub",
+   "at": [
+    420.9800109863281,
+    -1409.781982421875,
+    1.0029300451278687
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      420.9800109863281,
+      -1409.781982421875
+     ],
+     "radius": 138.1714,
+     "zlo": -248.99711995487212,
+     "zhi": 132.84798004512788,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Wallaru/WL_Z05_Wobbegong_JT",
  "named": {
   "Target location-FromRanch": [
@@ -243,6 +243,372 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WL-TeleportGate instance",
+   "template": "WL-TeleportGate-NoNif",
+   "at": [
+    4882.1318359375,
+    -7446.44580078125,
+    329.1647033691406
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 335.7061891982598,
+     "zhi": 510.2454187282745,
+     "firm": true,
+     "hull": [
+      [
+       4764.9665884583255,
+       -7587.629479411894
+      ],
+      [
+       4914.745193960874,
+       -7630.054244690233
+      ],
+      [
+       5002.684976326938,
+       -7319.587047415918
+      ],
+      [
+       5002.684978406439,
+       -7319.587032446069
+      ],
+      [
+       4852.906372903891,
+       -7277.1622671677305
+      ],
+      [
+       4764.966590537826,
+       -7587.629464442045
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight instance-Bunyip",
+   "template": "WL-QuestLight",
+   "at": [
+    245.63119506835938,
+    3248.98291015625,
+    228.1949005126953
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      214.58170912060405,
+      3225.2752177207817
+     ],
+     "radius": 73.4886,
+     "zlo": 215.4945498649714,
+     "zhi": 478.1948498649714,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight instance-CollieDen",
+   "template": "WL-QuestLight",
+   "at": [
+    5913.89892578125,
+    7459.51416015625,
+    115.15149688720703
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5898.827973193243,
+      7423.472635238574
+     ],
+     "radius": 73.4886,
+     "zlo": 102.45114677860411,
+     "zhi": 365.15144677860417,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight instance-DroverCave",
+   "template": "WL-QuestLight",
+   "at": [
+    7891.4599609375,
+    -8306.1396484375,
+    258.0751953125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7855.590302571757,
+      -8321.61520827682
+     ],
+     "radius": 73.4886,
+     "zlo": 245.37484430497418,
+     "zhi": 508.0751443049742,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight instance-Hostage",
+   "template": "WL-QuestLight",
+   "at": [
+    8067.52783203125,
+    6041.4482421875,
+    127.29879760742188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8035.705228052572,
+      6018.788870061928
+     ],
+     "radius": 73.4886,
+     "zlo": 114.598446913873,
+     "zhi": 377.29874691387306,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight instance-MysteryBox",
+   "template": "WL-QuestLight",
+   "at": [
+    -9686.845703125,
+    -3399.74609375,
+    225.726806640625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9651.225288074733,
+      -3383.7051554296804
+     ],
+     "radius": 73.4886,
+     "zlo": 213.026454255372,
+     "zhi": 475.72675425537204,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight instance-Phantom",
+   "template": "WL-QuestLight",
+   "at": [
+    -10738.0400390625,
+    2373.85302734375,
+    213.50390625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10705.642460756424,
+      2352.023638950261
+     ],
+     "radius": 73.4886,
+     "zlo": 200.8035555201121,
+     "zhi": 463.5038555201121,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight instance-EastClearing",
+   "template": "WL-QuestLight",
+   "at": [
+    -1437.137939453125,
+    8434.4931640625,
+    211.9492950439453
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1473.5177611908362,
+      8420.258209660864
+     ],
+     "radius": 73.4886,
+     "zlo": 199.2489439821891,
+     "zhi": 461.94924398218916,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight instance-WestClearing",
+   "template": "WL-QuestLight",
+   "at": [
+    -5286.80078125,
+    8586.9609375,
+    211.9355010986328
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5254.425375323787,
+      8565.098678501812
+     ],
+     "radius": 73.4886,
+     "zlo": 199.23515037018277,
+     "zhi": 461.9354503701828,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight instance-Yara",
+   "template": "WL-QuestLight",
+   "at": [
+    7375.958984375,
+    -4264.2841796875,
+    223.32679748535156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7337.310463271289,
+      -4269.977795549397
+     ],
+     "radius": 73.4886,
+     "zlo": 210.62644605021725,
+     "zhi": 473.32674605021725,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLightWL- BanditCootCave",
+   "template": "WL-QuestLight",
+   "at": [
+    -5799.4541015625,
+    -1489.303955078125,
+    196.93240356445312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5767.928967108326,
+      -1512.375391151606
+     ],
+     "radius": 73.4886,
+     "zlo": 184.23205288886638,
+     "zhi": 446.9323528888664,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-WobbegongLog instance",
+   "template": "WL-WobbegongLog",
+   "at": [
+    -2514.31298828125,
+    6713.0400390625,
+    222.3520965576172
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 93.8694965576172,
+     "zhi": 593.8694965576171,
+     "firm": true,
+     "hull": [
+      [
+       -3462.4445882812497,
+       6666.3671390625
+      ],
+      [
+       -1616.6775882812499,
+       6666.3671390625
+      ],
+      [
+       -1616.6775882812499,
+       8224.0411390625
+      ],
+      [
+       -3462.4445882812497,
+       8224.0411390625
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "WL-MidnightOil instance",
+   "template": "WL-MidnightOil",
+   "at": [
+    -3323.885009765625,
+    -2539.912109375,
+    185.1790008544922
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3315.858909765625,
+      -2539.015909375
+     ],
+     "radius": 49.187,
+     "zlo": 191.3068008544922,
+     "zhi": 209.35440085449218,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-GoldenWattle instance",
+   "template": "WL-GoldenWattle",
+   "at": [
+    -5336.73388671875,
+    7483.01513671875,
+    211.94149780273438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5328.70778671875,
+      7483.91133671875
+     ],
+     "radius": 49.187,
+     "zlo": 218.06929780273438,
+     "zhi": 236.11689780273437,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

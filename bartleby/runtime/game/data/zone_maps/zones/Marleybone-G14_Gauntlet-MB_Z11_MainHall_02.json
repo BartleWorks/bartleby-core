@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Marleybone/G14_Gauntlet/MB_Z11_MainHall_02",
  "named": {
   "From MB-ThroneRoom": [
@@ -60,5 +60,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

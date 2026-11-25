@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Mirage/MR_Z01_AlkaliBarrows",
  "named": {
   "From_OverlordsOssuary": [
@@ -242,6 +242,260 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MR_CarpetTeleporter_Hub instance",
+   "template": "MR_CarpetTeleporter_Hub",
+   "at": [
+    -16684.869140625,
+    -3391.0859375,
+    -1131.595947265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -1130.328197265625,
+     "zhi": -881.5958972656249,
+     "firm": true,
+     "hull": [
+      [
+       -16750.696040625,
+       -3516.8040874999997
+      ],
+      [
+       -16616.212840624998,
+       -3516.8040874999997
+      ],
+      [
+       -16616.212840624998,
+       -3279.5061875
+      ],
+      [
+       -16750.696040625,
+       -3279.5061875
+      ]
+     ]
+    },
+    {
+     "center": [
+      -16589.388740625,
+      -3555.5577375
+     ],
+     "radius": 41.4951,
+     "zlo": -1118.418797265625,
+     "zhi": -1064.9964972656248,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Alkali_Gate_Collision instance",
+   "template": "MR_Alkali_Collision",
+   "at": [
+    -17092.060546875,
+    2480.2470703125,
+    -2759.676025390625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -2781.9216753906253,
+     "zhi": -2264.912975390625,
+     "firm": true,
+     "hull": [
+      [
+       -17482.835597075,
+       1931.5751701125
+      ],
+      [
+       -17374.054025075002,
+       1872.0255681125
+      ],
+      [
+       -16734.023296675,
+       3041.1945705125
+      ],
+      [
+       -16842.804868675,
+       3100.7441725125
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "MR_Z01_DefiledCrypt_Questlight",
+   "template": "MR_Questlight",
+   "at": [
+    -14752.48046875,
+    -3074.4580078125,
+    -2791.362060546875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -14755.74263158284,
+      -3056.8323628670246
+     ],
+     "radius": 38.9359,
+     "zlo": -2883.9250611449615,
+     "zhi": -2383.9250611449615,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Z01_BarracksBarrow_Questlight",
+   "template": "MR_Questlight",
+   "at": [
+    -7019.0517578125,
+    7256.8818359375,
+    -1442.010009765625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7034.369835374679,
+      7247.572636443432
+     ],
+     "radius": 38.9359,
+     "zlo": -1534.5730091865084,
+     "zhi": -1034.5730091865084,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Z01_ForbiddenVault_Questlight",
+   "template": "MR_Questlight",
+   "at": [
+    -21435.69921875,
+    -2915.6630859375,
+    -2681.97998046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -21438.90403441717,
+      -2933.299234535311
+     ],
+     "radius": 38.9359,
+     "zlo": -2774.542979525689,
+     "zhi": -2274.542979525689,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Z01_Druj_Questlight",
+   "template": "MR_Questlight",
+   "at": [
+    -19407.80078125,
+    736.602783203125,
+    -3041.531982421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -19418.150508220227,
+      721.9676277968126
+     ],
+     "radius": 38.9359,
+     "zlo": -3134.094981609979,
+     "zhi": -2634.094981609979,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Z01_TombForgotten_Questlight",
+   "template": "MR_Questlight",
+   "at": [
+    -15712.419921875,
+    30.6156005859375,
+    -2885.22607421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -15729.906321875,
+      34.5565005859375
+     ],
+     "radius": 38.9359,
+     "zlo": -2977.78907421875,
+     "zhi": -2477.78907421875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Z01_Questlight_ImportantCave",
+   "template": "MR_Questlight",
+   "at": [
+    1451.8470458984375,
+    -5740.01123046875,
+    -1052.509033203125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1458.2422381541578,
+      -5756.75656143274
+     ],
+     "radius": 38.9359,
+     "zlo": -1145.0720322989894,
+     "zhi": -645.0720322989894,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Z01_OverlordsOssuary_Questlight",
+   "template": "MR_Questlight",
+   "at": [
+    -25006.83984375,
+    12237.1396484375,
+    -1033.0579833984375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -25024.32624375,
+      12241.0805484375
+     ],
+     "radius": 38.9359,
+     "zlo": -1125.6209833984376,
+     "zhi": -625.6209833984375,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

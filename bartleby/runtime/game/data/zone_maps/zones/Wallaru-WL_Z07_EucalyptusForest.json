@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Wallaru/WL_Z07_EucalyptusForest",
  "named": {
   "Start": [
@@ -205,6 +205,240 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WL-GoldenWattle instance",
+   "template": "WL-GoldenWattle",
+   "at": [
+    -2796.81591796875,
+    8200.642578125,
+    963.594482421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2788.78981796875,
+      8201.538778125
+     ],
+     "radius": 49.187,
+     "zlo": 969.722282421875,
+     "zhi": 987.7698824218751,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-MidnightOil instance",
+   "template": "WL-MidnightOil",
+   "at": [
+    9710.2451171875,
+    9290.056640625,
+    1408.93505859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9718.2712171875,
+      9290.952840625
+     ],
+     "radius": 49.187,
+     "zlo": 1415.06285859375,
+     "zhi": 1433.1104585937499,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight_EUC_Clearing_01",
+   "template": "WL-QuestLight",
+   "at": [
+    -4165.57177734375,
+    3957.2451171875,
+    737.9375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4137.941324149724,
+      3929.6283962744474
+     ],
+     "radius": 73.4886,
+     "zlo": 725.2371495231062,
+     "zhi": 987.9374495231061,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight_EUC_Clearing_02",
+   "template": "WL-QuestLight",
+   "at": [
+    -5327.8427734375,
+    -1758.0770263671875,
+    826.594970703125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5311.625623180638,
+      -1793.6175549655693
+     ],
+     "radius": 73.4886,
+     "zlo": 813.8946205725895,
+     "zhi": 1076.5949205725894,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight_EUC_Clearing_03",
+   "template": "WL-QuestLight",
+   "at": [
+    -1205.56201171875,
+    -5450.990234375,
+    747.531005859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1213.8295797945011,
+      -5412.809437915279
+     ],
+     "radius": 73.4886,
+     "zlo": 734.830652506416,
+     "zhi": 997.5309525064159,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight_PinkLake_01",
+   "template": "WL-QuestLight",
+   "at": [
+    -1406.83203125,
+    3996.506103515625,
+    698.8707885742188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1427.0957008059713,
+      4029.905348218361
+     ],
+     "radius": 73.4886,
+     "zlo": 686.170435430274,
+     "zhi": 948.870735430274,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight_EUC_Gatehouse_01",
+   "template": "WL-QuestLight",
+   "at": [
+    -1143.7010498046875,
+    8303.560546875,
+    890.4666137695312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1112.542195127588,
+      8279.996781578466
+     ],
+     "radius": 73.4886,
+     "zlo": 877.766263115469,
+     "zhi": 1140.466563115469,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-QuestLight-Hex-Mangrove_01",
+   "template": "WL-QuestLight",
+   "at": [
+    11007.4296875,
+    3709.6640625,
+    873.0482177734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10968.411046786048,
+      3711.580100298984
+     ],
+     "radius": 73.4886,
+     "zlo": 860.3478660057076,
+     "zhi": 1123.0481660057076,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WL-TeleportGate instance",
+   "template": "WL-TeleportGate-NoNif",
+   "at": [
+    5375.37890625,
+    -7012.10107421875,
+    1101.6319580078125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 1108.1734437814093,
+     "zhi": 1282.7126734386293,
+     "firm": true,
+     "hull": [
+      [
+       5222.658158130704,
+       -7113.771617863485
+      ],
+      [
+       5353.988661573193,
+       -7197.352657823229
+      ],
+      [
+       5527.238847302376,
+       -6925.125438297402
+      ],
+      [
+       5527.238851399015,
+       -6925.125424231911
+      ],
+      [
+       5395.908347956526,
+       -6841.544384272167
+      ],
+      [
+       5222.658162227343,
+       -7113.7716037979935
+      ]
+     ]
+    }
+   ]
   }
  ]
 }
