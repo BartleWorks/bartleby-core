@@ -6,7 +6,7 @@ import time
 import pytest
 
 from bartleby.runtime.game.key_bindings import GameAction
-from bartleby.runtime.input import SPEED_VALUE_MAX, ClientInput, _watchdog, speed_value
+from bartleby.runtime.input import SPEED_VALUE_MAX, ClientInput, held_key_watchdog, speed_value
 from bartleby.runtime.testing.sim_client import SimClient, SimClock
 
 
@@ -141,9 +141,9 @@ async def test_a_key_let_go_by_the_watchdog_is_held_again_when_its_holder_holds_
 async def test_the_watchdog_watches_only_while_a_key_is_held():
     keys = ClientInput(SimClient())
     await keys.hold(GameAction.MOVE_FORWARD)
-    assert _watchdog.watching() >= 1
+    assert held_key_watchdog.watches(keys)
 
     await keys.release_all()
     await asyncio.sleep(0.2)
 
-    assert keys not in _watchdog._inputs
+    assert not held_key_watchdog.watches(keys)

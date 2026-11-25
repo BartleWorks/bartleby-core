@@ -12,7 +12,7 @@ not have the focus, so a key held on one client never reaches another.
 
 **A held event loop lets go of the keys.** The game walks a wizard on for as long as forward is
 held, and with the loop held nothing steers it: about 600 units a second on foot. So a watchdog
-thread (:class:`_Watchdog`) looks at every client holding a key, and once the loop has fallen
+thread (:class:`HeldKeyWatchdog`) looks at every client holding a key, and once the loop has fallen
 :data:`~bartleby.runtime.timing.HELD_KEY_LOOP_LATE` behind its repeat, sends key-up for each of
 them from its own thread and forgets them, so they are not repeated when the loop comes back.
 The holder finds them no longer :attr:`ClientInput.held` and holds them again when it means to.
@@ -135,7 +135,7 @@ class ClientInput:
         with self._lock:
             return frozenset(self._held)
 
-    def _drop_if_late(self, now: float) -> None:
+    def let_go_if_late(self, now: float) -> None:
         """The watchdog's look, from its thread: let go of every held key if the loop is late."""
         with self._lock:
             late = now - self._beat
@@ -181,7 +181,7 @@ class ClientInput:
         with self._lock:
             self._beat = time.monotonic()
             self._held[action] = code
-        _watchdog.watch(self)
+        held_key_watchdog.watch(self)
         await self._keys.down(code)
         if self._repeat is None or self._repeat.done():
             self._repeat = asyncio.create_task(self._repeat_held())
@@ -209,7 +209,7 @@ class ClientInput:
         finally:
             with self._lock:
                 held, self._held = self._held, {}
-            _watchdog.unwatch(self)
+            held_key_watchdog.unwatch(self)
             for code in held.values():
                 try:
                     await self._keys.up(code)
@@ -234,7 +234,7 @@ class ClientInput:
         finally:
             with self._lock:
                 if not self._held:
-                    _watchdog.unwatch(self)
+                    held_key_watchdog.unwatch(self)
 
     async def write_yaw(self, yaw: float) -> None:
         """Face *yaw*. The server checks where a wizard is, not which way it faces."""
@@ -255,7 +255,7 @@ class InputClosed(RuntimeError):
     """Input was sent through a lease that has ended."""
 
 
-class _Watchdog:
+class HeldKeyWatchdog:
     """One thread for every :class:`ClientInput` holding a key, running only while one does."""
 
     def __init__(self) -> None:
@@ -274,9 +274,9 @@ class _Watchdog:
         with self._lock:
             self._inputs.discard(client_input)
 
-    def watching(self) -> int:
+    def watches(self, client_input: ClientInput) -> bool:
         with self._lock:
-            return len(self._inputs)
+            return client_input in self._inputs
 
     def _run(self) -> None:
         while True:
@@ -288,7 +288,7 @@ class _Watchdog:
                     return
             now = time.monotonic()
             for client_input in inputs:
-                client_input._drop_if_late(now)  # noqa: SLF001 - the watchdog is ClientInput's own
+                client_input.let_go_if_late(now)
 
 
-_watchdog = _Watchdog()
+held_key_watchdog = HeldKeyWatchdog()

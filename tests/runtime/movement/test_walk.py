@@ -152,6 +152,7 @@ async def test_a_jump_off_the_route_is_replanned_from_where_it_landed():
 
 @pytest.fixture
 def quick_stalls(monkeypatch):
+    # Eight ticks still fit the window. A stall is the branch the tests name: the wall never gives.
     monkeypatch.setattr(walk_module, "WALK_STALL_WINDOW", 0.4)
 
 
@@ -210,6 +211,7 @@ async def test_a_volume_link_moves_the_walk_on_and_it_walks_on_from_where_it_lan
 
 
 async def test_a_link_that_moves_nobody_is_dropped_and_the_route_replanned(monkeypatch):
+    # A ceiling, cut since running out is the branch tested: nothing ever moves the wizard here.
     monkeypatch.setattr(walk_module, "WALK_LINK_WAIT", 0.3)
     client = _client(at=(100.0, 600.0, 0.0))
     planner = _islands()
@@ -273,6 +275,7 @@ async def test_a_mob_in_the_way_is_detoured_around_before_it_is_waited_for():
 
 
 async def test_a_mob_with_no_way_around_is_waited_for_and_the_wait_ends_blocked(monkeypatch):
+    # A ceiling, cut since running out is the branch tested: the mob never leaves the corridor.
     monkeypatch.setattr(walk_module, "WALK_MOB_WAIT", 0.6)
     client = _client(at=(200.0, 100.0, 0.0))
     corridor = _planner(floor(0, 0, 4000, 200, 0))
