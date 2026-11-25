@@ -1,11 +1,12 @@
 """Input: keys by the account's binding, held keys repeated, and speed capped at 2.0x."""
 
 import asyncio
+import time
 
 import pytest
 
 from bartleby.runtime.game.key_bindings import GameAction
-from bartleby.runtime.input import SPEED_VALUE_MAX, ClientInput, speed_value
+from bartleby.runtime.input import SPEED_VALUE_MAX, ClientInput, _watchdog, speed_value
 from bartleby.runtime.testing.sim_client import SimClient, SimClock
 
 
@@ -90,3 +91,59 @@ async def test_a_cancel_that_lands_while_letting_go_still_cancels_the_caller():
     assert letting_go.cancelled(), "the caller's own cancel was swallowed"
     assert sent[-1] == -ord("W"), "and the key is let go all the same"
     assert keys.held == frozenset()
+
+
+# --- a held event loop ------------------------------------------------------------------------
+
+
+async def test_a_held_event_loop_lets_go_of_every_held_key_and_does_not_press_it_again():
+    client = SimClient()
+    keys = ClientInput(client)
+    await keys.hold(GameAction.MOVE_FORWARD)
+    await keys.hold(GameAction.MOVE_LEFT)
+
+    time.sleep(0.5)  # the loop held, as by a long synchronous call
+
+    assert client.held == set()
+    assert keys.held == frozenset()
+    assert keys.dropped == 1
+    let_go = len(client.inputs)
+    await asyncio.sleep(0.2)
+    assert client.held == set()
+    assert [r.kind for r in client.inputs[let_go:]] == []
+    await keys.release_all()
+
+
+async def test_a_loop_that_keeps_up_never_has_its_keys_let_go():
+    client = SimClient()
+    keys = ClientInput(client)
+    await keys.hold(GameAction.MOVE_FORWARD)
+
+    await asyncio.sleep(0.4)
+
+    assert keys.held == {GameAction.MOVE_FORWARD}
+    assert keys.dropped == 0
+    await keys.release_all()
+
+
+async def test_a_key_let_go_by_the_watchdog_is_held_again_when_its_holder_holds_it():
+    client = SimClient()
+    keys = ClientInput(client)
+    await keys.hold(GameAction.MOVE_FORWARD)
+    time.sleep(0.5)
+
+    assert await keys.hold(GameAction.MOVE_FORWARD)
+
+    assert client.holding(GameAction.MOVE_FORWARD)
+    await keys.release_all()
+
+
+async def test_the_watchdog_watches_only_while_a_key_is_held():
+    keys = ClientInput(SimClient())
+    await keys.hold(GameAction.MOVE_FORWARD)
+    assert _watchdog.watching() >= 1
+
+    await keys.release_all()
+    await asyncio.sleep(0.2)
+
+    assert keys not in _watchdog._inputs

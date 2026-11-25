@@ -169,6 +169,9 @@ class _Keys:
             self.sim.log("down", code)
 
     async def up(self, code: int) -> None:
+        self.up_now(code)
+
+    def up_now(self, code: int) -> None:
         self.sim.advance()
         if code in self.sim.held:
             self.sim.held.discard(code)

@@ -808,6 +808,20 @@ HELD_KEY_REPEAT = 0.05
 # Seconds between the repeated key-downs of a held key, as a key held on a keyboard repeats.
 # The game reads a key as held while they keep coming.
 
+HELD_KEY_LOOP_LATE = 0.2
+# Seconds the event loop may fall behind a held key's repeat before ClientInput's watchdog thread
+# lets go of every key held, since a wizard walks on with nothing steering for as long as the
+# loop is held: about 600 units a second on foot. In 21.8 hours of BartleBot and BartleBuddy run
+# traces (2026-11-25) the loop was held past 0.5 s 1.7 times an hour and 3.1 s at the longest,
+# so a held loop now walks a wizard some 120 to 190 units, not thousands.
+
+HELD_KEY_WATCH_INTERVAL = 0.05
+# Seconds between the watchdog's looks at every client holding a key.
+
+HELD_KEY_RELEASE_TIMEOUT = 0.25
+# Seconds the watchdog waits on a game window to take a key-up before going on to the next; a
+# window that is not answering gets it once it answers again.
+
 POSITION_READ_INTERVAL = 0.1
 # Seconds between a state reader's position reads: several a second, which is what a
 # follower walking the leader's trail needs.
