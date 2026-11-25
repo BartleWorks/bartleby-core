@@ -10,7 +10,7 @@ import pytest
 from bartleby.runtime.movement.patrols import HARD, Patrol
 from bartleby.runtime.movement.route import EXIT_MARGIN, ZoneFiles, ZonePlanner, build_planner, link_reach
 from bartleby.runtime.movement.zone_grid import MAX_RISE, STEP_TOL
-from bartleby.runtime.movement.zone_links import LINK_REACH, Volume
+from bartleby.runtime.movement.zone_links import LINK_REACH, Link, Volume
 from tests.runtime.movement.test_zone_grid import two_storeys
 from tests.runtime.movement.zone_fixtures import box, floor, mesh
 
@@ -186,6 +186,32 @@ def test_a_route_with_a_link_comes_back_as_legs_each_ending_at_its_link():
     turns, jumps = planner.turns_and_jumps(route)
     [jump] = jumps
     assert planner.grid.world(*turns[jump])[0] < 1000 < 3000 < planner.grid.world(*turns[jump + 1])[0]
+
+
+def _short_ladder() -> ZonePlanner:
+    """Two storeys with no stairs, joined by a ladder at x 1100 on the ground whose top lands on
+    the floor above at x 940: 160 across, as Tyrian Gorge's are 200 to 460, beside the 150 a
+    press is taken from. The ground runs on under the floor above, as it does along a cliff's
+    foot, so the floor the ladder is taken from reaches the cell next to its landing."""
+    planner = _planner(two_storeys(stairs=False))
+    planner.links.append(Link("Ladder 01", (1100, 500, 0), "Ladder 01 top", (940, 500, 400), kind="interact"))
+    return planner
+
+
+def test_a_link_landing_the_next_cell_across_from_where_it_is_taken_still_ends_a_leg():
+    planner = _short_ladder()
+
+    route = planner.route((200, 500, 0), (500, 500, 400))
+    legs = planner.legs(route)
+
+    taken, landed = next((a, b) for a, b in zip(route.nodes, route.nodes[1:]) if a[0] != b[0])
+    assert abs(taken[1] - landed[1]) <= 1 and abs(taken[2] - landed[2]) <= 1
+    assert [leg.link.name if leg.link else None for leg in legs] == ["Ladder 01", None]
+    assert {p[2] for p in legs[0].waypoints} == {0}
+    assert {p[2] for p in legs[1].waypoints} == {400}
+    turns, jumps = planner.turns_and_jumps(route)
+    [jump] = jumps
+    assert planner.grid.world(*turns[jump])[2] == 0 and planner.grid.world(*turns[jump + 1])[2] == 400
 
 
 def _hall_with_a_volume_link(width: float = 2000) -> ZonePlanner:
