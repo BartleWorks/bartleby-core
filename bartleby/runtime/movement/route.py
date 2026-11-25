@@ -657,13 +657,12 @@ def _gate_floor(grid: Grid, gate: Gate, max_rise: float) -> tuple[int, int, np.n
         return empty
     bounds = [_extent(f) for f in gate.footprints]
     reach = max(1, round(CLEARANCE / grid.cell)) + 2
-    i0, i1, j0, j1 = grid._span(
-        min(b[0] for b in bounds), max(b[1] for b in bounds), min(b[2] for b in bounds), max(b[3] for b in bounds)
-    )
-    if i1 < i0 or j1 < j0:
-        return empty
+    j0, i0 = grid.index(min(b[0] for b in bounds), min(b[2] for b in bounds))
+    j1, i1 = grid.index(max(b[1] for b in bounds), max(b[3] for b in bounds))
     i0, j0 = max(0, i0 - reach), max(0, j0 - reach)
     i1, j1 = min(grid.nx - 1, i1 + reach), min(grid.ny - 1, j1 + reach)
+    if i1 < i0 or j1 < j0:  # off the grid altogether
+        return empty
     window = Grid.from_arrays(
         grid.levels[:, j0 : j1 + 1, i0 : i1 + 1],
         grid.walls[:, j0 : j1 + 1, i0 : i1 + 1].copy(),
