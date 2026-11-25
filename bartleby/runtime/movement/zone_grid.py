@@ -46,6 +46,17 @@ class Grid:
         self.levels = self._stack(*(np.concatenate(parts) for parts in zip(*hits)))
         self.walls = np.zeros(self.levels.shape, dtype=bool)
 
+    @classmethod
+    def from_arrays(cls, levels: np.ndarray, walls: np.ndarray, x0: float, y0: float, cell: float = CELL) -> Grid:
+        """A grid already rastered and walled, as ``zone_maps`` saves one on the user's machine."""
+        if levels.ndim != 3 or walls.shape != levels.shape:
+            raise ValueError(f"levels {levels.shape} and walls {walls.shape} are not one layered grid")
+        grid = cls.__new__(cls)
+        grid.cell, grid.x0, grid.y0 = cell, x0, y0
+        grid.ny, grid.nx = levels.shape[1:]
+        grid.levels, grid.walls = levels, walls
+        return grid
+
     @property
     def top(self) -> np.ndarray:
         """The highest floor at each cell, or nan."""
