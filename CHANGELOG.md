@@ -8,6 +8,40 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Fixes to walking a route found by reviewing Stages 1.1 to 2 of BartleBot #322 and by walking the
+walker in game. A minor release: `astar` and `runs` change.
+
+### Breaking
+
+- **`route.astar` returns `(nodes, jumps)`**, `jumps` being each k whose step from node k to node
+  k + 1 is a link's, and **`route.runs(path, jumps)`** cuts at those steps. `Route` gains a
+  required `jumps`, which `ZonePlanner.route` fills in. A caller of `ZonePlanner.route` and `legs`
+  changes nothing; one building a `Route` or calling `astar` or `runs` itself passes or takes
+  `jumps`.
+
+### Added
+
+- **`WALK_CEILING_FACTOR`** (3) in `timing.py`: a walk ends `TIMED_OUT` once it has taken that many
+  times its first plan's time, planning included and only its waits for mobs left out, however
+  often it replanned or detoured.
+
+### Fixed
+
+- **A link whose landing is the next cell across from where it is taken**, such as a short ladder,
+  ends its leg instead of being walked past without pressing Interact. No shipped map has one
+  today.
+- `RouteWalker`: lets go of backward while it plans a detour; asks whether a fight started or the
+  zone changed before replanning after a jump, so a zone exit ends the walk `ZONE_CHANGED`, not
+  `NO_ROUTE`; always stops its mob watch, a second cancel during its cleanup included; gives a
+  walk time again for the route left after each replan or detour; and no longer raises on a reset
+  onto a leg of one waypoint.
+- `RouteWalker` makes its first fight check and key-binding read while it plans its first route,
+  so a fresh process no longer stands about half a second before walking.
+- **A saved zone map damaged inside its zip** (a corrupt deflate stream, an unknown zip version, a
+  garbled `.npy` header) is rebuilt instead of failing every walk in the zone and `warm()`.
+
 ## 0.11.2
 
 Walking a route (BartleBot #322, Stage 2): core walks a planned route on a movement lease. A patch
