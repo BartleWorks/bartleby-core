@@ -63,13 +63,14 @@ def astar(
     max_rise: float = MAX_RISE,
     portals: Mapping[int, list[tuple[int, float]]] | None = None,
     taken_only: Set[int] | None = None,
-) -> list[Node] | None:
-    """A cell-by-cell route, or None. *portals* maps a node's flat index to the nodes a link
-    puts it on, and what taking it costs; a route through one has two non-adjacent nodes in a
-    row. The distance heuristic does not know about links, so a route using one is found but
-    not always the shortest. A node in *taken_only* (a volume link's floor, which moves
-    whoever steps in) is left only by a link, never walked on from, unless the route starts
-    there."""
+) -> tuple[list[Node], frozenset[int]] | None:
+    """A cell-by-cell route, and each k whose step from node k to node k + 1 is a link, or None.
+    *portals* maps a node's flat index to the nodes a link puts it on, and what taking it costs.
+    A link's step is recorded as one, since its landing may be the next cell across from where it
+    is taken, on another storey: a short ladder. The distance heuristic does not know about
+    links, so a route using one is found but not always the shortest. A node in *taken_only* (a
+    volume link's floor, which moves whoever steps in) is left only by a link, never walked on
+    from, unless the route starts there."""
     layers, ny, nx = grid.levels.shape
     plane = ny * nx
     ok = passable.ravel().tolist()
@@ -86,6 +87,7 @@ def astar(
 
     best = {s: 0.0}
     came = {s: -1}
+    by_link = {s: False}  # whether the best way yet onto a node is a link's step
     heap = [(0.0, 0.0, s)]
     done = set()
     while heap:
@@ -93,12 +95,14 @@ def astar(
         if cur in done:
             continue
         if cur == g:
-            path = []
+            path, linked = [], []
             while cur != -1:
                 layer, rest = divmod(cur, plane)
                 path.append((layer, *divmod(rest, nx)))
+                linked.append(by_link[cur])
                 cur = came[cur]
-            return path[::-1]
+            # Gathered goal first: the k-th node gathered is reached from node len - k - 2 of the route.
+            return path[::-1], frozenset(len(path) - k - 2 for k, step in enumerate(linked) if step)
         done.add(cur)
         rest = cur % plane
         cj, ci = divmod(rest, nx)
@@ -118,6 +122,7 @@ def astar(
                 if ng < best.get(nb, math.inf):
                     best[nb] = ng
                     came[nb] = cur
+                    by_link[nb] = False
                     heapq.heappush(heap, (ng + math.hypot(nj - gj, ni - gi) * c, ng, nb))
         for nb, extra in portals.get(cur, ()) if portals else ():
             if nb in done:
@@ -126,6 +131,7 @@ def astar(
             if ng < best.get(nb, math.inf):
                 best[nb] = ng
                 came[nb] = cur
+                by_link[nb] = True
                 nj, ni = divmod(nb % plane, nx)
                 heapq.heappush(heap, (ng + math.hypot(nj - gj, ni - gi) * c, ng, nb))
     return None
@@ -144,13 +150,14 @@ def _flat(spots: np.ndarray) -> list[int]:
     return [int(layer * ny * nx + j * nx + i) for layer, j, i in zip(*np.nonzero(spots))]
 
 
-def runs(path: Sequence[Node]) -> list[list[Node]]:
-    """*path* cut where it jumps: at each link, the next node is not the last one's neighbor."""
+def runs(path: Sequence[Node], jumps: Set[int]) -> list[list[Node]]:
+    """*path* cut at each link: after each k of *jumps*, whose step to k + 1 is a link's. The
+    cut is never guessed from the nodes, since a link's landing may be the next cell across."""
     out = [[path[0]]]
-    for a, b in zip(path, path[1:]):
-        if abs(b[1] - a[1]) > 1 or abs(b[2] - a[2]) > 1:
+    for k, node in enumerate(path[1:]):
+        if k in jumps:
             out.append([])
-        out[-1].append(b)
+        out[-1].append(node)
     return out
 
 
@@ -231,12 +238,14 @@ class Leg:
 
 @dataclass(frozen=True)
 class Route:
-    """A planned route: its cells, and the floor it was planned on: the zone's floor less
-    the exits it keeps out of. Straightening a route uses the same floor, so a straight line
-    never cuts through an exit the route went around."""
+    """A planned route: its cells, the floor it was planned on, and where it takes a link. The
+    floor is the zone's less the exits it keeps out of; straightening a route uses the same
+    floor, so a straight line never cuts through an exit the route went around. *jumps* holds
+    each k whose step from node k to node k + 1 is a link's, as astar took it."""
 
     nodes: list[Node]
     passable: np.ndarray = field(repr=False)
+    jumps: frozenset[int]
 
 
 @dataclass(frozen=True)
@@ -315,17 +324,18 @@ class ZonePlanner:
         portals = self.portals(floor)
         volumes = self.volume_floor(floor, s, g)
         taken_only = set(_flat(volumes))
-        nodes = astar(self.grid, floor, cost, s, g, self.max_rise, portals, taken_only)
-        if nodes is None and taken_only:
+        found = astar(self.grid, floor, cost, s, g, self.max_rise, portals, taken_only)
+        if found is None and taken_only:
             volumes = np.zeros_like(floor)
-            nodes = astar(self.grid, floor, cost, s, g, self.max_rise, portals)
-        if nodes is None:
+            found = astar(self.grid, floor, cost, s, g, self.max_rise, portals)
+        if found is None:
             return None
+        nodes, jumps = found
         # Straightening must not cut across a volume the route did not step into either.
         walked = floor & ~volumes
         for node in nodes:
             walked[node] = floor[node]
-        return Route(nodes, walked)
+        return Route(nodes, walked, jumps)
 
     def _link_floor(self, link: Link, floor: np.ndarray) -> np.ndarray:
         """The spots of *floor* within :func:`link_reach` of *link*'s source, at about its height."""
@@ -371,7 +381,7 @@ class ZonePlanner:
         """turns(), and each k whose step from turn k to turn k + 1 is a link rather than walked."""
         out: list[Node] = []
         jumps: set[int] = set()
-        for run in runs(route.nodes):
+        for run in runs(route.nodes, route.jumps):
             if out:
                 jumps.add(len(out) - 1)
             out += smooth(self.grid, route.passable, self.clearance, run, self.soft, self.max_rise)
@@ -380,7 +390,7 @@ class ZonePlanner:
     def legs(self, route: Route) -> list[Leg]:
         """The route as stretches to walk, each but the last ending in the link that joins it to
         the next: at a volume's center, or, for an object pressed, on the floor near it."""
-        parts = runs(route.nodes)
+        parts = runs(route.nodes, route.jumps)
         out = []
         for k, run in enumerate(parts):
             straight = smooth(self.grid, route.passable, self.clearance, run, self.soft, self.max_rise)

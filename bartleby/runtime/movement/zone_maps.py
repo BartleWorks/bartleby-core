@@ -320,12 +320,15 @@ class ZoneMaps:
         return await asyncio.to_thread(self.planner, zone)
 
     def saved(self, zone: str) -> bool:
-        """Whether *zone* has a saved copy built from its current map."""
+        """Whether *zone* has a saved copy built from its current map. A damaged one is not."""
         try:
             with np.load(self._cache_path(zone), allow_pickle=False) as arrays:
                 saved_key = str(arrays["key"][0])  # only the key is read, not the arrays
+        except Exception:  # anything a damaged copy raises: see _saved
+            return False
+        try:
             return saved_key == self._key(zone)
-        except (OSError, ValueError, KeyError, EOFError, zipfile.BadZipFile):
+        except (KeyError, OSError):  # no map of the zone, or its files are gone
             return False
 
     def warm(self, zones: Sequence[str] | None = None, stop: threading.Event | None = None) -> int:
@@ -370,9 +373,14 @@ class ZoneMaps:
             data = self._cache_path(zone).read_bytes()
         except FileNotFoundError:
             return None
+        # What a damaged copy raises is whatever zipfile, zlib and numpy's .npy reader happen to
+        # raise, which no one of them promises: a corrupt deflate stream raises zlib.error, a
+        # flipped version byte NotImplementedError, a garbled .npy header tokenize's TokenError,
+        # and others besides. Missing one fails every walk in the zone until the file is deleted
+        # by hand; catching too much costs a rebuild of a few seconds, and the warning says why.
         try:
             built = _Built.from_bytes(data)
-        except (OSError, ValueError, KeyError, EOFError, zipfile.BadZipFile) as error:
+        except Exception as error:
             logger.warning("zone map %s: its saved copy is unreadable, so it is rebuilt: %s", zone, error)
             return None
         return built if built.key == key else None

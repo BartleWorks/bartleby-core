@@ -923,6 +923,13 @@ WALK_TIME_ALLOWANCE = 20.0
 # Seconds a walk is given beyond three times its planned walking time, its links' waits, its
 # waits for mobs and its planning, before it ends out of time.
 
+WALK_CEILING_FACTOR = 3.0
+# Times its first plan's time a walk may take in all, from its start, its planning included and
+# only its waits for mobs left out (WALK_MOB_WAIT caps those). Each replan and detour gives a walk
+# time afresh for the route left, so a server resetting it off its route over and over would
+# never run out; this ceiling no replan renews. The first plan's time is already three times its
+# walking, so the ceiling is about nine times the walk planned.
+
 JOIN_ORDER_HOLD = 4.0
 # Seconds after a follower's turn to join the leader's fight came before the next one in the
 # join order (bartleby.runtime.movement.join_order) goes anyway, when the first is neither in

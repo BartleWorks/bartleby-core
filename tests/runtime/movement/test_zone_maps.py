@@ -3,10 +3,15 @@
 import ast
 import hashlib
 import inspect
+import io
 import json
 import logging
 import math
+import struct
 import threading
+import tokenize
+import zipfile
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -287,6 +292,71 @@ def test_a_damaged_copy_is_rebuilt_and_said_so(shipped, tmp_path, caplog):
 
     _assert_plans_alike(planner, build_planner(_isles()))
     assert "unreadable" in caplog.text
+    assert _maps(shipped, tmp_path).saved(ZONE)
+
+
+def _member_data_at(data: bytes, name: str) -> int:
+    """Where *name*'s compressed bytes start in the zip *data*: past its local header."""
+    info = zipfile.ZipFile(io.BytesIO(data)).getinfo(name)
+    name_size, extra_size = struct.unpack_from("<HH", data, info.header_offset + 26)
+    return info.header_offset + 30 + name_size + extra_size
+
+
+def _corrupt_deflate_stream(data: bytes) -> bytes:
+    """The key's deflate stream opening on a block of the reserved type: ``zlib.error``."""
+    damaged = bytearray(data)
+    damaged[_member_data_at(data, "key.npy")] = 0b111  # the last block, of type 3
+    return bytes(damaged)
+
+
+def _unknown_zip_version(data: bytes) -> bytes:
+    """The first entry of the central directory asking for zip 8.4: ``NotImplementedError``."""
+    damaged = bytearray(data)
+    (directory,) = struct.unpack_from("<I", data, len(data) - 6)  # the end record's offset, no comment
+    damaged[directory + 6] = 84
+    return bytes(damaged)
+
+
+def _garbled_npy_header(data: bytes) -> bytes:
+    """The key's ``.npy`` header with a quote gone, compressed whole: tokenize's ``TokenError``."""
+    out = io.BytesIO()
+    with zipfile.ZipFile(io.BytesIO(data)) as source, zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as copy:
+        for info in source.infolist():
+            content = source.read(info)
+            if info.filename == "key.npy":
+                header_size = int.from_bytes(content[8:10], "little")
+                header = b"{'descr': '<U64".ljust(header_size - 1) + b"\n"
+                content = content[:10] + header + content[10 + header_size :]
+            copy.writestr(info, content)
+    return out.getvalue()
+
+
+@pytest.mark.parametrize(
+    ("damage", "raised"),
+    [
+        (_corrupt_deflate_stream, zlib.error),
+        (_unknown_zip_version, NotImplementedError),
+        (_garbled_npy_header, tokenize.TokenError),
+    ],
+    ids=["corrupt deflate stream", "unknown zip version", "garbled npy header"],
+)
+def test_a_copy_damaged_inside_its_zip_is_rebuilt_and_warm_rebuilds_it(shipped, tmp_path, caplog, damage, raised):
+    maps = _maps(shipped, tmp_path)
+    maps.planner(ZONE)
+    path = tmp_path / "saved" / "Test-T_Isles.npz"
+    path.write_bytes(damage(path.read_bytes()))
+    with pytest.raises(raised), np.load(path, allow_pickle=False) as arrays:
+        arrays["key"]  # the damage is what it is named for
+
+    assert not _maps(shipped, tmp_path).saved(ZONE)
+    with caplog.at_level(logging.WARNING):
+        planner = _maps(shipped, tmp_path).planner(ZONE)
+    _assert_plans_alike(planner, build_planner(_isles()))
+    assert "unreadable" in caplog.text
+    assert _maps(shipped, tmp_path).saved(ZONE)
+
+    path.write_bytes(damage(path.read_bytes()))
+    assert _maps(shipped, tmp_path).warm([ZONE]) == 1
     assert _maps(shipped, tmp_path).saved(ZONE)
 
 

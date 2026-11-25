@@ -2,6 +2,7 @@
 
 import ast
 import asyncio
+import itertools
 import math
 import threading
 import time
@@ -10,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from bartleby.runtime.arbiter import Arbiter, Owner
+from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.input import ClientInput
 from bartleby.runtime.movement import walk as walk_module
@@ -145,6 +147,41 @@ async def test_a_jump_off_the_route_is_replanned_from_where_it_landed():
 
     assert result.arrived
     assert result.replans == 1
+
+
+async def test_a_jump_into_another_zone_ends_the_walk_unplanned():
+    # The other zone's spot is on a floor of this one that joins nothing: planned on, no route.
+    client = _client(at=(200.0, 500.0, 0.0))
+    planner = _planner(floor(0, 0, 2000, 1000, 0), floor(3000, 0, 4000, 1000, 0))
+    door = asyncio.create_task(
+        _when(client, lambda p: p[0] > 800, lambda: client.place((3500.0, 500.0, 0.0), zone="Test/T_Other"))
+    )
+
+    result = await _walk(client, planner, (1800, 500, 0))
+    await door
+
+    assert result.end is WalkEnd.ZONE_CHANGED
+    assert result.replans == 0
+
+
+async def test_a_jump_into_a_fight_ends_the_walk_unplanned():
+    client = _client()
+
+    def pulled_in():
+        client.place((1200.0, 200.0, 0.0))
+        client.battle = True
+
+    fight = asyncio.create_task(_when(client, lambda p: p[0] > 800, pulled_in))
+
+    result = await _walk(client, _hall(), (3000, 1000, 0))
+    await fight
+
+    assert result.end is WalkEnd.FIGHT
+    assert result.replans == 0
+
+
+def test_a_reset_onto_a_leg_of_one_waypoint_has_walked_it():
+    assert walk_module._next_ahead([(500.0, 500.0, 0.0)], (520.0, 500.0, 0.0)) == 1
 
 
 # --- stalls ----------------------------------------------------------------------------------
@@ -289,6 +326,42 @@ async def test_a_mob_with_no_way_around_is_waited_for_and_the_wait_ends_blocked(
     assert client.held == set()
 
 
+async def test_a_detour_is_planned_standing_even_while_backing_off(monkeypatch):
+    # Cadences, cut so a detour is sought while backing: in a corridor none is ever found.
+    monkeypatch.setattr(walk_module, "WALK_DETOUR_EVERY", 0.1)
+    client = _client(at=(200.0, 100.0, 0.0))
+    corridor = _planner(floor(-4000, 0, 4000, 200, 0))
+    modes, moving_while_planning = set(), []
+    around = corridor.around
+
+    def noting(discs):
+        detour = around(discs)
+        route = detour.route
+
+        def planning(*a, **k):
+            moving_while_planning.append(bool(client.held))
+            return route(*a, **k)
+
+        detour.route = planning
+        return detour
+
+    corridor.around = noting
+    began = time.monotonic()
+
+    async def coming():  # down the corridor at the wizard, gone after 3 s
+        t = time.monotonic() - began
+        return [] if t > 3.0 else [(1, "Ghost", (1200.0 - 150.0 * t, 100.0, 0.0))]
+
+    def tick(t):
+        modes.add(t.mode)
+
+    result = await _walk(client, corridor, (3800, 100, 0), mobs=coming, on_tick=tick)
+
+    assert result.arrived
+    assert "back" in modes
+    assert moving_while_planning and not any(moving_while_planning)
+
+
 def test_a_detour_rejoins_the_route_a_short_way_ahead_outside_every_mob():
     route = [(0.0, 0.0, 0.0), (1000.0, 0.0, 0.0), (2000.0, 0.0, 0.0), (3000.0, 0.0, 0.0), (9000.0, 0.0, 0.0)]
 
@@ -341,6 +414,135 @@ async def test_a_zone_change_ends_the_walk():
     await door
 
     assert result.end is WalkEnd.ZONE_CHANGED
+
+
+async def test_the_first_fight_check_and_key_lookup_are_made_while_the_first_route_is_planned(monkeypatch):
+    # In a fresh process the first in_battle scans for the duel manager (about 0.5 s) and the first
+    # key held reads the bindings: both are made during the first plan, not standing after it.
+    client = _client()
+    planner = _hall()
+    events: list[str] = []
+    route, battle, key_map = planner.route, client.in_battle, game_keys.key_map
+
+    def planning(*a, **k):
+        events.append("plan")
+        time.sleep(0.2)
+        try:
+            return route(*a, **k)
+        finally:
+            events.append("planned")
+
+    async def first(name, call, *a, **k):
+        if name not in events:
+            events.append(name)
+        return await call(*a, **k)
+
+    planner.route = planning
+    monkeypatch.setattr(client, "in_battle", lambda: first("battle", battle))
+    monkeypatch.setattr(game_keys, "key_map", lambda c, **k: first("keys", key_map, c, **k))
+
+    result = await _walk(client, planner, (1400, 1000, 0))
+
+    assert result.arrived
+    planned = events.index("planned")
+    assert events.index("battle") < planned and events.index("keys") < planned
+
+
+async def test_a_failed_first_fight_check_or_key_lookup_leaves_the_walk_as_it_was(monkeypatch):
+    client = _client()
+    battle, key_map = client.in_battle, game_keys.key_map
+    calls = {"battle": 0, "keys": 0}
+
+    async def failing_once(name, call, *a, **k):
+        calls[name] += 1
+        if calls[name] == 1:
+            raise OSError("the process went away for a moment")
+        return await call(*a, **k)
+
+    monkeypatch.setattr(client, "in_battle", lambda: failing_once("battle", battle))
+    monkeypatch.setattr(game_keys, "key_map", lambda c, **k: failing_once("keys", key_map, c, **k))
+
+    result = await _walk(client, _hall(), (1400, 1000, 0))
+
+    assert result.end is WalkEnd.ARRIVED
+    assert calls["battle"] > 1 and calls["keys"] > 1
+
+
+async def test_a_replan_gives_the_walk_time_for_the_route_left(monkeypatch):
+    # A ceiling, cut since running out is the branch tested: 3 s for the 1.5 s first planned.
+    monkeypatch.setattr(walk_module, "WALK_TIME_ALLOWANCE", 0.0)
+    client = _client()
+    moved = asyncio.create_task(_when(client, lambda p: p[0] > 500, lambda: client.place((3800.0, 1900.0, 0.0))))
+
+    result = await _walk(client, _hall(), (800, 1000, 0))
+    await moved
+
+    assert result.replans == 1
+    assert result.end is WalkEnd.ARRIVED
+
+
+async def test_a_walk_replanned_over_and_over_ends_at_its_ceiling(monkeypatch):
+    # Ceilings, cut since running out is the branch tested: 3 s for the first plan's 6 s, and 1.5 s
+    # in all, which no replan renews.
+    monkeypatch.setattr(walk_module, "WALK_TIME_ALLOWANCE", 0.0)
+    monkeypatch.setattr(walk_module, "WALK_CEILING_FACTOR", 0.25)
+    client = _client()
+
+    async def resetting():  # the server puts it off its route each time it gets past x = 1500
+        for y in itertools.cycle((200.0, 1800.0)):  # by turns, each far off the leg from the other
+            await _when(client, lambda p: p[0] > 1500, lambda y=y: client.place((1200.0, y, 0.0)))
+            await asyncio.sleep(0.05)
+
+    server = asyncio.create_task(resetting())
+    try:
+        result = await asyncio.wait_for(_walk(client, _hall(), (2600, 1000, 0)), 10)
+    finally:
+        server.cancel()
+
+    assert result.end is WalkEnd.TIMED_OUT
+    assert "ceiling" in result.detail
+    assert result.replans >= 2
+    assert result.seconds < 3
+
+
+class _SlowToLetGo(ClientInput):
+    """A lease's input whose first release takes a while, for a second cancel to land in."""
+
+    def __init__(self, client) -> None:
+        super().__init__(client)
+        self.slowed = False
+
+    async def release_all(self):
+        if not self.slowed:
+            self.slowed = True
+            await asyncio.sleep(0.5)
+        await super().release_all()
+
+
+async def test_a_second_cancel_while_letting_go_still_stops_the_mob_watch():
+    client = _client()
+    reads = []
+
+    async def mobs():
+        reads.append(time.monotonic())
+        return []
+
+    async def walking():
+        async with Arbiter(make_input=_SlowToLetGo).acquire(client, Owner.MOVEMENT) as lease:
+            await RouteWalker(client, _hall(), mobs=mobs).walk(lease, (3800, 1000, 0))
+
+    task = asyncio.create_task(walking())
+    await _when(client, lambda p: p[0] > 600, lambda: None)
+    task.cancel()
+    await asyncio.sleep(0.1)  # in the first release, now
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    seen = len(reads)
+    await asyncio.sleep(3 * walk_module.WALK_MOB_POLL)
+
+    assert len(reads) == seen
+    assert client.held == set()
 
 
 async def test_a_cancel_mid_walk_lets_go_of_every_key_and_is_not_swallowed():
