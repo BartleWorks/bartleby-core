@@ -1,77 +1,61 @@
 # Walking
 
-Moving a wizard now that the server limits teleports: what the server allows, how a route is
-planned from a zone's own files, how a live walk follows it, and every measurement taken so far.
-
+Moving a wizard by walking: how a route is planned from a zone's own files, how a live walk
+follows it, and every measurement taken so far.
 
 Every BartleBot node that moves a wizard writes its position to memory (34 writes across 18
-files: `client.teleport`, and one wizsprinter `tp_to`), and for most of 2026 the server accepted it. In late October
-it began resetting a wizard to the last position it acknowledged whenever the client claimed
-one it could not have walked to, and the game update of November 2026 limits teleport
-distance on live. So **a written position is only a short hop past an obstacle, such as a
-closed door, and never a way to travel**: everything else walks. This document is the record
-of the work to move by walking. It is still probes, in BartleBot's `tools/`; nothing in
-`bartlebot/` uses them yet, and the Walking Routes epic is what will. Each probe's docstring
-has its own OUTCOME section with the run-by-run numbers.
+files: `client.teleport`, and one wizsprinter `tp_to`). From late October to mid-November 2026
+the server reset any long jump it could not have seen walked; since Ahmarra's live build
+(r813697) long jumps hold again (`WIZARD101.md`, *Moving, and what the server allows*, which
+has the server's rules of movement). BartleBot's Walking Routes epic (BartleBot #322) goes
+ahead anyway, by choice, to take every long teleport out of the app: everything walks, takes
+the game's own links, or crosses one gate an author placed by a hop no longer than its limit.
 
-| probe | what it does | needs a client |
+Route planning is core's, in `bartleby.runtime.movement` (Stage 1 of that epic). Walking a
+route is still a probe in BartleBot's `tools/` until Stage 2 brings it here, and nothing in
+`bartlebot/` walks yet. Each probe's docstring has its own OUTCOME section with the run-by-run
+numbers.
+
+| where | what it does | needs a client |
 |---|---|---|
-| `tools/probe_walk_route.py` | plans a route in any zone from its wad, draws it | no |
-| `tools/probe_walk_input.py` | walks a planned route on a live client, around mobs, through links | yes |
-| `tools/probe_walk_zones.py` | checks every zone's arrival points can reach each other | no |
-| `tools/probe_mob_paths.py` | watches a zone's mobs and says whether they walk their paths | yes |
+| core's `movement/collision.py`, `zone_grid.py`, `patrols.py`, `zone_links.py`, `route.py` | plans a route in a zone from what its files hold | no |
+| BartleBot's `tools/probe_walk_route.py` | reads a zone's wad into core's `ZoneFiles`, plans, draws the routes | no |
+| BartleBot's `tools/probe_walk_input.py` | walks a planned route on a live client, around mobs, through links | yes |
+| BartleBot's `tools/probe_walk_zones.py` | checks every zone's arrival points can reach each other | no |
+| BartleBot's `tools/probe_mob_paths.py` | watches a zone's mobs and says whether they walk their paths | yes |
 
-All four need numpy, which is not a project dependency yet: run them as
-`uv run --no-sync --with numpy python tools/<probe>.py`. Without `--no-sync`, uv syncs first and
-silently swaps an editable bartleby-core for the pinned one. Their output goes to `logs/walk_route/`.
+The probes run as `uv run python tools/<probe>.py`. With core taken by path, editable, add
+`--no-sync`, or uv syncs first and silently swaps the editable core for the pinned one. Their
+output goes to `logs/walk_route/`.
 
-## What the server allows
+**Nothing boosts a wizard's speed while it walks**, until the user's go-ahead (2026-11-24): how
+a boost affects the server's snapbacks is not understood yet. BartleBuddy's followers write
+none (`FOLLOWERS_WRITE_SPEED`), both apps' Speed toggles are off (`SPEED_TOGGLE_ENABLED`), and
+no probe writes it. The 2.0x rule in `WIZARD101.md` stands for when the go-ahead comes.
 
-Everything below rests on one rule, inferred from every observation and contradicted by none:
-**the server checks movement the client claims, never movement the server causes.**
-
-| movement | who causes it | reset? |
-|---|---|---|
-| a position written to memory, far from where the server has the wizard | the client | yes, at once |
-| a short hop written to memory, as past a gate | the client | no, in play since |
-| walking by the movement keys | the client, at walking pace | no, but see resets below |
-| a teleport volume stepped into (Triton's Tele Up) | the server, when the wizard walks in | no |
-| an interact teleporter (Triton's hub stones) | the server, when the interact key is pressed | no |
-| a zone change, the World Gate, porting to a friend, Mark and Recall | the server | no |
-| the run to a duel circle when a fight starts | the server | no |
-| the yaw (facing) written to memory | the client | **no**: the camera turns a wizard at any rate, so the server does not check it |
-
-So a bot reaches anything by walking to it, and takes every shortcut the game itself offers.
-
-**A short hop holds.** The reset above was measured on long jumps across a zone. Hops of a
-short distance, such as stepping past a gate that won't open, have held in play since, with
-no reset. How far a hop can go is not measured, so walking stays the way to cover ground:
-nothing in core writes a position, and BartleBuddy's followers walk (epic BartleBuddy #14
-tabled hops for them, since 2.0x already keeps up).
-
-**Resets happen during ordinary walking too.** On a +40% mount the server threw the wizard back
-seven times across the walks recorded here, 221 to 655 units each time, to where it had stood
-about 0.7s earlier; players see the same rubber-banding. A walk that reads the position back every
-tick absorbs one by re-walking the stretch, at a cost under a second. Nothing about a reset
-needs handling beyond that.
-
-**The speed multiplier may be written, up to 2.0x.** The game engine is built to allow a 2.0x
-speed multiplier, so a walk may write the client's `speed_multiplier` (a percentage,
-`write_speed_multiplier` in wizwalker) up to 100. That field holds the whole bonus, a mount's
-included, so 100 is 2.0x in total and never 2.0x on top of a mount. If a wizard at 2.0x is
-reset more often than on a mount, the value comes down; it is never raised above 100 to find
-where the server's limit is.
+**A short hop holds**, such as a step past a gate that won't open, and has in play since late
+October. Nothing in core writes a position. The epic's Stage 7 gives BartleBot its one hop, an
+author's Teleport to XYZ, with a limit measured from where the wizard stands.
 
 ## Planning a route from a zone's files
 
-`probe_walk_route.build_planner(zone)` builds everything from the zone's wad
-(`GameData/<zone with / as ->.wad`), read with katsuba through `tools/zone_graph/wad_common.py`.
-No client is needed; a zone takes 0.1 to 2s (Unicorn Way about 4s with everything).
+`route.build_planner(files)` builds a zone's `ZonePlanner` from its `ZoneFiles`: the parsed
+solids of `collision.bcd`, the patrols, the named arrival points of `gamedata.bin`, the volumes
+of `volumes.xml`, the volumes `triggers.xml` teleports from, the placed objects that can be
+interacted with, and `zone.nav`. **No planner module opens a file or imports katsuba**: each
+parser takes bytes, and a tool reads them out of the zone's wad (`GameData/<zone with / as
+->.wad`), as BartleBot's `probe_walk_route.zone_files` does with katsuba
+(`tools/zone_graph/wad_common.py`); a test holds it. No client is needed; a zone builds in 0.1
+to 2 s, Unicorn Way in about 4 s with everything.
+
+`planner.route(start, goal, avoid=True)` gives a `Route`, or None, and `planner.legs(route)` the
+stretches to walk.
 
 ### The floor: `collision.bcd`
 
-The parser follows Deimos' `src/collision.py` (PeechezNCreem, ISC); the rule for when a solid
-blocks a foot follows Deimos' `src/collision_math.py` (GPL-3, as BartleBot is).
+`collision.py` and `zone_grid.py`. The parser follows Deimos' `src/collision.py`
+(PeechezNCreem, ISC); the rule for when a solid blocks a foot follows Deimos'
+`src/collision_math.py` (GPL-3, as core is).
 
 - **Floor** is every mesh with the WALKABLE flag (bit 1), rotated and placed by its matrix
   (applied transposed, as Deimos does). Faces steeper than a normal z of 0.5 are cliff, not floor.
@@ -80,8 +64,9 @@ blocks a foot follows Deimos' `src/collision_math.py` (GPL-3, as BartleBot is).
   (Deimos' `_collider_blocks_foot`), which is what lets a ramp pass under a tall cylinder. A
   solid based at or below the floor blocks once it rises 20 above it. Deimos lets a round one
   rise 75, as a big cylinder is often the coarse bounds of a whole structure whose floor lies
-  inside it (Celestia's chamber, radius about 834); **only a round one 400 or more across is
-  given that.** Mirage's hub has a rock, a cylinder of radius 143 rising 56 above the street,
+  inside it (Celestia's chamber, radius about 834); **only a round one of radius 400 or more
+  is given that.** (The probe's notes said "400 across", but its code compared the radius, and
+  every route since was planned that way, so core does too.) Mirage's hub has a rock, a cylinder of radius 143 rising 56 above the street,
   that a route went straight through: walked into, the wizard slid around it holding 182 to 183
   units from its center, which fits radius 142.6 (and puts the wizard's own radius nearer 40
   than 49). Counting small rounds as firm closed 0.7% of Mirage's hub and 0.1% of the other
@@ -107,8 +92,8 @@ floor at about its height, which keeps a route off both walls and drop edges.
 
 ### Mobs: `spawnData.xml`, `pathData.xml`, `pathNodeData.bin`
 
-Every mob spawner names a path; the path is a list of node ids, and the nodes carry
-positions. A spawned template is a mob if it has `DuelistBehavior`, and its `m_npcProximity`
+`patrols.py`. Every mob spawner names a path; the path is a list of node ids, and the nodes
+carry positions. A spawned template is a mob if it has `DuelistBehavior`, and its `m_npcProximity`
 is the trigger radius (200 for most Wizard City mobs, 275 for dark sprites). Both start node
 types walk their paths:
 
@@ -139,11 +124,11 @@ take one: **step into a volume**, or **press the interact key at a placed object
 fast-travel stone, a zipline, a ladder, a rope). Every one taken so far, of either kind, set
 the wizard down within 5 units of one of the zone's named arrival points (`gamedata.bin`'s
 `m_locationList`), so a link is planned as *where it is taken* plus *which arrival point it
-lands on*. **No client file says where any link lands**: a volume's trigger names only the
-event it raises, and every world object's template has `DeletedBehavior` where the behavior
+lands on*. **No client file says where any link lands**: a volume's trigger has a
+`ResTeleport` result with no properties left (below, *Exits*), and every world object's template has `DeletedBehavior` where the behavior
 that moves the wizard would be (`TeleportProximityBehaviorTemplate`, whose `m_locationName`
 is exactly that landing, survives only in housing and guild templates). So the landing is put
-together from what the files do keep, in this order (`probe_walk_route.py`'s `zone_links`):
+together from what the files do keep, in this order (`zone_links.py`'s `zone_links`):
 
 | source | gives | where it holds |
 |---|---|---|
@@ -157,7 +142,7 @@ together from what the files do keep, in this order (`probe_walk_route.py`'s `zo
 What the sources are:
 
 - **`zone.nav`**, in every zone's wad, is the graph the quest arrow routes through
-  (`tools/zone_graph/zone_nav.py`): `zonemap.nav`'s layout without the name table, the 12 bytes
+  (`zone_links.parse_zone_nav`; BartleBot's `tools/zone_graph/zone_nav.py` prints one): `zonemap.nav`'s layout without the name table, the 12 bytes
   that are zero there holding each node's x, y, z. Most nodes sit on a 480-unit grid; **the
   links are its edges no walk takes**, longer than 1,500 across the floor or rising more than
   500 more steeply than 1:1 (a ladder). Edges are stored both ways and say nothing of what they
@@ -207,9 +192,45 @@ the grid, nearly all cinematic or marker spots. The worst left: Empyrea's Husk (
 Big Ben's counterweights and tower (levers and lifts), MooShu's Waterfall Cave, the Hive,
 Forlorn Taig, Dragonspire's Arena. Each has a map in `logs/walk_route/zones/`.
 
+### Exits
+
+**A route keeps out of every exit of its zone but the one it is sent to**, so a walk never leaves
+the zone by an exit it was not sent to, as a teleport into a cave once did (BartleBot #35). An
+exit is a volume that teleports a wizard and is not one of the zone's links
+(`zone_links.zone_exits`). Both halves are read from the files, not guessed from names:
+
+- **Which volumes teleport** comes from `triggers.xml` (`zone_links.teleport_volumes`). katsuba
+  cannot read it, but its records can be: each trigger starts with its name, the events it fires
+  on are strings `Enter_<volume>` and `Exit_<volume>`, and a trigger that teleports holds a
+  `ResTeleport` result, found by its class hash from the type dump. `ResTeleport` keeps no
+  properties in the client's copy, so where it goes is not known. A volume a teleporting trigger
+  fires on when entered is a teleport volume. Names would not do: 52 of the 334 exits below have
+  names no rule catches (`HauntedCaveZoneEntry`, `Volume-ToLibrary`, `Activator Volume (2)`,
+  whose trigger is "Teleport To Lady Blackhope's Tower").
+- **How big each is** comes from `volumes.xml` (`zone_links.parse_volumes`). After a volume's
+  position come its shape and size records: `m_radius`, and for a box `m_length`, `m_width` and a
+  third side, the hashes being the type dump's for properties of those names. A volume with no
+  shape record is a sphere (1,563 of 1,643 surveyed in Wizard City and Krokotopia; 80 are boxes).
+  A box's turn is not in the file, so it reaches as far as the circle holding it however it is
+  turned, its sides read as full lengths, as `collision.bcd`'s are.
+
+Checked against `zone_nav.json`'s 334 verified gate points (2026-11-24), each a spot a bot has
+stepped onto to change zone: **every one lies inside a teleport volume**, and none outside its
+decoded radius, while 83 lie beyond half of it, so the value is a radius and not a diameter. Of
+the 2,296 volumes in those zones, 815 teleport; the rest are points of interest, music and quest
+triggers, which a route crosses freely.
+
+The floor within an exit's reach plus `EXIT_MARGIN` (50, the wizard's own clearance), at about
+its height, is closed to a route, unless the route starts in that exit (a wizard just arrived
+through it walks out) or ends in it (it is sent there). `ZonePlanner.floor_for` builds that
+floor, and a `Route` carries it, so straightening never cuts through an exit the route went
+around. A volume that is one of the zone's links is not closed: a route through it is planned
+to step in. Unicorn Way has nine exits; of the six routes in the probe's OUTCOME, one moved, by
+2.8 cells, to go around one.
+
 ### Routes
 
-A* over the cells (8 neighbors, no cutting a wall's corner), with each link an extra edge from
+`route.py`. A* over the cells (8 neighbors, no cutting a wall's corner), with each link an extra edge from
 the floor near where it is taken (100 units of a volume's center, 150 of an object's) to the
 landing, costing 4 seconds of walking for a volume, 6 for a press, 20 for a ride. The
 heuristic does not know about links, so a route through one is found but not always the
@@ -219,17 +240,22 @@ cuts 100 to 300 grid turns to 20 to 40. A route with links comes back as **legs*
 straightened alone and each but the last ending at the link's volume, or on the floor beside
 the object to press.
 
+**Checked against the probe it came from** (2026-11-24, on r814353): BartleBot's shelved
+`probe_walk_route.py` and core's planner, with exits left out, built the same grid, floor and
+costs and planned every route identically, cell for cell, with the same turns: Unicorn Way's
+three in its OUTCOME, shortest and avoiding, and four each in Triton Avenue (10 links) and
+Floating Mountains (5 rides), whose links matched by name and landing. The Unicorn Way times
+are the OUTCOME's still: 75.5, 53.3 and 34.4 s straightened, against about 75, 55 and 36.
+
 ## Walking a route
 
-`probe_walk_input.py --to <arrival point, placed object or x,y[,z]>` walks from wherever the
-wizard stands.
+BartleBot's `probe_walk_input.py --to <arrival point, placed object or x,y[,z]>` walks from
+wherever the wizard stands, on core's plan. The epic's Stage 2 brings it into core as the walker.
 
-- **Keys are the account's own.** On `ahmarra-test-realm` they come from the client's memory
-  (`clients/game_keys.key_map`), and that reader works on the live game too: MoveForward,
-  MoveBackward, MoveLeft and MoveRight (A and D *turn* a wizard; these are not strafes) and
-  NPCInteract. Before that branch, `Bin/config.xml`'s `MoveForwardStart` and the rest; failing
-  both, W S A D and X. When the branch merges, these five actions belong in its `GameAction`
-  list so a run refuses to start without them.
+- **Keys are the account's own**, read from the client's memory (`KEY_BINDINGS.md`):
+  MoveForward, MoveBackward, MoveLeft and MoveRight (A and D *turn* a wizard; these are not
+  strafes) and NPCInteract, each a `GameAction`. The probe predates that reader and still falls
+  back to `Bin/config.xml`'s `MoveForwardStart` and the rest, then W S A D and X.
 - **Steering writes the yaw.** wizwalker's yaw is 0 facing -y, growing counterclockwise
   (`atan2(-dx, -dy)`). Hundreds of writes, none undone. `--turn-keys` steers with the keys
   instead (A turns the yaw down at about 152 degrees a second), and tracks the route less closely.
@@ -237,7 +263,7 @@ wizard stands.
   flat ground (wizwalker's constant says 580); a mount multiplies it, most by 1.4 and the
   fastest by 1.55. The client's `speed_multiplier` (a percentage) is read to plan; once
   walking, the measured speed takes over. On the +40% mount: 840 expected, 838 measured. No
-  probe writes it yet; writing it up to 100 is allowed (above) and not yet measured.
+  probe writes it, and nothing will until the user's go-ahead (above).
 - **Following** a leg: hold forward, re-aim at the next waypoint each 50ms tick, pass a
   waypoint within 80 units or once past it along its leg, stop within 50 of the goal.
 - **Stalls** (forward held 1.5s, under 60 units moved): back off 150 units with the backward
@@ -283,25 +309,29 @@ Results, all with no battle unless said:
 
 ## What is not done
 
-In rough order of what a bot needs first.
+In rough order of what a bot needs first. Most is a stage of BartleBot's Walking Routes epic
+(#322); `docs/EPICS.md` there has the stage-to-issue table.
 
-1. **Placed objects' collision.** Read each placed object's `CollisionBehavior` solid file into
-   the grid, so a walk does not have to stall on a teleporter stone to find it.
-2. **Walk the link kinds not yet tried**: a rope (Novus's Stone of Heaven), a Lemuria tower
+1. **Walking a route in core** (Stage 2): `probe_walk_input.py`'s walk, on a movement lease, its
+   timing constants in `timing.py`. Several clients walking together belongs there too.
+2. **The shipped zone maps** (Stage 1.2): each zone's planner inputs built once from the wads and
+   shipped, so a run needs no wad and no type dump.
+3. **Placed objects' collision** (Stage 3). Read each placed object's `CollisionBehavior` solid
+   file into the grid, so a walk does not have to stall on a teleporter stone to find it.
+4. **A volume link a route does not take is not closed to it.** A route planned past one could
+   step in and be moved. The walk notices any jump and replans, but the planner could keep out
+   of it as it does an exit; for Stage 2.
+5. **Walk the link kinds not yet tried**: a rope (Novus's Stone of Heaven), a Lemuria tower
    lift, a Krokotopia stone pair, an X / X_B pair. How near an object a press must be is
    assumed (150; every Mirage ladder took a press from where its leg ended); whether facing it
    matters is not known (the walk faces it anyway).
-3. **The 44 zones still apart**: their maps, starting with the worst. Levers and lifts that
+6. **The 44 zones still apart**: their maps, starting with the worst. Levers and lifts that
    change state (Big Ben) may need the quest's state, not a link.
-4. **A checked-in table of verified links**, as `zone_nav.json` keeps verified gates, so a
-   pairing once walked is not re-derived, and one that moved nobody is not tried again.
-5. **Zone exits.** A walk's goal across zones is the zone map's route (`docs/ZONE_NAVIGATION.md`)
-   with each crossing a link to walk to; today every crossing is reached by `client.teleport`.
-6. **Into the app.** A walk node, and every `client.teleport` replaced by walking to the spot
-   (`nodes/node_helpers.py`'s interact loops, `teleport_to_coordinates`, `collect_*`,
-   `enter_zone*`, `ambient_combat`, `handle_potions`), with the timing constants moved into
-   `nodes/timing.py`, numpy added as a dependency, and the pure helpers (`room`, `choose`,
-   `along`, `key_code`, `link_candidates`, `zone_links`, `zone_nav.parse`, `_straight_ok`) given tests. Several clients walking
-   together, and a grid built per zone in a worker thread, belong here too.
-7. **Smaller:** whether any of the 250 non-walkable meshes are walls; decoding a volume's radius
-   and shape; whether a quest-gated link can be told from the client before stepping into it.
+7. **A checked-in table of verified links** (Stage 8), as `zone_nav.json` keeps verified gates,
+   so a pairing once walked is not re-derived, and one that moved nobody is not tried again.
+8. **Zone exits as a route's end.** A walk's goal across zones is the zone map's route
+   (BartleBot's `docs/ZONE_NAVIGATION.md`), with each crossing an exit to walk into; today every
+   crossing is reached by `client.teleport` (Stage 4).
+9. **Smaller:** whether any of the 250 non-walkable meshes are walls; a box volume's turn, and
+   the name of its third side's property; whether a quest-gated link can be told from the
+   client before stepping into it (a trigger's `ReqHasQuest` may say).
