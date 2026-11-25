@@ -429,6 +429,16 @@ def test_opening_a_gate_leaves_closed_what_another_closed_gate_or_a_block_still_
     assert planner.route((300, 500), (2700, 500)) is None
 
 
+def test_a_path_of_waypoints_crosses_a_gate_when_it_steps_on_its_floor_at_its_height():
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    gate = planner.gates[0]
+
+    assert planner.crosses(gate, [(300, 500, 0), (2700, 500, 0)])
+    assert not planner.crosses(gate, [(300, 500, 0), (1300, 500, 0)])  # stops short of it
+    assert not planner.crosses(gate, [(300, 850, 0), (2700, 850, 0)])  # through the other gap
+    assert not planner.crosses(gate, [(300, 500, 900), (2700, 500, 900)])  # a storey above
+
+
 def test_gates_near_a_point_are_the_open_ones_within_reach_nearest_first():
     near, far = _gate("Near", 400, 600), _gate("Far", 400, 600, x=2400)
     planner = _walled((400, 600), gates=[far, near])

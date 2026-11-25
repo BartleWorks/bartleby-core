@@ -498,6 +498,27 @@ class ZonePlanner:
                 found.append((first, k, gate))
         return [gate for _, _, gate in sorted(found, key=lambda t: (t[0], t[1]))]
 
+    def crosses(self, gate: Gate, path: Sequence[Sequence[float]]) -> bool:
+        """Whether walking *path*, points joined by straight lines, steps on *gate*'s floor at
+        about the path's height: a walker's question of a gate it learns of mid-walk, which has
+        the waypoints left to walk, not a :class:`Route`."""
+        j, i, spots = self.gate_floor(gate)
+        _, rows, cols = spots.shape
+        step = self.grid.cell / 2
+        for a, b in zip(path, path[1:], strict=False):
+            n = max(1, math.ceil(math.dist(a[:2], b[:2]) / step))
+            for k in range(n + 1):
+                t = k / n
+                x, y, z = (a[q] + (b[q] - a[q]) * t for q in range(3))
+                row, col = self.grid.index(x, y)
+                if not (j <= row < j + rows and i <= col < i + cols):
+                    continue
+                layers = np.flatnonzero(spots[:, row - j, col - i])
+                with np.errstate(invalid="ignore"):
+                    if (np.abs(self.grid.levels[layers, row, col] - z) <= LEVEL_GAP / 2).any():
+                        return True
+        return False
+
     def gates_near(self, x: float, y: float, z: float, reach: float) -> list[Gate]:
         """The open gates within *reach* of (x, y) at about height z, nearest first."""
         near = []

@@ -2,6 +2,7 @@
 
 import ast
 import asyncio
+import dataclasses
 import itertools
 import math
 import threading
@@ -16,9 +17,9 @@ from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.input import ClientInput
 from bartleby.runtime.movement import walk as walk_module
 from bartleby.runtime.movement.route import ZoneFiles, ZonePlanner, build_planner
-from bartleby.runtime.movement.walk import RouteWalker, WalkEnd, client_mobs, rejoin
+from bartleby.runtime.movement.walk import ClientRead, GateRead, Listing, RouteWalker, WalkEnd, rejoin
 from bartleby.runtime.movement.zone_links import Link, Volume
-from bartleby.runtime.testing.sim_client import SimClient
+from bartleby.runtime.testing.sim_client import SimClient, SimEntity
 from tests.runtime.movement.test_route import _gate, _walled
 from tests.runtime.movement.zone_fixtures import floor, mesh
 
@@ -225,7 +226,8 @@ def _shut_door(old, new):
 
 async def test_a_stall_at_a_gate_closes_it_and_the_walk_goes_around_by_another_way(quick_stalls):
     planner = _walled((400, 600), (750, 1000), gates=[_gate()])
-    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door)
+    # An entity list that cannot be read: the stall is all the walk has to go on.
+    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door, entities=None)
 
     result = await _walk(client, planner, (2700, 500, 0))
 
@@ -236,7 +238,7 @@ async def test_a_stall_at_a_gate_closes_it_and_the_walk_goes_around_by_another_w
 
 async def test_a_stall_at_a_gate_with_no_way_around_ends_no_route_naming_it_and_the_crossing(quick_stalls):
     planner = _walled((400, 600), gates=[_gate()])
-    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door)
+    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door, entities=None)
 
     result = await _walk(client, planner, (2700, 500, 0))
 
@@ -257,6 +259,167 @@ async def test_a_stall_nowhere_near_a_gate_is_recovered_as_before_and_closes_non
 
     assert result.arrived
     assert result.gates_closed == [] and planner.closed == []
+
+
+# --- gates the client lists ----------------------------------------------------------------
+
+
+@pytest.fixture
+def quick_passes(monkeypatch):
+    # A pass over the entity list every 0.2 s, so a walk of a second or two sees several.
+    monkeypatch.setattr(walk_module, "WALK_MOB_REFRESH", 0.2)
+
+
+def _door() -> SimEntity:
+    """The client's entity for test_route's _gate: its template's name, where it is placed."""
+    return SimEntity("Door", (1500.0, 500.0, 0.0))
+
+
+async def test_a_listed_gate_on_the_route_is_planned_around_before_it_is_reached_with_no_stall(quick_stalls):
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door, entities=[_door()])
+
+    result = await _walk(client, planner, (2700, 500, 0))
+
+    assert result.arrived
+    assert result.gates_seen == ["Door"]
+    assert result.recoveries == 0 and result.replans == 0  # closed before the first plan
+    assert result.gates_closed == []
+    assert "gates listed, so closed: Door" in result.describe()
+
+
+async def test_a_listed_gate_with_no_way_around_ends_no_route_naming_it_and_presses_nothing():
+    planner = _walled((400, 600), gates=[_gate()])
+    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door, entities=[_door()])
+
+    result = await _walk(client, planner, (2700, 500, 0))
+
+    assert result.end is WalkEnd.NO_ROUTE
+    assert result.no_route.gate == "Door"
+    assert result.recoveries == 0
+    assert [r for r in client.inputs if r.kind == "down"] == []
+
+
+async def test_a_gate_listed_mid_walk_on_the_way_left_is_replanned_around_with_no_stall(quick_stalls, quick_passes):
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door)
+    # Spawned once the wizard is on its way: unlisted at the first pass, listed from x 600.
+    client.entities = [SimEntity("Door", lambda: (1500.0, 500.0, 0.0) if client.position[0] > 600 else None)]
+
+    result = await _walk(client, planner, (2700, 500, 0))
+
+    assert result.arrived
+    assert result.gates_seen == ["Door"]
+    assert result.recoveries == 0 and result.replans >= 1
+
+
+async def test_a_gate_the_client_does_not_list_stays_open_and_the_route_crosses_it():
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    client = _client(at=(300.0, 500.0, 0.0), entities=[])
+
+    result = await _walk(client, planner, (2700, 500, 0))
+
+    assert result.arrived
+    assert result.gates_seen == [] and planner.closed == []
+    assert max(p[1] for p in result.trail if abs(p[0] - 1500) < 60) < 600  # through the doorway
+
+
+async def test_a_stall_near_a_gate_the_client_shows_gone_blocks_the_floor_ahead_and_leaves_the_gate_open(
+    quick_stalls,
+):
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    blocks = []
+    block = planner.block
+
+    def noting(*a):
+        blocks.append(a)
+        return block(*a)
+
+    planner.block = noting
+    # Something the map lacks stands in the doorway, where the client lists no gate.
+    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door, entities=[])
+
+    result = await _walk(client, planner, (2700, 500, 0))
+
+    assert result.recoveries >= 1 and blocks
+    assert result.gates_closed == [] and planner.closed == []
+
+
+async def test_a_gate_the_read_closed_opens_again_once_the_client_shows_it_gone(quick_passes):
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    client = _client(at=(300.0, 500.0, 0.0))
+    door = SimEntity("Door", lambda: (1500.0, 500.0, 0.0) if door.reads <= 1 else None)  # gone after the first pass
+    client.entities = [door]
+
+    result = await _walk(client, planner, (2700, 500, 0))
+
+    assert result.arrived
+    assert result.gates_seen == ["Door"] and result.gates_opened == ["Door"]
+    assert planner.closed == []
+    assert "opened again, gone: Door" in result.describe()
+
+
+def _pass(at, *objects) -> Listing:
+    return Listing(at, list(objects), {})
+
+
+def test_a_gate_read_closes_what_is_listed_and_takes_for_gone_only_what_is_unlisted_in_range():
+    near, far = _gate("Near"), _gate("Far", x=1500 + walk_module.GATE_LISTED_RANGE + 1000)
+    planner = _walled((400, 600), gates=[near, far])
+    read = GateRead(planner)
+
+    closed, opened = read.update(_pass((1000.0, 500.0, 0.0)))
+    assert (closed, opened) == ([], [])
+    assert read.gone == {near}  # Far is beyond range: not known, so left open
+    assert planner.closed == []
+
+    closed, _ = read.update(_pass((1000.0, 500.0, 0.0), ("Door", far.at)))  # listed far off: exempt from AOI
+    assert closed == [far] and planner.closed == [far]
+    assert read.update(_pass((1000.0, 500.0, 0.0), ("Door", far.at))) == ([], [])  # closed already
+
+
+def test_a_listed_object_is_a_gate_only_by_its_template_and_its_placed_spot():
+    planner = _walled((400, 600), gates=[_gate()])
+    read = GateRead(planner)
+    x, y, z = planner.gates[0].at
+
+    assert read.listed(_pass((0.0, 0.0, 0.0), ("Door", (x + walk_module.GATE_MATCH + 5, y, z)))) == set()
+    assert read.listed(_pass((0.0, 0.0, 0.0), ("Chest", (x, y, z)))) == set()
+    assert read.listed(_pass((0.0, 0.0, 0.0), ("Door", (x + 3, y, z)))) == {planner.gates[0]}
+
+
+def test_a_gate_the_read_closed_opens_after_passes_in_a_row_agree_it_is_gone():
+    planner = _walled((400, 600), gates=[_gate()])
+    gate = planner.gates[0]
+    read = GateRead(planner)
+    here, listed = (1000.0, 500.0, 0.0), ("Door", gate.at)
+    read.update(_pass(here, listed))
+
+    assert read.update(_pass(here)) == ([], [])  # once missing: perhaps a read that skipped it
+    read.update(_pass(here, listed))  # back: the count starts again
+    for _ in range(walk_module.GATE_GONE_PASSES - 1):
+        assert read.update(_pass(here)) == ([], [])
+    assert read.update(_pass(here)) == ([], [gate])
+    assert planner.closed == []
+
+
+def test_a_gate_a_stall_closed_is_never_opened_by_a_read():
+    planner = _walled((400, 600), gates=[_gate()])
+    gate = planner.gates[0]
+    read = GateRead(planner)
+    planner.close(gate)  # as the walk does at a stall
+
+    for _ in range(walk_module.GATE_GONE_PASSES + 1):
+        assert read.update(_pass((1000.0, 500.0, 0.0))) == ([], [])
+    assert planner.closed == [gate]
+
+
+def test_a_link_objects_wall_is_never_read_as_a_gate():
+    planner = _walled((400, 600), gates=[dataclasses.replace(_gate(), wall=True)])
+    read = GateRead(planner)
+
+    assert read.update(_pass((1000.0, 500.0, 0.0), ("Door", planner.gates[0].at))) == ([], [])
+    assert read.gone == set()
 
 
 # --- links -----------------------------------------------------------------------------------
@@ -335,18 +498,16 @@ async def test_a_pressed_link_is_pressed_only_once_its_prompt_shows():
 # --- mobs ------------------------------------------------------------------------------------
 
 
-def _mob_at(*where):
-    async def read():
-        return [(k, "Ghost", w) for k, w in enumerate(where)]
-
-    return read
+def _mobs_at(client, *where):
+    client.entities = [SimEntity("Ghost", w, mob=True) for w in where]
+    return client
 
 
 async def test_a_mob_in_the_way_is_detoured_around_before_it_is_waited_for():
     mob = (1500.0, 1000.0, 0.0)
-    client = _client()
+    client = _mobs_at(_client(), mob)
 
-    result = await _walk(client, _hall(), (3000, 1000, 0), mobs=_mob_at(mob))
+    result = await _walk(client, _hall(), (3000, 1000, 0), watch_mobs=True)
 
     assert result.arrived
     assert result.detours >= 1
@@ -360,7 +521,8 @@ async def test_a_mob_with_no_way_around_is_waited_for_and_the_wait_ends_blocked(
     client = _client(at=(200.0, 100.0, 0.0))
     corridor = _planner(floor(0, 0, 4000, 200, 0))
 
-    result = await _walk(client, corridor, (3800, 100, 0), mobs=_mob_at((2000.0, 100.0, 0.0)))
+    _mobs_at(client, (2000.0, 100.0, 0.0))
+    result = await _walk(client, corridor, (3800, 100, 0), watch_mobs=True)
 
     assert result.end is WalkEnd.BLOCKED
     assert "mobs" in result.detail
@@ -391,14 +553,15 @@ async def test_a_detour_is_planned_standing_even_while_backing_off(monkeypatch):
     corridor.around = noting
     began = time.monotonic()
 
-    async def coming():  # down the corridor at the wizard, gone after 3 s
+    def coming():  # down the corridor at the wizard, gone after 3 s
         t = time.monotonic() - began
-        return [] if t > 3.0 else [(1, "Ghost", (1200.0 - 150.0 * t, 100.0, 0.0))]
+        return None if t > 3.0 else (1200.0 - 150.0 * t, 100.0, 0.0)
 
     def tick(t):
         modes.add(t.mode)
 
-    result = await _walk(client, corridor, (3800, 100, 0), mobs=coming, on_tick=tick)
+    client.entities = [SimEntity("Ghost", coming, mob=True)]
+    result = await _walk(client, corridor, (3800, 100, 0), watch_mobs=True, on_tick=tick)
 
     assert result.arrived
     assert "back" in modes
@@ -412,27 +575,25 @@ def test_a_detour_rejoins_the_route_a_short_way_ahead_outside_every_mob():
     assert rejoin(route, 1, route[0], [(3000.0, 0.0, 500.0)]) == 4
 
 
-async def test_client_mobs_reads_each_listed_mobs_position():
-    class Entity:
-        def __init__(self, gid, x):
-            self.gid, self.x = gid, x
+async def test_one_pass_over_the_entity_list_reads_the_mobs_and_every_object():
+    client = _client()
+    ghost, door, freed = SimEntity("Ghost", (100.0, 0.0, 0.0), mob=True), _door(), SimEntity("Ghost", None, mob=True)
+    client.entities = [ghost, door, freed]
+    lists = []
+    listing = client.get_base_entity_list
 
-        async def global_id_full(self):
-            return self.gid
+    async def counted():
+        lists.append(1)
+        return await listing()
 
-        async def object_name(self):
-            return "Ghost"
+    client.get_base_entity_list = counted
+    read = ClientRead(client)
 
-        async def location(self):
-            if self.x is None:
-                raise RuntimeError("freed")
-            return type("XYZ", (), {"x": self.x, "y": 0.0, "z": 0.0})()
-
-    class Client:
-        async def get_mobs(self):
-            return [Entity(1, 100.0), Entity(2, None)]
-
-    assert await client_mobs(Client())() == [(1, "Ghost", (100.0, 0.0, 0.0))]
+    assert await read.mobs() == [(ghost.gid, "Ghost", (100.0, 0.0, 0.0))]
+    assert read.latest.objects == [("Ghost", (100.0, 0.0, 0.0)), ("Door", (1500.0, 500.0, 0.0))]
+    assert read.latest.at == client.position
+    assert await read.mobs() == [(ghost.gid, "Ghost", (100.0, 0.0, 0.0))]  # positions, no new pass
+    assert lists == [1] and read.passes == 1
 
 
 # --- ending ----------------------------------------------------------------------------------
@@ -564,15 +725,12 @@ class _SlowToLetGo(ClientInput):
 
 async def test_a_second_cancel_while_letting_go_still_stops_the_mob_watch():
     client = _client()
-    reads = []
-
-    async def mobs():
-        reads.append(time.monotonic())
-        return []
+    ghost = SimEntity("Ghost", (3900.0, 1900.0, 0.0), mob=True)
+    client.entities = [ghost]
 
     async def walking():
         async with Arbiter(make_input=_SlowToLetGo).acquire(client, Owner.MOVEMENT) as lease:
-            await RouteWalker(client, _hall(), mobs=mobs).walk(lease, (3800, 1000, 0))
+            await RouteWalker(client, _hall(), watch_mobs=True).walk(lease, (3800, 1000, 0))
 
     task = asyncio.create_task(walking())
     await _when(client, lambda p: p[0] > 600, lambda: None)
@@ -581,10 +739,10 @@ async def test_a_second_cancel_while_letting_go_still_stops_the_mob_watch():
     task.cancel()
     with pytest.raises(asyncio.CancelledError):
         await task
-    seen = len(reads)
+    seen = ghost.reads
     await asyncio.sleep(3 * walk_module.WALK_MOB_POLL)
 
-    assert len(reads) == seen
+    assert ghost.reads == seen
     assert client.held == set()
 
 

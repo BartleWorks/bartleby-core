@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 WALK_SPEED = 600.0
 
 _handles = itertools.count(50_000)
+_gids = itertools.count(1)
 
 # Where a simulated client's config nodes are: in a made-up module and heap, as the game's.
 _MODULE_BASE, _MODULE_SIZE = 0x7FF7_0000_0000, 0x400_0000
@@ -131,6 +132,49 @@ class _Body:
         self.sim.advance()
         self.sim.yaw = yaw % math.tau
         self.sim.log("yaw", yaw)
+
+
+@dataclass
+class _Behavior:
+    """An entity's behavior, as wizsprinter's ``get_mobs`` reads it: NPCBehavior's flag at 288."""
+
+    type_name: str
+    flag: bool
+
+    async def read_type_name(self) -> str:
+        return self.type_name
+
+    async def read_value_from_offset(self, offset: int, primitive) -> bool:
+        return self.flag
+
+
+@dataclass(eq=False)
+class SimEntity:
+    """One entity in a :class:`SimClient`'s list: a placed object under its template's name, or
+    a mob when *mob*. *at* is where it stands, or a callable giving that on each read, None once
+    it is freed, which a read then raises on."""
+
+    name: str
+    at: tuple[float, float, float] | Callable[[], tuple[float, float, float] | None]
+    mob: bool = False
+    gid: int = field(default_factory=lambda: next(_gids))
+    reads: int = 0  # its location read, so many times
+
+    async def global_id_full(self) -> int:
+        return self.gid
+
+    async def object_name(self) -> str:
+        return self.name
+
+    async def location(self) -> XYZ:
+        self.reads += 1
+        at = self.at() if callable(self.at) else self.at
+        if at is None:
+            raise MemoryReadError(0)
+        return XYZ(*at)
+
+    async def inactive_behaviors(self) -> list[_Behavior]:
+        return [_Behavior("NPCBehavior", self.mob)]
 
 
 @dataclass
@@ -447,6 +491,8 @@ class SimClient:
     type_name: str = "WizClientObject"
     npc_range: bool = False
     dialog: bool = False
+    #: What its entity list holds; None stages a list that cannot be read.
+    entities: list[SimEntity] | None = field(default_factory=list)
     #: The size its render device and window are at, and its live UI size.
     game_size: tuple[int, int] = (800, 600)
     ui_size: int = 2
@@ -546,6 +592,11 @@ class SimClient:
 
     async def is_in_dialog(self) -> bool:
         return self.dialog
+
+    async def get_base_entity_list(self) -> list[SimEntity]:
+        if self.entities is None:
+            raise MemoryReadError(0)
+        return list(self.entities)
 
     # -- what the client manager asks of a client ---------------------------------------
 

@@ -18,14 +18,21 @@
 * **Stalls** on something the map doesn't know: back off :data:`BACK_OFF`, close the floor just
   ahead, and replan, up to :data:`MAX_RECOVERIES` times; the next stall ends the walk
   :attr:`WalkEnd.BLOCKED`. A stall within :data:`GATE_REACH` of a gate (``gates.py``) closes
-  that gate instead, on this walk's planner: a gate is open until a walk finds it there. When
-  the replan then finds no way, the walk ends :attr:`WalkEnd.NO_ROUTE` with a
-  :class:`~bartleby.runtime.movement.gates.NoRoute` naming the gate and the crossing past it.
+  that gate instead, on this walk's planner, unless the client shows the gate gone: a gate is
+  open until a walk finds it there. When the replan then finds no way, the walk ends
+  :attr:`WalkEnd.NO_ROUTE` with a :class:`~bartleby.runtime.movement.gates.NoRoute` naming the
+  gate and the crossing past it.
+* **Gates the client lists** (:class:`GateRead`) are closed before the walk reaches them: the
+  entity list is read before the first plan and every
+  :data:`~bartleby.runtime.timing.WALK_MOB_REFRESH` after, on the one pass the mobs are read on,
+  whether or not mobs are watched. A listed gate on the way left is planned around, or the walk
+  ends :attr:`WalkEnd.NO_ROUTE` naming it, with no stall. A gate a pass closed opens again
+  once the client shows it gone in range.
 * **Links**: at a leg's end it stands in the volume, or faces the object and presses Interact
   once the prompt shows, and again every :data:`~bartleby.runtime.timing.WALK_PRESS_EVERY`, until
   moved :data:`LINK_MOVED`. A link that moves nobody in :data:`~bartleby.runtime.timing.WALK_LINK_WAIT`
   is dropped and the route replanned.
-* **Mobs**, when it is given a way to read them (:func:`client_mobs`): each tick it looks
+* **Mobs**, when it is told to watch them (:class:`ClientRead`'s ``mobs``): each tick it looks
   :data:`~bartleby.runtime.timing.WALK_LOOK_AHEAD` along its route and every mob along its
   velocity, and short of room, detours first, planning only to a point a short way along the
   route, then waits or backs off, :data:`~bartleby.runtime.timing.WALK_MOB_WAIT` at most in all.
@@ -53,10 +60,12 @@ from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from wizwalker.constants import Primitive
+
 from bartleby.runtime.arbiter import Lease
 from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction
-from bartleby.runtime.movement.gates import NoRoute
+from bartleby.runtime.movement.gates import Gate, NoRoute
 from bartleby.runtime.movement.geometry import Point, facing, flat_distance, heading_to, wrap
 from bartleby.runtime.movement.route import WIZARD_SPEED, Leg, Route, ZonePlanner
 from bartleby.runtime.movement.zone_links import Link
@@ -109,6 +118,18 @@ BLOCK_RADIUS = 110.0
 #: radius, some 50, from what it walks into, the cells are 40 across, and a gate's edge may be
 #: grazed rather than met square on.
 GATE_REACH = 150.0
+#: Units from the wizard within which the client lists every placed object, so a gate it does not
+#: list this near is gone. Read in game (core's ``docs/WALKING.md``, *Gates*): objects were listed
+#: out to 3,877 to 4,388 units and dropped from 4,555; this is under the least, so a gate is never
+#: taken for gone when it is only out of view.
+GATE_LISTED_RANGE = 3500.0
+#: Units from a gate's placed spot within which a listed object of its template is that gate:
+#: every one seen stood 0 units off.
+GATE_MATCH = 25.0
+#: Passes over the entity list in a row that a gate the read closed must be missing from, within
+#: range, to be opened again: one pass that failed to read its entity would otherwise open it
+#: and close it again, replanning each time.
+GATE_GONE_PASSES = 2
 #: Units a link must move the wizard to have taken it; rising counts, for a ladder.
 LINK_MOVED = 300.0
 #: Units from where a pending link lands within which a jump is that link, taken early at the
@@ -177,6 +198,8 @@ class WalkResult:
     waited: float = 0.0  # standing or backing off for mobs
     least_room: float = math.inf  # beyond a trigger radius and margin
     gates_closed: list[str] = field(default_factory=list)  # each gate a stall found there, in order
+    gates_seen: list[str] = field(default_factory=list)  # each gate the client listed, closed, in order
+    gates_opened: list[str] = field(default_factory=list)  # each the read closed and then saw gone
     no_route: NoRoute | None = None  # why, when it ended NO_ROUTE
     trail: list[Point] = field(default_factory=list, repr=False)
     routes: list[list[Point]] = field(default_factory=list, repr=False)  # each plan's waypoints
@@ -197,6 +220,10 @@ class WalkResult:
             f"walk in {self.zone} from ({self.start[0]:.0f}, {self.start[1]:.0f}) to "
             f"({self.goal[0]:.0f}, {self.goal[1]:.0f}): {self.end.value} at {where} after {self.seconds:.1f} s"
         )
+        if self.gates_seen:
+            text += f"; gates listed, so closed: {', '.join(self.gates_seen)}"
+        if self.gates_opened:
+            text += f"; opened again, gone: {', '.join(self.gates_opened)}"
         return f"{text}, {self.detail}" if self.detail else text
 
 
@@ -213,40 +240,142 @@ class WalkTick:
     room: float
 
 
-# --- mobs ----------------------------------------------------------------------------------
+# --- the client's entity list ----------------------------------------------------------------
 
 #: Every listed mob's key, template name and position, read afresh.
 MobRead = Callable[[], Awaitable[list[tuple[int, str, Point]]]]
 
+#: Where in an ``NPCBehavior`` the flag that makes an entity a mob is, as wizsprinter's
+#: ``get_mobs`` reads it.
+NPC_MOB_FLAG = 288
 
-def client_mobs(client) -> MobRead:
-    """A :data:`MobRead` for a game client: its mobs listed every
-    :data:`~bartleby.runtime.timing.WALK_MOB_REFRESH` (the list reads every entity's behaviors),
-    each one's position read on every call."""
-    entities: dict[int, tuple[object, str]] = {}
-    refreshed = -math.inf
 
-    async def read() -> list[tuple[int, str, Point]]:
-        nonlocal entities, refreshed
-        if time.monotonic() - refreshed >= WALK_MOB_REFRESH:
-            fresh = {}
-            for entity in await client.get_mobs():
+@dataclass(frozen=True)
+class Listing:
+    """One pass over a client's entity list: where the wizard stood, every entity's template
+    name and location, and the mobs among them, by key, with their names."""
+
+    at: Point
+    objects: list[tuple[str, Point]]
+    mobs: dict[int, tuple[object, str]]
+
+
+async def _is_mob(entity) -> bool:
+    """Whether *entity* is a mob, as wizsprinter's ``get_mobs`` decides."""
+    try:
+        for behavior in await entity.inactive_behaviors():
+            if await behavior.read_type_name() == "NPCBehavior":
+                return bool(await behavior.read_value_from_offset(NPC_MOB_FLAG, Primitive.bool))
+    except Exception:  # noqa: BLE001 - freed while read, or not an object with behaviors
+        return False
+    return False
+
+
+class ClientRead:
+    """A client's entity list, read in one pass for its mobs and for the placed objects a walk's
+    gates are matched against (core's ``docs/WALKING.md``, *Gates*).
+
+    :meth:`refresh` makes a pass, and :meth:`mobs`, a :data:`MobRead`, makes one whenever the
+    last is :data:`~bartleby.runtime.timing.WALK_MOB_REFRESH` old, and reads each listed mob's
+    position on every call. *passes* counts the passes made, for a walk to see a new one."""
+
+    def __init__(self, client, clock: Callable[[], float] = time.monotonic) -> None:
+        self.client = client
+        self.clock = clock
+        self.latest: Listing | None = None
+        self.passes = 0
+        self._refreshed = -math.inf
+
+    async def refresh(self) -> Listing:
+        """Read the list once: every entity's template name and location, and which are mobs."""
+        pos = await self.client.body.position()
+        objects: list[tuple[str, Point]] = []
+        mobs: dict[int, tuple[object, str]] = {}
+        for entity in await self.client.get_base_entity_list():
+            try:
+                name = await entity.object_name()
+                loc = await entity.location()
+            except Exception:  # noqa: BLE001 - an entity freed while listed is gone
+                continue
+            if name is None:
+                continue
+            objects.append((name, (loc.x, loc.y, loc.z)))
+            if await _is_mob(entity):
                 try:
-                    fresh[await entity.global_id_full()] = (entity, await entity.object_name())
-                except Exception:  # noqa: BLE001 - an entity freed while listed is gone
+                    mobs[await entity.global_id_full()] = (entity, name)
+                except Exception:  # noqa: BLE001 - freed since
                     continue
-            entities, refreshed = fresh, time.monotonic()
+        self.latest = Listing((pos.x, pos.y, pos.z), objects, mobs)
+        self.passes += 1
+        self._refreshed = self.clock()
+        return self.latest
+
+    async def mobs(self) -> list[tuple[int, str, Point]]:
+        """Every listed mob's key, name and position now."""
+        if self.latest is None or self.clock() - self._refreshed >= WALK_MOB_REFRESH:
+            await self.refresh()
         out = []
-        for key, (entity, name) in list(entities.items()):
+        mobs = self.latest.mobs
+        for key, (entity, name) in list(mobs.items()):
             try:
                 loc = await entity.location()
             except Exception:  # noqa: BLE001 - freed since it was listed
-                entities.pop(key, None)
+                mobs.pop(key, None)
                 continue
             out.append((key, name, (loc.x, loc.y, loc.z)))
         return out
 
-    return read
+
+class GateRead:
+    """What a walk's passes over the entity list say of its zone's gates. A listed gate is there,
+    and is closed. One not listed within :data:`GATE_LISTED_RANGE` of the wizard is gone, and if
+    a pass closed it, it is opened again once :data:`GATE_GONE_PASSES` passes in a row agree. One
+    beyond range and not listed is not known, and stays as it is. A gate a stall closed is never
+    opened."""
+
+    def __init__(self, planner: ZonePlanner) -> None:
+        self.planner = planner
+        self._by_template: dict[str, list[Gate]] = {}
+        for gate in planner.gates:
+            if not gate.wall:
+                self._by_template.setdefault(gate.template, []).append(gate)
+        self.gone: set[Gate] = set()  # by the latest pass
+        self.closed: list[Gate] = []  # closed by a pass and not opened since
+        self._missing: dict[Gate, int] = {}
+
+    def listed(self, listing: Listing) -> set[Gate]:
+        """The gates *listing* shows there."""
+        there = set()
+        for name, at in listing.objects:
+            for gate in self._by_template.get(name, ()):
+                if math.dist(gate.at, at) <= GATE_MATCH:
+                    there.add(gate)
+        return there
+
+    def update(self, listing: Listing) -> tuple[list[Gate], list[Gate]]:
+        """Close every gate *listing* shows there, and open those a pass closed that are gone:
+        the gates closed and those opened."""
+        there = self.listed(listing)
+        shut = set(self.planner.closed)
+        closed = [g for g in self.planner.gates if g in there and g not in shut]
+        for gate in closed:
+            self.planner.close(gate)
+        self.closed += closed
+        self.gone = {
+            g
+            for gates in self._by_template.values()
+            for g in gates
+            if g not in there and math.dist(g.at, listing.at) <= GATE_LISTED_RANGE
+        }
+        opened = []
+        for gate in list(self.closed):
+            self._missing[gate] = self._missing.get(gate, 0) + 1 if gate in self.gone else 0
+            if self._missing[gate] >= GATE_GONE_PASSES:
+                self.planner.open(gate)
+                self.closed.remove(gate)
+                del self._missing[gate]
+                opened.append(gate)
+        return closed, opened
 
 
 @dataclass
@@ -393,12 +522,42 @@ class _Ended(Exception):  # noqa: N818 - a way out of the tick loop, not an erro
         self.end, self.detail = end, detail
 
 
+class _Refresh:
+    """Passes over a client's entity list every :data:`~bartleby.runtime.timing.WALK_MOB_REFRESH`,
+    for a walk's gates when it watches no mobs (a :class:`MobWatch` makes them when it does)."""
+
+    def __init__(self, read: ClientRead) -> None:
+        self._read = read
+        self.errors = 0
+        self._task: asyncio.Task | None = None
+
+    def start(self) -> None:
+        self._task = asyncio.create_task(self._run())
+
+    async def stop(self) -> None:
+        task, self._task = self._task, None
+        if task is not None:
+            task.cancel()
+            await asyncio.wait([task])
+
+    async def _run(self) -> None:
+        while True:
+            await asyncio.sleep(WALK_MOB_REFRESH)
+            try:
+                await self._read.refresh()
+            except Exception:  # noqa: BLE001 - one failed pass; the next may not
+                self.errors += 1
+
+
 class RouteWalker:
     """Walks one client to points in its zone, on the planner it is given.
 
-    *avoid* plans around the patrols (the Avoid Mobs option); *mobs* reads the live ones, which
-    a walk detours around or waits for, and None walks past them unwatched. The planner is the
-    walker's own: a walk closes spots it stalls on and drops links that move nobody, on it.
+    *avoid* plans around the patrols (the Avoid Mobs option); *watch_mobs* watches the live ones,
+    which a walk detours around or waits for, and False walks past them unwatched. Either way it
+    reads the client's entity list for the zone's gates (:class:`GateRead`), on the one pass the
+    mobs are read on; *read* is that list's reader, the client's own unless one is given. The
+    planner is the walker's own: a walk closes the gates it finds there and spots it stalls on,
+    and drops links that move nobody, on it.
     """
 
     def __init__(
@@ -407,16 +566,20 @@ class RouteWalker:
         planner: ZonePlanner,
         *,
         avoid: bool = True,
-        mobs: MobRead | None = None,
+        watch_mobs: bool = False,
+        read: ClientRead | None = None,
         label: str = "",
         on_tick: Callable[[WalkTick], None] | None = None,
     ) -> None:
         self.client = client
         self.planner = planner
         self.avoid = avoid
-        self._read_mobs = mobs
+        self.watch_mobs = watch_mobs
+        self.entities = read or ClientRead(client)
+        self.gates = GateRead(planner)
         self.label = label or "a walk"
         self.on_tick = on_tick
+        self._seen = 0  # the passes over the entity list acted on
 
     async def _read(self) -> tuple[Point, float]:
         pos = await self.client.body.position()
@@ -437,12 +600,15 @@ class RouteWalker:
         position, _ = await self._read()
         zone = await self.client.zone_name()
         result = WalkResult(WalkEnd.NO_ROUTE, zone, position, tuple(goal))
+        await self._first_read(result)
         watch = None
-        if self._read_mobs is not None:
-            watch = MobWatch(self._read_mobs, {p.template: p.proximity for p in self.planner.patrols})
-            watch.start()
+        if self.watch_mobs:
+            watch = MobWatch(self.entities.mobs, {p.template: p.proximity for p in self.planner.patrols})
+        else:
+            watch = _Refresh(self.entities)
+        watch.start()
         try:
-            await self._walk(lease, result, watch, started)
+            await self._walk(lease, result, watch if self.watch_mobs else None, started)
         except _Ended as ended:
             result.end, result.detail = ended.end, ended.detail
         finally:
@@ -452,8 +618,7 @@ class RouteWalker:
                 await lease.input.release_all()
             finally:
                 try:
-                    if watch is not None:
-                        await watch.stop()
+                    await watch.stop()
                 finally:
                     result.seconds = time.monotonic() - started
         try:
@@ -463,6 +628,28 @@ class RouteWalker:
         log = logger.info if result.arrived else logger.warning
         log("%s: %s", self.label, result.describe())
         return result
+
+    async def _first_read(self, result: WalkResult) -> None:
+        """Read the gates before the first plan, so a gate in view never costs a replan. A list
+        that cannot be read leaves every gate as it is, and the walk goes on."""
+        try:
+            listing = await self.entities.refresh()
+        except Exception:  # noqa: BLE001 - the next pass may read it; until then gates stay open
+            logger.debug("%s: the entity list could not be read", self.label, exc_info=True)
+            return
+        self._seen = self.entities.passes
+        self._gate_pass(result, listing)
+
+    def _gate_pass(self, result: WalkResult, listing: Listing) -> tuple[list[Gate], list[Gate]]:
+        """Act on one pass's gates, and note them on *result*: the gates closed and opened."""
+        closed, opened = self.gates.update(listing)
+        for gate in closed:
+            result.gates_seen.append(gate.name)
+            logger.info("%s: the client lists the gate %s: it is closed", self.label, gate.name)
+        for gate in opened:
+            result.gates_opened.append(gate.name)
+            logger.info("%s: the gate %s the client listed is gone: it is open again", self.label, gate.name)
+        return closed, opened
 
     async def _plan(
         self, result: WalkResult, start: Point, goal: Point, planner: ZonePlanner | None = None
@@ -629,6 +816,18 @@ class RouteWalker:
                 if held_up(now) > WALK_MOB_WAIT:
                     raise _Ended(WalkEnd.BLOCKED, f"held up by mobs for over {WALK_MOB_WAIT:.0f} s")
 
+                # A new pass over the entity list: close the gates it lists, open those it shows gone,
+                # and replan when one closed is on the way left, or one opened.
+                if self.entities.passes != self._seen and self.entities.latest is not None:
+                    self._seen = self.entities.passes
+                    closed, opened = self._gate_pass(result, self.entities.latest)
+                    ahead = [[here, *waypoints[target:]], *([*leg.waypoints] for leg in later)]
+                    on_way = [g for g in closed if any(self.planner.crosses(g, path) for path in ahead)]
+                    if on_way or opened:
+                        why = f"around the gate {on_way[0].name}" if on_way else f"past the gate {opened[0].name}"
+                        await replan(here, why)
+                        continue
+
                 target = _passed(waypoints, target, here)
                 if target >= len(waypoints) and link is not None:
                     await stand()
@@ -744,7 +943,8 @@ class RouteWalker:
                     )
                     await self._back_off(keys)
                     fx, fy = facing(yaw)
-                    gates = self.planner.gates_near(x, y, z, GATE_REACH)
+                    # A gate the client shows gone is not what stopped it: the floor ahead is blocked.
+                    gates = [g for g in self.planner.gates_near(x, y, z, GATE_REACH) if g not in self.gates.gone]
                     if gates:
                         self.planner.close(gates[0])
                         result.gates_closed.append(gates[0].name)
