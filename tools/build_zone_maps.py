@@ -26,9 +26,10 @@ USAGE
     ... --compare WizardCity/WC_Streets/WC_Unicorn     # plan on the map and on the wad, and diff
 
 ``--verify`` reports every zone whose wad entries changed since its map was built (the
-``index.json`` hash), every mapped zone whose wad the install lacks, and every zone the lists
-name that has no map; it exits 1 when any is found. It does not see a change in Root.wad's
-templates (a mob's trigger radius, what a placed object does), which a full rebuild does.
+``index.json`` hash), or whose gates' templates and solid files did (its ``objects`` hash),
+every mapped zone whose wad the install lacks, and every zone the lists name that has no map;
+it exits 1 when any is found. It does not see a change in Root.wad's other templates (a mob's
+trigger radius, what a placed object does when pressed), which a full rebuild does.
 
 ``--compare`` builds each zone's planner from its wad and from its shipped map, checks the two
 grids, floors, links and exits are the same, and plans a route between every pair of named
@@ -45,7 +46,7 @@ import os
 import sys
 import tempfile
 import time
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
@@ -55,12 +56,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from bartleby.runtime.movement import zone_maps  # noqa: E402
 from bartleby.runtime.movement.collision import blocking_footprints, walkable_triangles  # noqa: E402
+from bartleby.runtime.movement.gates import mark_walls  # noqa: E402
 from bartleby.runtime.movement.route import ZoneFiles, build_planner, grid_of, links_and_exits  # noqa: E402
 from bartleby.runtime.movement.zone_grid import pieces  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from zone_files import GAME_DATA, ZoneReader, entries_hash, zone_wad, zone_wad_path  # noqa: E402
+from zone_files import GAME_DATA, ZoneReader, entries_hash, zone_record, zone_wad, zone_wad_path  # noqa: E402
 
 # --- which zones -----------------------------------------------------------------------------
 
@@ -108,7 +110,8 @@ def build_group(group: Sequence[ZoneFiles]) -> tuple[bytes, dict[str, str]]:
     texts = {}
     for files in group:
         links, exits = links_and_exits(files, grid, passable, label)
-        texts[files.zone] = zone_maps.zone_text(files.zone, files.patrols, files.named, links, exits)
+        gates = mark_walls(files.gates, links)
+        texts[files.zone] = zone_maps.zone_text(files.zone, files.patrols, files.named, links, exits, gates)
     return zone_maps.floor_bytes(triangles, footprints), texts
 
 
@@ -120,11 +123,14 @@ def _start_worker(types: Path, game_data: Path) -> None:
     _reader = ZoneReader(types, game_data)
 
 
-def _build_task(key: str, zones: list[str]) -> tuple[str, bytes, dict[str, str], dict[str, str], float]:
+def _build_task(key: str, zones: list[str]) -> tuple[str, bytes, dict[str, str], dict[str, dict[str, str]], float]:
     started = time.perf_counter()
     group = [_reader.zone_files(zone) for zone in zones]
     floor, texts = build_group(group)
-    hashes = {zone: entries_hash(zone_wad(zone, _reader.game_data)) for zone in zones}
+    hashes = {
+        zone: {"wad": entries_hash(zone_wad(zone, _reader.game_data)), "objects": _reader.gate_hashes[zone]}
+        for zone in zones
+    }
     return key, floor, texts, hashes, time.perf_counter() - started
 
 
@@ -180,7 +186,7 @@ def build(zones: Sequence[str], out: Path, types: Path, game_data: Path, jobs: i
             for zone, text in texts.items():
                 zone_name = f"{zone_maps.ZONES}/{zone_maps.zone_file_name(zone)}"
                 changed += _write(out / zone_name, text.encode("utf-8"))
-                index[zone] = {"floor": floor_name, "zone": zone_name, "wad": hashes[zone]}
+                index[zone] = {"floor": floor_name, "zone": zone_name, **hashes[zone]}
             print(f"[{done}/{len(tasks)}] {', '.join(members)}  [{seconds:.1f}s]", flush=True)
     for zone in failed:
         index.pop(zone, None)
@@ -200,6 +206,12 @@ def build(zones: Sequence[str], out: Path, types: Path, game_data: Path, jobs: i
         f"(largest {sizes[-1][1].name}, {sizes[-1][0] / 1e6:.1f} MB); {changed} files written or removed  "
         f"[{time.perf_counter() - started:.0f}s]"
     )
+    gates = walls = 0
+    for entry in index.values():
+        for gate in json.loads((out / entry["zone"]).read_text(encoding="utf-8"))["gates"]:
+            gates += 1
+            walls += gate["wall"]
+    print(f"{gates} gates, {walls} of them a link object's and so a wall")
     for zone in missing:
         print(f"  no wad: {zone}")
     for zone, why in sorted(failed.items()):
@@ -210,8 +222,21 @@ def build(zones: Sequence[str], out: Path, types: Path, game_data: Path, jobs: i
 # --- checking ----------------------------------------------------------------------------------
 
 
-def verify(zones: Sequence[str], out: Path, game_data: Path) -> int:
-    """Report every map whose wad changed or is gone, and every listed zone with no map."""
+def gates_hash(types: Path, game_data: Path) -> Callable[[str], str]:
+    """What a zone's gates hash to now, read from the install: ``ZoneReader.gate_hashes``."""
+    reader = ZoneReader(types, game_data)
+
+    def of(zone: str) -> str:
+        reader.gates(zone, zone_record(zone, reader.deserialize, game_data))
+        return reader.gate_hashes[zone]
+
+    return of
+
+
+def verify(zones: Sequence[str], out: Path, game_data: Path, gates_now: Callable[[str], str]) -> int:
+    """Report every map whose wad, or whose gates' templates and solid files (*gates_now*, a
+    zone's gates' hash as the install has them), changed or are gone, and every listed zone with
+    no map."""
     index = zone_maps.ZoneMaps(out).index
     problems = 0
     for zone in sorted(index):
@@ -220,6 +245,9 @@ def verify(zones: Sequence[str], out: Path, game_data: Path) -> int:
             problems += 1
         elif entries_hash(zone_wad(zone, game_data)) != index[zone]["wad"]:
             print(f"  changed: {zone}")
+            problems += 1
+        elif gates_now(zone) != index[zone].get("objects"):
+            print(f"  gates changed: {zone}")
             problems += 1
     for zone in zones:
         if zone not in index:
@@ -243,6 +271,7 @@ def _differences(wad, shipped) -> list[str]:
         == [(p.spawner, p.proximity, p.points.tolist()) for p in shipped.patrols],
         "links": wad.links == shipped.links,
         "exits": wad.exits == shipped.exits,
+        "gates": [g.key() for g in wad.gates] == [g.key() for g in shipped.gates],
     }
     return [name for name, ok in same.items() if not ok]
 
@@ -303,7 +332,7 @@ def main() -> int:
             ap.error("--compare needs --zone")
         return compare(args.zone, args.out, args.types, args.game_data, args.pairs)
     if args.verify:
-        return verify(args.zone or listed, args.out, args.game_data)
+        return verify(args.zone or listed, args.out, args.game_data, gates_hash(args.types, args.game_data))
     if not (args.zone or listed):
         ap.error("name the zones: --zone-nav, --names or --zone")
     return build(args.zone or listed, args.out, args.types, args.game_data, args.jobs, full=not args.zone)

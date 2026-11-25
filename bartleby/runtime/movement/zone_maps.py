@@ -8,7 +8,8 @@ writes what :func:`~bartleby.runtime.movement.route.build_planner` needs of them
   footprints. Zones whose ``collision.bcd`` is the same file share one, keyed by its hash
   (:func:`floor_key`).
 - ``zones/<zone with / as ->.json``: what differs between zones that share a floor: the patrols,
-  the named arrival points, the links and the exits, already found.
+  the named arrival points, the links and the exits, already found, and the gates (``gates.py``),
+  each placed object's solids where it stands.
 - ``index.json``: for each zone, its two files and the hash of the wad entries it was built from
   (``tools/build_zone_maps.py --verify`` checks those against an install).
 
@@ -52,8 +53,9 @@ from pathlib import Path
 import numpy as np
 
 from bartleby.runtime.movement.collision import Footprint
+from bartleby.runtime.movement.gates import Gate
 from bartleby.runtime.movement.patrols import Patrol, clearance
-from bartleby.runtime.movement.route import ZonePlanner, assemble, grid_of
+from bartleby.runtime.movement.route import ZonePlanner, assemble, grid_of, wall_gates
 from bartleby.runtime.movement.zone_grid import Grid
 from bartleby.runtime.movement.zone_links import XYZ, Link, Volume
 from bartleby.shared.vendor import local_vendor_dir
@@ -64,7 +66,8 @@ INDEX_NAME = "index.json"
 FLOORS = "floors"
 ZONES = "zones"
 #: The maps' layout. A change to what a file holds raises it, and a reader refuses any other.
-FORMAT = 1
+#: 2: a zone's file holds its gates.
+FORMAT = 2
 # A zip entry's date, fixed, so the same arrays make the same bytes (the earliest a zip can say).
 _ZIP_DATE = (1980, 1, 1, 0, 0, 0)
 
@@ -135,12 +138,36 @@ def _xyz(point: Sequence[float]) -> XYZ:
     return (float(point[0]), float(point[1]), float(point[2]))
 
 
+def _footprint_record(f: Footprint) -> dict:
+    return {
+        "center": [float(f.center[0]), float(f.center[1])],
+        "radius": float(f.radius),
+        "zlo": float(f.zlo),
+        "zhi": float(f.zhi),
+        "firm": bool(f.firm),
+        "hull": None if f.hull is None else np.asarray(f.hull, dtype=np.float64).tolist(),
+    }
+
+
+def _footprint(record: Mapping) -> Footprint:
+    hull = record["hull"]
+    return Footprint(
+        None if hull is None else np.array(hull, dtype=np.float64).reshape(-1, 2),
+        (float(record["center"][0]), float(record["center"][1])),
+        float(record["radius"]),
+        float(record["zlo"]),
+        float(record["zhi"]),
+        bool(record["firm"]),
+    )
+
+
 def zone_text(
     zone: str,
     patrols: Sequence[Patrol],
     named: Mapping[str, XYZ],
     links: Sequence[Link],
     exits: Sequence[Volume],
+    gates: Sequence[Gate] = (),
 ) -> str:
     """A zone's own file: everything of its planner but the floor, in the order it was found
     (a link's order decides which of two at one spot a leg takes). Every float is written as
@@ -171,6 +198,16 @@ def zone_text(
             for link in links
         ],
         "exits": [dataclasses.asdict(exit) | {"center": list(_xyz(exit.center))} for exit in exits],
+        "gates": [
+            {
+                "name": gate.name,
+                "template": gate.template,
+                "at": list(_xyz(gate.at)),
+                "wall": gate.wall,
+                "footprints": [_footprint_record(f) for f in gate.footprints],
+            }
+            for gate in gates
+        ],
     }
     return json.dumps(record, indent=1, ensure_ascii=False) + "\n"
 
@@ -184,6 +221,7 @@ class ZoneRecord:
     named: dict[str, XYZ]
     links: list[Link]
     exits: list[Volume]
+    gates: list[Gate] = dataclasses.field(default_factory=list)
 
 
 def read_zone(text: str) -> ZoneRecord:
@@ -207,6 +245,16 @@ def read_zone(text: str) -> ZoneRecord:
         {name: _xyz(at) for name, at in record["named"].items()},
         [Link(k["name"], _xyz(k["source"]), k["landing"], _xyz(k["target"]), k["kind"]) for k in record["links"]],
         [Volume(**(e | {"center": _xyz(e["center"])})) for e in record["exits"]],
+        [
+            Gate(
+                g["name"],
+                g["template"],
+                _xyz(g["at"]),
+                tuple(_footprint(f) for f in g["footprints"]),
+                bool(g["wall"]),
+            )
+            for g in record["gates"]
+        ],
     )
 
 
@@ -220,7 +268,7 @@ def index_text(zones: Mapping[str, Mapping[str, str]]) -> str:
 #: What a saved copy was built by. Raise it whenever a change to the planner modules would build
 #: a different grid, floor or clearance from the same map: every saved copy is then rebuilt.
 #: ``test_cache_version_follows_the_planner`` fails on such a change until it is raised.
-CACHE_VERSION = 1
+CACHE_VERSION = 2
 #: How many planners a session keeps in memory, most recently used last: a big street holds
 #: some 20 MB of arrays, and reading one back from its saved copy is quick.
 KEPT = 8
@@ -300,7 +348,7 @@ class ZoneMaps:
 
     def planner(self, zone: str) -> ZonePlanner:
         """*zone*'s planner. Each caller gets its own copy of what a walk changes (the floor it
-        blocks, the links it drops); the rest is shared. Blocks: call :meth:`load` from the
+        blocks, the links it drops, the gates it closes); the rest is shared. Blocks: call :meth:`load` from the
         event loop."""
         with self._zone_lock(zone):
             with self._lock:
@@ -313,7 +361,7 @@ class ZoneMaps:
                     self._planners[zone] = kept
                     while len(self._planners) > KEPT:
                         self._planners.popitem(last=False)
-        return dataclasses.replace(kept, passable=kept.passable.copy(), links=list(kept.links))
+        return dataclasses.replace(kept, passable=kept.passable.copy(), links=list(kept.links), closed=[])
 
     async def load(self, zone: str) -> ZonePlanner:
         """:meth:`planner`, off the event loop."""
@@ -391,6 +439,7 @@ class ZoneMaps:
         floor, own = self._files(zone)
         grid = grid_of(*read_floor(floor))
         record = read_zone(own.decode("utf-8"))
+        wall_gates(grid, record.gates)
         built = _Built(key, grid, grid.passable(), clearance(grid, record.patrols))
         path = self._cache_path(zone)
         partial = path.with_name(f"{path.name}.{os.getpid()}-{threading.get_ident()}.partial")
@@ -414,6 +463,7 @@ class ZoneMaps:
             record.named,
             record.links,
             record.exits,
+            gates=record.gates,
             passable=built.passable,
             room=built.clearance,
         )

@@ -14,7 +14,8 @@ Each zone ships as ``GameData/<zone with / as ->.wad``. What the planner is buil
     zone.nav           the quest arrow's graph
 
 and, from ``Root.wad``, the templates: which spawned ones are duelists and their trigger
-radius, and which placed ones can be interacted with. ``gamedata.bin`` has no ``BINd`` prefix
+radius, which placed ones can be interacted with, and which carry a ``CollisionBehavior`` with a
+solid file, which is read (from ``Root.wad`` or a world's ``WorldData`` wad) into the zone's gates. ``gamedata.bin`` has no ``BINd`` prefix
 and only reads with flags 0; the ``BINd`` files need the stateful flags. Both need the type list
 of the game's revision (a ``r<rev>_WizardDev.json`` dump; core's ``docs/GAME_DATA.md``).
 
@@ -43,7 +44,14 @@ try:  # katsuba 0.4, BartleBot's, has lazy objects and lists of its own; 0.6, co
 except ImportError:
     _OBJECTS, _LISTS = (dict,), (list,)
 
-from bartleby.runtime.movement.collision import CYLINDER, parse_collision
+from bartleby.runtime.movement.collision import (
+    CYLINDER,
+    parse_collision,
+    parse_solid_xml,
+    place_solids,
+    placed_footprints,
+)
+from bartleby.runtime.movement.gates import Gate
 from bartleby.runtime.movement.patrols import Patrol, mob_patrols
 from bartleby.runtime.movement.route import ZoneFiles
 from bartleby.runtime.movement.zone_links import (
@@ -210,6 +218,10 @@ class ZoneReader:
         self.deserialize = Deserializer(types_path)
         self._duelists: dict[int, tuple[str, float] | None] = {}
         self._wads: dict[str, Archive | None] = {}
+        self._solid_templates: dict[int, tuple[str, str, str] | None] = {}
+        self._files: dict[str, bytes | None] = {}
+        #: Each zone's gates' hash, from its last :meth:`gates`: every template and solid file read.
+        self.gate_hashes: dict[str, str] = {}
 
     @functools.cached_property
     def root(self) -> Archive:
@@ -298,6 +310,65 @@ class ZoneReader:
                 out.append(PlacedObject(text(obj["m_zoneTag"]) or template.name, xyz(obj["m_location"]), template))
         return out
 
+    def _file(self, filename: str) -> bytes | None:
+        """A template or solid file's bytes, read once; None when no wad has it or it is unreadable."""
+        if filename not in self._files:
+            try:
+                self._files[filename] = self.template_bytes(filename)
+            except Exception:  # noqa: BLE001 - a wad entry whose contents are missing (four solid files)
+                self._files[filename] = None
+        return self._files[filename]
+
+    def solid_template(self, template_id: int) -> tuple[str, str, str] | None:
+        """A template's name, its file and its solid file, if its ``CollisionBehavior`` names one
+        and does not disable collision."""
+        if template_id not in self._solid_templates:
+            self._solid_templates[template_id] = None
+            filename = self.manifest.get(template_id)
+            data = self._file(filename) if filename is not None else None
+            if data is not None:
+                for b in to_plain(self.deserialize(data)).get("m_behaviors") or []:
+                    if not isinstance(b, dict) or b.get("m_behaviorName") != "CollisionBehavior":
+                        continue
+                    solid = text(b.get("m_solidCollisionFilename"))
+                    if solid and not b.get("m_bDisableCollision"):
+                        self._solid_templates[template_id] = (Path(filename).stem, filename, solid)
+                        break
+        return self._solid_templates[template_id]
+
+    def gates(self, zone: str, record) -> list[Gate]:
+        """The zone's placed objects with a solid file, each one's solids where it stands, in
+        the record's order. Sets ``gate_hashes[zone]``, the SHA-256 of every template and solid
+        file they were read from, so a change to one is seen as a wad entry's change is."""
+        out = []
+        read: set[str] = set()
+        for obj in record["m_objectList"] or []:
+            found = self.solid_template(int(obj["m_templateID.m_full"])) if obj else None
+            if found is None:
+                continue
+            name, template_file, solid_file = found
+            read.update((template_file, solid_file))
+            data = self._file(solid_file)
+            if data is None:
+                continue
+            try:
+                solids = parse_solid_xml(data)
+            except Exception:  # noqa: BLE001 - a solid file that is not the XML the others are
+                continue
+            at = xyz(obj["m_location"])
+            orientation = xyz(obj["m_orientation"])
+            placed = place_solids(solids, at, orientation, float(obj["m_fScale"] or 1.0))
+            footprints = tuple(placed_footprints(placed))
+            if footprints:
+                out.append(Gate(text(obj["m_zoneTag"]) or name, name, at, footprints))
+        digest = hashlib.sha256()
+        for filename in sorted(read):
+            data = self._file(filename) or b""
+            digest.update(f"{filename}\0{len(data)}\0".encode())
+            digest.update(data)
+        self.gate_hashes[zone] = digest.hexdigest()
+        return out
+
     def zone_files(self, zone: str, *, ignore_cylinders: bool = False) -> ZoneFiles:
         """Everything core's planner is built from, read out of the zone's wad. *ignore_cylinders*
         leaves every cylinder off the grid, as reading them wrong once did, so a route runs through
@@ -317,4 +388,5 @@ class ZoneReader:
             teleport_volumes(triggers_data) if triggers_data else frozenset(),
             self.placed_objects(record),
             parse_zone_nav(nav_data) if nav_data else None,
+            self.gates(zone, record),
         )

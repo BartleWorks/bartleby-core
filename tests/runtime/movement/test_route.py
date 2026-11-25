@@ -7,10 +7,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from bartleby.runtime.movement.collision import Footprint
+from bartleby.runtime.movement.gates import Gate
 from bartleby.runtime.movement.patrols import HARD, Patrol
 from bartleby.runtime.movement.route import EXIT_MARGIN, ZoneFiles, ZonePlanner, build_planner, link_reach
-from bartleby.runtime.movement.zone_grid import MAX_RISE, STEP_TOL
-from bartleby.runtime.movement.zone_links import LINK_REACH, Link, Volume
+from bartleby.runtime.movement.zone_grid import CELL, CLEARANCE, MAX_RISE, STEP_TOL
+from bartleby.runtime.movement.zone_links import LINK_REACH, InteractTemplate, Link, PlacedObject, Volume
 from tests.runtime.movement.test_zone_grid import two_storeys
 from tests.runtime.movement.zone_fixtures import box, floor, mesh
 
@@ -302,7 +304,7 @@ def test_a_point_off_every_floor_has_no_route():
 
 # --- what planning reads -------------------------------------------------------------------
 
-PLANNER = ("collision", "zone_grid", "patrols", "zone_links", "route")
+PLANNER = ("collision", "zone_grid", "patrols", "zone_links", "gates", "route")
 MOVEMENT = Path(__file__).resolve().parents[3] / "bartleby" / "runtime" / "movement"
 
 
@@ -319,3 +321,110 @@ def test_no_planner_module_opens_a_file_or_imports_katsuba(module):
 
     assert not {name for name in imports if name.split(".")[0] in ("katsuba", "wizwalker", "pathlib", "io")}
     assert not calls & {"open", "read_bytes", "read_text", "mmap", "load", "fromfile"}
+
+
+# --- gates -------------------------------------------------------------------------------------
+
+#: A gate 120 deep, filling a doorway 200 wide in a wall at x 1500.
+GATE_DEPTH = 120.0
+
+
+def _gate(name="Door", y0=400.0, y1=600.0, x=1500.0, depth=GATE_DEPTH) -> Gate:
+    hull = np.array([(x - depth / 2, y0), (x + depth / 2, y0), (x + depth / 2, y1), (x - depth / 2, y1)])
+    return Gate(name, "Door", (x, (y0 + y1) / 2, 0.0), (Footprint(hull, (0.0, 0.0), 0.0, 0.0, 300.0, True),))
+
+
+def _walled(*gaps: tuple[float, float], gates=()) -> ZonePlanner:
+    """A hall 3000 by 1000 cut in two by a wall at x 1500, 120 deep, open at each (y0, y1) of *gaps*."""
+    edges = [0.0] + [v for gap in gaps for v in gap] + [1000.0]
+    walls = [
+        box((1500, (lo + hi) / 2, 150), GATE_DEPTH, hi - lo, 300)
+        for lo, hi in zip(edges[::2], edges[1::2], strict=True)
+        if hi > lo
+    ]
+    return _planner(mesh(floor(0, 0, 3000, 1000, 0)), *walls, gates=list(gates))
+
+
+def test_a_gate_is_open_until_closed_so_a_route_crosses_it_and_names_it():
+    planner = _walled((400, 600), gates=[_gate()])
+
+    route = planner.route((300, 500), (2700, 500))
+
+    assert route is not None
+    assert [g.name for g in planner.gates_on(route)] == ["Door"]
+
+
+def test_a_placed_solid_closed_takes_its_floor_and_the_clearance_round_it():
+    planner = _walled((400, 600), gates=[_gate()])
+    spot = (0, *planner.grid.index(1500, 500))
+    beside = (0, *planner.grid.index(1500 - GATE_DEPTH / 2 - 20, 500))
+    assert planner.passable[spot] and planner.passable[beside]
+
+    taken = planner.close(planner.gates[0])
+
+    assert taken > 0
+    assert not planner.passable[spot] and not planner.passable[beside]
+    assert planner.closed == [planner.gates[0]]
+    assert planner.close(planner.gates[0]) == 0  # closed already
+
+
+def test_a_route_that_can_walk_around_a_closed_gate_walks_around_it():
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    planner.close(planner.gates[0])
+
+    route = planner.route((300, 500), (2700, 500))
+
+    assert route is not None
+    assert planner.gates_on(route) == []
+    assert min(planner.grid.world(*n)[1] for n in route.nodes if abs(planner.grid.world(*n)[0] - 1500) < 60) > 750
+
+
+def test_a_closed_gate_that_separates_two_floors_is_named_with_its_crossing():
+    planner = _walled((400, 600), gates=[_gate()])
+    planner.close(planner.gates[0])
+
+    assert planner.route((300, 500), (2700, 500)) is None
+    why = planner.no_route((300, 500), (2700, 500))
+
+    assert why.gate == "Door"
+    assert (why.zone, why.start[:2], why.goal[:2]) == (ZONE, (300.0, 500.0), (2700.0, 500.0))
+    # The gate's depth, the clearance each side, to within a cell.
+    assert why.crossing.length == pytest.approx(GATE_DEPTH + 2 * CLEARANCE, abs=CELL)
+    assert why.crossing.before[0] < 1500 < why.crossing.after[0]
+
+
+def test_no_route_names_no_gate_when_none_is_closed_or_opening_one_would_not_help():
+    planner = _planner(mesh(floor(0, 0, 1000, 1000, 0), floor(3000, 0, 4000, 1000, 0)), gates=[_gate(x=2000)])
+    assert planner.no_route((500, 500), (3500, 500)).gate is None
+    planner.close(planner.gates[0])
+    assert planner.no_route((500, 500), (3500, 500)).gate is None
+
+
+def test_gates_near_a_point_are_the_open_ones_within_reach_nearest_first():
+    near, far = _gate("Near", 400, 600), _gate("Far", 400, 600, x=2400)
+    planner = _walled((400, 600), gates=[far, near])
+
+    assert [g.name for g in planner.gates_near(1350, 500, 0, 150)] == ["Near"]
+    planner.close(near)
+    assert planner.gates_near(1350, 500, 0, 150) == []
+
+
+def test_a_link_objects_solid_is_a_wall_and_its_link_is_still_taken_from_the_floor_round_it():
+    teleport = InteractTemplate("Stone", "Press X to Teleport")
+    placed = [PlacedObject("Stone_A", (500, 500, 0), teleport), PlacedObject("Stone_A_B", (3500, 500, 0), teleport)]
+    stone = Gate("Stone_A", "Stone", (500.0, 500.0, 0.0), (Footprint(None, (500.0, 500.0), 43.0, 0.0, 210.0, True),))
+    planner = _planner(
+        mesh(floor(0, 0, 1000, 1000, 0), floor(3000, 0, 4000, 1000, 0)),
+        named={"Near": (600, 500, 0), "Far": (3400, 500, 0)},
+        placed=placed,
+        gates=[stone],
+    )
+
+    assert planner.gates[0].wall
+    assert (
+        not planner.passable[(0, *planner.grid.index(500, 500))]
+        and planner.grid.walls[(0, *planner.grid.index(500, 500))]
+    )
+    assert planner.gates_near(500, 500, 0, 150) == []  # never closed: it is a wall
+    assert any(link.name == "Stone_A" for link in planner.links)
+    assert planner.route((200, 200), (3800, 800)) is not None

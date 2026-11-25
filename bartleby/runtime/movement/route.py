@@ -9,6 +9,10 @@ does not take, since stepping in moves the wizard. Moved from BartleBot's
 ``tools/probe_walk_route.py``, whose ``Planner`` this is; core's ``docs/WALKING.md``,
 *Planning a route*, has what each number was measured against.
 
+A zone's gates (``gates.py``) are open until a planner is told one is closed
+(:meth:`ZonePlanner.close`); a closed one is walled for every route after, and when one is what
+keeps a route from its goal, :meth:`ZonePlanner.no_route` names it.
+
 Planning needs no client and opens no file: :class:`ZoneFiles` is what a tool reads out of the
 zone's wad.
 """
@@ -24,6 +28,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from bartleby.runtime.movement.collision import Footprint, Solid, blocking_footprints, walkable_triangles
+from bartleby.runtime.movement.gates import Crossing, Gate, NoRoute, mark_walls
 from bartleby.runtime.movement.patrols import HARD, HARD_WEIGHT, SOFT, WEIGHT, Patrol, clearance, danger_cost
 from bartleby.runtime.movement.zone_grid import (
     CELL,
@@ -260,6 +265,7 @@ class ZoneFiles:
     teleports: frozenset[str] = frozenset()  # triggers.xml
     placed: list[PlacedObject] = field(default_factory=list)  # gamedata.bin's objects, interactable
     nav: ZoneNav | None = None  # zone.nav
+    gates: list[Gate] = field(default_factory=list)  # gamedata.bin's objects with a solid file
 
 
 @dataclass
@@ -278,6 +284,10 @@ class ZonePlanner:
     max_rise: float = MAX_RISE
     links: list[Link] = field(default_factory=list)
     exits: list[Volume] = field(default_factory=list)
+    gates: list[Gate] = field(default_factory=list)  # a link object's, marked wall, is in the grid's walls
+    closed: list[Gate] = field(default_factory=list)  # the gates this planner was told are closed
+    # Each gate's floor (gate_floor), shared by every copy of a planner, since the grid is.
+    _gate_floors: dict[tuple, tuple[int, int, np.ndarray]] = field(default_factory=dict, repr=False)
     _exit_floors: dict[int, np.ndarray] = field(default_factory=dict, init=False, repr=False)
 
     def node(self, x: float, y: float, z: float | None = None, passable: np.ndarray | None = None) -> Node | None:
@@ -426,6 +436,91 @@ class ZonePlanner:
             closed |= np.hypot(px - x, py - y) <= radius
         return dataclasses.replace(self, passable=self.passable & ~closed[None])
 
+    # --- gates ---------------------------------------------------------------------------------
+
+    def gate_floor(self, gate: Gate) -> tuple[int, int, np.ndarray]:
+        """The floor spots *gate* takes when closed, as (j, i, spots): *spots* a (layer, rows,
+        columns) window of the grid whose corner is cell (j, i). They are the spots passable on
+        the grid as built and not once the gate's footprints are walls too, which takes the
+        wizard's clearance off each side, as :meth:`Grid.passable` does for every other wall.
+        Built on a window around the gate, wide enough that nothing beyond it could change."""
+        name = (gate.name, gate.at)
+        if name not in self._gate_floors:
+            self._gate_floors[name] = _gate_floor(self.grid, gate, self.max_rise)
+        return self._gate_floors[name]
+
+    def _gate_spots(self, gate: Gate) -> tuple[slice, slice, slice, np.ndarray]:
+        j, i, spots = self.gate_floor(gate)
+        return slice(None), slice(j, j + spots.shape[1]), slice(i, i + spots.shape[2]), spots
+
+    def close(self, gate: Gate) -> int:
+        """Wall *gate* for every route this planner plans from now on: a walk found it there.
+        Returns how many floor spots it closed. A link object's gate is a wall already."""
+        if gate.wall or any(g is gate for g in self.closed):
+            return 0
+        layer, rows, cols, spots = self._gate_spots(gate)
+        taken = spots & self.passable[layer, rows, cols]
+        self.passable[layer, rows, cols] &= ~spots
+        self.closed.append(gate)
+        return int(taken.sum())
+
+    def gates_on(self, route: Route) -> list[Gate]:
+        """The gates *route* crosses, in the order it reaches them: those whose floor it steps on."""
+        found: list[tuple[int, int, Gate]] = []
+        nodes = np.asarray(route.nodes, dtype=np.intp).reshape(-1, 3)
+        for k, gate in enumerate(self.gates):
+            if gate.wall:
+                continue
+            first = _first_on(nodes, self.gate_floor(gate))
+            if first is not None:
+                found.append((first, k, gate))
+        return [gate for _, _, gate in sorted(found, key=lambda t: (t[0], t[1]))]
+
+    def gates_near(self, x: float, y: float, z: float, reach: float) -> list[Gate]:
+        """The open gates within *reach* of (x, y) at about height z, nearest first."""
+        near = []
+        for k, gate in enumerate(self.gates):
+            if gate.wall or any(g is gate for g in self.closed):
+                continue
+            d = gate.distance(x, y, z)
+            if d <= reach:
+                near.append((d, k, gate))
+        return [gate for _, _, gate in sorted(near, key=lambda t: (t[0], t[1]))]
+
+    def no_route(self, start: Sequence[float], goal: Sequence[float], avoid: bool = True) -> NoRoute:
+        """Why :meth:`route` found nothing: the zone and both points, and the closed gate in the
+        way, with its :class:`Crossing`, when opening that one gate alone gives a route. The
+        gates closed last are tried first."""
+        start3, goal3 = self._with_height(start), self._with_height(goal)
+        for gate in reversed(self.closed):
+            others = [g for g in self.closed if g is not gate]
+            trial = self.passable.copy()
+            layer, rows, cols, spots = self._gate_spots(gate)
+            trial[layer, rows, cols] |= spots
+            for other in others:
+                o_layer, o_rows, o_cols, o_spots = self._gate_spots(other)
+                trial[o_layer, o_rows, o_cols] &= ~o_spots
+            found = dataclasses.replace(self, passable=trial, closed=others).route(start, goal, avoid)
+            if found is None:
+                continue
+            nodes = np.asarray(found.nodes, dtype=np.intp).reshape(-1, 3)
+            first = _first_on(nodes, self.gate_floor(gate))
+            last = _first_on(nodes[::-1], self.gate_floor(gate))
+            if first is None or last is None:
+                continue
+            last = len(found.nodes) - 1 - last
+            before = self.grid.world(*found.nodes[first - 1]) if first > 0 else start3
+            after = self.grid.world(*found.nodes[last + 1]) if last + 1 < len(found.nodes) else goal3
+            return NoRoute(self.zone, start3, goal3, gate.name, Crossing(before, after, math.dist(before, after)))
+        return NoRoute(self.zone, start3, goal3)
+
+    def _with_height(self, point: Sequence[float]) -> XYZ:
+        """*point* with a height: its own, or the floor's where it snaps to."""
+        if len(point) >= 3:
+            return (float(point[0]), float(point[1]), float(point[2]))
+        spot = self.node(point[0], point[1])
+        return (float(point[0]), float(point[1]), self.grid.world(*spot)[2] if spot is not None else 0.0)
+
     def block(self, x: float, y: float, z: float, radius: float) -> int:
         """Mark the floor within *radius* of (x, y), at about height z, impassable: something a
         walk ran into that the collision file does not have. Returns how many spots it closed."""
@@ -453,6 +548,9 @@ def build_planner(
     grid = floor_grid(files.solids, cell)
     passable = grid.passable(radius, max_rise)
     links, exits = links_and_exits(files, grid, passable, pieces(grid, passable, max_rise))
+    gates = mark_walls(files.gates, links)
+    if wall_gates(grid, gates):
+        passable = grid.passable(radius, max_rise)
     return assemble(
         files.zone,
         grid,
@@ -460,6 +558,7 @@ def build_planner(
         files.named,
         links,
         exits,
+        gates=gates,
         passable=passable,
         hard=hard,
         soft=soft,
@@ -467,6 +566,16 @@ def build_planner(
         hard_weight=hard_weight,
         max_rise=max_rise,
     )
+
+
+def wall_gates(grid: Grid, gates: Sequence[Gate]) -> bool:
+    """Wall *grid* where each gate marked a wall stands (a link object's); whether any was.
+    Done after the links are found, on the floor as ``collision.bcd`` has it, so a link object's
+    own solid never hides its link: the planner takes it from the floor around."""
+    walls = [f for gate in gates if gate.wall for f in gate.footprints]
+    if walls:
+        grid.add_walls(walls)
+    return bool(walls)
 
 
 def links_and_exits(
@@ -498,6 +607,7 @@ def assemble(
     links: Sequence[Link],
     exits: Sequence[Volume],
     *,
+    gates: Sequence[Gate] = (),
     passable: np.ndarray | None = None,
     room: np.ndarray | None = None,
     radius: float = CLEARANCE,
@@ -515,5 +625,64 @@ def assemble(
     room = clearance(grid, patrols) if room is None else room
     cost = danger_cost(room, hard, soft, weight, hard_weight)
     return ZonePlanner(
-        zone, grid, passable, room, cost, list(patrols), dict(named), soft, max_rise, list(links), list(exits)
+        zone,
+        grid,
+        passable,
+        room,
+        cost,
+        list(patrols),
+        dict(named),
+        soft,
+        max_rise,
+        list(links),
+        list(exits),
+        list(gates),
     )
+
+
+def _extent(f: Footprint) -> tuple[float, float, float, float]:
+    """A footprint's bounds on the floor plan: (x low, x high, y low, y high)."""
+    if f.hull is None:
+        (x, y), r = f.center, f.radius
+        return x - r, x + r, y - r, y + r
+    hull = np.asarray(f.hull, dtype=float)
+    return float(hull[:, 0].min()), float(hull[:, 0].max()), float(hull[:, 1].min()), float(hull[:, 1].max())
+
+
+def _gate_floor(grid: Grid, gate: Gate, max_rise: float) -> tuple[int, int, np.ndarray]:
+    """:meth:`ZonePlanner.gate_floor`, built. The window reaches the clearance and two cells
+    beyond the gate's footprints, since a wall changes only the floor within the clearance of it."""
+    empty = (0, 0, np.zeros((len(grid.levels), 0, 0), dtype=bool))
+    if not gate.footprints:
+        return empty
+    bounds = [_extent(f) for f in gate.footprints]
+    reach = max(1, round(CLEARANCE / grid.cell)) + 2
+    i0, i1, j0, j1 = grid._span(
+        min(b[0] for b in bounds), max(b[1] for b in bounds), min(b[2] for b in bounds), max(b[3] for b in bounds)
+    )
+    if i1 < i0 or j1 < j0:
+        return empty
+    i0, j0 = max(0, i0 - reach), max(0, j0 - reach)
+    i1, j1 = min(grid.nx - 1, i1 + reach), min(grid.ny - 1, j1 + reach)
+    window = Grid.from_arrays(
+        grid.levels[:, j0 : j1 + 1, i0 : i1 + 1],
+        grid.walls[:, j0 : j1 + 1, i0 : i1 + 1].copy(),
+        grid.x0 + i0 * grid.cell,
+        grid.y0 + j0 * grid.cell,
+        grid.cell,
+    )
+    before = window.passable(CLEARANCE, max_rise)
+    window.add_walls(list(gate.footprints))
+    return j0, i0, before & ~window.passable(CLEARANCE, max_rise)
+
+
+def _first_on(nodes: np.ndarray, floor: tuple[int, int, np.ndarray]) -> int | None:
+    """The index of the first of *nodes*, (layer, j, i) rows, on a gate's floor, or None."""
+    j, i, spots = floor
+    _, rows, cols = spots.shape
+    inside = (nodes[:, 1] >= j) & (nodes[:, 1] < j + rows) & (nodes[:, 2] >= i) & (nodes[:, 2] < i + cols)
+    at = np.flatnonzero(inside)
+    if not len(at):
+        return None
+    hit = spots[nodes[at, 0], nodes[at, 1] - j, nodes[at, 2] - i]
+    return int(at[np.argmax(hit)]) if hit.any() else None
