@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "WizardCity/WC_Streets/WC_DarkCave",
  "named": {
   "Start": [
@@ -805,6 +805,192 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WC_Barrel instance (4)",
+   "template": "WC_Barrel",
+   "at": [
+    -1092.0460205078125,
+    10296.16015625,
+    -90.77713775634766
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1092.0460205078125,
+      10296.16015625
+     ],
+     "radius": 47.75,
+     "zlo": -71.64778775634765,
+     "zhi": -5.550287756347657,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Barrel instance (6)",
+   "template": "WC_Barrel",
+   "at": [
+    5282.6611328125,
+    3252.10791015625,
+    -99.91903686523438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5282.6611328125,
+      3252.10791015625
+     ],
+     "radius": 47.75,
+     "zlo": -80.78968686523437,
+     "zhi": -14.692186865234376,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Barrel instance (2)",
+   "template": "WC_Barrel",
+   "at": [
+    5250.59814453125,
+    12173.1201171875,
+    0.00043487548828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5250.59814453125,
+      12173.1201171875
+     ],
+     "radius": 47.75,
+     "zlo": 19.129784875488284,
+     "zhi": 85.22728487548828,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Barrel instance (5)",
+   "template": "WC_Barrel",
+   "at": [
+    -560.684814453125,
+    5972.98095703125,
+    0.1152954027056694
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -560.684814453125,
+      5972.98095703125
+     ],
+     "radius": 47.75,
+     "zlo": 19.24464540270567,
+     "zhi": 85.34214540270567,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Barrel instance (3)",
+   "template": "WC_Barrel",
+   "at": [
+    4910.466796875,
+    7857.68212890625,
+    -1.33514404296875e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4910.466796875,
+      7857.68212890625
+     ],
+     "radius": 47.75,
+     "zlo": 19.129336648559573,
+     "zhi": 85.22683664855957,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Barrel instance (1)",
+   "template": "WC_Barrel",
+   "at": [
+    9318.1279296875,
+    14363.669921875,
+    0.00115966796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9318.1279296875,
+      14363.669921875
+     ],
+     "radius": 47.75,
+     "zlo": 19.130509667968752,
+     "zhi": 85.22800966796875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Barrel instance (7)",
+   "template": "WC_Barrel",
+   "at": [
+    5045.416015625,
+    16350.08984375,
+    -99.88485717773438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5045.416015625,
+      16350.08984375
+     ],
+     "radius": 47.75,
+     "zlo": -80.75550717773437,
+     "zhi": -14.658007177734376,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Barrel instance",
+   "template": "WC_Barrel",
+   "at": [
+    13572.7900390625,
+    15837.0302734375,
+    -100.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13572.7900390625,
+      15837.0302734375
+     ],
+     "radius": 47.75,
+     "zlo": -80.87065,
+     "zhi": -14.773150000000001,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

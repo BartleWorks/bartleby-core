@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Plague/Interiors/MS_Plague3_T5",
  "named": {
   "FromPlague3": [
@@ -58,5 +58,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

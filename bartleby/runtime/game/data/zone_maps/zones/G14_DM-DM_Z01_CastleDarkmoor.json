@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "G14_DM/DM_Z01_CastleDarkmoor",
  "named": {
   "Start": [
@@ -62,5 +62,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

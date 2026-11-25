@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Avalon/AV_Z03_CaerLyon",
  "named": {
   "Start": [
@@ -168,6 +168,904 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "AV_FishingGear_01 instance",
+   "template": "AV_FishingGear_01",
+   "at": [
+    -1478.6090087890625,
+    4896.06787109375,
+    1081.8330078125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1478.9772087890624,
+      4894.55797109375
+     ],
+     "radius": 55.1888,
+     "zlo": 1046.3600078125,
+     "zhi": 1156.7376078124998,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "Logres QuestLight",
+   "template": "AV-QuestLight",
+   "at": [
+    6089.47314453125,
+    22553.509765625,
+    1127.155029296875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6089.47314453125,
+      22553.509765625
+     ],
+     "radius": 50.0,
+     "zlo": 1121.1537792968752,
+     "zhi": 1342.544879296875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-HayStack01 instance",
+   "template": "AV-HayStack01",
+   "at": [
+    1064.8509521484375,
+    -6467.97119140625,
+    -0.00012207029794808477
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1064.8509521484375,
+      -6467.97119140625
+     ],
+     "radius": 216.6723,
+     "zlo": 18.67412792970205,
+     "zhi": 28.13502792970205,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-HayStack02 instance",
+   "template": "AV-HayStack02",
+   "at": [
+    6179.873046875,
+    -6533.77197265625,
+    0.5560979843139648
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6179.873046875,
+      -6533.77197265625
+     ],
+     "radius": 216.6723,
+     "zlo": 19.230347984313962,
+     "zhi": 28.691247984313964,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-HayStack03 instance",
+   "template": "AV-HayStack03",
+   "at": [
+    9320.9111328125,
+    -1207.2080078125,
+    521.7446899414062
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9320.9111328125,
+      -1207.2080078125
+     ],
+     "radius": 216.6723,
+     "zlo": 540.4189399414063,
+     "zhi": 549.8798399414063,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-HayStack04 instance",
+   "template": "AV-HayStack04",
+   "at": [
+    4147.35400390625,
+    630.3488159179688,
+    521.7448120117188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4147.35400390625,
+      630.3488159179688
+     ],
+     "radius": 216.6723,
+     "zlo": 540.4190620117188,
+     "zhi": 549.8799620117188,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-HayStack05 instance",
+   "template": "AV-HayStack05",
+   "at": [
+    -1236.0059814453125,
+    3742.364013671875,
+    521.74462890625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1236.0059814453125,
+      3742.364013671875
+     ],
+     "radius": 216.6723,
+     "zlo": 540.41887890625,
+     "zhi": 549.8797789062501,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-IronBark instance",
+   "template": "AV-IronBark",
+   "at": [
+    5537.97021484375,
+    463.3710021972656,
+    522.3007202148438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 513.1910702148436,
+     "zhi": 794.5123702148437,
+     "firm": true,
+     "hull": [
+      [
+       5270.32581484375,
+       310.7850021972656
+      ],
+      [
+       5591.20341484375,
+       310.7850021972656
+      ],
+      [
+       5591.20341484375,
+       651.1896021972657
+      ],
+      [
+       5270.32581484375,
+       651.1896021972657
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AV-BirdFeeder instance",
+   "template": "AV-BirdFeeder",
+   "at": [
+    -946.1671752929688,
+    135.7572021484375,
+    6.103516352595761e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -948.670456939163,
+      128.16437877318856
+     ],
+     "radius": 49.8548,
+     "zlo": -9.175638303766256,
+     "zhi": 100.00136169623374,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-Mill-Wheel-Piece01 instance",
+   "template": "AV-Mill-Wheel-Piece01",
+   "at": [
+    -7014.283203125,
+    16827.1796875,
+    1126.041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7014.283203125,
+      16827.1796875
+     ],
+     "radius": 133.0023,
+     "zlo": 1161.726815625,
+     "zhi": 1218.6628156250001,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-Mill-Wheel-Piece02 instance",
+   "template": "AV-Mill-Wheel-Piece02",
+   "at": [
+    -1676.43603515625,
+    23379.369140625,
+    1149.345947265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 1147.430397265625,
+     "zhi": 1425.285097265625,
+     "firm": true,
+     "hull": [
+      [
+       -1806.9656351562498,
+       23248.221440625
+      ],
+      [
+       -1544.68563515625,
+       23248.221440625
+      ],
+      [
+       -1544.68563515625,
+       23533.855840625
+      ],
+      [
+       -1806.9656351562498,
+       23533.855840625
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AV-Mill-Wheel-Piece03 instance",
+   "template": "AV-Mill-Wheel-Piece03",
+   "at": [
+    6377.0927734375,
+    5017.216796875,
+    522.3007202148438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 505.9862202148438,
+     "zhi": 555.0460202148438,
+     "firm": true,
+     "hull": [
+      [
+       6288.0412234375,
+       4865.592146875
+      ],
+      [
+       6462.3233234375,
+       4865.592146875
+      ],
+      [
+       6462.3233234375,
+       5182.410046875
+      ],
+      [
+       6288.0412234375,
+       5182.410046875
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AV-Mill-Wheel-Piece04 instance",
+   "template": "AV-Mill-Wheel-Piece04",
+   "at": [
+    5086.09814453125,
+    -2998.488037109375,
+    0.5561522841453552
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -15.758347715854644,
+     "zhi": 75.92445228414536,
+     "firm": true,
+     "hull": [
+      [
+       4885.80459453125,
+       -3177.736087109375
+      ],
+      [
+       5274.98509453125,
+       -3177.736087109375
+      ],
+      [
+       5274.98509453125,
+       -2791.164587109375
+      ],
+      [
+       4885.80459453125,
+       -2791.164587109375
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AV-Coconuts instance",
+   "template": "AV-Coconuts",
+   "at": [
+    -865.9033203125,
+    65.95319366455078,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -865.9033202667813,
+      65.95319368251641
+     ],
+     "radius": 35.561,
+     "zlo": -9.1757,
+     "zhi": 12.248299999999999,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-Mill-Wheel-Broken instance",
+   "template": "AV-Mill-Wheel-Broken",
+   "at": [
+    -5211.72119140625,
+    15060.919921875,
+    1059.093017578125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5097.18389140625,
+      14955.412521875
+     ],
+     "radius": 367.7425,
+     "zlo": 1120.1381675781251,
+     "zhi": 1244.797467578125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance",
+   "template": "AV-QuestLight",
+   "at": [
+    9638.95703125,
+    -349.9176025390625,
+    522.30078125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9638.95703125,
+      -349.9176025390625
+     ],
+     "radius": 50.0,
+     "zlo": 516.29953125,
+     "zhi": 737.69063125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-HarvestHouse QuestLight",
+   "template": "AV-QuestLight",
+   "at": [
+    9750.373046875,
+    -1945.864990234375,
+    522.3005981445312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9750.373046875,
+      -1945.864990234375
+     ],
+     "radius": 50.0,
+     "zlo": 516.2993481445312,
+     "zhi": 737.6904481445313,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance (2)",
+   "template": "AV-QuestLight",
+   "at": [
+    9415.888671875,
+    -3156.347900390625,
+    522.2855224609375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9415.888671875,
+      -3156.347900390625
+     ],
+     "radius": 50.0,
+     "zlo": 516.2842724609375,
+     "zhi": 737.6753724609375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance (3)",
+   "template": "AV-QuestLight",
+   "at": [
+    6852.51708984375,
+    -5731.51123046875,
+    0.5561624765396118
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6852.51708984375,
+      -5731.51123046875
+     ],
+     "radius": 50.0,
+     "zlo": -5.445087523460387,
+     "zhi": 215.9460124765396,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight_AV_Z03_Tower01",
+   "template": "AV-QuestLight",
+   "at": [
+    5116.1982421875,
+    -7300.63623046875,
+    0.556101381778717
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5116.1982421875,
+      -7300.63623046875
+     ],
+     "radius": 50.0,
+     "zlo": -5.445148618221282,
+     "zhi": 215.9459513817787,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-RuinedTower QuestLight",
+   "template": "AV-QuestLight",
+   "at": [
+    1996.572998046875,
+    -6601.9501953125,
+    0.556101381778717
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1996.572998046875,
+      -6601.9501953125
+     ],
+     "radius": 50.0,
+     "zlo": -5.445148618221282,
+     "zhi": 215.9459513817787,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance (6)",
+   "template": "AV-QuestLight",
+   "at": [
+    -2947.635009765625,
+    -5085.35888671875,
+    0.5561624765396118
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2947.635009765625,
+      -5085.35888671875
+     ],
+     "radius": 50.0,
+     "zlo": -5.445087523460387,
+     "zhi": 215.9460124765396,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight-WILD-C16",
+   "template": "AV-QuestLight",
+   "at": [
+    -1133.6180419921875,
+    -1800.23095703125,
+    0.5561047196388245
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1133.6180374189175,
+      -1800.2309522869086
+     ],
+     "radius": 50.0,
+     "zlo": -5.445145280361388,
+     "zhi": 215.94595471963862,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-TowerBoss QuestLight",
+   "template": "AV-QuestLight",
+   "at": [
+    2868.114990234375,
+    3993.77392578125,
+    522.3007202148438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2868.114990234375,
+      3993.77392578125
+     ],
+     "radius": 50.0,
+     "zlo": 516.2994702148437,
+     "zhi": 737.6905702148438,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance (9)",
+   "template": "AV-QuestLight",
+   "at": [
+    4356.5322265625,
+    4242.4619140625,
+    522.3007202148438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4356.5322265625,
+      4242.4619140625
+     ],
+     "radius": 50.0,
+     "zlo": 516.2994702148437,
+     "zhi": 737.6905702148438,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance (10)",
+   "template": "AV-QuestLight",
+   "at": [
+    8361.205078125,
+    4485.6767578125,
+    522.301025390625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8361.205078125,
+      4485.6767578125
+     ],
+     "radius": 50.0,
+     "zlo": 516.299775390625,
+     "zhi": 737.690875390625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance (11)",
+   "template": "AV-QuestLight",
+   "at": [
+    9524.859375,
+    1033.1600341796875,
+    522.3007202148438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9524.859375,
+      1033.1600341796875
+     ],
+     "radius": 50.0,
+     "zlo": 516.2994702148437,
+     "zhi": 737.6905702148438,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance (12)",
+   "template": "AV-QuestLight",
+   "at": [
+    1591.8289794921875,
+    -456.6488037109375,
+    0.5560404062271118
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1591.8289794921875,
+      -456.6488037109375
+     ],
+     "radius": 50.0,
+     "zlo": -5.445209593772887,
+     "zhi": 215.9458904062271,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance (13)",
+   "template": "AV-QuestLight",
+   "at": [
+    2730.37109375,
+    -981.0062255859375,
+    0.556101381778717
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2730.37109375,
+      -981.0062255859375
+     ],
+     "radius": 50.0,
+     "zlo": -5.445148618221282,
+     "zhi": 215.9459513817787,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight instance (14)",
+   "template": "AV-QuestLight",
+   "at": [
+    3083.070068359375,
+    -1983.8499755859375,
+    0.5561624765396118
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3083.070068359375,
+      -1983.8499755859375
+     ],
+     "radius": 50.0,
+     "zlo": -5.445087523460387,
+     "zhi": 215.9460124765396,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight to AV_Z03_TowerMalgrims",
+   "template": "AV-QuestLight",
+   "at": [
+    -461.277587890625,
+    23029.529296875,
+    1126.0400390625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -461.277587890625,
+      23029.529296875
+     ],
+     "radius": 50.0,
+     "zlo": 1120.0387890625002,
+     "zhi": 1341.4298890625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-Archive-QuestLight",
+   "template": "AV-QuestLight",
+   "at": [
+    4346.40478515625,
+    -4052.02099609375,
+    222.28579711914062
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4346.40478515625,
+      -4052.02099609375
+     ],
+     "radius": 50.0,
+     "zlo": 216.28454711914063,
+     "zhi": 437.67564711914065,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight_iTowerDarkKnight",
+   "template": "AV-QuestLight",
+   "at": [
+    6561.74609375,
+    9869.119140625,
+    1124.5770263671875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6561.74609375,
+      9869.119140625
+     ],
+     "radius": 50.0,
+     "zlo": 1118.5757763671877,
+     "zhi": 1339.9668763671875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-AmberEstate-QuestLight instance",
+   "template": "AV-QuestLight",
+   "at": [
+    -4012.217041015625,
+    21846.830078125,
+    1127.155029296875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4012.2170372124474,
+      21846.83008015608
+     ],
+     "radius": 50.0,
+     "zlo": 1121.153779296875,
+     "zhi": 1342.5448792968748,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-NoseBiter-QuestLight",
+   "template": "AV-QuestLight",
+   "at": [
+    2578.906982421875,
+    18704.779296875,
+    1124.125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2578.906980315212,
+      18704.779297388723
+     ],
+     "radius": 50.0,
+     "zlo": 1118.12375,
+     "zhi": 1339.5148499999998,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AV-QuestLight_ArchnalHideout",
+   "template": "AV-QuestLight",
+   "at": [
+    6641.4931640625,
+    19124.869140625,
+    1127.155029296875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6641.493159943497,
+      19124.869147195426
+     ],
+     "radius": 50.0,
+     "zlo": 1121.1537792968747,
+     "zhi": 1342.5448792968746,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

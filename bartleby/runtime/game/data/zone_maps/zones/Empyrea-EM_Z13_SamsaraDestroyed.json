@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z13_SamsaraDestroyed",
  "named": {
   "Start": [
@@ -523,6 +523,399 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM-DebrisObject instance",
+   "template": "EM-DebrisObject",
+   "at": [
+    536.95751953125,
+    -6956.1689453125,
+    -854.3781127929688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      540.8029288521541,
+      -6952.226531157362
+     ],
+     "radius": 319.8931803123474,
+     "zlo": -1190.5617751398984,
+     "zhi": -550.7754145152037,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-SupplyBundle instance",
+   "template": "EM-SupplyBundle",
+   "at": [
+    -4240.4482421875,
+    -18887.23046875,
+    -51.32720947265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4218.4518421875,
+      -18861.31066875
+     ],
+     "radius": 59.7063,
+     "zlo": -26.44555947265625,
+     "zhi": 21.04674052734375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-SupplyBundle instance",
+   "template": "EM-SupplyBundle",
+   "at": [
+    -8788.2265625,
+    -18766.009765625,
+    276.5104064941406
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8766.2301625,
+      -18740.089965625
+     ],
+     "radius": 59.7063,
+     "zlo": 301.3920564941406,
+     "zhi": 348.8843564941406,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-SupplyBundle instance",
+   "template": "EM-SupplyBundle",
+   "at": [
+    635.6395874023438,
+    -13280.76953125,
+    -589.030517578125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      657.6359874023437,
+      -13254.84973125
+     ],
+     "radius": 59.7063,
+     "zlo": -564.148867578125,
+     "zhi": -516.6565675781251,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-SupplyBundle instance",
+   "template": "EM-SupplyBundle",
+   "at": [
+    1423.927001953125,
+    -9142.86328125,
+    -909.2805786132812
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1445.923401953125,
+      -9116.94348125
+     ],
+     "radius": 59.7063,
+     "zlo": -884.3989286132812,
+     "zhi": -836.9066286132813,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-SupplyBundle instance",
+   "template": "EM-SupplyBundle",
+   "at": [
+    -4165.51123046875,
+    -7677.328125,
+    -925.269287109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4143.51483046875,
+      -7651.408325
+     ],
+     "radius": 59.7063,
+     "zlo": -900.387637109375,
+     "zhi": -852.8953371093751,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-SupplyBundle instance",
+   "template": "EM-SupplyBundle",
+   "at": [
+    -10334.1796875,
+    -8469.75390625,
+    -454.79290771484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10312.1832875,
+      -8443.83410625
+     ],
+     "radius": 59.7063,
+     "zlo": -429.91125771484377,
+     "zhi": -382.41895771484377,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-SupplyBundle instance",
+   "template": "EM-SupplyBundle",
+   "at": [
+    -9417.2314453125,
+    -10301.1201171875,
+    -454.79290771484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9395.2350453125,
+      -10275.2003171875
+     ],
+     "radius": 59.7063,
+     "zlo": -429.91125771484377,
+     "zhi": -382.41895771484377,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-PrayerColumn03 instance",
+   "template": "EM-PrayerColumn03",
+   "at": [
+    -7499.64111328125,
+    -2688.14697265625,
+    -765.6759033203125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7496.61931328125,
+      -2688.10437265625
+     ],
+     "radius": 78.0084,
+     "zlo": -732.9703033203125,
+     "zhi": -515.6759033203125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-PrayerColumn02 instance",
+   "template": "EM-PrayerColumn02",
+   "at": [
+    -11872.1103515625,
+    -9781.154296875,
+    -418.4237060546875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -11869.0885515625,
+      -9781.111696875
+     ],
+     "radius": 78.0084,
+     "zlo": -385.7181060546875,
+     "zhi": -168.4237060546875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-PrayerColumn01 instance",
+   "template": "EM-PrayerColumn01",
+   "at": [
+    -4737.93017578125,
+    -8681.8837890625,
+    -885.5272827148438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4734.90837578125,
+      -8681.8411890625
+     ],
+     "radius": 78.0084,
+     "zlo": -852.8216827148437,
+     "zhi": -635.5272827148438,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-Urn_Red_Destroyed instance",
+   "template": "EM-Urn_Red",
+   "at": [
+    -4622.47119140625,
+    -16068.91015625,
+    -193.23129272460938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4625.16839140625,
+      -16071.98295625
+     ],
+     "radius": 100.1764,
+     "zlo": -190.71409272460937,
+     "zhi": -14.177292724609373,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Hub_EM_Z13_Kalamar_House",
+   "template": "EM_QuestLight_Kalamar",
+   "at": [
+    -13577.6201171875,
+    -17347.720703125,
+    204.39149475097656
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -13576.551000172725,
+      -17339.950367300717
+     ],
+     "radius": 36.2277,
+     "zlo": 226.57599475239687,
+     "zhi": 454.3915947523969,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_EM_Z13_KalamarHouse04",
+   "template": "EM_QuestLight_Kalamar",
+   "at": [
+    -3383.77392578125,
+    -8640.9248046875,
+    -885.5272827148438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3388.127565989631,
+      -8634.400472430838
+     ],
+     "radius": 36.2277,
+     "zlo": -863.3427825827986,
+     "zhi": -635.5271825827987,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_EM_Z13_KalamarHouse03",
+   "template": "EM_QuestLight_Kalamar",
+   "at": [
+    -11694.509765625,
+    -8501.1513671875,
+    -418.4237060546875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -11702.151460317427,
+      -8499.383441615602
+     ],
+     "radius": 36.2277,
+     "zlo": -396.23920579089605,
+     "zhi": -168.42360579089603,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_EM_Z13_KalamarHouse02",
+   "template": "EM_QuestLight_Kalamar",
+   "at": [
+    -13479.5595703125,
+    -13930.5400390625,
+    193.49229431152344
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -13482.654938669884,
+      -13923.333110587533
+     ],
+     "radius": 36.2277,
+     "zlo": 215.67679433756757,
+     "zhi": 443.4923943375676,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Hub_EM_Z13_PossessedShrine",
+   "template": "EM_QuestLight_Kalamar",
+   "at": [
+    -7916.583984375,
+    -4781.408203125,
+    -759.5285034179688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7917.382384375,
+      -4773.605403125
+     ],
+     "radius": 36.2277,
+     "zlo": -737.3440034179687,
+     "zhi": -509.5284034179687,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

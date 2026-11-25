@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z03_OuterAthanor",
  "named": {
   "Target location IceStorm": [
@@ -147,6 +147,612 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM-SnowDrift",
+   "template": "EM-SnowDrift",
+   "at": [
+    -4.821587085723877,
+    -9.43639087677002,
+    10.735250473022461
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -147.37435539323712,
+     "zhi": 352.62565098772745,
+     "firm": true,
+     "hull": [
+      [
+       -145.0917537169828,
+       -160.22252008558843
+      ],
+      [
+       36.62999311632552,
+       -555.7571546284016
+      ],
+      [
+       36.62999487486104,
+       -555.7571545575568
+      ],
+      [
+       1655.169279341536,
+       187.8535444943385
+      ],
+      [
+       1473.4475325082276,
+       583.3881790371518
+      ],
+      [
+       1473.447530749692,
+       583.3881789663069
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EM-SteamVent_01_Outer",
+   "template": "EM-SteamVent",
+   "at": [
+    10603.509765625,
+    -3861.35791015625,
+    -899.0037231445312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -914.3233253091781,
+     "zhi": -866.4029209511001,
+     "firm": true,
+     "hull": [
+      [
+       10540.989651563434,
+       -3844.922506189213
+      ],
+      [
+       10621.277523807208,
+       -3926.679314127924
+      ],
+      [
+       10621.277525301577,
+       -3926.679314754782
+      ],
+      [
+       10664.07727947024,
+       -3884.648549594104
+      ],
+      [
+       10583.789407226466,
+       -3802.891741655393
+      ],
+      [
+       10583.789405732097,
+       -3802.8917410285353
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EM-SteamVent_02_Outer",
+   "template": "EM-SteamVent",
+   "at": [
+    9243.19921875,
+    -2516.125,
+    -899.0037841796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -914.3233862345666,
+     "zhi": -866.4029820928523,
+     "firm": true,
+     "hull": [
+      [
+       9180.072087109476,
+       -2502.201910920565
+      ],
+      [
+       9263.563932731016,
+       -2580.6839457340734
+      ],
+      [
+       9263.563934165553,
+       -2580.6839463023734
+      ],
+      [
+       9304.649341991071,
+       -2536.975898522808
+      ],
+      [
+       9221.157496369531,
+       -2458.4938637092996
+      ],
+      [
+       9221.157494934994,
+       -2458.4938631409996
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_IceCuttingComplex",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    533.4176025390625,
+    -328.9289855957031,
+    0.43454408645629883
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      532.6192025390625,
+      -321.12618559570313
+     ],
+     "radius": 36.2277,
+     "zlo": 22.6190440864563,
+     "zhi": 250.43464408645627,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_MeltingHouse",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    3593.3291015625,
+    -5230.14306640625,
+    -1453.4990234375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3592.5307015625,
+      -5222.34026640625
+     ],
+     "radius": 36.2277,
+     "zlo": -1431.3145234375,
+     "zhi": -1203.4989234375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Vault",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    13694.7998046875,
+    -12083.240234375,
+    -600.4678955078125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13688.848551981095,
+      -12078.131057378945
+     ],
+     "radius": 36.2277,
+     "zlo": -578.2833953900707,
+     "zhi": -350.46779539007076,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_AccessTunnel",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    7261.48193359375,
+    -6954.92919921875,
+    -2401.1669921875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7260.68353359375,
+      -6947.12639921875
+     ],
+     "radius": 36.2277,
+     "zlo": -2378.9824921875,
+     "zhi": -2151.1668921875003,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_IceSupplyCave",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    4673.52392578125,
+    1783.4840087890625,
+    -1001.5700073242188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4668.665216401468,
+      1789.6414477036628
+     ],
+     "radius": 36.2277,
+     "zlo": -979.3855072522977,
+     "zhi": -751.5699072522978,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_MagicalArchive",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    8492.8935546875,
+    -5198.7880859375,
+    -902.2459716796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8487.191019551296,
+      -5193.402717365128
+     ],
+     "radius": 36.2277,
+     "zlo": -880.0614715740236,
+     "zhi": -652.2458715740237,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_RomeoHouse",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    7868.36279296875,
+    -2552.25,
+    -902.2965087890625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7867.56439296875,
+      -2544.4472
+     ],
+     "radius": 36.2277,
+     "zlo": -880.1120087890624,
+     "zhi": -652.2964087890625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_IceCuttingComplex_02",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    1169.302978515625,
+    -119.17900085449219,
+    -1.3575999736785889
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1168.504578515625,
+      -111.37620085449218
+     ],
+     "radius": 36.2277,
+     "zlo": 20.82690002632141,
+     "zhi": 248.6425000263214,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_GreatHall",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    9567.9248046875,
+    -3129.83203125,
+    -901.0800170898438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9567.1264046875,
+      -3122.02923125
+     ],
+     "radius": 36.2277,
+     "zlo": -878.8955170898437,
+     "zhi": -651.0799170898438,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_GreatHall_02",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    9981.0068359375,
+    -3536.951904296875,
+    -908.3265991210938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9980.2084359375,
+      -3529.149104296875
+     ],
+     "radius": 36.2277,
+     "zlo": -886.1420991210937,
+     "zhi": -658.3264991210938,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_MeltingHouse_02",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    3305.114990234375,
+    -4840.2998046875,
+    -1450.60400390625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3304.316590234375,
+      -4832.4970046875
+     ],
+     "radius": 36.2277,
+     "zlo": -1428.41950390625,
+     "zhi": -1200.60390390625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Vault_02",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    13125.7900390625,
+    -12666.0703125,
+    -604.57958984375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13124.9916390625,
+      -12658.2675125
+     ],
+     "radius": 36.2277,
+     "zlo": -582.3950898437499,
+     "zhi": -354.57948984374997,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_AccessTunnel_02",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    7816.6171875,
+    -6954.0498046875,
+    -2400.113037109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7815.8187875,
+      -6946.2470046875
+     ],
+     "radius": 36.2277,
+     "zlo": -2377.928537109375,
+     "zhi": -2150.1129371093753,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Bunker",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    13499.150390625,
+    563.7775268554688,
+    896.9259033203125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13498.351990625,
+      571.5803268554688
+     ],
+     "radius": 36.2277,
+     "zlo": 919.1104033203126,
+     "zhi": 1146.9260033203125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_Bunker_02",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    13872.5302734375,
+    199.2989044189453,
+    898.7468872070312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13871.7318734375,
+      207.1017044189453
+     ],
+     "radius": 36.2277,
+     "zlo": 920.9313872070313,
+     "zhi": 1148.7469872070312,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_IceSupplyCave_02",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    5338.56298828125,
+    2254.303955078125,
+    -1000.2839965820312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5337.76458828125,
+      2262.106755078125
+     ],
+     "radius": 36.2277,
+     "zlo": -978.0994965820312,
+     "zhi": -750.2838965820313,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_MagicalArchive_02",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    7997.81982421875,
+    -4841.3232421875,
+    -904.1309204101562
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7997.02142421875,
+      -4833.5204421875
+     ],
+     "radius": 36.2277,
+     "zlo": -881.9464204101562,
+     "zhi": -654.1308204101563,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_QuestLight_RomeoHouse_02",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    8194.12109375,
+    -2157.80810546875,
+    -902.9332885742188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8193.32269375,
+      -2150.00530546875
+     ],
+     "radius": 36.2277,
+     "zlo": -880.7487885742187,
+     "zhi": -652.9331885742188,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Ice-FrozenBuilding",
+   "template": "EM-QuestLight-Ice",
+   "at": [
+    15778.2197265625,
+    -4942.6669921875,
+    -399.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      15777.4213265625,
+      -4934.8641921875
+     ],
+     "radius": 36.2277,
+     "zlo": -376.8155,
+     "zhi": -148.99989999999997,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-CrownEmpyreal instance",
+   "template": "EM-CrownEmpyreal",
+   "at": [
+    1928.9329833984375,
+    994.6234741210938,
+    1.001220941543579
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1922.4333833984374,
+      999.8574741210938
+     ],
+     "radius": 26.7515,
+     "zlo": -5.192629058456422,
+     "zhi": 60.54627094154358,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

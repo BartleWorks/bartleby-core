@@ -19,6 +19,7 @@ from bartleby.runtime.movement.route import ZoneFiles, ZonePlanner, build_planne
 from bartleby.runtime.movement.walk import RouteWalker, WalkEnd, client_mobs, rejoin
 from bartleby.runtime.movement.zone_links import Link, Volume
 from bartleby.runtime.testing.sim_client import SimClient
+from tests.runtime.movement.test_route import _gate, _walled
 from tests.runtime.movement.zone_fixtures import floor, mesh
 
 ZONE = "Test/T_Street"
@@ -214,6 +215,48 @@ async def test_three_stalls_are_recovered_and_the_fourth_ends_the_walk_blocked(q
     assert result.recoveries == 4
     assert "stalled" in result.detail
     assert client.held == set()
+
+
+def _shut_door(old, new):
+    """The gate test_route's _gate stands for, there in the game: a wizard, some 45 across, stops
+    short of its 120-deep solid in the doorway from y 400 to 600."""
+    return old if abs(new[0] - 1500) < 60 + 45 and 400 - 45 < new[1] < 600 + 45 else new
+
+
+async def test_a_stall_at_a_gate_closes_it_and_the_walk_goes_around_by_another_way(quick_stalls):
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door)
+
+    result = await _walk(client, planner, (2700, 500, 0))
+
+    assert result.arrived
+    assert result.gates_closed == ["Door"]
+    assert result.recoveries == 1
+
+
+async def test_a_stall_at_a_gate_with_no_way_around_ends_no_route_naming_it_and_the_crossing(quick_stalls):
+    planner = _walled((400, 600), gates=[_gate()])
+    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door)
+
+    result = await _walk(client, planner, (2700, 500, 0))
+
+    assert result.end is WalkEnd.NO_ROUTE
+    assert result.gates_closed == ["Door"]
+    assert result.no_route.gate == "Door"
+    assert result.no_route.crossing.before[0] < 1500 < result.no_route.crossing.after[0]
+    assert "the closed gate Door is in the way" in result.describe()
+    assert client.held == set()
+
+
+async def test_a_stall_nowhere_near_a_gate_is_recovered_as_before_and_closes_none(quick_stalls):
+    post = (1000.0, 500.0)
+    planner = _walled((400, 600), gates=[_gate()])
+    client = _client(at=(300.0, 500.0, 0.0), on_step=lambda old, new: old if math.dist(new[:2], post) < 60 else new)
+
+    result = await _walk(client, planner, (1200, 500, 0))
+
+    assert result.arrived
+    assert result.gates_closed == [] and planner.closed == []
 
 
 # --- links -----------------------------------------------------------------------------------

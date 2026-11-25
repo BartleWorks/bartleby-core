@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Marleybone/MB_Hub",
  "named": {
   "From MB Robe Shop": [
@@ -492,6 +492,470 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DynaTrigger_MB_Mailbox instance",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    -582.2376708984375,
+    5150.00390625,
+    20.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -582.2376677867569,
+      5150.003907551243
+     ],
+     "radius": 69.62,
+     "zlo": -16.605000000000047,
+     "zhi": 256.6049999999999,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (1)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    2740.508056640625,
+    7517.384765625,
+    20.000070571899414
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2740.5080597963633,
+      7517.384773020783
+     ],
+     "radius": 69.62,
+     "zlo": -16.604929428100903,
+     "zhi": 256.6050705718991,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (2)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    6061.87890625,
+    11474.1396484375,
+    20.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6061.878905067334,
+      11474.139648600536
+     ],
+     "radius": 69.62,
+     "zlo": -16.605000000000004,
+     "zhi": 256.60499999999996,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (3)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    3292.177978515625,
+    718.955078125,
+    20.000030517578125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3292.1779816185253,
+      718.9550855749037
+     ],
+     "radius": 69.62,
+     "zlo": -16.60496948242219,
+     "zhi": 256.6050305175778,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (4)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    5818.115234375,
+    2818.013916015625,
+    20.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5818.115237486365,
+      2818.01391731655
+     ],
+     "radius": 69.62,
+     "zlo": -16.605000000000047,
+     "zhi": 256.6049999999999,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (5)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    8925.12109375,
+    6220.28076171875,
+    20.000030517578125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8925.121093648439,
+      6220.28077045985
+     ],
+     "radius": 69.62,
+     "zlo": -16.60496948242225,
+     "zhi": 256.60503051757775,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (6)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    -5313.3837890625,
+    11129.91015625,
+    20.000059127807617
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5313.383793592031,
+      11129.910156249998
+     ],
+     "radius": 69.62,
+     "zlo": -16.604940872192472,
+     "zhi": 256.6050591278075,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (7)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    -8539.951171875,
+    12681.48046875,
+    20.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8539.951172769124,
+      12681.480467855896
+     ],
+     "radius": 69.62,
+     "zlo": -16.605000000000004,
+     "zhi": 256.60499999999996,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (8)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    -10175.3798828125,
+    8165.10302734375,
+    20.000030517578125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10175.379878639447,
+      8165.103030218291
+     ],
+     "radius": 69.62,
+     "zlo": -16.604969482421993,
+     "zhi": 256.605030517578,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (9)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    -6217.05419921875,
+    5511.751953125,
+    20.000059127807617
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6217.054204527107,
+      5511.751958433235
+     ],
+     "radius": 69.62,
+     "zlo": -16.604940872192657,
+     "zhi": 256.6050591278073,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (10)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    -5016.44580078125,
+    1518.261962890625,
+    20.000059127807617
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5016.445797847863,
+      1518.2619703491227
+     ],
+     "radius": 69.62,
+     "zlo": -16.6049408721927,
+     "zhi": 256.6050591278073,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (11)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    -7600.40185546875,
+    -1616.3380126953125,
+    19.999910354614258
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7600.401855468753,
+      -1616.3380039550145
+     ],
+     "radius": 69.62,
+     "zlo": -16.605089645386116,
+     "zhi": 256.6049103546139,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (12)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    -9267.234375,
+    -4940.72216796875,
+    20.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9267.234379420473,
+      -4940.722167968752
+     ],
+     "radius": 69.62,
+     "zlo": -16.60500000000009,
+     "zhi": 256.6049999999999,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (13)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    -5668.369140625,
+    -7275.05078125,
+    20.000030517578125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5668.369138939396,
+      -7275.050772840661
+     ],
+     "radius": 69.62,
+     "zlo": -16.604969482422234,
+     "zhi": 256.60503051757775,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (14)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    582.567626953125,
+    -2587.02197265625,
+    20.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      582.5676217504468,
+      -2587.0219674536906
+     ],
+     "radius": 69.62,
+     "zlo": -16.60500000000026,
+     "zhi": 256.60499999999973,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (15)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    3760.9560546875,
+    -3944.75390625,
+    20.000030517578125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3760.956050282287,
+      -3944.7539062500014
+     ],
+     "radius": 69.62,
+     "zlo": -16.604969482421964,
+     "zhi": 256.60503051757803,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (16)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    6739.73583984375,
+    -7281.7451171875,
+    20.000059127807617
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6739.735842703031,
+      -7281.745109732324
+     ],
+     "radius": 69.62,
+     "zlo": -16.6049408721927,
+     "zhi": 256.6050591278073,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DynaTrigger_MB_Mailbox instance (17)",
+   "template": "DynaTrigger_MB_Mailbox2",
+   "at": [
+    9781.767578125,
+    -4474.5,
+    20.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9781.767572861005,
+      -4474.499994736125
+     ],
+     "radius": 69.62,
+     "zlo": -16.605000000000274,
+     "zhi": 256.6049999999997,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MB_Telegraph_Box instance",
+   "template": "MB_Telegraph_Box",
+   "at": [
+    -6409.2841796875,
+    2046.3289794921875,
+    0.0002440630050841719
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -5.089157209084419,
+     "zhi": 254.3378453763313,
+     "firm": true,
+     "hull": [
+      [
+       -6505.65080928197,
+       2003.4486106823217
+      ],
+      [
+       -6358.889330854338,
+       1951.1533335867887
+      ],
+      [
+       -6358.889327153467,
+       1951.153332965848
+      ],
+      [
+       -6310.321318117441,
+       2087.4546053999256
+      ],
+      [
+       -6457.082796545073,
+       2139.749882495459
+      ],
+      [
+       -6457.082800245944,
+       2139.7498831164
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

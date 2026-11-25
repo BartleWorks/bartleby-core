@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z16_Husk",
  "named": {
   "From_HuskLanding": [
@@ -123,6 +123,215 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM_Primal_Spiritual_F",
+   "template": "EM_Primal_Spiritual_F_Trees",
+   "at": [
+    4106.23486328125,
+    27263.099609375,
+    2028.115966796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4110.388089760106,
+      27269.21869141241
+     ],
+     "radius": 191.6855,
+     "zlo": 1977.7102168503761,
+     "zhi": 2277.485316850376,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_Primal_Spiritual_E",
+   "template": "EM_Primal_Spiritual_E_Trees",
+   "at": [
+    5490.27197265625,
+    25299.05078125,
+    2029.1290283203125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5497.077840219614,
+      25301.944324721593
+     ],
+     "radius": 191.6855,
+     "zlo": 1978.7232785148103,
+     "zhi": 2278.49837851481,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_Primal_Spiritual_D",
+   "template": "EM_Primal_Spiritual_D_Trees",
+   "at": [
+    4201.35888671875,
+    25868.0703125,
+    2029.1290283203125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4206.682933847986,
+      25873.20324234111
+     ],
+     "radius": 191.6855,
+     "zlo": 1978.7232784169228,
+     "zhi": 2278.4983784169226,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_Primal_Elemental_I",
+   "template": "EM_Primal_Elemental_I_Trees",
+   "at": [
+    -14039.2099609375,
+    22486.490234375,
+    1157.7569580078125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -14045.403874324315,
+      22490.531010791416
+     ],
+     "radius": 191.6855,
+     "zlo": 1107.3512081521565,
+     "zhi": 1407.1263081521563,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_Primal_Elemental_H",
+   "template": "EM_Primal_Elemental_H_Trees",
+   "at": [
+    -12561.169921875,
+    24162.3203125,
+    1155.35498046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -12565.305780086686,
+      24168.451147037085
+     ],
+     "radius": 191.6855,
+     "zlo": 1104.9492305217332,
+     "zhi": 1404.724330521733,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_Primal_Elemental_G",
+   "template": "EM_Primal_Elemental_G_Trees",
+   "at": [
+    -12334.8798828125,
+    22589.640625,
+    1161.47998046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -12339.798879522707,
+      22595.16293623179
+     ],
+     "radius": 191.6855,
+     "zlo": 1111.0742305483334,
+     "zhi": 1410.8493305483332,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_Primal_Astral_C",
+   "template": "EM_Primal_Astral_C_Trees",
+   "at": [
+    -14014.580078125,
+    6647.7841796875,
+    532.1417236328125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -14020.444539993849,
+      6643.278577646456
+     ],
+     "radius": 191.6855,
+     "zlo": 481.73597415072913,
+     "zhi": 781.5110741507292,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_Primal_Astral_B",
+   "template": "EM_Primal_Astral_B_Trees",
+   "at": [
+    -14543.0302734375,
+    8835.71484375,
+    532.1417236328125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -14550.04385953559,
+      8838.060484897589
+     ],
+     "radius": 191.6855,
+     "zlo": 481.7359738512515,
+     "zhi": 781.5110738512516,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM_Primal_Astral_A",
+   "template": "EM_Primal_Astral_A_Trees",
+   "at": [
+    -13122.3896484375,
+    8102.9091796875,
+    526.8859252929688
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -13129.73092327735,
+      8102.015827626158
+     ],
+     "radius": 191.6855,
+     "zlo": 476.48017565298574,
+     "zhi": 776.2552756529858,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

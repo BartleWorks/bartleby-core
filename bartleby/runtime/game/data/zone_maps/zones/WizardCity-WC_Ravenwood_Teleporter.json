@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "WizardCity/WC_Ravenwood_Teleporter",
  "named": {
   "Start": [
@@ -46,6 +46,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "Universe Teleport instance",
+   "template": "UniverseMap",
+   "at": [
+    0.0,
+    0.0,
+    89.21305847167969
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 59.71305847167969,
+     "zhi": 384.7130584716797,
+     "firm": true,
+     "hull": [
+      [
+       -105.5,
+       -11.0
+      ],
+      [
+       105.5,
+       -11.0
+      ],
+      [
+       105.5,
+       11.0
+      ],
+      [
+       -105.5,
+       11.0
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Zafaria/ZF_Z07_Stone_Town",
  "named": {
   "From_Darajani_Palace": [
@@ -130,6 +130,263 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "ZF-QuestLight-MinionQuest",
+   "template": "ZF-QuestLight",
+   "at": [
+    -4165.462890625,
+    6283.72509765625,
+    -119.16999816894531
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4165.462894893375,
+      6283.725102969748
+     ],
+     "radius": 50.0,
+     "zlo": -269.16999816894554,
+     "zhi": 230.83000183105446,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_TeleportStone_BackToHub instance",
+   "template": "ZF_TeleportStone_BackToHub",
+   "at": [
+    -1581.2750244140625,
+    8596.9052734375,
+    -17.822389602661133
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -22.91184473573874,
+     "zhi": 193.89986565026442,
+     "firm": true,
+     "hull": [
+      [
+       -1620.982263962876,
+       8507.775745561928
+      ],
+      [
+       -1562.055239128784,
+       8502.149577309707
+      ],
+      [
+       -1562.055229694768,
+       8502.149585884836
+      ],
+      [
+       -1544.4816823974356,
+       8686.210355415522
+      ],
+      [
+       -1603.4087072315276,
+       8691.836523667744
+      ],
+      [
+       -1603.4087166655436,
+       8691.836515092615
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLightDarajani",
+   "template": "ZF-QuestLight",
+   "at": [
+    -3981.346923828125,
+    9838.09765625,
+    256.4085998535156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3981.346927117554,
+      9838.097663499735
+     ],
+     "radius": 50.0,
+     "zlo": 106.40859985351528,
+     "zhi": 606.4085998535153,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLightWarOlyphant",
+   "template": "ZF-QuestLight",
+   "at": [
+    -4428.52294921875,
+    2615.9580078125,
+    -119.16999816894531
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4428.522952614938,
+      2615.9580094317157
+     ],
+     "radius": 50.0,
+     "zlo": -269.16999816894537,
+     "zhi": 230.83000183105463,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLightMarket",
+   "template": "ZF-QuestLight",
+   "at": [
+    4778.36279296875,
+    12585.6298828125,
+    35.142269134521484
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4778.362790825074,
+      12585.629890993026
+     ],
+     "radius": 50.0,
+     "zlo": -114.85773086547886,
+     "zhi": 385.14226913452114,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLightAleksis",
+   "template": "ZF-QuestLight",
+   "at": [
+    774.7656860351562,
+    14109.9296875,
+    35.12744140625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      774.7656872213992,
+      14109.929696078245
+     ],
+     "radius": 50.0,
+     "zlo": -114.8725585937504,
+     "zhi": 385.1274414062496,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLightAmedras",
+   "template": "ZF-QuestLight",
+   "at": [
+    -224.8625030517578,
+    485.7377014160156,
+    -120.51399993896484
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -224.86250212410977,
+      485.7377015155776
+     ],
+     "radius": 50.0,
+     "zlo": -270.51399993896484,
+     "zhi": 229.48600006103516,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLightZoo",
+   "template": "ZF-QuestLight",
+   "at": [
+    -1832.0870361328125,
+    12985.76953125,
+    35.04916000366211
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1832.0870393341806,
+      12985.769538597433
+     ],
+     "radius": 50.0,
+     "zlo": -114.95083999633823,
+     "zhi": 385.04916000366177,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLight_WC-MYTH-C11-001",
+   "template": "ZF-QuestLight",
+   "at": [
+    1945.8380126953125,
+    3567.927978515625,
+    -67.8405532836914
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1945.838009911335,
+      3567.927979516891
+     ],
+     "radius": 50.0,
+     "zlo": -217.84055328369143,
+     "zhi": 282.1594467163086,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLight_HallOfFury",
+   "template": "ZF-QuestLight",
+   "at": [
+    2627.909912109375,
+    7880.2548828125,
+    -67.84052276611328
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2627.9099159122643,
+      7880.254889338891
+     ],
+     "radius": 50.0,
+     "zlo": -217.84052276611357,
+     "zhi": 282.15947723388643,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

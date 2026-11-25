@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Housing_AV_Gauntlet/AV_Gauntlet_01/AV_Gauntlet_01_05",
  "named": {
   "Start": [
@@ -44,5 +44,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

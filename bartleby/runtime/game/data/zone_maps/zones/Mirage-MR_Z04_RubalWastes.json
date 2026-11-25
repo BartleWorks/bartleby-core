@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Mirage/MR_Z04_RubalWastes",
  "named": {
   "Start": [
@@ -362,6 +362,205 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MR_CarpetTeleporter_Hub instance",
+   "template": "MR_CarpetTeleporter_Hub",
+   "at": [
+    1408.345947265625,
+    -5651.77001953125,
+    534.3748168945312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 535.642563852544,
+     "zhi": 784.3748698762657,
+     "firm": true,
+     "hull": [
+      [
+       1278.0043167305362,
+       -5707.88859821497
+      ],
+      [
+       1382.4156330701796,
+       -5792.647126413984
+      ],
+      [
+       1382.4156399217366,
+       -5792.647128844596
+      ],
+      [
+       1531.9735084786757,
+       -5608.411580436817
+      ],
+      [
+       1427.5621921390323,
+       -5523.653052237803
+      ],
+      [
+       1427.5621852874754,
+       -5523.653049807191
+      ]
+     ]
+    },
+    {
+     "center": [
+      1378.8169533290484,
+      -5839.641034365694
+     ],
+     "radius": 41.4951,
+     "zlo": 547.5519679170047,
+     "zhi": 600.9742679170047,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Questlight_MR_Z04_MonguRefuge",
+   "template": "MR_Questlight",
+   "at": [
+    3827.587890625,
+    4288.89306640625,
+    -2094.9609375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3838.9338203265133,
+      4302.770202051178
+     ],
+     "radius": 38.9359,
+     "zlo": -2187.523937934235,
+     "zhi": -1687.5239379342352,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Questlight_Z04_HouseColixco",
+   "template": "MR_Questlight",
+   "at": [
+    3061.452880859375,
+    341.26519775390625,
+    -2014.3289794921875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3046.017784792592,
+      332.1513342746297
+     ],
+     "radius": 38.9359,
+     "zlo": -2106.891978921609,
+     "zhi": -1606.891978921609,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Questlight_MR_Z04_TowerOfBabble",
+   "template": "MR_Questlight",
+   "at": [
+    352.5412902832031,
+    9156.9384765625,
+    -272.14068603515625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      370.40371101649833,
+      9158.434728432485
+     ],
+     "radius": 38.9359,
+     "zlo": -364.70368592826173,
+     "zhi": 135.2963140717383,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Z04_NepetaMine_QuestLight",
+   "template": "MR_Questlight",
+   "at": [
+    3440.2548828125,
+    -11576.7197265625,
+    -460.9480895996094
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3425.853852969067,
+      -11587.392824336826
+     ],
+     "radius": 38.9359,
+     "zlo": -553.5110889608834,
+     "zhi": -53.51108896088334,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Questlight_Z04_ChestCavity",
+   "template": "MR_Questlight",
+   "at": [
+    -9425.54296875,
+    -9568.0009765625,
+    -447.8086853027344
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9434.270950602207,
+      -9552.344432506326
+     ],
+     "radius": 38.9359,
+     "zlo": -540.3716858147657,
+     "zhi": -40.37168581476567,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Questlight_Z04_QhaysHideaway",
+   "template": "MR_Questlight",
+   "at": [
+    -8422.701171875,
+    6313.837890625,
+    -284.4576110839844
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8414.998379632021,
+      6297.652354104877
+     ],
+     "radius": 38.9359,
+     "zlo": -377.0206102043078,
+     "zhi": 122.97938979569219,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

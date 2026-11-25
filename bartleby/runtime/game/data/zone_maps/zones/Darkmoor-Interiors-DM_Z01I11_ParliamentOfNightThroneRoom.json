@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Darkmoor/Interiors/DM_Z01I11_ParliamentOfNightThroneRoom",
  "named": {
   "Start": [
@@ -92,6 +92,148 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DM_GRAVE_Throneroom_GrayRobeCloak_01 instance",
+   "template": "DM_GRAVE_Throneroom_GrayRobeCloak_01",
+   "at": [
+    -1094.093017578125,
+    6939.27099609375,
+    184.46910095214844
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1094.093017578125,
+      6939.27099609375
+     ],
+     "radius": 103.8738,
+     "zlo": 80.59530095214843,
+     "zhi": 288.34290095214845,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "BigGenericBlocker-ParliamentOfNight-BookcaseBlocker",
+   "template": "BigGenericBlocker",
+   "at": [
+    2244.306884765625,
+    6308.4501953125,
+    305.3360900878906
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 55.33602857718441,
+     "zhi": 555.3362074055582,
+     "firm": true,
+     "hull": [
+      [
+       1410.8673338216136,
+       5804.570815102261
+      ],
+      [
+       1410.8673544934109,
+       5804.570786151517
+      ],
+      [
+       3413.3205930178424,
+       5117.005146832621
+      ],
+      [
+       3855.0657666560414,
+       6403.5354836752285
+      ],
+      [
+       3855.065745984244,
+       6403.535512625973
+      ],
+      [
+       1852.6125074598126,
+       7091.101151944868
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_DarkHallways",
+   "template": "DM-QuestLight",
+   "at": [
+    3807.89501953125,
+    8710.4677734375,
+    184.4683074951172
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3807.92541953125,
+      8710.4430734375
+     ],
+     "radius": 46.3633,
+     "zlo": -65.53164250488283,
+     "zhi": 415.3858574951172,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_SecretLab",
+   "template": "DM-QuestLight",
+   "at": [
+    3395.47705078125,
+    5399.5517578125,
+    273.8533020019531
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3395.497433381171,
+      5399.518309241283
+     ],
+     "radius": 46.3633,
+     "zlo": 23.85335200233544,
+     "zhi": 504.77085200233546,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight instance_HallOfRecords",
+   "template": "DM-QuestLight",
+   "at": [
+    -3345.448974609375,
+    8593.2529296875,
+    184.4687957763672
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3345.418574609375,
+      8593.2282296875
+     ],
+     "radius": 46.3633,
+     "zlo": -65.53115422363283,
+     "zhi": 415.3863457763672,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

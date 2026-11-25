@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Aquila/Interiors/AQ_Z03_CavOfNyx",
  "named": {
   "Start": [
@@ -63,5 +63,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

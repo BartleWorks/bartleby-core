@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Selenopolis/Interiors/KT_Z06I12_CryptOfRa_Int",
  "named": {
   "MotherSunnRoom": [
@@ -191,6 +191,56 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT_SE_MonsterChest_MotherSunn instance",
+   "template": "KT_SE_MonsterChest_MotherSunn",
+   "at": [
+    16747.23046875,
+    33021.23828125,
+    0.09991455078125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -7.625089407493974,
+     "zhi": 76.86491906164068,
+     "firm": true,
+     "hull": [
+      [
+       16703.502772990836,
+       33068.2594345356
+      ],
+      [
+       16703.953434656392,
+       32955.150332319805
+      ],
+      [
+       16703.953438349534,
+       32955.15032864184
+      ],
+      [
+       16784.9327955897,
+       32955.47297546066
+      ],
+      [
+       16784.482133924143,
+       33068.58207767645
+      ],
+      [
+       16784.482130231,
+       33068.58208135442
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "DragonSpire/DS_A1_Knowledge/Interiors/DS_ToK_T11",
  "named": {
   "Target location (DS_T11 fromToK)": [
@@ -28,6 +28,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DS_BookPedestal_Lib instance",
+   "template": "DS_BookPedestal_Lib",
+   "at": [
+    6.7769951820373535,
+    -1052.93603515625,
+    9.888834953308105
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 5.388934953308102,
+     "zhi": 114.3869349533081,
+     "firm": true,
+     "hull": [
+      [
+       -33.78671968158881,
+       -1007.3198983735836
+      ],
+      [
+       -33.786690751014305,
+       -1096.1071983735787
+      ],
+      [
+       50.09030924898124,
+       -1096.107171042983
+      ],
+      [
+       50.09028031840674,
+       -1007.3198710429879
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

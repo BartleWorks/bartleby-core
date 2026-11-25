@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Marleybone/G14_Gauntlet/MB_Z05_ThroneRoom",
  "named": {
   "Start": [
@@ -36,6 +36,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MB_MonsterChest_SteelGolem_Standard",
+   "template": "MB_MonsterChest_SteelGolem",
+   "at": [
+    15.373290061950684,
+    93.88330078125,
+    3.861999988555908
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -3.863000011444086,
+     "zhi": 80.62699998855591,
+     "firm": true,
+     "hull": [
+      [
+       -31.821709938049317,
+       50.34330078125
+      ],
+      [
+       81.28829006195068,
+       50.34330078125
+      ],
+      [
+       81.28829006195068,
+       131.32330078125
+      ],
+      [
+       -31.821709938049317,
+       131.32330078125
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

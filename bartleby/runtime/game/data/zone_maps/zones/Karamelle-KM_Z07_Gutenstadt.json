@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Karamelle/KM_Z07_Gutenstadt",
  "named": {
   "TeleportFromBLF": [
@@ -162,6 +162,209 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WorldTeleport-Gutenstat",
+   "template": "KM-TeleportGate",
+   "at": [
+    1321.5369873046875,
+    6643.291015625,
+    35.150169372558594
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 31.566069372558587,
+     "zhi": 439.9802693725586,
+     "firm": true,
+     "hull": [
+      [
+       1239.1678873046874,
+       6557.681565625
+      ],
+      [
+       1403.8446873046876,
+       6557.681565625
+      ],
+      [
+       1403.8446873046876,
+       6732.829865625001
+      ],
+      [
+       1239.1678873046874,
+       6732.829865625001
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-Cupcake",
+   "template": "KM-QuestLight",
+   "at": [
+    -3387.01708984375,
+    2922.541015625,
+    2.7797160148620605
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3386.73158984375,
+      2923.443915625
+     ],
+     "radius": 24.8997,
+     "zlo": -2.430583985137929,
+     "zhi": 188.86181601486206,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-Regional",
+   "template": "KM-QuestLight",
+   "at": [
+    263.4375,
+    -146.7830047607422,
+    35.000160217285156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      263.723,
+      -145.8801047607422
+     ],
+     "radius": 24.8997,
+     "zlo": 29.789860217285167,
+     "zhi": 221.08226021728515,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-CandyBar",
+   "template": "KM-QuestLight",
+   "at": [
+    2399.175048828125,
+    -686.8109741210938,
+    17.77968978881836
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2399.460548828125,
+      -685.9080741210937
+     ],
+     "radius": 24.8997,
+     "zlo": 12.56938978881837,
+     "zhi": 203.86178978881836,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-HeidisHideout",
+   "template": "KM-QuestLight",
+   "at": [
+    2377.844970703125,
+    -4008.719970703125,
+    17.7797794342041
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2378.130470703125,
+      -4007.817070703125
+     ],
+     "radius": 24.8997,
+     "zlo": 12.569479434204112,
+     "zhi": 203.8618794342041,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-PoliceStation",
+   "template": "KM-QuestLight",
+   "at": [
+    -323.5801086425781,
+    -5385.23876953125,
+    17.779590606689453
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -323.2946086425781,
+      -5384.33586953125
+     ],
+     "radius": 24.8997,
+     "zlo": 12.569290606689464,
+     "zhi": 203.86169060668945,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-GutenShoppe",
+   "template": "KM-QuestLight",
+   "at": [
+    -2370.041015625,
+    -2570.2060546875,
+    17.77968978881836
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2369.755515625,
+      -2569.3031546875
+     ],
+     "radius": 24.8997,
+     "zlo": 12.56938978881837,
+     "zhi": 203.86178978881836,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight-VanasVarieties",
+   "template": "KM-QuestLight",
+   "at": [
+    2023.633056640625,
+    -5970.43212890625,
+    17.7797794342041
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2023.918556640625,
+      -5969.52922890625
+     ],
+     "radius": 24.8997,
+     "zlo": 12.569479434204112,
+     "zhi": 203.8618794342041,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

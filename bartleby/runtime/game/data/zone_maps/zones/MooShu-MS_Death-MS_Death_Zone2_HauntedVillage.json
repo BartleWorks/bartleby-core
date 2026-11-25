@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Death/MS_Death_Zone2_HauntedVillage",
  "named": {
   "From Island": [
@@ -1345,6 +1345,194 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MS_SoulChainForge instance",
+   "template": "MS_SoulChainForge",
+   "at": [
+    22134.4296875,
+    26126.529296875,
+    -320.3996887207031
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -470.4047010938317,
+     "zhi": -70.39467634757492,
+     "firm": true,
+     "hull": [
+      [
+       21966.99614785809,
+       26138.522139823443
+      ],
+      [
+       22132.09416371623,
+       25958.683039348307
+      ],
+      [
+       22301.863217480615,
+       26114.536431945144
+      ],
+      [
+       22301.863230362233,
+       26114.536461253454
+      ],
+      [
+       22136.765214504096,
+       26294.37556172859
+      ],
+      [
+       21966.99616073971,
+       26138.522169131753
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_VllgofSorrow_TeleportA instance",
+   "template": "MS_NEW_VllgofSorrow_TeleportA",
+   "at": [
+    28147.2890625,
+    27446.060546875,
+    -320.39959716796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      28147.289058826165,
+      27446.060548877715
+     ],
+     "radius": 43.32,
+     "zlo": -325.55459716796884,
+     "zhi": -115.24459716796883,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_VllgofSorrow_TeleportA_ToMain instance",
+   "template": "MS_NEW_VllgofSorrow_TeleportA_ToMain",
+   "at": [
+    9600.0888671875,
+    -920.9310302734375,
+    10.000120162963867
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      9600.088862844346,
+      -920.9310263957012
+     ],
+     "radius": 43.32,
+     "zlo": 4.8451201629636955,
+     "zhi": 215.1551201629637,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_VllgofSorrow_TeleportB instance",
+   "template": "MS_NEW_VllgofSorrow_TeleportB",
+   "at": [
+    28306.76953125,
+    28170.869140625,
+    -320.3995056152344
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      28306.769534056893,
+      28170.86914164533
+     ],
+     "radius": 43.32,
+     "zlo": -325.55450561523446,
+     "zhi": -115.24450561523443,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_VllgofSorrow_TeleportB_ToMain instance",
+   "template": "MS_NEW_VllgofSorrow_TeleportB_ToMain",
+   "at": [
+    52884.3984375,
+    19430.23046875,
+    -145.7559051513672
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      52884.398441855774,
+      19430.23047275549
+     ],
+     "radius": 43.32,
+     "zlo": -150.91090515136736,
+     "zhi": 59.39909484863264,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_VllgofSorrow_TeleportC instance",
+   "template": "MS_NEW_VllgofSorrow_TeleportC",
+   "at": [
+    28891.98046875,
+    27609.58984375,
+    -320.3995056152344
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      28891.980465380035,
+      27609.58984533716
+     ],
+     "radius": 43.32,
+     "zlo": -325.55450561523446,
+     "zhi": -115.24450561523443,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_VllgofSorrow_TeleportC_ToMain instance",
+   "template": "MS_NEW_VllgofSorrow_TeleportC_ToMain",
+   "at": [
+    58965.109375,
+    47736.078125,
+    93.5294189453125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      58965.109375,
+      47736.078125
+     ],
+     "radius": 43.32,
+     "zlo": 88.3744189453125,
+     "zhi": 298.6844189453125,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

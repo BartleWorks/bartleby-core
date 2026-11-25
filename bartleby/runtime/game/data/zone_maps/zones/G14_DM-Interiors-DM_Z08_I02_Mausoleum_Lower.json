@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "G14_DM/Interiors/DM_Z08_I02_Mausoleum_Lower",
  "named": {
   "Start": [
@@ -57,5 +57,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

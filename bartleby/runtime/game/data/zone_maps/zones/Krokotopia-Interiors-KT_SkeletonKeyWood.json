@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/Interiors/KT_SkeletonKeyWood",
  "named": {
   "Start": [
@@ -81,5 +81,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

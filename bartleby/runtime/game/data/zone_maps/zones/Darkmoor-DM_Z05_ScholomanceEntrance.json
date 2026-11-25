@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Darkmoor/DM_Z05_ScholomanceEntrance",
  "named": {
   "Start": [
@@ -61,6 +61,54 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DM-QuestLight instance_HereticalAcademy",
+   "template": "DM-QuestLight",
+   "at": [
+    8876.984375,
+    1519.3819580078125,
+    909.0745239257812
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8877.014775,
+      1519.3572580078126
+     ],
+     "radius": 46.3633,
+     "zlo": 659.0745739257812,
+     "zhi": 1139.9920739257814,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight instance_LiarsGrove",
+   "template": "DM-QuestLight",
+   "at": [
+    -409.3127136230469,
+    9654.3359375,
+    1693.218994140625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -409.2823136230469,
+      9654.3112375
+     ],
+     "radius": 46.3633,
+     "zlo": 1443.219044140625,
+     "zhi": 1924.1365441406251,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

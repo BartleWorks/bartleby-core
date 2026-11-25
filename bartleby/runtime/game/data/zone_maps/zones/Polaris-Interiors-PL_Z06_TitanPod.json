@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Polaris/Interiors/PL_Z06_TitanPod",
  "named": {
   "Start": [
@@ -56,5 +56,30 @@
    ]
   }
  ],
- "exits": []
+ "exits": [],
+ "gates": [
+  {
+   "name": "PL_SnowGlobe_Teleporter_Hub_TitanPod instance",
+   "template": "PL_SnowGlobe_Teleporter_Hub_TitanPod",
+   "at": [
+    -1360.2530517578125,
+    -834.8634033203125,
+    7.821218967437744
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1360.1096800109324,
+      -837.1744931627745
+     ],
+     "radius": 21.4716,
+     "zlo": 8.312618999195575,
+     "zhi": 57.78241899919557,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  }
+ ]
 }

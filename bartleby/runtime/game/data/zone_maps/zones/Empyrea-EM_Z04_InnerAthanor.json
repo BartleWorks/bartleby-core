@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Empyrea/EM_Z04_InnerAthanor",
  "named": {
   "Target location-FromPraesidium": [
@@ -311,6 +311,403 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "EM-PillarOfFire",
+   "template": "EM-PillarOfFire",
+   "at": [
+    -2709.2548828125,
+    7814.43310546875,
+    -223.96270751953125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -474.2482139957218,
+     "zhi": 26.322799154809246,
+     "firm": true,
+     "hull": [
+      [
+       -3039.125112314786,
+       7953.283979953627
+      ],
+      [
+       -2385.5973980405615,
+       7657.913361470563
+      ],
+      [
+       -2385.5973890302635,
+       7657.91335952917
+      ],
+      [
+       -2359.962443685835,
+       7714.632431055405
+      ],
+      [
+       -3013.490157960059,
+       8010.003049538468
+      ],
+      [
+       -3013.490166970357,
+       8010.003051479862
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EM-Inner-BridgeBlocker",
+   "template": "EM-Inner-BridgeBlocker",
+   "at": [
+    -14138.4697265625,
+    12096.150390625,
+    -675.4832153320312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -925.4832246226164,
+     "zhi": -425.48320593149595,
+     "firm": true,
+     "hull": [
+      [
+       -14491.714004653068,
+       12131.06611690173
+      ],
+      [
+       -14176.189620537354,
+       11743.194536313
+      ],
+      [
+       -14176.189606747012,
+       11743.194541213123
+      ],
+      [
+       -13788.318026158284,
+       12058.718925328838
+      ],
+      [
+       -14103.842410273997,
+       12446.590505917567
+      ],
+      [
+       -14103.84242406434,
+       12446.590501017445
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EM-CrownEmpyreal instance",
+   "template": "EM-CrownEmpyreal",
+   "at": [
+    -9039.9404296875,
+    6694.61181640625,
+    -599.037109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9046.4400296875,
+      6699.84581640625
+     ],
+     "radius": 26.7515,
+     "zlo": -605.230959375,
+     "zhi": -539.4920593749999,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire ToPraesidium",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    -14137.599609375,
+    1013.3619995117188,
+    400.99969482421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -14138.398009375,
+      1021.1647995117188
+     ],
+     "radius": 36.2277,
+     "zlo": 423.18419482421876,
+     "zhi": 650.9997948242187,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire ToPraesidium",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    -14466.8798828125,
+    1351.3370361328125,
+    401.0002136230469
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -14467.6782828125,
+      1359.1398361328124
+     ],
+     "radius": 36.2277,
+     "zlo": 423.1847136230469,
+     "zhi": 651.0003136230468,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire ToControlRoom",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    1106.5389404296875,
+    11169.76953125,
+    -299.03729248046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1111.4918683206088,
+      11175.851440724327
+     ],
+     "radius": 36.2277,
+     "zlo": -276.8527924332456,
+     "zhi": -49.03719243324561,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire ToControlRoom",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    1427.2669677734375,
+    10771.599609375,
+    -299.0372009277344
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1434.6738893062488,
+      10774.180042477028
+     ],
+     "radius": 36.2277,
+     "zlo": -276.8527008953566,
+     "zhi": -49.03710089535657,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire SteamPlant",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    -16584.580078125,
+    14718.740234375,
+    -699.0369262695312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -16591.0008378384,
+      14723.245224482333
+     ],
+     "radius": 36.2277,
+     "zlo": -676.8524261253806,
+     "zhi": -449.0368261253806,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire SteamPlant",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    -16220.48046875,
+    14998.83984375,
+    -699.0369873046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -16222.560607439886,
+      15006.40252519073
+     ],
+     "radius": 36.2277,
+     "zlo": -676.8524872941914,
+     "zhi": -449.03688729419144,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire Cistern",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    -9152.15625,
+    11651.6796875,
+    -624.5648193359375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9147.20332152667,
+      11657.761597556724
+     ],
+     "radius": 36.2277,
+     "zlo": -602.3803193359374,
+     "zhi": -374.56471933593747,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire Cistern",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    -8692.05078125,
+    11199.0400390625,
+    -624.5648803710938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8684.605205777285,
+      11201.506722430035
+     ],
+     "radius": 36.2277,
+     "zlo": -602.3803803363951,
+     "zhi": -374.56478033639513,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire-PipeJunction",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    -11468.51953125,
+    861.68408203125,
+    -25.099979400634766
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -11461.296004839276,
+      864.7405162677795
+     ],
+     "radius": 36.2277,
+     "zlo": -2.915479377300059,
+     "zhi": 224.90012062269994,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire-PipeJunction",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    -11874.6396484375,
+    862.0394287109375,
+    -25.0952091217041
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -11867.118860412207,
+      864.2662817647647
+     ],
+     "radius": 36.2277,
+     "zlo": -2.910709109376924,
+     "zhi": 224.90489089062305,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire-JuiletHouse",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    -10418.4599609375,
+    1718.56494140625,
+    -0.0008544921875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10425.937160771145,
+      1720.9340231692836
+     ],
+     "radius": 36.2277,
+     "zlo": 22.183645745327013,
+     "zhi": 249.99924574532702,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "EM-QuestLight-Fire-JuiletHouse",
+   "template": "EM-QuestLight-Fire",
+   "at": [
+    -10146.8603515625,
+    1444.4560546875,
+    -0.068634033203125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10154.12901155542,
+      1447.4035374341977
+     ],
+     "radius": 36.2277,
+     "zlo": 22.11586617902502,
+     "zhi": 249.931466179025,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

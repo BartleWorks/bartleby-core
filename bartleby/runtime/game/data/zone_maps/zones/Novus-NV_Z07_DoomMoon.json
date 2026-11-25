@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Novus/NV_Z07_DoomMoon",
  "named": {
   "Start": [
@@ -38,6 +38,31 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WL-Rocket instance",
+   "template": "WL-Rocket",
+   "at": [
+    -17.9906005859375,
+    -1600.8050537109375,
+    12.483960151672363
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10.7062005859375,
+      -1583.5969537109374
+     ],
+     "radius": 319.3015,
+     "zlo": 79.06056015167235,
+     "zhi": 579.0605601516723,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

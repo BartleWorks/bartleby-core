@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Marleybone/G14_Gauntlet/MB_Z10_MainHall_01",
  "named": {
   "From MB-MainHall02": [
@@ -42,5 +42,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Plague/MS_Plague_Hub_FarmVillage",
  "named": {
   "FromPlague2": [
@@ -93,5 +93,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

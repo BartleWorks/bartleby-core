@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/Interiors/KT_Library",
  "named": {
   "Target location (Library Hub Entrance)": [
@@ -47,5 +47,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

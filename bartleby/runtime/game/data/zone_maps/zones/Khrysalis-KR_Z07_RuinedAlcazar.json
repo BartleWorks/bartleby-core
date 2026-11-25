@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Khrysalis/KR_Z07_RuinedAlcazar",
  "named": {
   "Start": [
@@ -235,5 +235,30 @@
    ]
   }
  ],
- "exits": []
+ "exits": [],
+ "gates": [
+  {
+   "name": "KR-ObeliskOrb02 instance",
+   "template": "KR-ObeliskOrb02",
+   "at": [
+    72.29448699951172,
+    5694.73388671875,
+    142.32369995117188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      72.64688699951172,
+      5693.27058671875
+     ],
+     "radius": 31.1372,
+     "zlo": 147.65274995117187,
+     "zhi": 206.9524499511719,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  }
+ ]
 }

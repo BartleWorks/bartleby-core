@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Wallaru/Interiors/WL_Z08_I03_HotelRoom",
  "named": {
   "Start": [
@@ -53,5 +53,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

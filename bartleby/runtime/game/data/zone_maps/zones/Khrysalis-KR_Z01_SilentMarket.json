@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Khrysalis/KR_Z01_SilentMarket",
  "named": {
   "Start": [
@@ -76,6 +76,646 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KR-Sack_BlackSalt instance",
+   "template": "KR-Sack_BlackSalt",
+   "at": [
+    3265.37109375,
+    -1533.697998046875,
+    480.2513122558594
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3281.5806221072967,
+      -1546.1878453697238
+     ],
+     "radius": 49.52058196777106,
+     "zlo": 485.2004067596747,
+     "zhi": 488.71004689913525,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    -2813.554931640625,
+    -7208.10302734375,
+    4.999986171722412
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2802.6191582275683,
+      -7219.512442135507
+     ],
+     "radius": 92.3553,
+     "zlo": 11.77308680913147,
+     "zhi": 122.44528680913147,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    2032.7349853515625,
+    -7414.462890625,
+    4.999979019165039
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2037.0236756102577,
+      -7399.251935151333
+     ],
+     "radius": 92.3553,
+     "zlo": 11.773078493100329,
+     "zhi": 122.44527849310033,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    -743.5765991210938,
+    -3646.76708984375,
+    5.000006198883057
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -756.9225294653894,
+      -3655.2318429569336
+     ],
+     "radius": 92.3553,
+     "zlo": 11.773106707568232,
+     "zhi": 122.44530670756824,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    2977.85888671875,
+    -1435.864013671875,
+    431.4153137207031
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2967.9340290052173,
+      -1423.5651025771908
+     ],
+     "radius": 92.3553,
+     "zlo": 438.18841332189896,
+     "zhi": 548.860613321899,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    3609.49609375,
+    1073.199951171875,
+    431.4154052734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3602.6470084525995,
+      1087.4427056769327
+     ],
+     "radius": 92.3553,
+     "zlo": 438.1885047896733,
+     "zhi": 548.8607047896733,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    -1569.2349853515625,
+    1408.0579833984375,
+    436.414794921875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1556.4272580221243,
+      1417.3169314432464
+     ],
+     "radius": 92.3553,
+     "zlo": 443.18789465595864,
+     "zhi": 553.8600946559586,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    -4209.5068359375,
+    -1273.6710205078125,
+    431.4153137207031
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4205.033622790752,
+      -1288.828732400693
+     ],
+     "radius": 92.3553,
+     "zlo": 438.1884145219225,
+     "zhi": 548.8606145219225,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    -3909.743896484375,
+    3331.6689453125,
+    431.4154052734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3922.4314932487887,
+      3322.2460590686565
+     ],
+     "radius": 92.3553,
+     "zlo": 438.18850582399375,
+     "zhi": 548.8607058239937,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    1363.949951171875,
+    8639.353515625,
+    -0.0005483761779032648
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1358.9221841499163,
+      8654.336425492344
+     ],
+     "radius": 92.3553,
+     "zlo": 6.772551107714754,
+     "zhi": 117.44475110771475,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    -2661.376953125,
+    8660.08984375,
+    -0.00030517581035383046
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2676.858953125,
+      8663.26374375
+     ],
+     "radius": 92.3553,
+     "zlo": 6.772794824189646,
+     "zhi": 117.44499482418965,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-FrozenMouse SilentMarket",
+   "template": "KR-FrozenMouse",
+   "at": [
+    -1133.3280029296875,
+    5888.77685546875,
+    -0.000518798828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1123.5159109907165,
+      5876.38779850318
+     ],
+     "radius": 92.3553,
+     "zlo": 6.772581881385442,
+     "zhi": 117.44478188138544,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-SilentMarket-Live instance",
+   "template": "KR-SilentMarket-Live",
+   "at": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      292.7392,
+      -1302.978
+     ],
+     "radius": 166.5704,
+     "zlo": 383.21074999999996,
+     "zhi": 449.13185,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      3243.637,
+      -1819.852
+     ],
+     "radius": 24.3812,
+     "zlo": 466.4714,
+     "zhi": 651.3416000000001,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      3185.153,
+      1227.481
+     ],
+     "radius": 16.7411,
+     "zlo": 461.21349999999995,
+     "zhi": 646.0837,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      -4229.162,
+      -1747.881
+     ],
+     "radius": 28.1217,
+     "zlo": 450.59535,
+     "zhi": 673.35865,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      -4042.299,
+      -2919.469
+     ],
+     "radius": 121.8202,
+     "zlo": 393.2354,
+     "zhi": 893.2354,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      -3069.842,
+      -6865.216
+     ],
+     "radius": 31.579,
+     "zlo": -151.4891,
+     "zhi": 348.5109,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      621.5117,
+      -8116.459
+     ],
+     "radius": 134.2343,
+     "zlo": 24.115649999999995,
+     "zhi": 91.31575000000001,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      -4293.905,
+      -994.6415
+     ],
+     "radius": 28.1217,
+     "zlo": 450.59535,
+     "zhi": 673.35865,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      388.5924,
+      5955.548
+     ],
+     "radius": 112.184,
+     "zlo": 53.21259999999998,
+     "zhi": 238.0828,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      -2342.575,
+      8745.78
+     ],
+     "radius": 45.7246,
+     "zlo": 49.406199999999984,
+     "zhi": 234.2764,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      -4043.166,
+      3761.396
+     ],
+     "radius": 28.1217,
+     "zlo": 450.59535,
+     "zhi": 673.35865,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      1768.637,
+      8541.3
+     ],
+     "radius": 45.7246,
+     "zlo": 49.406199999999984,
+     "zhi": 234.2764,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      585.2496,
+      8931.094
+     ],
+     "radius": 67.4828,
+     "zlo": -12.002700000000004,
+     "zhi": 172.8675,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Mouse instance",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    1906.2099609375,
+    -5713.2509765625,
+    9.155272709904239e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1904.9394609375,
+      -5712.2458765625
+     ],
+     "radius": 61.4071,
+     "zlo": 23.08004155272711,
+     "zhi": 204.0437415527271,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Mouse instance",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    -570.2916870117188,
+    773.857421875,
+    431.4154052734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -571.5621870117187,
+      774.862521875
+     ],
+     "radius": 61.4071,
+     "zlo": 454.49535527343744,
+     "zhi": 635.4590552734375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Mouse QuietOne",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    268.7825927734375,
+    -4108.501953125,
+    0.00011152530350955203
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      267.5120927734375,
+      -4107.496853125
+     ],
+     "radius": 61.4071,
+     "zlo": 23.08006152530352,
+     "zhi": 204.04376152530352,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Mouse QuietBlade",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    119.15380096435547,
+    3835.5791015625,
+    -14.493240356445312
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      117.88330096435547,
+      3836.5842015625
+     ],
+     "radius": 61.4071,
+     "zlo": 8.586709643554698,
+     "zhi": 189.5504096435547,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Mouse KR-Blind Tower",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    -2399.385986328125,
+    5884.01318359375,
+    3.7804110050201416
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2400.656486328125,
+      5885.01828359375
+     ],
+     "radius": 61.4071,
+     "zlo": 26.860361005020152,
+     "zhi": 207.82406100502016,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Mouse instance",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    -577.2913818359375,
+    2775.447998046875,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -578.5618818359375,
+      2776.453098046875
+     ],
+     "radius": 61.4071,
+     "zlo": 23.07995000000001,
+     "zhi": 204.04365,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Mouse KR-WarRoom",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    -219.29469299316406,
+    -2923.7919921875,
+    -16.349449157714844
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -220.56519299316406,
+      -2922.7868921875
+     ],
+     "radius": 61.4071,
+     "zlo": 6.730500842285167,
+     "zhi": 187.69420084228517,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Mouse BurrowBreaker",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    -1755.2889404296875,
+    3908.931884765625,
+    -12.068340301513672
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1756.5594404296876,
+      3909.936984765625
+     ],
+     "radius": 61.4071,
+     "zlo": 11.011609698486339,
+     "zhi": 191.97530969848634,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KR-QuestLight-Mouse LimeBrights Lair",
+   "template": "KR-QuestLight-Mouse",
+   "at": [
+    -1431.3900146484375,
+    -4148.06201171875,
+    -6.103516352595761e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1432.6605146484376,
+      -4147.05691171875
+     ],
+     "radius": 61.4071,
+     "zlo": 23.079888964836485,
+     "zhi": 204.0435889648365,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

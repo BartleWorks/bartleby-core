@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Novus/NV_Z03_PuertoNuovo_VA",
  "named": {
   "Start": [
@@ -587,6 +587,447 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "NV-LeyLine_01 instance",
+   "template": "NV-LeyLine_01",
+   "at": [
+    -3109.10693359375,
+    35.95103073120117,
+    51.74380874633789
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 46.57945371524801,
+     "zhi": 357.9961638247537,
+     "firm": true,
+     "hull": [
+      [
+       -3147.107657651902,
+       130.95930538360244
+      ],
+      [
+       -3098.812740686818,
+       -65.96560760504298
+      ],
+      [
+       -3071.8452825823524,
+       -59.35196421097615
+      ],
+      [
+       -3071.8452693612257,
+       -59.35194735794238
+      ],
+      [
+       -3120.14018632631,
+       137.57296563070304
+      ],
+      [
+       -3147.1076444307755,
+       130.9593222366362
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "NV-Marble instance",
+   "template": "NV-Marble",
+   "at": [
+    4100.82177734375,
+    14158.490234375,
+    105.41410064697266
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4091.49346160603,
+      14172.709996821532
+     ],
+     "radius": 101.6879,
+     "zlo": 65.44049928871857,
+     "zhi": 565.4404992887186,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-Marble instance",
+   "template": "NV-Marble",
+   "at": [
+    -391.5942077636719,
+    13186.3896484375,
+    -117.78070068359375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -393.8690077636719,
+      13169.5360484375
+     ],
+     "radius": 101.6879,
+     "zlo": -157.75430068359375,
+     "zhi": 342.2456993164062,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-Marble instance",
+   "template": "NV-Marble",
+   "at": [
+    823.205078125,
+    14083.7099609375,
+    -15.717679977416992
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      824.861605469934,
+      14100.63553582812
+     ],
+     "radius": 101.6879,
+     "zlo": -55.69128145395166,
+     "zhi": 444.30871854604834,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-Marble instance",
+   "template": "NV-Marble",
+   "at": [
+    2601.55810546875,
+    13696.080078125,
+    94.16641235351562
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2618.5124283617406,
+      13697.410422864052
+     ],
+     "radius": 101.6879,
+     "zlo": 54.19281155865241,
+     "zhi": 554.1928115586525,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-Marble instance",
+   "template": "NV-Marble",
+   "at": [
+    1179.27197265625,
+    18759.759765625,
+    125.90570068359375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1193.0962316918644,
+      18749.854790223468
+     ],
+     "radius": 101.6879,
+     "zlo": 85.9321003798492,
+     "zhi": 585.9321003798492,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-Marble instance",
+   "template": "NV-Marble",
+   "at": [
+    -375.8066101074219,
+    16168.1396484375,
+    -42.9015998840332
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -365.70894850642713,
+      16181.823812237335
+     ],
+     "radius": 101.6879,
+     "zlo": -82.87520121888667,
+     "zhi": 417.1247987811133,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV_SproutingMBFlag_Inviso",
+   "template": "NV_SproutingMBFlag_Inviso",
+   "at": [
+    -521.6143188476562,
+    651.9990234375,
+    6.961760997772217
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -522.4127188476563,
+      651.9883234375
+     ],
+     "radius": 15.3391,
+     "zlo": 29.146260997772217,
+     "zhi": 256.9618609977722,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_CrazyStairs",
+   "template": "NV-QuestLight",
+   "at": [
+    -5405.64990234375,
+    26520.970703125,
+    680.0446166992188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5407.000082183227,
+      26522.820081031532
+     ],
+     "radius": 58.1317,
+     "zlo": 702.2291167121875,
+     "zhi": 930.0447167121874,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_SaboteurCave",
+   "template": "NV-QuestLight",
+   "at": [
+    -17663.2109375,
+    26876.390625,
+    -2062.501953125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -17663.845253131265,
+      26878.590814104016
+     ],
+     "radius": 58.1317,
+     "zlo": -2040.3174531273642,
+     "zhi": -1812.5018531273643,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_CliffsideNest",
+   "template": "NV-QuestLight",
+   "at": [
+    -15416.4296875,
+    15338.25,
+    -2062.444091796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -15415.479508786391,
+      15336.166661846411
+     ],
+     "radius": 58.1317,
+     "zlo": -2040.2595916120003,
+     "zhi": -1812.4439916120004,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_UnicornTent",
+   "template": "NV-QuestLight",
+   "at": [
+    -6964.12890625,
+    15266.990234375,
+    -324.6524963378906
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6963.767495727148,
+      15264.72914663469
+     ],
+     "radius": 58.1317,
+     "zlo": -302.4679961452471,
+     "zhi": -74.65239614524712,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_Hideout",
+   "template": "NV-QuestLight",
+   "at": [
+    -11847.5302734375,
+    24252.83984375,
+    -1652.43603515625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -11848.3286734375,
+      24254.98594375
+     ],
+     "radius": 58.1317,
+     "zlo": -1630.25153515625,
+     "zhi": -1402.43593515625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_SafeRoom",
+   "template": "NV-QuestLight",
+   "at": [
+    -10309.51953125,
+    20408.740234375,
+    -1645.4759521484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -10307.394117167309,
+      20409.592165914764
+     ],
+     "radius": 58.1317,
+     "zlo": -1623.2914520918632,
+     "zhi": -1395.4758520918633,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_ContestedShard",
+   "template": "NV-QuestLight",
+   "at": [
+    -12772.509765625,
+    25127.240234375,
+    -1649.1829833984375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -12772.433406022881,
+      25129.528761996688
+     ],
+     "radius": 58.1317,
+     "zlo": -1626.9984834046613,
+     "zhi": -1399.1828834046614,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_CabalCave",
+   "template": "NV-QuestLight",
+   "at": [
+    2136.050048828125,
+    19221.08984375,
+    94.26602172851562
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2134.460621014749,
+      19222.738146232616
+     ],
+     "radius": 58.1317,
+     "zlo": 116.45052175027244,
+     "zhi": 344.2661217502724,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_ChronomongersWorkshop",
+   "template": "NV-QuestLight",
+   "at": [
+    -12116.580078125,
+    17242.44921875,
+    -1653.634033203125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -12114.921497686117,
+      17240.870531199795
+     ],
+     "radius": 58.1317,
+     "zlo": -1631.449533040307,
+     "zhi": -1403.633933040307,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "NV-QuestLight_AngryTent",
+   "template": "NV-QuestLight",
+   "at": [
+    -15909.400390625,
+    16288.8798828125,
+    -2050.64892578125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -15909.61983904784,
+      16286.60063348227
+     ],
+     "radius": 58.1317,
+     "zlo": -2028.4644255878138,
+     "zhi": -1800.648825587814,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

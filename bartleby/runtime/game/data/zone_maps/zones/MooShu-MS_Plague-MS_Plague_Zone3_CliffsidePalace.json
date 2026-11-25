@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Plague/MS_Plague_Zone3_CliffsidePalace",
  "named": {
   "Target location 0": [
@@ -1219,6 +1219,180 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MS_Lever_Plague3 instance",
+   "template": "MS_Lever_Plague3",
+   "at": [
+    3381.56396484375,
+    3020.047119140625,
+    0.004882812965661287
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -7.015117187034335,
+     "zhi": 207.02488281296564,
+     "firm": true,
+     "hull": [
+      [
+       3348.98896484375,
+       2941.322119140625
+      ],
+      [
+       3414.13896484375,
+       2941.322119140625
+      ],
+      [
+       3414.13896484375,
+       3098.772119140625
+      ],
+      [
+       3348.98896484375,
+       3098.772119140625
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "MS_BrazierPLAG1 instance",
+   "template": "MS_BrazierPLAG1",
+   "at": [
+    15559.0,
+    7063.52197265625,
+    -0.0230102501809597
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -53.873010250180954,
+     "zhi": 253.82698974981903,
+     "firm": true,
+     "hull": [
+      [
+       15491.9,
+       6996.61197265625
+      ],
+      [
+       15626.1,
+       6996.61197265625
+      ],
+      [
+       15626.1,
+       7130.43197265625
+      ],
+      [
+       15491.9,
+       7130.43197265625
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_Plague3_TeleportA instance",
+   "template": "MS_NEW_Plague3_TeleportA",
+   "at": [
+    41206.23046875,
+    3953.760986328125,
+    393.8662109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      41206.23046995614,
+      3953.760986497829
+     ],
+     "radius": 43.32,
+     "zlo": 388.7112109375,
+     "zhi": 599.0212109375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_Plague3_TeleportA_ToMain instance",
+   "template": "MS_NEW_Plague3_TeleportA_ToMain",
+   "at": [
+    19721.33984375,
+    6898.19580078125,
+    -144.61940002441406
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      19721.33984375,
+      6898.19580078125
+     ],
+     "radius": 43.32,
+     "zlo": -149.77440002441406,
+     "zhi": 60.53559997558594,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_Plague3_TeleportB instance",
+   "template": "MS_NEW_Plague3_TeleportB",
+   "at": [
+    41181.0390625,
+    2654.172119140625,
+    393.8662109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      41181.0390604027,
+      2654.172119676629
+     ],
+     "radius": 43.32,
+     "zlo": 388.7112109375,
+     "zhi": 599.0212109375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_Plague3_TeleportB_ToMain instance",
+   "template": "MS_NEW_Plague3_TeleportB_ToMain",
+   "at": [
+    24970.060546875,
+    35478.62890625,
+    79.60059356689453
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      24970.06055123925,
+      35478.628910376356
+     ],
+     "radius": 43.32,
+     "zlo": 74.44559356689436,
+     "zhi": 284.7555935668944,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

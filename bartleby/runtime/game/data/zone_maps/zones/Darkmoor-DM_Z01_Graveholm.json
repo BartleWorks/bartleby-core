@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Darkmoor/DM_Z01_Graveholm",
  "named": {
   "Start": [
@@ -597,6 +597,631 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DM-QuestLight_ArenaOfSwords",
+   "template": "DM-QuestLight",
+   "at": [
+    8150.85302734375,
+    9834.8740234375,
+    32.0001106262207
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8150.867489379011,
+      9834.837621539922
+     ],
+     "radius": 46.3633,
+     "zlo": -217.9998393738521,
+     "zhi": 262.91766062614795,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_ArenaOfCups",
+   "template": "DM-QuestLight",
+   "at": [
+    7045.56201171875,
+    11234.1396484375,
+    32.00004959106445
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7045.59241171875,
+      11234.1149484375
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99990040893556,
+     "zhi": 262.91759959106446,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_ArenaOfCoins",
+   "template": "DM-QuestLight",
+   "at": [
+    8977.783203125,
+    12855.9697265625,
+    32.000038146972656
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8977.80031596898,
+      12855.934493071849
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99991185311683,
+     "zhi": 262.9175881468832,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_ArenaOfWands",
+   "template": "DM-QuestLight",
+   "at": [
+    10034.48046875,
+    11420.349609375,
+    32.000091552734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10034.51086875,
+      11420.324909375
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99985844726564,
+     "zhi": 262.9176415527344,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_WitchsDen",
+   "template": "DM-QuestLight",
+   "at": [
+    15960.48046875,
+    8425.3603515625,
+    32.00012969970703
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      15960.49850403739,
+      8425.32558107491
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99982029985287,
+     "zhi": 262.9176797001472,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_OldHouse",
+   "template": "DM-QuestLight",
+   "at": [
+    6802.4130859375,
+    5121.93115234375,
+    32.000118255615234
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6802.43112122489,
+      5121.896381856161
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99983174394467,
+     "zhi": 262.9176682560554,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_GhostPassage",
+   "template": "DM-QuestLight",
+   "at": [
+    8911.0078125,
+    13886.1103515625,
+    32.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8911.041578289809,
+      13886.09049912424
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99995000011182,
+     "zhi": 262.9175499998882,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_SandersonHouse",
+   "template": "DM-QuestLight",
+   "at": [
+    6789.26513671875,
+    3128.990966796875,
+    32.000118255615234
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      6789.25951210296,
+      3128.952203084138
+     ],
+     "radius": 46.3633,
+     "zlo": -217.9998317437702,
+     "zhi": 262.91766825622983,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_BrokenBranchHovel",
+   "template": "DM-QuestLight",
+   "at": [
+    762.3955078125,
+    -19155.060546875,
+    32.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      762.4259078125,
+      -19155.085246875
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99995,
+     "zhi": 262.91755,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_EastonGuestQuarters",
+   "template": "DM-QuestLight",
+   "at": [
+    -12841.7998046875,
+    10316.830078125,
+    31.999969482421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -12841.7694046875,
+      10316.805378125
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99998051757814,
+     "zhi": 262.9175194824219,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_EastonHouse",
+   "template": "DM-QuestLight",
+   "at": [
+    -12909.6796875,
+    9101.0029296875,
+    31.999969482421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -12909.6492875,
+      9100.9782296875
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99998051757814,
+     "zhi": 262.9175194824219,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_WereDen",
+   "template": "DM-QuestLight",
+   "at": [
+    15020.8203125,
+    9810.7578125,
+    32.000118255615234
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      15020.8507125,
+      9810.7331125
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99983174438478,
+     "zhi": 262.91766825561524,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_FangAndClawInn",
+   "template": "DM-QuestLight",
+   "at": [
+    -5064.833984375,
+    -2599.9189453125,
+    302.0007019042969
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5064.803584375,
+      -2599.9436453125
+     ],
+     "radius": 46.3633,
+     "zlo": 52.00075190429686,
+     "zhi": 532.9182519042969,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_GargoyleWatchhouse",
+   "template": "DM-QuestLight",
+   "at": [
+    377.1766052246094,
+    5098.4931640625,
+    302.0010070800781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      377.20700522460936,
+      5098.4684640625
+     ],
+     "radius": 46.3633,
+     "zlo": 52.00105708007811,
+     "zhi": 532.9185570800781,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_ParliamentOfNight",
+   "template": "DM-QuestLight",
+   "at": [
+    -2985.56201171875,
+    1246.3289794921875,
+    272.0000915527344
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2985.53161171875,
+      1246.3042794921876
+     ],
+     "radius": 46.3633,
+     "zlo": 22.000141552734362,
+     "zhi": 502.9176415527344,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_SafehouseCourtyard",
+   "template": "DM-QuestLight",
+   "at": [
+    7205.3740234375,
+    -2115.7060546875,
+    31.999849319458008
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7205.4044234375,
+      -2115.7307546875
+     ],
+     "radius": 46.3633,
+     "zlo": -218.000100680542,
+     "zhi": 262.917399319458,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight instance_VillainLair",
+   "template": "DM-QuestLight",
+   "at": [
+    2782.2109375,
+    4021.79296875,
+    302.0010070800781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2782.2413375,
+      4021.76826875
+     ],
+     "radius": 46.3633,
+     "zlo": 52.00105708007811,
+     "zhi": 532.9185570800781,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_SafehouseNight",
+   "template": "DM-QuestLight",
+   "at": [
+    7638.55517578125,
+    3430.282958984375,
+    32.000091552734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7638.54955116546,
+      3430.244195271638
+     ],
+     "radius": 46.3633,
+     "zlo": -217.99985844665105,
+     "zhi": 262.917641553349,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-CollectTotem_DM-GRAVE-SIDE-005_02 instance",
+   "template": "DM-CollectTotem_DM-GRAVE-SIDE-005_02",
+   "at": [
+    7674.22607421875,
+    11561.169921875,
+    0.0004997288924641907
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7661.379272825048,
+      11565.011960252767
+     ],
+     "radius": 37.70127149811387,
+     "zlo": -74.99950284684381,
+     "zhi": 75.00050311362067,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-CollectTotem_DM-GRAVE-SIDE-006_02 instance",
+   "template": "DM-CollectTotem_DM-GRAVE-SIDE-006_02",
+   "at": [
+    7975.8671875,
+    11969.1298828125,
+    0.0005253343842923641
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7975.303629749116,
+      11968.84342545096
+     ],
+     "radius": 15.191040603637695,
+     "zlo": -74.99947762040848,
+     "zhi": 75.000528340056,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-CollectTotem_DM-GRAVE-SIDE-007_02 instance",
+   "template": "DM-CollectTotem_DM-GRAVE-SIDE-007_02",
+   "at": [
+    8423.12109375,
+    12179.2099609375,
+    0.0005368419806472957
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8421.325854829278,
+      12183.430153622328
+     ],
+     "radius": 25.103760997533797,
+     "zlo": -74.99946611358165,
+     "zhi": 75.00053984688283,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-CollectTotem_DM-GRAVE-SIDE-008_02 instance",
+   "template": "DM-CollectTotem_DM-GRAVE-SIDE-008_02",
+   "at": [
+    8903.0654296875,
+    12064.7802734375,
+    0.0005228120717220008
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8903.922261725169,
+      12066.122164216802
+     ],
+     "radius": 17.10960067987442,
+     "zlo": -74.99948014866693,
+     "zhi": 75.00052581179754,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM_Stick_DM-GRAVE-MAIN-005_01 instance",
+   "template": "DM_Stick_DM-GRAVE-MAIN-005_01",
+   "at": [
+    -12196.8095703125,
+    5297.21484375,
+    2.000221014022827
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -12196.8095703125,
+      5297.21484375
+     ],
+     "radius": 43.3737,
+     "zlo": -23.11332898597717,
+     "zhi": 43.899371014022826,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-GRAVE-RitualObject_Door_01 instance",
+   "template": "DM-GRAVE-RitualObject_Door_01",
+   "at": [
+    876.4793701171875,
+    -18721.169921875,
+    304.63909912109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      875.5540747525023,
+      -18749.560847617005
+     ],
+     "radius": 69.1432,
+     "zlo": 235.49590036193405,
+     "zhi": 373.782300361934,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-CollectTotem_DM-GRAVE-SIDE-005_01 instance",
+   "template": "DM-CollectTotem_DM-GRAVE-SIDE-005_01",
+   "at": [
+    12758.849609375,
+    4296.15283203125,
+    20.631240844726562
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12745.727852800586,
+      4298.913460464644
+     ],
+     "radius": 37.70127149811387,
+     "zlo": -54.36876167068485,
+     "zhi": 95.63124428977963,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-GRAVE-GargoyleStone instance",
+   "template": "DM-GRAVE-GargoyleStone",
+   "at": [
+    -12589.8798828125,
+    8917.083984375,
+    31.999969482421875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -218.0000343368868,
+     "zhi": 281.99997338717475,
+     "firm": true,
+     "hull": [
+      [
+       -12733.870834281173,
+       8914.353029968426
+      ],
+      [
+       -12547.561335781407,
+       8770.617685528983
+      ],
+      [
+       -12547.561322432784,
+       8770.617680978845
+      ],
+      [
+       -12450.787019164636,
+       8896.05636121347
+      ],
+      [
+       -12637.096517664402,
+       9039.791705652913
+      ],
+      [
+       -12637.096531013025,
+       9039.791710203051
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

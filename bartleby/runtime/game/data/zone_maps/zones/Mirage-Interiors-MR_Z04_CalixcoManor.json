@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Mirage/Interiors/MR_Z04_CalixcoManor",
  "named": {
   "Start": [
@@ -51,6 +51,54 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MR_Questlight_Z04_Nursery",
+   "template": "MR_Questlight",
+   "at": [
+    -2166.8740234375,
+    -2746.22705078125,
+    -0.11305689811706543
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2161.4819177324252,
+      -2729.132307295423
+     ],
+     "radius": 38.9359,
+     "zlo": -92.67605747298487,
+     "zhi": 407.3239425270151,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MR_Questlight-BaronsRetreat",
+   "template": "MR_Questlight",
+   "at": [
+    408.01239013671875,
+    -5591.0087890625,
+    -0.11340329796075821
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      390.52599013671875,
+      -5587.0678890625
+     ],
+     "radius": 38.9359,
+     "zlo": -92.67640329796075,
+     "zhi": 407.32359670203925,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

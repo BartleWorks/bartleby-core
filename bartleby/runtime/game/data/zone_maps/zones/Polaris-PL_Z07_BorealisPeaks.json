@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Polaris/PL_Z07_BorealisPeaks",
  "named": {
   "Start": [
@@ -25,5 +25,30 @@
  },
  "patrols": [],
  "links": [],
- "exits": []
+ "exits": [],
+ "gates": [
+  {
+   "name": "PL_SnowGlobe_Teleporter_BorealisPeaks instance",
+   "template": "PL_SnowGlobe_Teleporter_Hub_FromBorealisPeaks",
+   "at": [
+    2450.802978515625,
+    -230.71180725097656,
+    10.43220043182373
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2452.491578515625,
+      -232.29620725097655
+     ],
+     "radius": 21.4716,
+     "zlo": 10.923600431823726,
+     "zhi": 60.39340043182372,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  }
+ ]
 }

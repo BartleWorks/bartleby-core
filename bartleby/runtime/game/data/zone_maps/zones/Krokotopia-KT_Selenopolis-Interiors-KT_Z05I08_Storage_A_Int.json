@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Selenopolis/Interiors/KT_Z05I08_Storage_A_Int",
  "named": {
   "Start": [
@@ -662,6 +662,157 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "BigGenericBlocker_KT_Door_Blocker_Myth_UndergroundMarket_01",
+   "template": "BigGenericBlocker",
+   "at": [
+    -3639.696044921875,
+    8495.5341796875,
+    -465.0600891113281
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -715.0600891113281,
+     "zhi": -215.06008911132812,
+     "firm": true,
+     "hull": [
+      [
+       -4252.723644921875,
+       7870.902979687499
+      ],
+      [
+       -2892.466644921875,
+       7870.902979687499
+      ],
+      [
+       -2892.466644921875,
+       9988.109979687499
+      ],
+      [
+       -4252.723644921875,
+       9988.109979687499
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "BigGenericBlocker_KT_Door_Blocker_Myth_UndergroundMarket_01",
+   "template": "BigGenericBlocker",
+   "at": [
+    2374.626953125,
+    -9697.6484375,
+    -465.05859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -715.05859375,
+     "zhi": -215.05859375,
+     "firm": true,
+     "hull": [
+      [
+       1761.5993531249999,
+       -10322.2796375
+      ],
+      [
+       3121.856353125,
+       -10322.2796375
+      ],
+      [
+       3121.856353125,
+       -8205.072637500001
+      ],
+      [
+       1761.5993531249999,
+       -8205.072637500001
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_MARK_PropDepartment_01",
+   "template": "KT_Questlight",
+   "at": [
+    -8300.6689453125,
+    15149.3203125,
+    -465.0596923828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8300.6689453125,
+      15149.3203125
+     ],
+     "radius": 59.4191,
+     "zlo": -518.0127923828124,
+     "zhi": -289.5861923828125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_MARK_ShrineOfMarcus_01",
+   "template": "KT_Questlight",
+   "at": [
+    -4000.375,
+    -3605.738037109375,
+    -465.0592041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -4000.375,
+      -3605.738037109375
+     ],
+     "radius": 59.4191,
+     "zlo": -518.0123041015624,
+     "zhi": -289.5857041015625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_MARK_Moonseum_01",
+   "template": "KT_Questlight",
+   "at": [
+    -6438.0078125,
+    -17529.5703125,
+    -465.0592956542969
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6438.007812500002,
+      -17529.57030718279
+     ],
+     "radius": 59.4191,
+     "zlo": -518.012395654297,
+     "zhi": -289.5857956542971,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

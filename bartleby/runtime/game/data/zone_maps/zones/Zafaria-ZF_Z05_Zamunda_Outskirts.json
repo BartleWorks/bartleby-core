@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Zafaria/ZF_Z05_Zamunda_Outskirts",
  "named": {
   "Start": [
@@ -395,6 +395,77 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "ZF-QuestLight_JungleClear01",
+   "template": "ZF-QuestLight",
+   "at": [
+    -6596.5732421875,
+    -2780.5830078125,
+    12.533769607543945
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6596.5732385079,
+      -2780.5830058008232
+     ],
+     "radius": 50.0,
+     "zlo": -137.46623039245614,
+     "zhi": 362.53376960754383,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLight_JungleClear02",
+   "template": "ZF-QuestLight",
+   "at": [
+    722.48876953125,
+    2888.22802734375,
+    24.54315948486328
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      722.4887655558904,
+      2888.2280298972855
+     ],
+     "radius": 50.0,
+     "zlo": -125.45684051513683,
+     "zhi": 374.54315948486317,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLight_JungleClear03",
+   "template": "ZF-QuestLight",
+   "at": [
+    1852.8590087890625,
+    5564.69384765625,
+    36.52552032470703
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1852.8590048258195,
+      5564.693850183532
+     ],
+     "radius": 50.0,
+     "zlo": -113.47447967529308,
+     "zhi": 386.5255203247069,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

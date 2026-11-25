@@ -1,5 +1,6 @@
 """tools/build_zone_maps.py and tools/zone_files.py: which zones, rebuilding byte for byte, and --verify."""
 
+import dataclasses
 import io
 import json
 import zipfile
@@ -80,6 +81,16 @@ def test_a_maps_hash_changes_with_what_it_is_built_from_and_nothing_else():
     assert zone_files.entries_hash(wad | {"triggers.xml": b"a trigger"}) != base
 
 
+def test_gates_never_change_the_links_or_exits_a_zone_is_built_with():
+    plain = _isles()
+    without = build.build_group([dataclasses.replace(plain, gates=[])])[1][ZONE]
+    with_gates = build.build_group([plain])[1][ZONE]
+
+    one, other = json.loads(without), json.loads(with_gates)
+    assert (one["links"], one["exits"]) == (other["links"], other["exits"])
+    assert other["gates"] and not one["gates"]
+
+
 @pytest.fixture
 def install(tmp_path, monkeypatch):
     """A built map of both test zones, and an install whose wads say what was built from them."""
@@ -89,6 +100,7 @@ def install(tmp_path, monkeypatch):
     index = json.loads((root / zone_maps.INDEX_NAME).read_text(encoding="utf-8"))["zones"]
     for zone, wad in wads.items():
         index[zone]["wad"] = zone_files.entries_hash(wad)
+        index[zone]["objects"] = f"gates of {zone}"
     (root / zone_maps.INDEX_NAME).write_text(zone_maps.index_text(index), encoding="utf-8")
     game_data = tmp_path / "GameData"
     game_data.mkdir()
@@ -100,7 +112,7 @@ def install(tmp_path, monkeypatch):
 
 def test_verify_finds_nothing_when_every_wad_is_as_built(install, capsys):
     root, game_data, _wads = install
-    assert build.verify([ZONE, TWIN], root, game_data) == 0
+    assert build.verify([ZONE, TWIN], root, game_data, _gates_as_built) == 0
     assert "2 maps checked; 0 to look at" in capsys.readouterr().out
 
 
@@ -109,12 +121,28 @@ def test_verify_reports_a_changed_wad_a_missing_wad_and_a_zone_with_no_map(insta
     wads[ZONE]["collision.bcd"] = b"a new floor"
     zone_files.zone_wad_path(TWIN, game_data).unlink()
 
-    assert build.verify([ZONE, TWIN, "Test/T_New"], root, game_data) == 1
+    assert build.verify([ZONE, TWIN, "Test/T_New"], root, game_data, _gates_as_built) == 1
 
     out = capsys.readouterr().out
     assert f"changed: {ZONE}" in out
     assert f"no wad: {TWIN}" in out
     assert "no map: Test/T_New" in out
+
+
+def test_verify_reports_a_zone_whose_gates_templates_or_solid_files_changed(install, capsys):
+    root, game_data, _wads = install
+
+    assert (
+        build.verify([ZONE, TWIN], root, game_data, lambda zone: "changed" if zone == TWIN else _gates_as_built(zone))
+        == 1
+    )
+
+    lines = capsys.readouterr().out.splitlines()
+    assert f"  gates changed: {TWIN}" in lines and f"  gates changed: {ZONE}" not in lines
+
+
+def _gates_as_built(zone: str) -> str:
+    return f"gates of {zone}"
 
 
 # --- reading the wads --------------------------------------------------------------------------

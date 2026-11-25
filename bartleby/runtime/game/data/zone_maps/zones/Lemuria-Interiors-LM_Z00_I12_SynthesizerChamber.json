@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Lemuria/Interiors/LM_Z00_I12_SynthesizerChamber",
  "named": {
   "Start": [
@@ -81,5 +81,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

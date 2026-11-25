@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "G14_SB/SB_Z06_PuzzleRoom",
  "named": {
   "Start": [
@@ -56,6 +56,100 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MS-PrayerWheel01-Spirit",
+   "template": "MS-PrayerWheel01",
+   "at": [
+    1507.5689697265625,
+    -7070.51708984375,
+    -2623.970947265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1527.2221829883274,
+      -7080.621058306058
+     ],
+     "radius": 134.1636,
+     "zlo": -2873.970996753893,
+     "zhi": -2393.9612967538933,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS-PrayerWheel02-Harmony",
+   "template": "MS-PrayerWheel02",
+   "at": [
+    -437.7076110839844,
+    -7044.15087890625,
+    -2623.970947265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -455.82984892442346,
+      -7056.7969638195245
+     ],
+     "radius": 134.1636,
+     "zlo": -2873.9709968649736,
+     "zhi": -2393.961296864974,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS-PrayerWheel01-Body",
+   "template": "MS-PrayerWheel01",
+   "at": [
+    22.8408203125,
+    -7700.31201171875,
+    -2623.970947265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      22.98507573716934,
+      -7722.409933568828
+     ],
+     "radius": 134.1636,
+     "zlo": -2873.970997278146,
+     "zhi": -2393.9612972781465,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS-PrayerWheel01-Mind",
+   "template": "MS-PrayerWheel01",
+   "at": [
+    948.92529296875,
+    -7692.02099609375,
+    -2623.970947265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      955.7980261249305,
+      -7713.023484033058
+     ],
+     "radius": 134.1636,
+     "zlo": -2873.9709972302658,
+     "zhi": -2393.961297230266,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

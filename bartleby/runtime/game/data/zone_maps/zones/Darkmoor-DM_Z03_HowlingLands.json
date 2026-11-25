@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Darkmoor/DM_Z03_HowlingLands",
  "named": {
   "Start": [
@@ -734,6 +734,286 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DM-QuestLight_DarkWoods",
+   "template": "DM-QuestLight",
+   "at": [
+    -12168.7802734375,
+    -2388.738037109375,
+    -207.0457000732422
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -12168.754165809954,
+      -2388.7088378486123
+     ],
+     "radius": 46.3633,
+     "zlo": -457.045650075598,
+     "zhi": 23.871849924402,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_HuntingGrounds",
+   "template": "DM-QuestLight",
+   "at": [
+    -6210.19384765625,
+    -4907.041015625,
+    -211.17889404296875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6210.156442768196,
+      -4907.052639455875
+     ],
+     "radius": 46.3633,
+     "zlo": -461.17884404354027,
+     "zhi": 19.738655956459752,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_Hideout",
+   "template": "DM-QuestLight",
+   "at": [
+    -16839.759765625,
+    598.077880859375,
+    -488.13531494140625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -16839.720918940144,
+      598.0828968629448
+     ],
+     "radius": 46.3633,
+     "zlo": -738.135264942705,
+     "zhi": -257.217764942705,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_Were-Hollow",
+   "template": "DM-QuestLight",
+   "at": [
+    -8831.8427734375,
+    -1743.251953125,
+    -126.10800170898438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8831.816649483806,
+      -1743.2811386142798
+     ],
+     "radius": 46.3633,
+     "zlo": -376.10795170878833,
+     "zhi": 104.80954829121168,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_WoodedClearing",
+   "template": "DM-QuestLight",
+   "at": [
+    -6991.7822265625,
+    4178.6162109375,
+    -196.966796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6991.745029462257,
+      4178.603938392162
+     ],
+     "radius": 46.3633,
+     "zlo": -446.96674687554315,
+     "zhi": 33.95075312445687,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_OvergrownEstate",
+   "template": "DM-QuestLight",
+   "at": [
+    -9700.78125,
+    7824.0927734375,
+    -9.65839958190918
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9700.754691617192,
+      7824.0639827147825
+     ],
+     "radius": 46.3633,
+     "zlo": -259.65834958173036,
+     "zhi": 221.25915041826963,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_AlphaHouse",
+   "template": "DM-QuestLight",
+   "at": [
+    -9144.384765625,
+    -8068.22021484375,
+    -223.50790405273438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9144.423659501548,
+      -8068.215578332419
+     ],
+     "radius": 46.3633,
+     "zlo": -473.5078540537369,
+     "zhi": 7.40964594626314,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_KingdomofWareaLot",
+   "template": "DM-QuestLight",
+   "at": [
+    -6147.08984375,
+    -242.0373992919922,
+    -214.00579833984375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6147.06790770219,
+      -242.06985027457515
+     ],
+     "radius": 46.3633,
+     "zlo": -464.005748339505,
+     "zhi": 16.911751660495014,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-QuestLight_LoudbaysDen",
+   "template": "DM-QuestLight",
+   "at": [
+    -3790.361083984375,
+    2952.033935546875,
+    -199.2180938720703
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3790.330683984375,
+      2952.009235546875
+     ],
+     "radius": 46.3633,
+     "zlo": -449.2180438720703,
+     "zhi": 31.699456127929693,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "DM-CollectTotem_DM-GRAVE-SIDE-007_01 instance",
+   "template": "DM-CollectTotem_DM-GRAVE-SIDE-007_01",
+   "at": [
+    -5258.2119140625,
+    9950.359375,
+    30.076019287109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -5262.372806408167,
+      9952.288075071892
+     ],
+     "radius": 25.103760997533797,
+     "zlo": -44.923983584786384,
+     "zhi": 105.0760223756781,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HOUSE_Sign-NoMounts instance",
+   "template": "HOUSE_Sign-NoMounts",
+   "at": [
+    -471.4620056152344,
+    -254.3636016845703,
+    -41.32600021362305
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -51.61857171848257,
+     "zhi": 177.41650352940948,
+     "firm": true,
+     "hull": [
+      [
+       -526.5189686976335,
+       -167.8403493241089
+      ],
+      [
+       -514.835817799269,
+       -195.47912440137503
+      ],
+      [
+       -456.50968567167234,
+       -333.4608151341123
+      ],
+      [
+       -429.33001468129584,
+       -321.97171803752195
+      ],
+      [
+       -441.0131655796604,
+       -294.3329429602558
+      ],
+      [
+       -499.33929770725695,
+       -156.35125222751856
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

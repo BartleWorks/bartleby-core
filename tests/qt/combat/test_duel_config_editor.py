@@ -389,6 +389,9 @@ def test_move_down_in_a_rows_menu_reorders_the_config(qapp):
     assert [a.dsl for a in config.player_assignments] == ["two", "one", "three"]
 
 
+# A known flake (BartleWorks/BartleBuddy#13): the drag left the rows in their old order once under
+# -n auto load, and it passes alone. See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 def test_dragging_a_row_to_the_top_puts_it_first(qapp):
     config, editor = _shown_editor(qapp)
 

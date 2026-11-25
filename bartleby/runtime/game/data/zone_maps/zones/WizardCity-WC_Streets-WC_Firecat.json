@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "WizardCity/WC_Streets/WC_Firecat",
  "named": {
   "Target location Cinematic": [
@@ -1182,6 +1182,675 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "HO_Pumpkin instance",
+   "template": "Pumpkin",
+   "at": [
+    -94.79969787597656,
+    1958.3370361328125,
+    -68.998779296875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -95.5146973213272,
+      1958.0478161167305
+     ],
+     "radius": 19.254,
+     "zlo": -72.12307931685535,
+     "zhi": -33.61507931685536,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin02 instance",
+   "template": "PumpkinO2",
+   "at": [
+    -2501.10400390625,
+    2261.26806640625,
+    -68.99870300292969
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2500.60951025108,
+      2260.6761643681616
+     ],
+     "radius": 19.254,
+     "zlo": -72.12300300967802,
+     "zhi": -33.615003009678006,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin instance (1)",
+   "template": "Pumpkin",
+   "at": [
+    -9513.40234375,
+    -965.8607177734375,
+    -68.99948120117188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9512.648377289594,
+      -965.6982135025768
+     ],
+     "radius": 19.254,
+     "zlo": -72.12378124089565,
+     "zhi": -33.61578124089564,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin02 instance (1)",
+   "template": "PumpkinO2",
+   "at": [
+    -6387.43798828125,
+    1597.4530029296875,
+    31.000999450683594
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6388.205321117494,
+      1597.5309340575773
+     ],
+     "radius": 19.254,
+     "zlo": 27.876699414654606,
+     "zhi": 66.3846994146546,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin03 instance (1)",
+   "template": "PumpkinO3",
+   "at": [
+    -2725.80908203125,
+    -4705.662109375,
+    31.005800247192383
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2725.0403302893524,
+      -4705.599710018976
+     ],
+     "radius": 19.254,
+     "zlo": 27.881500211844465,
+     "zhi": 66.38950021184446,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin instance (2)",
+   "template": "Pumpkin",
+   "at": [
+    688.50048828125,
+    -6143.82080078125,
+    93.32565307617188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      687.7397418751775,
+      -6143.947834473333
+     ],
+     "radius": 19.254,
+     "zlo": 90.20135304910141,
+     "zhi": 128.70935304910142,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin02 instance (2)",
+   "template": "PumpkinO2",
+   "at": [
+    104.51730346679688,
+    -7269.041015625,
+    31.005359649658203
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      104.09886137554324,
+      -7268.393111340205
+     ],
+     "radius": 19.254,
+     "zlo": 27.881059588715086,
+     "zhi": 66.38905958871509,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin03 instance (2)",
+   "template": "PumpkinO3",
+   "at": [
+    -8317.7958984375,
+    -16736.4296875,
+    -1015.8079833984375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8317.661970837335,
+      -16734.892951002996
+     ],
+     "radius": 38.508,
+     "zlo": -1022.0565835308533,
+     "zhi": -945.0405835308533,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin instance (3)",
+   "template": "Pumpkin",
+   "at": [
+    -11187.9697265625,
+    -4944.7880859375,
+    -69.00060272216797
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -11188.30747055203,
+      -4945.4814839849105
+     ],
+     "radius": 19.254,
+     "zlo": -72.12490272448099,
+     "zhi": -33.61690272448098,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin02 instance (3)",
+   "template": "PumpkinO2",
+   "at": [
+    -11509.330078125,
+    -7304.60009765625,
+    -69.00064849853516
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -11509.607390168592,
+      -7303.880395024816
+     ],
+     "radius": 19.254,
+     "zlo": -72.12494856261615,
+     "zhi": -33.616948562616145,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin03 instance (3)",
+   "template": "PumpkinO3",
+   "at": [
+    -18151.099609375,
+    -4721.30908203125,
+    31.000600814819336
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -18151.091798278405,
+      -4722.080321768045
+     ],
+     "radius": 19.254,
+     "zlo": 27.876300815909207,
+     "zhi": 66.38430081590921,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin instance (4)",
+   "template": "Pumpkin",
+   "at": [
+    -18838.009765625,
+    -7993.9208984375,
+    31.000499725341797
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -18838.30105536217,
+      -7993.206738701574
+     ],
+     "radius": 19.254,
+     "zlo": 27.876199661503062,
+     "zhi": 66.38419966150306,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin02 instance (4)",
+   "template": "PumpkinO2",
+   "at": [
+    -20733.33984375,
+    -7568.7080078125,
+    31.00012969970703
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -20732.7189749627,
+      -7568.250410362189
+     ],
+     "radius": 19.254,
+     "zlo": 27.875829647084384,
+     "zhi": 66.38382964708438,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin03 instance (4)",
+   "template": "PumpkinO3",
+   "at": [
+    -24180.33984375,
+    -5625.90283203125,
+    228.94630432128906
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -24178.02744369972,
+      -5625.821211913637
+     ],
+     "radius": 57.762,
+     "zlo": 219.57340421985987,
+     "zhi": 335.09740421985987,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin instance (5)",
+   "template": "Pumpkin",
+   "at": [
+    -11389.0400390625,
+    962.6777954101562,
+    -69.00531005859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -11389.80874129767,
+      962.6147905118517
+     ],
+     "radius": 19.254,
+     "zlo": -72.12961008846298,
+     "zhi": -33.62161008846297,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin02 instance (5)",
+   "template": "PumpkinO2",
+   "at": [
+    -15200.5,
+    1370.10205078125,
+    100.66999816894531
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -15200.3053,
+      1369.35575078125
+     ],
+     "radius": 19.254,
+     "zlo": 97.54569816894531,
+     "zhi": 136.05369816894532,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin03 instance (5)",
+   "template": "PumpkinO3",
+   "at": [
+    -18386.3203125,
+    -2253.680908203125,
+    -69.00019836425781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -18386.912750743173,
+      -2253.1870555360397
+     ],
+     "radius": 19.254,
+     "zlo": -72.12449841846718,
+     "zhi": -33.616498418467174,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin instance (6)",
+   "template": "Pumpkin",
+   "at": [
+    -20761.76953125,
+    -1942.157958984375,
+    -69.00019836425781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -20760.944745743738,
+      -1941.9591491874655
+     ],
+     "radius": 21.179400459051134,
+     "zlo": -72.43692848331985,
+     "zhi": -30.078127565217574,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin03 instance (6)",
+   "template": "PumpkinO3",
+   "at": [
+    -20569.369140625,
+    4577.1591796875,
+    82.08392333984375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -20568.010643593254,
+      4576.428443700144
+     ],
+     "radius": 38.508,
+     "zlo": 75.83532330654373,
+     "zhi": 152.85132330654375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin02 instance (6)",
+   "template": "PumpkinO2",
+   "at": [
+    -23318.94921875,
+    -1349.3909912109375,
+    30.996519088745117
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -23318.99158813522,
+      -1348.2348462574757
+     ],
+     "radius": 28.881,
+     "zlo": 26.31006898927604,
+     "zhi": 84.07206898927603,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin instance (7)",
+   "template": "Pumpkin",
+   "at": [
+    -27513.779296875,
+    -960.4603881835938,
+    -69.00340270996094
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -27513.01205487888,
+      -960.3815677367168
+     ],
+     "radius": 19.254,
+     "zlo": -72.1277027460266,
+     "zhi": -33.61970274602659,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "HO_Pumpkin02 instance (7)",
+   "template": "PumpkinO2",
+   "at": [
+    -24298.5703125,
+    4548.43017578125,
+    87.83824157714844
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -24299.496777831304,
+      4547.19682674664
+     ],
+     "radius": 38.508,
+     "zlo": 81.58964156581405,
+     "zhi": 158.60564156581407,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Firecat_TeleporterA_ToMain instance",
+   "template": "WC_Firecat_TeleporterA_ToMain",
+   "at": [
+    774.6663208007812,
+    -1106.2020263671875,
+    31.006450653076172
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      774.6663251698137,
+      -1106.2020221312
+     ],
+     "radius": 43.32,
+     "zlo": 25.851450653076,
+     "zhi": 236.161450653076,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Firecat_TeleporterA instance",
+   "template": "WC_Firecat_TeleporterA",
+   "at": [
+    -7215.81298828125,
+    -9995.76953125,
+    -968.8311767578125
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -7215.812984288757,
+      -9995.769528658515
+     ],
+     "radius": 43.32,
+     "zlo": -973.9861767578126,
+     "zhi": -763.6761767578126,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Firecat_TeleporterB_ToMain instance",
+   "template": "WC_Firecat_TeleporterB_ToMain",
+   "at": [
+    -23485.259765625,
+    -7518.09912109375,
+    31.001619338989258
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -23485.259761696234,
+      -7518.099118638809
+     ],
+     "radius": 43.32,
+     "zlo": 25.846619338989143,
+     "zhi": 236.15661933898915,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Firecat_TeleporterC_ToMain instance",
+   "template": "WC_Firecat_TeleporterC_ToMain",
+   "at": [
+    -19564.3203125,
+    670.5797119140625,
+    63.50394058227539
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -19564.32031112328,
+      670.5797121365387
+     ],
+     "radius": 43.32,
+     "zlo": 58.34894058227539,
+     "zhi": 268.65894058227536,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Firecat_TeleporterB instance",
+   "template": "WC_Firecat_TeleporterB",
+   "at": [
+    -7801.833984375,
+    -10527.1298828125,
+    -968.83251953125
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -7801.833984375,
+      -10527.1298828125
+     ],
+     "radius": 43.32,
+     "zlo": -973.98751953125,
+     "zhi": -763.67751953125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Firecat_TeleporterC instance",
+   "template": "WC_Firecat_TeleporterC",
+   "at": [
+    -8362.1005859375,
+    -9994.845703125,
+    -999.2974243164062
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -8362.100582065184,
+      -9994.84569672604
+     ],
+     "radius": 43.32,
+     "zlo": -1004.4524243164065,
+     "zhi": -794.1424243164065,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "WC_Teleporter_Hub instance",
+   "template": "WC_Teleporter_Hub",
+   "at": [
+    -7734.85888671875,
+    -10160.0498046875,
+    -999.2977294921875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -7734.85888671875,
+      -10160.0498046875
+     ],
+     "radius": 138.1714,
+     "zlo": -1249.2977794921876,
+     "zhi": -867.4526794921876,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

@@ -17,7 +17,10 @@
   zone, which a jump also looks like.
 * **Stalls** on something the map doesn't know: back off :data:`BACK_OFF`, close the floor just
   ahead, and replan, up to :data:`MAX_RECOVERIES` times; the next stall ends the walk
-  :attr:`WalkEnd.BLOCKED`.
+  :attr:`WalkEnd.BLOCKED`. A stall within :data:`GATE_REACH` of a gate (``gates.py``) closes
+  that gate instead, on this walk's planner: a gate is open until a walk finds it there. When
+  the replan then finds no way, the walk ends :attr:`WalkEnd.NO_ROUTE` with a
+  :class:`~bartleby.runtime.movement.gates.NoRoute` naming the gate and the crossing past it.
 * **Links**: at a leg's end it stands in the volume, or faces the object and presses Interact
   once the prompt shows, and again every :data:`~bartleby.runtime.timing.WALK_PRESS_EVERY`, until
   moved :data:`LINK_MOVED`. A link that moves nobody in :data:`~bartleby.runtime.timing.WALK_LINK_WAIT`
@@ -53,6 +56,7 @@ from enum import StrEnum
 from bartleby.runtime.arbiter import Lease
 from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction
+from bartleby.runtime.movement.gates import NoRoute
 from bartleby.runtime.movement.geometry import Point, facing, flat_distance, heading_to, wrap
 from bartleby.runtime.movement.route import WIZARD_SPEED, Leg, Route, ZonePlanner
 from bartleby.runtime.movement.zone_links import Link
@@ -101,6 +105,10 @@ BACK_OFF = 150.0
 #: How far ahead of a stall the floor is closed, and within what radius.
 BLOCK_AHEAD = 80.0
 BLOCK_RADIUS = 110.0
+#: Units from a gate's solid within which a stall is taken as the gate's: a wizard stops its own
+#: radius, some 50, from what it walks into, the cells are 40 across, and a gate's edge may be
+#: grazed rather than met square on.
+GATE_REACH = 150.0
 #: Units a link must move the wizard to have taken it; rising counts, for a ladder.
 LINK_MOVED = 300.0
 #: Units from where a pending link lands within which a jump is that link, taken early at the
@@ -168,6 +176,8 @@ class WalkResult:
     links_dropped: int = 0
     waited: float = 0.0  # standing or backing off for mobs
     least_room: float = math.inf  # beyond a trigger radius and margin
+    gates_closed: list[str] = field(default_factory=list)  # each gate a stall found there, in order
+    no_route: NoRoute | None = None  # why, when it ended NO_ROUTE
     trail: list[Point] = field(default_factory=list, repr=False)
     routes: list[list[Point]] = field(default_factory=list, repr=False)  # each plan's waypoints
 
@@ -465,6 +475,16 @@ class RouteWalker:
         finally:
             result.planning += time.monotonic() - began
 
+    async def _why_not(self, result: WalkResult, start: Point, goal: Point) -> NoRoute:
+        """Why there is no route, kept on *result*: planned in a worker thread, since it plans
+        again once for each gate closed."""
+        began = time.monotonic()
+        try:
+            result.no_route = await asyncio.to_thread(self.planner.no_route, start, goal, self.avoid)
+        finally:
+            result.planning += time.monotonic() - began
+        return result.no_route
+
     async def _warm_up(self) -> None:
         """Make the walk's first lookups while its first route is planned, not standing after it.
         In a fresh process the first ``in_battle`` runs wizwalker's scan for the duel manager (about
@@ -496,7 +516,8 @@ class RouteWalker:
         here = result.start
         route, _ = await asyncio.gather(self._plan(result, here, goal), self._warm_up())
         if route is None:
-            raise _Ended(WalkEnd.NO_ROUTE, "nowhere on the floor joins the two")
+            why = await self._why_not(result, here, goal)
+            raise _Ended(WalkEnd.NO_ROUTE, why.describe())
         legs = await self._legs(result, route, here)
         # The leg being walked, its link, and the legs after it, which a replan after the link plans afresh.
         waypoints, link, later = legs[0].waypoints, legs[0].link, legs[1:]
@@ -551,7 +572,10 @@ class RouteWalker:
             await stand()
             again = await self._plan(result, at, goal)
             if again is None:
-                raise _Ended(WalkEnd.NO_ROUTE, f"no route on from ({at[0]:.0f}, {at[1]:.0f}) {why}")
+                reason = await self._why_not(result, at, goal)
+                raise _Ended(
+                    WalkEnd.NO_ROUTE, f"no route on from ({at[0]:.0f}, {at[1]:.0f}) {why}: {reason.describe()}"
+                )
             result.replans += 1
             position, _ = await self._read()
             planned = await self._legs(result, again, position)
@@ -720,9 +744,15 @@ class RouteWalker:
                     )
                     await self._back_off(keys)
                     fx, fy = facing(yaw)
-                    self.planner.block(x + fx * BLOCK_AHEAD, y + fy * BLOCK_AHEAD, z, BLOCK_RADIUS)
+                    gates = self.planner.gates_near(x, y, z, GATE_REACH)
+                    if gates:
+                        self.planner.close(gates[0])
+                        result.gates_closed.append(gates[0].name)
+                        logger.info("%s: stalled at the gate %s: it is closed", self.label, gates[0].name)
+                    else:
+                        self.planner.block(x + fx * BLOCK_AHEAD, y + fy * BLOCK_AHEAD, z, BLOCK_RADIUS)
                     backed, _ = await self._read()
-                    await replan(backed, "after a stall")
+                    await replan(backed, f"past the gate {gates[0].name}" if gates else "after a stall")
                     continue
 
                 await asyncio.sleep(WALK_TICK)

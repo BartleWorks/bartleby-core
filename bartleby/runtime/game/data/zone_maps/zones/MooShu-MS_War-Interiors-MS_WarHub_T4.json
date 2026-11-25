@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_War/Interiors/MS_WarHub_T4",
  "named": {
   "Start": [
@@ -85,6 +85,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MS_BookPedestalHistory instance",
+   "template": "MS_BookPedestalHistory",
+   "at": [
+    -34.439208984375,
+    1535.416015625,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -4.499900000000004,
+     "zhi": 104.4981,
+     "firm": true,
+     "hull": [
+      [
+       -77.752508984375,
+       1489.799865625
+      ],
+      [
+       6.124491015624997,
+       1489.799865625
+      ],
+      [
+       6.124491015624997,
+       1578.587165625
+      ],
+      [
+       -77.752508984375,
+       1578.587165625
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

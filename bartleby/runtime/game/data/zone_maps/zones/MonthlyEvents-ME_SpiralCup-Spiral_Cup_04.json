@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MonthlyEvents/ME_SpiralCup/Spiral_Cup_04",
  "named": {
   "Start": [
@@ -29,5 +29,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

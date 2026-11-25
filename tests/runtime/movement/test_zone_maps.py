@@ -18,10 +18,11 @@ import numpy as np
 import pytest
 
 from bartleby.runtime.movement import collision, patrols, route, zone_grid, zone_maps
-from bartleby.runtime.movement.collision import blocking_footprints, walkable_triangles
+from bartleby.runtime.movement.collision import Footprint, blocking_footprints, walkable_triangles
+from bartleby.runtime.movement.gates import Gate
 from bartleby.runtime.movement.patrols import Patrol
 from bartleby.runtime.movement.route import ZoneFiles, build_planner
-from bartleby.runtime.movement.zone_links import Volume
+from bartleby.runtime.movement.zone_links import InteractTemplate, PlacedObject, Volume
 from bartleby.runtime.movement.zone_maps import ZoneMaps
 from tests.runtime.movement.zone_fixtures import box, cylinder, floor, mesh
 from tools.build_zone_maps import build_group
@@ -32,7 +33,7 @@ TWIN = "Test/T_Isles_Twin"
 
 def _isles(zone: str = ZONE) -> ZoneFiles:
     """Two islands joined by a volume, a ghost walking the west one, an exit on the east one,
-    and a crate and a tree to walk around."""
+    a crate and a tree to walk around, and a quest light, a gate, on the east one."""
     solids = [
         mesh(floor(0, 0, 2000, 1000, 0), floor(3000, 0, 5000, 1000, 0)),
         box((1000, 800, 50), 200, 200, 200),
@@ -42,7 +43,13 @@ def _isles(zone: str = ZONE) -> ZoneFiles:
     link = Volume("TeleportVol To Isle", (1800, 500, 0), radius=90)
     gate = Volume("TeleportVol_Gate", (4600, 500, 0), shape="Box", length=200, width=120, height=300)
     named = {"Start": (100.5, 500.25, 0.0), "Target To Isle": (3200, 500, 0), "Far End": (4900, 900, 0)}
-    return ZoneFiles(zone, solids, [ghost], named, [link, gate], frozenset({link.name, gate.name}))
+    light = Gate(
+        "Quest Light 01",
+        "QuestLight",
+        (3600.0, 700.0, 0.0),
+        (Footprint(None, (3600.0, 700.0), 60.0, 0.0, 200.0, True),),
+    )
+    return ZoneFiles(zone, solids, [ghost], named, [link, gate], frozenset({link.name, gate.name}), gates=[light])
 
 
 def _ship(root: Path, *group: ZoneFiles) -> None:
@@ -82,6 +89,7 @@ def _assert_plans_alike(one, other) -> None:
     np.testing.assert_array_equal(one.clearance, other.clearance)
     np.testing.assert_array_equal(one.cost, other.cost)
     assert (one.named, one.links, one.exits) == (other.named, other.links, other.exits)
+    assert [g.key() for g in one.gates] == [g.key() for g in other.gates]
     for start, goal in [((100, 500), (4900, 900)), ((300, 200), (1500, 600)), ((3200, 300), (4900, 300))]:
         for avoid in (False, True):
             a, b = one.route(start, goal, avoid), other.route(start, goal, avoid)
@@ -117,8 +125,10 @@ def test_a_floor_reads_back_as_the_triangles_and_footprints_written():
 def test_a_zones_own_file_reads_back_as_written():
     planner = build_planner(_isles())
 
-    text = zone_maps.zone_text(ZONE, planner.patrols, planner.named, planner.links, planner.exits)
+    text = zone_maps.zone_text(ZONE, planner.patrols, planner.named, planner.links, planner.exits, planner.gates)
     record = zone_maps.read_zone(text)
+
+    assert [g.key() for g in record.gates] == [g.key() for g in planner.gates] and record.gates
 
     assert (record.zone, record.named, record.links, record.exits) == (
         ZONE,
@@ -145,7 +155,7 @@ def test_a_map_holds_derived_geometry_names_and_positions_only(shipped):
         assert sorted(arrays.files) == ["footprints", "hull_sizes", "hulls", "triangles"]
         assert all(arrays[name].dtype != object for name in arrays.files)
     record = json.loads((shipped / entry["zone"]).read_text(encoding="utf-8"))
-    assert sorted(record) == ["exits", "format", "links", "named", "patrols", "zone"]
+    assert sorted(record) == ["exits", "format", "gates", "links", "named", "patrols", "zone"]
 
 
 def test_zones_sharing_a_collision_file_share_one_floor_file(shipped):
@@ -217,16 +227,38 @@ async def test_load_reads_a_planner_off_the_event_loop(shipped, tmp_path, monkey
     assert threads and loop_thread not in threads
 
 
+def test_a_link_objects_wall_is_built_from_the_map_as_from_the_wad(tmp_path):
+    teleport = InteractTemplate("Stone", "Press X to Teleport")
+    stone = Gate("Stone_A", "Stone", (500.0, 500.0, 0.0), (Footprint(None, (500.0, 500.0), 43.0, 0.0, 210.0, True),))
+    files = ZoneFiles(
+        ZONE,
+        [mesh(floor(0, 0, 1000, 1000, 0), floor(3000, 0, 4000, 1000, 0))],
+        [],
+        {"Near": (600.0, 500.0, 0.0), "Far": (3400.0, 500.0, 0.0)},
+        placed=[PlacedObject("Stone_A", (500, 500, 0), teleport), PlacedObject("Stone_A_B", (3500, 500, 0), teleport)],
+        gates=[stone],
+    )
+    _ship(tmp_path / "maps", files)
+    wad, shipped = build_planner(files), ZoneMaps(tmp_path / "maps", tmp_path / "saved").planner(ZONE)
+
+    assert shipped.gates[0].wall and shipped.grid.walls[(0, *shipped.grid.index(500, 500))]
+    np.testing.assert_array_equal(wad.grid.walls, shipped.grid.walls)
+    np.testing.assert_array_equal(wad.passable, shipped.passable)
+    assert wad.links == shipped.links
+
+
 def test_each_caller_gets_its_own_floor_and_links(shipped, tmp_path):
     maps = _maps(shipped, tmp_path)
     one, other = maps.planner(ZONE), maps.planner(ZONE)
 
     one.block(300, 500, 0, 200)
     one.drop(one.links[0])
+    one.close(one.gates[0])
 
     assert other.passable.sum() > one.passable.sum()
     assert other.links and not one.links
     assert maps.planner(ZONE).links == other.links
+    assert one.closed and other.closed == [] and maps.planner(ZONE).closed == []
 
 
 def test_a_session_keeps_only_the_planners_used_last(shipped, tmp_path, monkeypatch):
@@ -428,9 +460,17 @@ def test_zone_maps_imports_no_katsuba_and_reads_no_wad():
 #: What builds a saved copy's arrays, and the CACHE_VERSION they were last checked at. When this
 #: test fails, a change may build a different copy from the same map: raise
 #: ``zone_maps.CACHE_VERSION``, so every user's copies are rebuilt, and set both values here.
-BUILT_BY = (collision, zone_grid, patrols.segments, patrols.distance_to_segments, patrols.clearance, route.grid_of)
-BUILT_BY_SHA = "5dbff500ae4c450e3f3687d494aa44cdaf644d2403eb8782e7aa92eda53222df"
-CHECKED_AT = 1
+BUILT_BY = (
+    collision,
+    zone_grid,
+    patrols.segments,
+    patrols.distance_to_segments,
+    patrols.clearance,
+    route.grid_of,
+    route.wall_gates,
+)
+BUILT_BY_SHA = "ffee896b5158c645ecd6948002e95f2aded2b48b372e50255d150df957264967"
+CHECKED_AT = 2
 
 
 def test_cache_version_follows_the_planner():

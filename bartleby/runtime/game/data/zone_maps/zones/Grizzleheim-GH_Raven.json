@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Grizzleheim/GH_Raven",
  "named": {
   "FromRavenFortressT1": [
@@ -149,6 +149,225 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "RavenBearClawStoneMain",
+   "template": "GH_RunestoneMainBearClaw",
+   "at": [
+    -1676.6650390625,
+    -747.065185546875,
+    -101.75599670410156
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1676.665036642213,
+      -747.0651824274792
+     ],
+     "radius": 65.07204555974602,
+     "zlo": -68.79542762946203,
+     "zhi": -20.39279719323828,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "RavenBearWarriorStoneMain",
+   "template": "GH_RunestoneMainBearWarrior",
+   "at": [
+    -1679.1500244140625,
+    -33.10454177856445,
+    -101.756103515625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1679.1500228698685,
+      -33.10453994971594
+     ],
+     "radius": 71.1797,
+     "zlo": -107.28520351562507,
+     "zhi": -24.56000351562507,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "RavenBearWarriorStoneSecondary",
+   "template": "GH_RunestoneBearWarrior",
+   "at": [
+    -13274.01953125,
+    8993.0537109375,
+    1268.1429443359375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -13274.01953033576,
+      8993.05371377566
+     ],
+     "radius": 71.1797,
+     "zlo": 1262.6138443359375,
+     "zhi": 1345.3390443359374,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "RavenBearClawStoneSecondary",
+   "template": "GH_Runestone_BearClaw",
+   "at": [
+    -37233.3984375,
+    27373.5390625,
+    2863.952880859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -37233.39844004789,
+      27373.53906550836
+     ],
+     "radius": 67.2721,
+     "zlo": 2898.0278308593747,
+     "zhi": 2948.0669308593747,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH_RunestoneCompass instance",
+   "template": "GH_RunestoneCompass",
+   "at": [
+    -6125.23193359375,
+    30555.0390625,
+    2224.596923828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6125.23193359375,
+      30555.0390625
+     ],
+     "radius": 68.6,
+     "zlo": 2265.0057238281247,
+     "zhi": 2282.579123828125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH_RunestoneMainCompass instance",
+   "template": "GH_RunestoneMainCompass",
+   "at": [
+    -2093.68896484375,
+    -374.6542053222656,
+    -101.69979858398438
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2093.6889627087808,
+      -374.65420291447447
+     ],
+     "radius": 68.6,
+     "zlo": -61.290998583984475,
+     "zhi": -43.71759858398448,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "COLLECT_Raven_Brazier_01",
+   "template": "COLLECT_HOUSE_GH_Raven_Brazier_01",
+   "at": [
+    -40493.23046875,
+    33699.8515625,
+    3227.77294921875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 3227.772948892809,
+     "zhi": 3393.77694921875,
+     "firm": true,
+     "hull": [
+      [
+       -40547.06736875,
+       33666.1207625
+      ],
+      [
+       -40527.51886875,
+       33647.4787625
+      ],
+      [
+       -40462.59246875,
+       33647.4787625
+      ],
+      [
+       -40441.70726875,
+       33666.1207625
+      ],
+      [
+       -40441.70726875,
+       33730.4345625
+      ],
+      [
+       -40462.59236875,
+       33753.7260625
+      ],
+      [
+       -40527.51886875,
+       33753.7260625
+      ],
+      [
+       -40547.06736875,
+       33730.4345625
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "GH_Cauldron instance",
+   "template": "GH_Cauldron",
+   "at": [
+    -15612.6201171875,
+    22990.41015625,
+    1551.655029296875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -15612.6201171875,
+      22990.41015625
+     ],
+     "radius": 184.68,
+     "zlo": 1562.885029296875,
+     "zhi": 1740.425029296875,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

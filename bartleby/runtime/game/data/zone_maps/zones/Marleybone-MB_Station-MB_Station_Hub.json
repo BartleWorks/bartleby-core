@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Marleybone/MB_Station/MB_Station_Hub",
  "named": {
   "FromMainHub": [
@@ -97,6 +97,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MB-AIRHub-NPC03 instance",
+   "template": "MB-AIRHub-NPC03",
+   "at": [
+    0.0,
+    9454.787109375,
+    -248.5106964111328
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -328.5906964111328,
+     "zhi": -83.5906964111328,
+     "firm": true,
+     "hull": [
+      [
+       -44.0,
+       9595.887109375
+      ],
+      [
+       44.0,
+       9595.887109375
+      ],
+      [
+       44.0,
+       9661.887109375
+      ],
+      [
+       -44.0,
+       9661.887109375
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

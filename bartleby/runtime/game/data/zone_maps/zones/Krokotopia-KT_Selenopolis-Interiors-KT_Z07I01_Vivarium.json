@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Selenopolis/Interiors/KT_Z07I01_Vivarium",
  "named": {
   "Start": [
@@ -579,6 +579,169 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT_TeleporterB_Vivarium",
+   "template": "KT_TeleporterB_Vivarium",
+   "at": [
+    2826.0390625,
+    1495.5689697265625,
+    -0.0002009326999541372
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      2826.039059376045,
+      1495.568977155143
+     ],
+     "radius": 43.32,
+     "zlo": -5.155200932700282,
+     "zhi": 205.15479906729973,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterC_Vivarium",
+   "template": "KT_TeleporterC_Vivarium",
+   "at": [
+    3262.951904296875,
+    1042.5810546875,
+    -0.00012616180174518377
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      3262.95190117292,
+      1042.5810621160806
+     ],
+     "radius": 43.32,
+     "zlo": -5.155126161802073,
+     "zhi": 205.15487383819794,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Teleporter_Hub instance",
+   "template": "KT_Teleporter_Hub",
+   "at": [
+    2815.85009765625,
+    1012.7360229492188,
+    -0.00023648349451832473
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2815.8500995018053,
+      1012.7360185605999
+     ],
+     "radius": 138.1714,
+     "zlo": -250.00028648349434,
+     "zhi": 131.84481351650567,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterC_ToHub_Vivarium",
+   "template": "KT_TeleporterC_ToHub_Vivarium",
+   "at": [
+    14528.2998046875,
+    -9432.599609375,
+    0.00054931640625
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      14528.2998046875,
+      -9432.599609375
+     ],
+     "radius": 43.32,
+     "zlo": -5.154450683593751,
+     "zhi": 205.15554931640625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterB_ToHub_Vivarium",
+   "template": "KT_TeleporterB_ToHub_Vivarium",
+   "at": [
+    26519.169921875,
+    -2463.64404296875,
+    0.0006579536129720509
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      26519.169917504358,
+      -2463.64403866309
+     ],
+     "radius": 43.32,
+     "zlo": -5.154342046387214,
+     "zhi": 205.15565795361277,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_PitofGorn",
+   "template": "KT_Questlight",
+   "at": [
+    16221.080078125,
+    -6563.39990234375,
+    0.2001810073852539
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      16221.080080828051,
+      -6563.397764245758
+     ],
+     "radius": 59.4191,
+     "zlo": -52.752919029926666,
+     "zhi": 175.67368097007335,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_DarkAbode",
+   "template": "KT_Questlight",
+   "at": [
+    25780.890625,
+    2584.485107421875,
+    0.023498540744185448
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      25780.890625,
+      2584.485107421875
+     ],
+     "radius": 59.4191,
+     "zlo": -52.92960145925582,
+     "zhi": 175.4969985407442,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

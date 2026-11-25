@@ -6,14 +6,20 @@ blocks a foot comes from Deimos' ``src/collision_math.py`` (GPL-3, as this libra
 from BartleBot's ``tools/probe_walk_route.py``; core's ``docs/WALKING.md``, *The floor*, has
 what each rule was measured against.
 
-Nothing here opens a file: :func:`parse_collision` takes the file's bytes, which a tool reads
-out of the zone's wad.
+A placed object's own solids (its template's ``CollisionBehavior`` names a file of them, plain
+XML) are read by :func:`parse_solid_xml`, put where the object stands by :func:`place_solids`,
+and walled by :func:`placed_footprints`; ``gates.py`` says what the planner does with them.
+
+Nothing here opens a file: :func:`parse_collision` and :func:`parse_solid_xml` take the file's
+bytes, which a tool reads out of the game's wads.
 """
 
 from __future__ import annotations
 
+import math
 import struct
-from dataclasses import dataclass
+import xml.etree.ElementTree as ElementTree
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -181,4 +187,102 @@ def blocking_footprints(solids: list[Solid]) -> list[Footprint]:
         if s.proxy != BOX and r > 0:
             x, y, z = s.location
             out.append(Footprint(None, (x, y), r, z - half, z + half, r < ROUND_SHELL_MIN))
+    return out
+
+
+# --- a placed object's solids --------------------------------------------------------------------
+
+
+def _floats(text: str | None) -> tuple[float, ...]:
+    return tuple(float(v) for v in (text or "").split())
+
+
+def parse_solid_xml(data: bytes) -> list[Solid]:
+    """Every primitive of a placed object's solid file, in the object's own frame: a ``<world>``
+    of ``<primitive type="box|cylinder|sphere|mesh">``, each with its ``<location>`` and
+    ``<rotation matrix>``. A box's ``<dimensions l w d>`` are its full sides along x, y and z, a
+    cylinder's ``<cylinder radius length>`` stand along z, and a mesh lists its vertices and
+    faces. A mesh that names another file (``<mesh source>``) and anything else is skipped. The
+    category is not kept: the solid files tag their blockers ``CT_ClientObject``, which in a
+    ``collision.bcd`` marks a solid that walls nobody, and here walls the wizard."""
+    root = ElementTree.fromstring(data.decode("utf-8-sig"))
+    out = []
+    for prim in root.iter("primitive"):
+        kind = prim.get("type")
+        loc = prim.find("location")
+        location = tuple(float(loc.get(k, 0.0)) for k in "xyz") if loc is not None else (0.0, 0.0, 0.0)
+        rot = prim.find("rotation")
+        rotation = _floats(rot.get("matrix")) if rot is not None else ()
+        if len(rotation) != 9:
+            rotation = (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+        if kind == "box" and (dims := prim.find("dimensions")) is not None:
+            params = tuple(float(dims.get(k, 0.0)) for k in ("l", "w", "d"))
+            out.append(Solid(BOX, 0, rotation, location, 1.0, params))
+        elif kind == "cylinder" and (cyl := prim.find("cylinder")) is not None:
+            # (length, radius), as collision.bcd stores a cylinder.
+            params = (float(cyl.get("length", 0.0)), float(cyl.get("radius", 0.0)))
+            out.append(Solid(CYLINDER, 0, rotation, location, 1.0, params))
+        elif kind == "sphere" and (rad := prim.find("radius")) is not None:
+            out.append(Solid(SPHERE, 0, rotation, location, 1.0, (float(rad.get("value", 0.0)),)))
+        elif kind == "mesh" and (body := prim.find("mesh")) is not None:
+            vertices = [tuple(float(v.get(k, 0.0)) for k in "xyz") for v in body.iter("vert")]
+            faces = [tuple(int(f.get(k, 0)) for k in "abc") for f in body.iter("face")]
+            if vertices:
+                out.append(Solid(MESH, 0, rotation, location, 1.0, (), vertices, faces))
+    return out
+
+
+def object_rotation(orientation: tuple[float, float, float]) -> np.ndarray:
+    """The 3x3 matrix that turns a placed object's frame into the world's, from its
+    ``m_orientation`` (pitch, roll, yaw), applied as :func:`_to_world` applies a stored one.
+
+    A yaw turns the object the way a wizard's yaw turns the wizard (``geometry.facing``): its
+    own -y comes to face where a wizard with that yaw walks. Checked on the shipped zones'
+    gates turned off the axes, which fill the gaps in their walls turned this way and lie across
+    open floor turned the other (``docs/WALKING.md``, *Gates*). Pitch and roll, which 61 of the
+    3,163 placed solids have, are applied about x and then y before the yaw, by a convention
+    nothing has checked."""
+    pitch, roll, yaw = orientation
+    cx, sx = math.cos(pitch), math.sin(pitch)
+    cy, sy = math.cos(roll), math.sin(roll)
+    cz, sz = math.cos(-yaw), math.sin(-yaw)
+    rx = np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]])
+    ry = np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
+    rz = np.array([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]])
+    return rz @ ry @ rx
+
+
+def place_solids(
+    solids: list[Solid], location: tuple[float, float, float], orientation: tuple[float, float, float], scale: float
+) -> list[Solid]:
+    """*solids*, in an object's frame, put where the object stands: turned by its orientation,
+    scaled, and moved to its location. The scale is folded into each solid's sizes and
+    vertices, so every solid returned has scale 1."""
+    turn = object_rotation(orientation)
+    at = np.asarray(location, dtype=float)
+    out = []
+    for s in solids:
+        own = np.asarray(s.rotation, dtype=float).reshape(3, 3)
+        rotation = tuple((turn @ own).ravel().tolist())
+        center = turn @ (np.asarray(s.location, dtype=float) * scale) + at
+        size = scale * s.scale
+        vertices = None if s.vertices is None else [tuple(float(c) * size for c in v) for v in s.vertices]
+        params = tuple(p * size for p in s.params)
+        out.append(
+            replace(s, rotation=rotation, location=tuple(center.tolist()), scale=1.0, params=params, vertices=vertices)
+        )
+    return out
+
+
+def placed_footprints(solids: list[Solid]) -> list[Footprint]:
+    """Where a placed object's solids stand on the floor plan: as :func:`blocking_footprints`
+    finds a box, a sphere and a cylinder (a cylinder taken as standing), whatever their
+    category, and a mesh as the hull of its vertices, firm, from its lowest point to its highest."""
+    out = blocking_footprints([replace(s, category=0) for s in solids if s.proxy != MESH])
+    for s in solids:
+        if s.proxy == MESH and s.vertices:
+            world = _to_world(np.asarray(s.vertices, dtype=float), s)
+            hull = _convex_hull(world[:, :2])
+            if len(hull) >= 3:
+                out.append(Footprint(hull, (0.0, 0.0), 0.0, float(world[:, 2].min()), float(world[:, 2].max()), True))
     return out

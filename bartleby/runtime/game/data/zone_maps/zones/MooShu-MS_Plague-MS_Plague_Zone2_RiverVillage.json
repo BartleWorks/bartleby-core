@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Plague/MS_Plague_Zone2_RiverVillage",
  "named": {
   "FromPlagueHub": [
@@ -780,6 +780,215 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MS_NEW_Kishibi_TeleportA instance",
+   "template": "MS_NEW_Kishibi_TeleportA",
+   "at": [
+    16673.419921875,
+    -4487.4970703125,
+    -272.7710876464844
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      16673.419921875,
+      -4487.4970703125
+     ],
+     "radius": 43.32,
+     "zlo": -277.92608764648435,
+     "zhi": -67.61608764648437,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_Kishibi_TeleportA_ToMain instance",
+   "template": "MS_NEW_Kishibi_TeleportA_ToMain",
+   "at": [
+    30899.900390625,
+    -10087.0302734375,
+    57.581298828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      30899.900390625,
+      -10087.0302734375
+     ],
+     "radius": 43.32,
+     "zlo": 52.426298828125,
+     "zhi": 262.736298828125,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_Kishibi_TeleportB instance",
+   "template": "MS_NEW_Kishibi_TeleportB",
+   "at": [
+    15959.9697265625,
+    -4808.94482421875,
+    -272.77130126953125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      15959.96973089243,
+      -4808.944820446046
+     ],
+     "radius": 43.32,
+     "zlo": -277.92630126953145,
+     "zhi": -67.61630126953142,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_Kishibi_TeleportB_ToMain instance",
+   "template": "MS_NEW_Kishibi_TeleportB_ToMain",
+   "at": [
+    30933.779296875,
+    4209.07177734375,
+    34.4676513671875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      30933.779296875,
+      4209.07177734375
+     ],
+     "radius": 43.32,
+     "zlo": 29.3126513671875,
+     "zhi": 239.6226513671875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_MushroomPoison instance",
+   "template": "MS_MushroomPoison",
+   "at": [
+    37249.640625,
+    -13500.9404296875,
+    10.000120162963867
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      37246.009325,
+      -13513.5873296875
+     ],
+     "radius": 56.53295,
+     "zlo": 7.42262016296387,
+     "zhi": 65.66352016296388,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_MushroomPoison instance",
+   "template": "MS_MushroomPoison",
+   "at": [
+    34435.51171875,
+    -11558.8095703125,
+    10.000109672546387
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      34431.88041875,
+      -11571.4564703125
+     ],
+     "radius": 56.53295,
+     "zlo": 7.42260967254639,
+     "zhi": 65.6635096725464,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_MushroomPoison instance",
+   "template": "MS_MushroomPoison",
+   "at": [
+    31258.560546875,
+    -7955.373046875,
+    -0.9378662109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      31254.929246875,
+      -7968.019946875
+     ],
+     "radius": 56.53295,
+     "zlo": -3.5153662109375006,
+     "zhi": 54.7255337890625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_MushroomPoison instance",
+   "template": "MS_MushroomPoison",
+   "at": [
+    27390.33984375,
+    -13268.3896484375,
+    -0.9378662109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      27386.70854375,
+      -13281.0365484375
+     ],
+     "radius": 56.53295,
+     "zlo": -3.5153662109375006,
+     "zhi": 54.7255337890625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_MushroomPoison instance",
+   "template": "MS_MushroomPoison",
+   "at": [
+    34916.12890625,
+    -13285.3701171875,
+    -0.9378662109375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      34912.49760625,
+      -13298.0170171875
+     ],
+     "radius": 56.53295,
+     "zlo": -3.5153662109375006,
+     "zhi": 54.7255337890625,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

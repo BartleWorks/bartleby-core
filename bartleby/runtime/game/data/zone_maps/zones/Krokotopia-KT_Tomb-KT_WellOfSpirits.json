@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Tomb/KT_WellOfSpirits",
  "named": {
   "GauntletReturn": [
@@ -93,5 +93,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

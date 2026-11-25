@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Karamelle/KM_Z03_GumdropForest",
  "named": {
   "From_KaramelleCity": [
@@ -190,6 +190,77 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KM-QuestLight_Treemugger01",
+   "template": "KM-QuestLight",
+   "at": [
+    13138.98046875,
+    1661.991943359375,
+    371.49468994140625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      13139.26596875,
+      1662.894843359375
+     ],
+     "radius": 24.8997,
+     "zlo": 366.2843899414063,
+     "zhi": 557.5767899414062,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight_GobblerCave01",
+   "template": "KM-QuestLight",
+   "at": [
+    5409.3427734375,
+    2497.930908203125,
+    320.4010009765625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5409.6282734375,
+      2498.833808203125
+     ],
+     "radius": 24.8997,
+     "zlo": 315.19070097656254,
+     "zhi": 506.48310097656247,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight_PipelineCave",
+   "template": "KM-QuestLight",
+   "at": [
+    18409.5390625,
+    -13156.5498046875,
+    -1876.6939697265625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      18409.8245625,
+      -13155.6469046875
+     ],
+     "radius": 24.8997,
+     "zlo": -1881.9042697265625,
+     "zhi": -1690.6118697265626,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Wallaru/WL_Z04_TheDreaming",
  "named": {
   "Start": [
@@ -72,5 +72,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }

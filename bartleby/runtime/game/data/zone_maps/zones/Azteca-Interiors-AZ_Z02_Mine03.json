@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Azteca/Interiors/AZ_Z02_Mine03",
  "named": {
   "Start": [
@@ -52,6 +52,77 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "AZ-ThunderHorns_Trapped instance",
+   "template": "AZ-ThunderHorns_Trapped",
+   "at": [
+    -276.26190185546875,
+    -5482.94384765625,
+    0.19991379976272583
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -280.8064251142639,
+      -5504.854123101459
+     ],
+     "radius": 104.5078,
+     "zlo": -8.975834294367473,
+     "zhi": 182.60646570563253,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AZ-ThunderHorns_Trappe02 instance",
+   "template": "AZ-ThunderHorns_Trappe02",
+   "at": [
+    -769.58837890625,
+    -4265.2451171875,
+    0.20008599758148193
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -779.5073433063874,
+      -4285.303208347612
+     ],
+     "radius": 104.5078,
+     "zlo": -8.975662177503722,
+     "zhi": 182.60663782249628,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "AZ-ThunderHorns_Trappe03 instance",
+   "template": "AZ-ThunderHorns_Trappe03",
+   "at": [
+    -1770.7459716796875,
+    -3306.962890625,
+    0.2001170963048935
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1792.9564594973108,
+      -3304.2412589183473
+     ],
+     "radius": 104.5078,
+     "zlo": -8.975632074474518,
+     "zhi": 182.60666792552547,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

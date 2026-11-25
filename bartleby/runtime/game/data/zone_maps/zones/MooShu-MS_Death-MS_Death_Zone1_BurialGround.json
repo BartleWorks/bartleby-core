@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Death/MS_Death_Zone1_BurialGround",
  "named": {
   "EventFromLanding": [
@@ -1805,6 +1805,391 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "Teleporter-PageEvent-Death instance",
+   "template": "Teleporter-PageEvent-Death",
+   "at": [
+    906.9240112304688,
+    -399.0346984863281,
+    -12.868749618530273
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -13.540905361407908,
+     "zhi": 266.3408060416508,
+     "firm": true,
+     "hull": [
+      [
+       826.4525869035649,
+       -477.0386139771569
+      ],
+      [
+       826.4525971773373,
+       -477.0386328537262
+      ],
+      [
+       868.1968017283725,
+       -504.0355508869263
+      ],
+      [
+       987.3146549845601,
+       -319.8485994026333
+      ],
+      [
+       987.3146447107877,
+       -319.848580526064
+      ],
+      [
+       945.5704401597525,
+       -292.8516624928639
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance",
+   "template": "MS_DirtPile",
+   "at": [
+    -23236.05078125,
+    6831.93115234375,
+    3.051758176297881e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -23236.050779393427,
+      6831.931153299748
+     ],
+     "radius": 47.75,
+     "zlo": 19.129380517581716,
+     "zhi": 85.22688051758172,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (1)",
+   "template": "MS_DirtPile",
+   "at": [
+    -30722.650390625,
+    -7098.2158203125,
+    0.0411376990377903
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -30722.6503922872,
+      -7098.215819593442
+     ],
+     "radius": 47.75,
+     "zlo": 19.170487699037757,
+     "zhi": 85.26798769903775,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (2)",
+   "template": "MS_DirtPile",
+   "at": [
+    -31739.94921875,
+    5875.84716796875,
+    0.0410308800637722
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -31739.949220964823,
+      5875.847169705045
+     ],
+     "radius": 47.75,
+     "zlo": 19.170380880063696,
+     "zhi": 85.2678808800637,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (3)",
+   "template": "MS_DirtPile",
+   "at": [
+    -17820.7109375,
+    21505.3203125,
+    0.00012207029794808477
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -17820.710935364903,
+      21505.32031397865
+     ],
+     "radius": 47.75,
+     "zlo": 19.12947207029788,
+     "zhi": 85.22697207029788,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (4)",
+   "template": "MS_DirtPile",
+   "at": [
+    -21607.66015625,
+    -17842.140625,
+    0.04058244824409485
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -21607.660158525377,
+      -17842.140622562092
+     ],
+     "radius": 47.75,
+     "zlo": 19.16993244824399,
+     "zhi": 85.267432448244,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_AncntBrlGrnds_TeleportA instance",
+   "template": "MS_NEW_AncntBrlGrnds_TeleportA",
+   "at": [
+    232.12680053710938,
+    -2223.50390625,
+    0.005738561972975731
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      232.12679617588446,
+      -2223.5039015840935
+     ],
+     "radius": 43.32,
+     "zlo": -5.149261438027239,
+     "zhi": 205.16073856197278,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_AncntBrlGrnds_TeleportA_ToMain instance",
+   "template": "MS_NEW_AncntBrlGrnds_TeleportA_ToMain",
+   "at": [
+    -12442.599609375,
+    -16334.580078125,
+    9.964850425720215
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -12442.599613704087,
+      -16334.580073148645
+     ],
+     "radius": 43.32,
+     "zlo": 4.8098504257200005,
+     "zhi": 215.11985042572002,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_AncntBrlGrnds_TeleportB_ToMain instance",
+   "template": "MS_NEW_AncntBrlGrnds_TeleportB_ToMain",
+   "at": [
+    -19542.76953125,
+    -1085.9649658203125,
+    -0.012999160215258598
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -19542.76953562001,
+      -1085.9649615480898
+     ],
+     "radius": 43.32,
+     "zlo": -5.1679991602154445,
+     "zhi": 205.14200083978454,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_AncntBrlGrnds_TeleportB instance",
+   "template": "MS_NEW_AncntBrlGrnds_TeleportB",
+   "at": [
+    -301.8245849609375,
+    -1793.7540283203125,
+    0.0058031887747347355
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -301.82458060087777,
+      -1793.7540242597086
+     ],
+     "radius": 43.32,
+     "zlo": -5.149196811225437,
+     "zhi": 205.16080318877457,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_AncntBrlGrnds_TeleportC instance",
+   "template": "MS_NEW_AncntBrlGrnds_TeleportC",
+   "at": [
+    591.2899780273438,
+    -1618.0279541015625,
+    0.005942482966929674
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      591.2899803685655,
+      -1618.0279460391764
+     ],
+     "radius": 43.32,
+     "zlo": -5.1490575170334125,
+     "zhi": 205.1609424829666,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_AncntBrlGrnds_TeleportC_ToMain instance",
+   "template": "MS_NEW_AncntBrlGrnds_TeleportC_ToMain",
+   "at": [
+    -9590.009765625,
+    19755.400390625,
+    9.9998779296875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -9590.009765625,
+      19755.400390625
+     ],
+     "radius": 43.32,
+     "zlo": 4.844877929687499,
+     "zhi": 215.1548779296875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_Mantra1Tablet instance",
+   "template": "MS_Mantra1Tablet",
+   "at": [
+    -90.82814025878906,
+    8875.5673828125,
+    -1292.302978515625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -1408.772983039914,
+     "zhi": -975.8329739913365,
+     "firm": true,
+     "hull": [
+      [
+       -166.71052865634462,
+       8903.960382736537
+      ],
+      [
+       -165.1245413506045,
+       8843.25109560297
+      ],
+      [
+       -165.12452243277704,
+       8843.251077175319
+      ],
+      [
+       -14.945760600471004,
+       8847.17439140126
+      ],
+      [
+       -16.53174790621115,
+       8907.883678534829
+      ],
+      [
+       -16.5317668240386,
+       8907.883696962479
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "MS-AV-MSRAID-001_Jade_03 instance",
+   "template": "MS-AV-MSRAID-001_Jade_03",
+   "at": [
+    -643.72802734375,
+    15794.5,
+    -1092.2640380859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -629.1463098898574,
+      15867.550923167977
+     ],
+     "radius": 74.7433,
+     "zlo": -1158.8525935714792,
+     "zhi": -1034.4350935714792,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      -564.6573614591414,
+      15789.842596645334
+     ],
+     "radius": 74.7433,
+     "zlo": -1148.6807906535716,
+     "zhi": -1024.2632906535716,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

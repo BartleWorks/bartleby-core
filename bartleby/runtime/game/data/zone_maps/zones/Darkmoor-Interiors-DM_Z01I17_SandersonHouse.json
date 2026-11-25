@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Darkmoor/Interiors/DM_Z01I17_SandersonHouse",
  "named": {
   "Start": [
@@ -66,6 +66,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DM_MonsterChest_SisterSanderson",
+   "template": "DM_MonsterChest_SisterSanderson",
+   "at": [
+    -16.64151954650879,
+    2421.635986328125,
+    4.000363826751709
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -3.7246361732482853,
+     "zhi": 80.76536382675171,
+     "firm": true,
+     "hull": [
+      [
+       -63.83651954650879,
+       2378.095986328125
+      ],
+      [
+       49.27348045349121,
+       2378.095986328125
+      ],
+      [
+       49.27348045349121,
+       2459.0759863281246
+      ],
+      [
+       -63.83651954650879,
+       2459.0759863281246
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

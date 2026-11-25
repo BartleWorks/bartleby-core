@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Selenopolis/Interiors/KT_Z07I02_Gutter",
  "named": {
   "BackToHub": [
@@ -736,6 +736,324 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT-Brazier instance",
+   "template": "KT-Brazier",
+   "at": [
+    -1149.4449462890625,
+    -818.25048828125,
+    0.01718902960419655
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -22.482810970395803,
+     "zhi": 222.5171890296042,
+     "firm": true,
+     "hull": [
+      [
+       -1224.4449462890625,
+       -893.25048828125
+      ],
+      [
+       -1074.4449462890625,
+       -893.25048828125
+      ],
+      [
+       -1074.4449462890625,
+       -743.25048828125
+      ],
+      [
+       -1224.4449462890625,
+       -743.25048828125
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterB_Gutter instance",
+   "template": "KT_TeleporterB_Gutter",
+   "at": [
+    -1355.843994140625,
+    1049.947998046875,
+    -6.083575135562569e-05
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -1355.843998511025,
+      1049.948002338289
+     ],
+     "radius": 43.32,
+     "zlo": -5.1550608357515415,
+     "zhi": 205.15493916424845,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterC_Gutter instance",
+   "template": "KT_TeleporterC_Gutter",
+   "at": [
+    -726.52197265625,
+    1043.27197265625,
+    3.3444041037000716e-05
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -726.5219770266499,
+      1043.271976947664
+     ],
+     "radius": 43.32,
+     "zlo": -5.154966555959149,
+     "zhi": 205.15503344404084,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Teleporter_Hub instance",
+   "template": "KT_Teleporter_Hub",
+   "at": [
+    -1019.0449829101562,
+    703.830322265625,
+    -9.041059820447117e-05
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1019.0449803282332,
+      703.8303197303654
+     ],
+     "radius": 138.1714,
+     "zlo": -250.00014041059808,
+     "zhi": 131.84495958940192,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterC_ToHub_Gutter instance",
+   "template": "KT_TeleporterC_ToHub_Gutter",
+   "at": [
+    -18846.009765625,
+    -5199.0,
+    0.00054931640625
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -18846.009765625,
+      -5199.0
+     ],
+     "radius": 43.32,
+     "zlo": -5.154450683593751,
+     "zhi": 205.15554931640625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_TeleporterB_ToHub_Gutter instance",
+   "template": "KT_TeleporterB_ToHub_Gutter",
+   "at": [
+    -7569.8427734375,
+    -18488.66015625,
+    0.0009002686128951609
+   ],
+   "wall": true,
+   "footprints": [
+    {
+     "center": [
+      -7569.842777808141,
+      -18488.66015194434
+     ],
+     "radius": 43.32,
+     "zlo": -5.154099731387291,
+     "zhi": 205.1559002686127,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_BrightsLab",
+   "template": "KT_Questlight",
+   "at": [
+    -3733.77294921875,
+    -7921.3427734375,
+    0.017684340476989746
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3733.7729491031128,
+      -7921.342773442286
+     ],
+     "radius": 59.4191,
+     "zlo": -52.93541565952302,
+     "zhi": 175.491184340477,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_KT-WEAVE-MYTH-003",
+   "template": "KT_Questlight",
+   "at": [
+    -11927.1904296875,
+    -17571.880859375,
+    0.022892000153660774
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -11927.1904296875,
+      -17571.880859375
+     ],
+     "radius": 59.4191,
+     "zlo": -52.930207999846346,
+     "zhi": 175.49639200015366,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_Aqueduct",
+   "template": "KT_Questlight",
+   "at": [
+    -15761.3603515625,
+    3971.2119140625,
+    0.016944890841841698
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -15761.3603515625,
+      3971.2119140625
+     ],
+     "radius": 59.4191,
+     "zlo": -52.936155109158165,
+     "zhi": 175.49044489084184,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_1MBoss",
+   "template": "KT_Questlight",
+   "at": [
+    -23589.390625,
+    -24423.009765625,
+    0.018081670626997948
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -23589.390625,
+      -24423.009765625
+     ],
+     "radius": 59.4191,
+     "zlo": -52.93501832937301,
+     "zhi": 175.491581670627,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight _Trial",
+   "template": "KT_Questlight",
+   "at": [
+    -2911.02197265625,
+    -2547.678955078125,
+    0.0209197998046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2911.02197265625,
+      -2547.678955078125
+     ],
+     "radius": 59.4191,
+     "zlo": -52.93218020019532,
+     "zhi": 175.4944197998047,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_Hideout",
+   "template": "KT_Questlight",
+   "at": [
+    -3706.056884765625,
+    2690.006103515625,
+    0.02188872918486595
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3706.056884765625,
+      2690.006103515625
+     ],
+     "radius": 59.4191,
+     "zlo": -52.93121127081514,
+     "zhi": 175.49538872918487,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT_Questlight_MemoriesofGalkoth",
+   "template": "KT_Questlight",
+   "at": [
+    -8633.046875,
+    2491.157958984375,
+    99.99993896484375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -8633.046875,
+      2491.157958984375
+     ],
+     "radius": 59.4191,
+     "zlo": 47.046838964843744,
+     "zhi": 275.47343896484375,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "MooShu/MS_Plague/MS_Plague_Zone1_WaterfallCave",
  "named": {
   "FromPlagueHub": [
@@ -1435,6 +1435,439 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MS_DirtPile instance",
+   "template": "MS_DirtPile",
+   "at": [
+    48637.62109375,
+    33971.73828125,
+    0.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      48637.62109375,
+      33971.73828125
+     ],
+     "radius": 47.75,
+     "zlo": 19.129350000000002,
+     "zhi": 85.22685,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (1)",
+   "template": "MS_DirtPile",
+   "at": [
+    49522.05078125,
+    35932.96875,
+    -7.973349094390869
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      49522.05078125,
+      35932.96875
+     ],
+     "radius": 47.75,
+     "zlo": 11.156000905609133,
+     "zhi": 77.25350090560913,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (2)",
+   "template": "MS_DirtPile",
+   "at": [
+    48615.66015625,
+    39898.76953125,
+    6.731934070587158
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      48615.66015625,
+      39898.76953125
+     ],
+     "radius": 47.75,
+     "zlo": 25.86128407058716,
+     "zhi": 91.95878407058716,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (3)",
+   "template": "MS_DirtPile",
+   "at": [
+    52853.671875,
+    39700.41015625,
+    -9.956123352050781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      52853.671875,
+      39700.41015625
+     ],
+     "radius": 47.75,
+     "zlo": 9.173226647949221,
+     "zhi": 75.27072664794922,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (4)",
+   "template": "MS_DirtPile",
+   "at": [
+    55597.08984375,
+    41461.1484375,
+    -3.8433609008789062
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      55597.08984375,
+      41461.1484375
+     ],
+     "radius": 47.75,
+     "zlo": 15.285989099121096,
+     "zhi": 81.38348909912109,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (5)",
+   "template": "MS_DirtPile",
+   "at": [
+    58873.46875,
+    39655.37109375,
+    -11.412529945373535
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      58873.46875,
+      39655.37109375
+     ],
+     "radius": 47.75,
+     "zlo": 7.716820054626467,
+     "zhi": 73.81432005462646,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (6)",
+   "template": "MS_DirtPile",
+   "at": [
+    62911.83984375,
+    39329.8203125,
+    -1.7898980379104614
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      62911.83984375,
+      39329.8203125
+     ],
+     "radius": 47.75,
+     "zlo": 17.33945196208954,
+     "zhi": 83.43695196208954,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (7)",
+   "template": "MS_DirtPile",
+   "at": [
+    56388.66015625,
+    45329.21875,
+    -0.7521191239356995
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      56388.66015625,
+      45329.21875
+     ],
+     "radius": 47.75,
+     "zlo": 18.377230876064303,
+     "zhi": 84.4747308760643,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (9)",
+   "template": "MS_DirtPile",
+   "at": [
+    59698.8203125,
+    47562.26953125,
+    0.00612640380859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      59698.8203125,
+      47562.26953125
+     ],
+     "radius": 47.75,
+     "zlo": 19.135476403808596,
+     "zhi": 85.23297640380859,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (10)",
+   "template": "MS_DirtPile",
+   "at": [
+    62643.12890625,
+    48758.03125,
+    -3.5551979541778564
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      62643.12890625,
+      48758.03125
+     ],
+     "radius": 47.75,
+     "zlo": 15.574152045822146,
+     "zhi": 81.67165204582214,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_DirtPile instance (11)",
+   "template": "MS_DirtPile",
+   "at": [
+    62666.0703125,
+    52822.578125,
+    -6.5862321853637695
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      62666.0703125,
+      52822.578125
+     ],
+     "radius": 47.75,
+     "zlo": 12.543117814636233,
+     "zhi": 78.64061781463623,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_BrazierPLAG1 instance",
+   "template": "MS_BrazierPLAG1",
+   "at": [
+    29698.509765625,
+    26545.44921875,
+    -2159.166015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -2213.016015625,
+     "zhi": -1905.316015625,
+     "firm": true,
+     "hull": [
+      [
+       29631.409765625,
+       26478.53921875
+      ],
+      [
+       29765.609765625,
+       26478.53921875
+      ],
+      [
+       29765.609765625,
+       26612.35921875
+      ],
+      [
+       29631.409765625,
+       26612.35921875
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_CaveSol_TeleportA instance",
+   "template": "MS_NEW_CaveSol_TeleportA",
+   "at": [
+    24340.490234375,
+    30304.279296875,
+    -1854.5169677734375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      24340.49023793463,
+      30304.27929870926
+     ],
+     "radius": 43.32,
+     "zlo": -1859.6719677734375,
+     "zhi": -1649.3619677734375,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_CaveSol_TeleportA_ToMain instance",
+   "template": "MS_NEW_CaveSol_TeleportA_ToMain",
+   "at": [
+    8631.7109375,
+    10991.5400390625,
+    25.632320404052734
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8631.710940481094,
+      10991.540040236743
+     ],
+     "radius": 43.32,
+     "zlo": 20.477320404052676,
+     "zhi": 230.78732040405268,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_CaveSol_TeleportB_ToMain instance",
+   "template": "MS_NEW_CaveSol_TeleportB_ToMain",
+   "at": [
+    47263.1015625,
+    25988.4609375,
+    -145.75619506835938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      47263.10156268598,
+      25988.460937503958
+     ],
+     "radius": 43.32,
+     "zlo": -150.91119506835938,
+     "zhi": 59.398804931640626,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_CaveSol_TeleportB instance",
+   "template": "MS_NEW_CaveSol_TeleportB",
+   "at": [
+    23835.060546875,
+    30241.849609375,
+    -1854.47705078125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      23835.06054953723,
+      30241.849617213054
+     ],
+     "radius": 43.32,
+     "zlo": -1859.6320507812504,
+     "zhi": -1649.3220507812505,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_CaveSol_TeleportC instance",
+   "template": "MS_NEW_CaveSol_TeleportC",
+   "at": [
+    23742.9609375,
+    30735.669921875,
+    -1854.5489501953125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      23742.96094176487,
+      30735.669925288283
+     ],
+     "radius": 43.32,
+     "zlo": -1859.7039501953127,
+     "zhi": -1649.3939501953128,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "MS_NEW_CaveSol_TeleportC_ToMain instance",
+   "template": "MS_NEW_CaveSol_TeleportC_ToMain",
+   "at": [
+    54462.23828125,
+    46970.171875,
+    -130.0930938720703
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      54462.23828125,
+      46970.171875
+     ],
+     "radius": 43.32,
+     "zlo": -135.2480938720703,
+     "zhi": 75.06190612792969,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

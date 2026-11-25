@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "DragonSpire/DS_A3_Kings/DS_A3Hub_Academy",
  "named": {
   "FromArena": [
@@ -115,6 +115,48 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DS_Young_Battledrake instance",
+   "template": "DS_Battledrake",
+   "at": [
+    -5750.703125,
+    10119.1796875,
+    1998.800048828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 1763.795048828125,
+     "zhi": 2333.805048828125,
+     "firm": true,
+     "hull": [
+      [
+       -6035.768125,
+       9719.1796875
+      ],
+      [
+       -5465.638125,
+       9719.1796875
+      ],
+      [
+       -5465.638125,
+       10519.1796875
+      ],
+      [
+       -6035.768125,
+       10519.1796875
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Zafaria/ZF_Z08_Waterfront",
  "named": {
   "From_Stone_Town_Dingy": [
@@ -86,6 +86,186 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "ZF_TeleportStone_BackToHub instance",
+   "template": "ZF_TeleportStone_BackToHub",
+   "at": [
+    257.6379089355469,
+    3101.3359375,
+    27.502809524536133
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 22.41335952453612,
+     "zhi": 239.2250595245361,
+     "firm": true,
+     "hull": [
+      [
+       165.13790893554688,
+       3073.1971375000003
+      ],
+      [
+       350.03570893554684,
+       3073.1971375000003
+      ],
+      [
+       350.03570893554684,
+       3132.3921375
+      ],
+      [
+       165.13790893554688,
+       3132.3921375
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ZF-QuestLight_KingTusksBungalow",
+   "template": "ZF-QuestLight",
+   "at": [
+    8436.369140625,
+    9693.7099609375,
+    -68.30816650390625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8436.369144959046,
+      9693.70996474079
+     ],
+     "radius": 50.0,
+     "zlo": -218.30816650390642,
+     "zhi": 281.6918334960936,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z08_Barge_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    380.52301025390625,
+    1869.6610107421875,
+    200.15280151367188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      380.52301206533866,
+      1869.6610111352072
+     ],
+     "radius": 50.0,
+     "zlo": 50.152801513671875,
+     "zhi": 550.1528015136719,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z08_Belloqs_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    7500.68212890625,
+    10309.7900390625,
+    -3.8812930583953857
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      7500.682127544534,
+      10309.790047587272
+     ],
+     "radius": 50.0,
+     "zlo": -153.88129305839578,
+     "zhi": 346.1187069416042,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z08_Library_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    -683.265625,
+    11236.7802734375,
+    110.28939819335938
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -683.2656262079518,
+      11236.780282009566
+     ],
+     "radius": 50.0,
+     "zlo": -39.71060180664102,
+     "zhi": 460.289398193359,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z08_Hideout_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    4363.68603515625,
+    8798.0634765625,
+    -42.16925048828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      4363.686031233397,
+      8798.063479005365
+     ],
+     "radius": 50.0,
+     "zlo": -192.16925048828136,
+     "zhi": 307.83074951171864,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "ZF_Z08_BlackPalace_QuestLight",
+   "template": "ZF-QuestLight",
+   "at": [
+    -6167.80322265625,
+    8683.44921875,
+    301.6047058105469
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -6167.803225560624,
+      8683.44921985443
+     ],
+     "radius": 50.0,
+     "zlo": 151.60470581054682,
+     "zhi": 651.6047058105469,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

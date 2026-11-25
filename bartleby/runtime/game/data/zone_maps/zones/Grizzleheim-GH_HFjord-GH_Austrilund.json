@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Grizzleheim/GH_HFjord/GH_Austrilund",
  "named": {
   "Start": [
@@ -114,6 +114,326 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "GH_Runestone_BearClaw instance",
+   "template": "GH_Runestone_BearClaw",
+   "at": [
+    10376.5400390625,
+    1447.696044921875,
+    1056.47998046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      10376.540041645345,
+      1447.6960475417457
+     ],
+     "radius": 67.2721,
+     "zlo": 1090.55493046875,
+     "zhi": 1140.59403046875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH_RunestoneMainBearClaw instance",
+   "template": "GH_RunestoneMainBearClaw",
+   "at": [
+    288.6859130859375,
+    1015.8309936523438,
+    8.002574920654297
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      288.6859105035104,
+      1015.8309961766648
+     ],
+     "radius": 67.2721,
+     "zlo": 42.077524920654184,
+     "zhi": 92.11662492065417,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH_RunestoneCompass instance",
+   "template": "GH_RunestoneCompass",
+   "at": [
+    8554.203125,
+    -8001.7880859375,
+    1109.112060546875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      8554.203125701371,
+      -8001.788085819899
+     ],
+     "radius": 68.6,
+     "zlo": 1149.520860546875,
+     "zhi": 1167.0942605468751,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH_RunestoneMainCompass instance",
+   "template": "GH_RunestoneMainCompass",
+   "at": [
+    393.11260986328125,
+    527.1041870117188,
+    26.758909225463867
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      393.1126082426553,
+      527.1041877486656
+     ],
+     "radius": 68.6,
+     "zlo": 67.16770922546384,
+     "zhi": 84.74110922546383,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH2-beehive instance",
+   "template": "GH2-beehive",
+   "at": [
+    2126.214111328125,
+    5131.0498046875,
+    917.7534790039062
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 910.0284790039062,
+     "zhi": 994.5184790039062,
+     "firm": true,
+     "hull": [
+      [
+       2079.0191113281253,
+       5087.5098046875
+      ],
+      [
+       2192.129111328125,
+       5087.5098046875
+      ],
+      [
+       2192.129111328125,
+       5168.4898046875
+      ],
+      [
+       2079.0191113281253,
+       5168.4898046875
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "GH2-Hornwood-Tree instance",
+   "template": "GH2-Hornwood-Tree",
+   "at": [
+    1614.6800537109375,
+    -10018.009765625,
+    446.0683898925781
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      1614.6800537109375,
+      -10018.009765625
+     ],
+     "radius": 138.0,
+     "zlo": 321.0683898925781,
+     "zhi": 971.0683898925781,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH2-Hornwood-Tree instance (1)",
+   "template": "GH2-Hornwood-Tree",
+   "at": [
+    15071.4404296875,
+    -9317.6640625,
+    176.55690002441406
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      15071.4404296875,
+      -9317.6640625
+     ],
+     "radius": 138.0,
+     "zlo": 51.55690002441406,
+     "zhi": 701.5569000244141,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH2-Hornwood-Tree instance (2)",
+   "template": "GH2-Hornwood-Tree",
+   "at": [
+    12568.7998046875,
+    -4365.74609375,
+    611.6842041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      12568.7998046875,
+      -4365.74609375
+     ],
+     "radius": 138.0,
+     "zlo": 486.6842041015625,
+     "zhi": 1136.6842041015625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH2-Hornwood-Tree instance (3)",
+   "template": "GH2-Hornwood-Tree",
+   "at": [
+    14376.1201171875,
+    702.043212890625,
+    1056.8609619140625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      14376.1201171875,
+      702.043212890625
+     ],
+     "radius": 138.0,
+     "zlo": 931.8609619140625,
+     "zhi": 1581.8609619140625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH2-Hornwood-Tree instance (4)",
+   "template": "GH2-Hornwood-Tree",
+   "at": [
+    5854.56689453125,
+    6597.828125,
+    437.6658935546875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      5854.56689453125,
+      6597.828125
+     ],
+     "radius": 138.0,
+     "zlo": 312.6658935546875,
+     "zhi": 962.6658935546875,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "GH2-Hornwood-Tree instance (5)",
+   "template": "GH2-Hornwood-Tree",
+   "at": [
+    3734.0390625,
+    280.8395080566406,
+    172.58079528808594
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      3734.0390625,
+      280.8395080566406
+     ],
+     "radius": 138.0,
+     "zlo": 47.58079528808594,
+     "zhi": 697.5807952880859,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "COLLECT_NetDrying_Rack",
+   "template": "COLLECT_HOUSE_GH_NetDrying_Rack",
+   "at": [
+    4255.4501953125,
+    6522.3759765625,
+    437.664794921875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 437.35673648481566,
+     "zhi": 579.6198005036415,
+     "firm": true,
+     "hull": [
+      [
+       4178.892526086944,
+       6574.386876949302
+      ],
+      [
+       4191.346398545806,
+       6411.013365274281
+      ],
+      [
+       4191.346404746214,
+       6411.0133595292555
+      ],
+      [
+       4287.098403717513,
+       6418.3124814655075
+      ],
+      [
+       4274.644531258651,
+       6581.685993140529
+      ],
+      [
+       4274.644525058243,
+       6581.685998885554
+      ]
+     ]
+    }
+   ]
   }
  ]
 }

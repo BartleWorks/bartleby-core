@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Karamelle/KM_Z04_Sweetzburg",
  "named": {
   "Start": [
@@ -97,6 +97,171 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WorldTeleport-Sweetzburg",
+   "template": "KM-TeleportGate",
+   "at": [
+    376.91650390625,
+    -1987.4659423828125,
+    17.496889114379883
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 13.91278019029889,
+     "zhi": 422.3269983424997,
+     "firm": true,
+     "hull": [
+      [
+       256.16906186555076,
+       -2002.01992506312
+      ],
+      [
+       381.3217720378463,
+       -2109.0491154495253
+      ],
+      [
+       495.1567551475206,
+       -1975.9381706954966
+      ],
+      [
+       495.1567667517434,
+       -1975.938139276548
+      ],
+      [
+       370.0040565794479,
+       -1868.908948890143
+      ],
+      [
+       256.1690734697736,
+       -2002.0198936441714
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-GummyPlant",
+   "template": "KM-QuestLight",
+   "at": [
+    -3331.6201171875,
+    2720.408935546875,
+    2.50006103515625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -3331.3346171875,
+      2721.311835546875
+     ],
+     "radius": 24.8997,
+     "zlo": -2.7102389648437395,
+     "zhi": 188.58216103515625,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-UweWorkshop",
+   "template": "KM-QuestLight",
+   "at": [
+    -1376.1820068359375,
+    -65.852783203125,
+    17.500150680541992
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -1375.8965068359375,
+      -64.949883203125
+     ],
+     "radius": 24.8997,
+     "zlo": 12.289850680542003,
+     "zhi": 203.582250680542,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-Les Bon-Bon Mots",
+   "template": "KM-QuestLight",
+   "at": [
+    2388.595947265625,
+    -496.6763000488281,
+    27.765480041503906
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      2388.881447265625,
+      -495.77340004882814
+     ],
+     "radius": 24.8997,
+     "zlo": 22.555180041503917,
+     "zhi": 213.8475800415039,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-ToPlayhouse",
+   "template": "KM-QuestLight",
+   "at": [
+    -441.2164001464844,
+    -5077.455078125,
+    17.499940872192383
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -440.93090014648436,
+      -5076.552178125
+     ],
+     "radius": 24.8997,
+     "zlo": 12.289640872192393,
+     "zhi": 203.58204087219238,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KM-QuestLight instance-IceCream",
+   "template": "KM-QuestLight",
+   "at": [
+    -2422.81103515625,
+    -2575.1689453125,
+    17.500099182128906
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      -2422.52553515625,
+      -2574.2660453125
+     ],
+     "radius": 24.8997,
+     "zlo": 12.289799182128917,
+     "zhi": 203.5821991821289,
+     "firm": true,
+     "hull": null
+    }
+   ]
   }
  ]
 }

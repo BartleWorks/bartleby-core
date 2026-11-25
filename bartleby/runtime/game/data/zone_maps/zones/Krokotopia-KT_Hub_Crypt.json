@@ -1,5 +1,5 @@
 {
- "format": 1,
+ "format": 2,
  "zone": "Krokotopia/KT_Hub_Crypt",
  "named": {
   "Target location (Krok_Hub StormCrypt Exit)": [
@@ -47,5 +47,6 @@
    "width": 0.0,
    "height": 0.0
   }
- ]
+ ],
+ "gates": []
 }
