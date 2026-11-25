@@ -1,0 +1,102 @@
+{
+ "format": 1,
+ "zone": "Karamelle/KM_Z04_Sweetzburg",
+ "named": {
+  "Start": [
+   -5384.6337890625,
+   -657.0391235351562,
+   2.500243902206421
+  ],
+  "Target location-From Les Bon-Bon Mots": [
+   1931.4580078125,
+   -814.38671875,
+   2.5001220703125
+  ],
+  "Target location-From GummyPlant": [
+   -3724.12890625,
+   2333.946044921875,
+   2.5
+  ],
+  "Target Location-FromPlayhouse": [
+   -41.057430267333984,
+   -4515.912109375,
+   2.0
+  ],
+  "Target location-FromIceCream": [
+   -1928.08203125,
+   -2927.214111328125,
+   2.5
+  ],
+  "Target location-FromWorkshop": [
+   -1764.54296875,
+   -579.0654296875,
+   2.5
+  ],
+  "Target location-FromJamburglar": [
+   4149.48095703125,
+   1963.02001953125,
+   2.49993896484375
+  ],
+  "WorldTeleport-Sweetzburg": [
+   415.847900390625,
+   -1825.906005859375,
+   17.49884033203125
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location-To GummyPlant",
+   "center": [
+    -3725.89111328125,
+    2912.4169921875,
+    5.839049816131592
+   ],
+   "shape": "",
+   "radius": 354.1780090332031,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -5946.419921875,
+    -668.1002197265625,
+    2.5
+   ],
+   "shape": "Sphere",
+   "radius": 233.279296875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume",
+   "center": [
+    -202.29710388183594,
+    -5116.244140625,
+    17.499820709228516
+   ],
+   "shape": "Sphere",
+   "radius": 158.10169982910156,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (1)",
+   "center": [
+    210.59170532226562,
+    -5116.916015625,
+    17.499940872192383
+   ],
+   "shape": "Sphere",
+   "radius": 154.9918975830078,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

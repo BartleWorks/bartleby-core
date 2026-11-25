@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "Marleybone/MB_ScotlandYard/Interiors/MB_KnightsCourt_T3",
+ "named": {
+  "From Zone 3": [
+   0.8372033834457397,
+   -1060.114013671875,
+   0.09382914751768112
+  ],
+  "Start": [
+   6.6823930740356445,
+   -1053.678955078125,
+   -1.450867966923397e-05
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Cat-Jaques-MBBoss-L46",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -63.356361389160156,
+     23.438060760498047,
+     50.500179290771484
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Cat-Scratcher-Red-Elite-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     120.89749908447266,
+     23.257339477539062,
+     50.500118255615234
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "Cat-Scratcher-Red-Elite-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -237.00030517578125,
+     406.1702880859375,
+     0.11537530273199081
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1 (1)",
+   "template": "Cat-Scratcher-Red-Elite-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     311.51409912109375,
+     428.98590087890625,
+     0.1151311993598938
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport to Zone 3",
+   "center": [
+    3.186631917953491,
+    -1235.9019775390625,
+    0.0
+   ],
+   "shape": "",
+   "radius": 138.21969604492188,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

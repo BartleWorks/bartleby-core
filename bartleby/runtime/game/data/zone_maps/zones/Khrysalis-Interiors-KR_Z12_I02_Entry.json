@@ -1,0 +1,38 @@
+{
+ "format": 1,
+ "zone": "Khrysalis/Interiors/KR_Z12_I02_Entry",
+ "named": {
+  "Start": [
+   -1.4216680526733398,
+   -3982.56103515625,
+   0.00033569338847883046
+  ],
+  "FromGalleries": [
+   -609.155517578125,
+   -3317.02490234375,
+   0.00022114689636509866
+  ],
+  "FromMorgantheFinale": [
+   4.1277008056640625,
+   -2725.31591796875,
+   0.00033569338847883046
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_BackToShadowPalaceCourtyard",
+   "center": [
+    5.441483020782471,
+    -4713.0400390625,
+    -0.00024414059589616954
+   ],
+   "shape": "Sphere",
+   "radius": 535.8062133789062,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

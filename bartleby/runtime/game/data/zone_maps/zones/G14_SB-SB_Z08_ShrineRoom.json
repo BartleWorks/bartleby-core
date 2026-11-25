@@ -1,0 +1,85 @@
+{
+ "format": 1,
+ "zone": "G14_SB/SB_Z08_ShrineRoom",
+ "named": {
+  "Start": [
+   -1.1580350399017334,
+   -2394.451904296875,
+   0.19981379806995392
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point-Boss",
+   "template": "G14-SB-BoarNinja_Boss",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -51.925689697265625,
+     85.27481079101562,
+     0.19991980493068695
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)",
+   "template": "G14-SB-SingingBowl_Spirit",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -446.5823059082031,
+     234.65199279785156,
+     0.19975070655345917
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)",
+   "template": "G14-SB-SingingBowl_Mind",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -162.26919555664062,
+     457.76031494140625,
+     0.19999490678310394
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (3)",
+   "template": "G14-SB-SingingBowl_Body",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     187.28500366210938,
+     444.33599853515625,
+     0.19999490678310394
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -1.7171510457992554,
+    -3425.51708984375,
+    -75.05193328857422
+   ],
+   "shape": "Sphere",
+   "radius": 299.0694885253906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

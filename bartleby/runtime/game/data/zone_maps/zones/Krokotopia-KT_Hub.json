@@ -1,0 +1,349 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Hub",
+ "named": {
+  "Target location Cinematic": [
+   2524.569091796875,
+   2925.739990234375,
+   26.30841064453125
+  ],
+  "STRM-C03-002 Cinematic Location": [
+   -4391.365234375,
+   2534.925048828125,
+   -173.9626007080078
+  ],
+  "Target location (Krok_Hub Sphinx Island Return)": [
+   3610.656005859375,
+   3198.533935546875,
+   26.307859420776367
+  ],
+  "Target location (CryptIsland to Hub)": [
+   -2899.29296875,
+   -1465.4849853515625,
+   -103.50849914550781
+  ],
+  "Target location (Hub Arena Exit)": [
+   2173.674072265625,
+   712.6063842773438,
+   -92.33245849609375
+  ],
+  "Target location (Hub Library Exit)": [
+   3501.2099609375,
+   5935.587890625,
+   -220.193603515625
+  ],
+  "Target location (Hub Shop1 Exit)": [
+   -3709.43994140625,
+   2134.23095703125,
+   -174.654296875
+  ],
+  "Target location (Hub Shop2 Exit)": [
+   -5261.51806640625,
+   2354.2548828125,
+   -174.65330505371094
+  ],
+  "Target location (Hub Shop3 Exit)": [
+   -5402.02197265625,
+   4900.63623046875,
+   -0.00024414059589616954
+  ],
+  "Target location (Hub Shop4 Exit)": [
+   -4056.656005859375,
+   5750.7021484375,
+   0.00024414059589616954
+  ],
+  "Target location (Krok_Hub WorldSpiral Exit)": [
+   14.223580360412598,
+   232.6531982421875,
+   -22.172000885009766
+  ],
+  "Target location (Krok_Pyramid_Hub KT_Hub Exit)": [
+   -36.569969177246094,
+   7429.126953125,
+   495.6037902832031
+  ],
+  "Target location (KT_Shop_Hidden KT_Tele_Pad Exit)": [
+   -4768.69482421875,
+   1558.8809814453125,
+   -173.95880126953125
+  ],
+  "Target location (KT_Tele_Pad KT_Shop_Hidden Entrance)": [
+   877.07861328125,
+   -3222.553955078125,
+   1620.0
+  ],
+  "FromSecretShop": [
+   1167.074951171875,
+   -3527.0869140625,
+   1620.0
+  ],
+  "Home": [
+   -603.8701782226562,
+   3137.208984375,
+   29.529239654541016
+  ],
+  "Start": [
+   5.021361827850342,
+   199.8022003173828,
+   -59.308349609375
+  ],
+  "Target location-FromBoat": [
+   -10588.669921875,
+   2007.5040283203125,
+   3341.550048828125
+  ],
+  "Target location-FromUpperIsland": [
+   -4936.48095703125,
+   3576.884033203125,
+   -159.51739501953125
+  ],
+  "Target location-UpperIsland": [
+   -10409.25,
+   3107.337890625,
+   3341.551025390625
+  ],
+  "Target_From_Selenopolis": [
+   2149.885009765625,
+   -982.0048217773438,
+   -84.8486328125
+  ]
+ },
+ "patrols": [],
+ "links": [
+  {
+   "name": "TeleportVol_Teleport location (KT_Shop_Hidden KT_Tele_Pad Exit)",
+   "kind": "volume",
+   "source": [
+    759.208984375,
+    -2780.3759765625,
+    1716.4429931640625
+   ],
+   "landing": "Target location (KT_Shop_Hidden KT_Tele_Pad Exit)",
+   "target": [
+    -4768.69482421875,
+    1558.8809814453125,
+    -173.95880126953125
+   ]
+  },
+  {
+   "name": "TeleportVol_Shop5 entrance",
+   "kind": "volume",
+   "source": [
+    -5479.2939453125,
+    2140.323974609375,
+    -174.65379333496094
+   ],
+   "landing": "Target location (KT_Tele_Pad KT_Shop_Hidden Entrance)",
+   "target": [
+    877.07861328125,
+    -3222.553955078125,
+    1620.0
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location",
+   "kind": "volume",
+   "source": [
+    -10009.1396484375,
+    3242.05810546875,
+    3415.531005859375
+   ],
+   "landing": "Target location-FromUpperIsland",
+   "target": [
+    -4936.48095703125,
+    3576.884033203125,
+    -159.51739501953125
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (1)",
+   "kind": "volume",
+   "source": [
+    -5547.93017578125,
+    3792.638916015625,
+    -173.96240234375
+   ],
+   "landing": "Target location-UpperIsland",
+   "target": [
+    -10409.25,
+    3107.337890625,
+    3341.551025390625
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport-FixForQH",
+   "kind": "volume",
+   "source": [
+    12288.66015625,
+    3681.215087890625,
+    1207.9090576171875
+   ],
+   "landing": "zone.nav node 389",
+   "target": [
+    4492.29833984375,
+    3209.53125,
+    25.7919921875
+   ]
+  },
+  {
+   "name": "Activator Volume (Hub To Crypt Island Teleporter)",
+   "kind": "volume",
+   "source": [
+    -3411.929931640625,
+    -1869.8499755859375,
+    -36.044071197509766
+   ],
+   "landing": "zone.nav node 26",
+   "target": [
+    -8846.4638671875,
+    -6875.705078125,
+    -291.685791015625
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (Hub Library Entrance)",
+   "center": [
+    3696.925048828125,
+    6190.15380859375,
+    -220.32400512695312
+   ],
+   "shape": "Sphere",
+   "radius": 148.3321990966797,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Hub Shop1 Entrance)",
+   "center": [
+    -3584.637939453125,
+    1900.93994140625,
+    -174.65379333496094
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Hub Shop2 Entrance) (2)",
+   "center": [
+    -5436.01904296875,
+    2598.49609375,
+    -174.65379333496094
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Hub Shop3 Entrance)",
+   "center": [
+    -5280.48388671875,
+    5115.43115234375,
+    0.0
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Hub Shop4 Entrance)",
+   "center": [
+    -4054.580078125,
+    5956.98486328125,
+    0.0
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Krok_Hub Krok_Pyramid_Hub Entrance)",
+   "center": [
+    -7.054808139801025,
+    7909.23583984375,
+    523.4075927734375
+   ],
+   "shape": "Sphere",
+   "radius": 185.56869506835938,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Krok_Hub WorldSpiral Entrance)",
+   "center": [
+    3.8580870628356934,
+    -235.62249755859375,
+    -31.331890106201172
+   ],
+   "shape": "Sphere",
+   "radius": 336.5733947753906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_ToSecretShop",
+   "center": [
+    1159.7010498046875,
+    -3790.343017578125,
+    1620.0
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport-ToTomb",
+   "center": [
+    -10321.759765625,
+    -8380.86328125,
+    -372.9989929199219
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "ActivatorVolume_TP_to_HOUSE_KT_HubApartment_INT",
+   "center": [
+    2405.323974609375,
+    529.56982421875,
+    -89.769287109375
+   ],
+   "shape": "Sphere",
+   "radius": 132.9611053466797,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume 0 (1)",
+   "center": [
+    -4987.27392578125,
+    742.22412109375,
+    -153.21890258789062
+   ],
+   "shape": "Sphere",
+   "radius": 199.16009521484375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

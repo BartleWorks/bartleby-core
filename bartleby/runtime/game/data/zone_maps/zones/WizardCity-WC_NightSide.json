@@ -1,0 +1,107 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_NightSide",
+ "named": {
+  "FromCastleDarkmoor": [
+   -936.5786743164062,
+   -314.3070983886719,
+   52.03314971923828
+  ],
+  "Start": [
+   330.46868896484375,
+   -1776.093017578125,
+   -30.48076057434082
+  ],
+  "Target location (Nightside DeathSchool Exit)": [
+   683.9735107421875,
+   -299.4735107421875,
+   -0.23468449711799622
+  ],
+  "Target location (Nightside DeathTower Exit)": [
+   774.5186767578125,
+   -1451.510009765625,
+   0.5894374847412109
+  ],
+  "Target location (Nightside Hub Entrance)": [
+   400.28741455078125,
+   -2110.77392578125,
+   13.747900009155273
+  ],
+  "Target location (Sunken City Exit)": [
+   1515.1090087890625,
+   -413.8293151855469,
+   15.937419891357422
+  ],
+  "DETH-C03-CinemaTarget": [
+   -1751.9739990234375,
+   -1365.3509521484375,
+   40.274600982666016
+  ],
+  "DETH-C10Target": [
+   -36.11492156982422,
+   -1445.2330322265625,
+   -41.89371109008789
+  ],
+  "CinematicTarget": [
+   -522.0875244140625,
+   -640.168212890625,
+   23.948320388793945
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVOL_Darkmoor",
+   "center": [
+    -2405.87109375,
+    -613.5949096679688,
+    46.63602828979492
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Nightside DeathSchool Entrance)",
+   "center": [
+    455.2755126953125,
+    46.71268844604492,
+    34.218910217285156
+   ],
+   "shape": "Sphere",
+   "radius": 165.97239685058594,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Nightside Hub Exit)",
+   "center": [
+    629.916015625,
+    -2801.9990234375,
+    142.47189331054688
+   ],
+   "shape": "Sphere",
+   "radius": 276.73370361328125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleporterToDeathTower",
+   "center": [
+    1046.698974609375,
+    -1580.864013671875,
+    143.09320068359375
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

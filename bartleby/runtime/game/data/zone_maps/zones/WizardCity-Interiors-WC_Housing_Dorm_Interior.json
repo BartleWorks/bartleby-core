@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "WizardCity/Interiors/WC_Housing_Dorm_Interior",
+ "named": {
+  "Start": [
+   29.560529708862305,
+   4.139770984649658,
+   0.0
+  ],
+  "Home": [
+   29.88838005065918,
+   3.5230789184570312,
+   -1.7654300563663128e-06
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Teleport_Out",
+   "center": [
+    -245.33070373535156,
+    2.687441110610962,
+    2.0784718990325928
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

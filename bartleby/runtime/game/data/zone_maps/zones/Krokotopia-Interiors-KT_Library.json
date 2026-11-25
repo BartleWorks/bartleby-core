@@ -1,0 +1,51 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/Interiors/KT_Library",
+ "named": {
+  "Target location (Library Hub Entrance)": [
+   -16.855649948120117,
+   -0.415436714887619,
+   15.697569847106934
+  ],
+  "Start": [
+   535.9561157226562,
+   -4.371604919433594,
+   -102.5647964477539
+  ],
+  "FromHallOfDoors": [
+   732.859619140625,
+   -530.372314453125,
+   -105.06700134277344
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (Library Hub Exit)",
+   "center": [
+    -320.0719909667969,
+    -7.667387962341309,
+    28.47369956970215
+   ],
+   "shape": "Sphere",
+   "radius": 137.4272003173828,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_ToHallofDoors",
+   "center": [
+    1111.5660400390625,
+    -919.8256225585938,
+    -78.87709045410156
+   ],
+   "shape": "Sphere",
+   "radius": 174.26510620117188,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

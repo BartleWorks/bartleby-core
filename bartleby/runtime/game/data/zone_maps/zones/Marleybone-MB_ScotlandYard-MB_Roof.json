@@ -1,0 +1,74 @@
+{
+ "format": 1,
+ "zone": "Marleybone/MB_ScotlandYard/MB_Roof",
+ "named": {
+  "Start": [
+   -533.5278930664062,
+   -1.1672860383987427,
+   -59.99365997314453
+  ],
+  "Intro from MB Hub to ScotYard Hub Interior": [
+   -252.8618927001953,
+   -4.845637798309326,
+   -59.988651275634766
+  ],
+  "Intro from Scot Yard Zone 1": [
+   -2156.81005859375,
+   -2337.39306640625,
+   -239.99929809570312
+  ],
+  "Intro from Scot Yard Zone 2": [
+   -2252.4619140625,
+   1901.5489501953125,
+   -220.08299255371094
+  ],
+  "Intro from Scot Yard Zone 3": [
+   -6800.61376953125,
+   -474.3359069824219,
+   -239.4884033203125
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport to Scot Yard Zone 1",
+   "center": [
+    -2156.5009765625,
+    -2576.782958984375,
+    -239.9990997314453
+   ],
+   "shape": "",
+   "radius": 137.53990173339844,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport to Scot Yard Zone 3",
+   "center": [
+    -7064.94580078125,
+    -470.677001953125,
+    -239.48829650878906
+   ],
+   "shape": "",
+   "radius": 159.27000427246094,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport to MB Hub to ScotYard Hub Interior",
+   "center": [
+    -14.911879539489746,
+    -1.2267040014266968,
+    -59.9852294921875
+   ],
+   "shape": "",
+   "radius": 111.90699768066406,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

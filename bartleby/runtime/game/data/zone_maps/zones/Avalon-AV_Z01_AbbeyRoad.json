@@ -1,0 +1,74 @@
+{
+ "format": 1,
+ "zone": "Avalon/AV_Z01_AbbeyRoad",
+ "named": {
+  "Start": [
+   -6864.4130859375,
+   259.081298828125,
+   241.41070556640625
+  ],
+  "From AV_KnightsHall": [
+   2383.614013671875,
+   0.6304702758789062,
+   50.200008392333984
+  ],
+  "From La Biblioteca": [
+   -3226.56494140625,
+   2288.863037109375,
+   -199.99989318847656
+  ],
+  "From Malgrins Hideaway": [
+   -2411.634033203125,
+   -4090.6708984375,
+   -204.38360595703125
+  ],
+  "From TelegraphBox": [
+   724.6671142578125,
+   -18.897430419921875,
+   -99.79995727539062
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport To Hub",
+   "center": [
+    -7335.56591796875,
+    55.9864616394043,
+    241.41079711914062
+   ],
+   "shape": "Sphere",
+   "radius": 332.4122009277344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportTo AV_KnightsHall",
+   "center": [
+    2684.197998046875,
+    -21.827880859375,
+    50.1999397277832
+   ],
+   "shape": "Sphere",
+   "radius": 192.2030029296875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_To La Biblioteca",
+   "center": [
+    -2944.093994140625,
+    2304.6259765625,
+    -178.90280151367188
+   ],
+   "shape": "Sphere",
+   "radius": 148.61019897460938,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

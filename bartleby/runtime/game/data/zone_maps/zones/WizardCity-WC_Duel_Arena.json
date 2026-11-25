@@ -1,0 +1,77 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Duel_Arena",
+ "named": {
+  "From_PVP_Kiosk": [
+   -3079.156982421875,
+   -4409.75,
+   438.9679870605469
+  ],
+  "From_BG": [
+   4256.3662109375,
+   -3252.0830078125,
+   439.0137023925781
+  ],
+  "Start": [
+   6.609941005706787,
+   -9556.8291015625,
+   408.5198974609375
+  ],
+  "Target location (WC_Arena Hub Entrance)": [
+   5.222679138183594,
+   -9556.716796875,
+   408.5226135253906
+  ],
+  "From TT01": [
+   5855.82421875,
+   -7475.97119140625,
+   439.0148010253906
+  ]
+ },
+ "patrols": [],
+ "links": [
+  {
+   "name": "TeleportVol_Teleport location (WC_Arena Hub Exit) (1)",
+   "kind": "volume",
+   "source": [
+    -8.107009887695312,
+    6315.9189453125,
+    613.214599609375
+   ],
+   "landing": "Target location (WC_Arena Hub Entrance)",
+   "target": [
+    5.222679138183594,
+    -9556.716796875,
+    408.5226135253906
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "Activator Volume for Cheaters",
+   "center": [
+    13.512479782104492,
+    -47.95228958129883,
+    50.5006103515625
+   ],
+   "shape": "Sphere",
+   "radius": 1101.5550537109375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Arena Hub Exit)",
+   "center": [
+    23.81509017944336,
+    -9902.3515625,
+    408.55889892578125
+   ],
+   "shape": "Sphere",
+   "radius": 223.2552032470703,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

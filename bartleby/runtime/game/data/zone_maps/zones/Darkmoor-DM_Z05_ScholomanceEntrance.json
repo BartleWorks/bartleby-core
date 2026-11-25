@@ -1,0 +1,66 @@
+{
+ "format": 1,
+ "zone": "Darkmoor/DM_Z05_ScholomanceEntrance",
+ "named": {
+  "Start": [
+   -1622.572021484375,
+   -3540.93310546875,
+   498.555908203125
+  ],
+  "Target_HereticalAcademy_Exit": [
+   8666.8271484375,
+   1675.2060546875,
+   909.0745239257812
+  ],
+  "TargetLocation_TamedDemox": [
+   176.03619384765625,
+   -1009.8939819335938,
+   1.0
+  ],
+  "ExitFromLiarsGrove": [
+   139.94070434570312,
+   9090.8671875,
+   1694.81005859375
+  ],
+  "TargetLocation_From_MirandasParlor": [
+   -366.80029296875,
+   8352.66015625,
+   1691.45703125
+  ],
+  "TargetLocation_From_Parlor": [
+   6501.05810546875,
+   1203.1650390625,
+   909.07421875
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "ActivatorVolume_MirandasParlor",
+   "center": [
+    -644.3109130859375,
+    8555.0078125,
+    1693.218994140625
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_To_BlackLagoon",
+   "center": [
+    -1436.373046875,
+    -4137.81591796875,
+    553.2144165039062
+   ],
+   "shape": "",
+   "radius": 175.93589782714844,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

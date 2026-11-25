@@ -1,0 +1,46 @@
+{
+ "format": 1,
+ "zone": "Celestia/CL_Z12_Test_of_the_Spheres/MoonRoom",
+ "named": {
+  "Start": [
+   32.44609069824219,
+   -3701.5791015625,
+   1089.906982421875
+  ],
+  "FromSunRoom": [
+   52.887451171875,
+   8233.9296875,
+   1036.1180419921875
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Teleport to Stars",
+   "center": [
+    -23.897769927978516,
+    -4242.81787109375,
+    920.2255249023438
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume ToSunRoom",
+   "center": [
+    0.1341553032398224,
+    8546.076171875,
+    1043.22802734375
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

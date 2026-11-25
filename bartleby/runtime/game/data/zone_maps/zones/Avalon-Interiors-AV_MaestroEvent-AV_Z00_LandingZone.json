@@ -1,0 +1,136 @@
+{
+ "format": 1,
+ "zone": "Avalon/Interiors/AV_MaestroEvent/AV_Z00_LandingZone",
+ "named": {
+  "From Drake House": [
+   540.3635864257812,
+   2173.48388671875,
+   167.39669799804688
+  ],
+  "From Malistairs House": [
+   2084.7880859375,
+   618.5911254882812,
+   167.39669799804688
+  ],
+  "From School": [
+   -2135.1630859375,
+   490.64990234375,
+   167.39669799804688
+  ],
+  "From TowerBottom": [
+   2139.6650390625,
+   -502.94488525390625,
+   167.39669799804688
+  ],
+  "From TowerTop": [
+   613.0477294921875,
+   -2133.990966796875,
+   167.39669799804688
+  ],
+  "From WarRoom": [
+   -2119.944091796875,
+   -615.6298828125,
+   167.39669799804688
+  ],
+  "Start": [
+   1388.4239501953125,
+   -27.065479278564453,
+   -271.3782043457031
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume",
+   "center": [
+    -2534.052001953125,
+    714.8115234375,
+    202.375
+   ],
+   "shape": "Sphere",
+   "radius": 246.40530395507812,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (1)",
+   "center": [
+    -2483.735107421875,
+    -678.11669921875,
+    215.38380432128906
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (2)",
+   "center": [
+    691.9940795898438,
+    2564.969970703125,
+    243.67550659179688
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (3)",
+   "center": [
+    2556.944091796875,
+    685.5062866210938,
+    246.7512969970703
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (4)",
+   "center": [
+    2609.196044921875,
+    -683.5225830078125,
+    263.9291076660156
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (6)",
+   "center": [
+    693.0192260742188,
+    -2538.719970703125,
+    237.9438018798828
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    1586.657958984375,
+    -21.276180267333984,
+    -298.4585876464844
+   ],
+   "shape": "Sphere",
+   "radius": 98.51239013671875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

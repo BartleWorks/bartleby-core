@@ -1,0 +1,72 @@
+{
+ "format": 1,
+ "zone": "Wallaru/Interiors/WL_Z05_BanditCootCave",
+ "named": {
+  "Start": [
+   1110.4610595703125,
+   -11332.1103515625,
+   -976.8956909179688
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Pop",
+   "template": "WL_KoalaRider_BaseF_A_01",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     2507.14599609375,
+     -7382.666015625,
+     -976.7600708007812
+    ],
+    [
+     3411.60595703125,
+     -7846.82177734375,
+     -976.7600708007812
+    ],
+    [
+     3064.10693359375,
+     -8306.115234375,
+     -976.7600708007812
+    ],
+    [
+     2406.18603515625,
+     -7907.36083984375,
+     -976.7600708007812
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Boss",
+   "template": "WL_Dingo_Crash_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2654.534912109375,
+     -8721.1552734375,
+     -976.7600708007812
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    711.1326293945312,
+    -12017.41015625,
+    -820.4721069335938
+   ],
+   "shape": "Sphere",
+   "radius": 290.92889404296875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

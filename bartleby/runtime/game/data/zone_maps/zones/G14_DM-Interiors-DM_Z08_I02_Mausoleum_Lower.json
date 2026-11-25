@@ -1,0 +1,61 @@
+{
+ "format": 1,
+ "zone": "G14_DM/Interiors/DM_Z08_I02_Mausoleum_Lower",
+ "named": {
+  "Start": [
+   36.700809478759766,
+   -1133.0469970703125,
+   0.00012207029794808477
+  ],
+  "FromUpper": [
+   -16.236940383911133,
+   2756.0,
+   200.94610595703125
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "ShanevonShane",
+   "template": "G14-DM-ArmoredVonShane_Boss",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     44.41593933105469,
+     318.8402099609375,
+     0.0007743834867142141
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_BackToGraveyard",
+   "center": [
+    -2.3689188957214355,
+    -2581.576904296875,
+    401.506103515625
+   ],
+   "shape": "",
+   "radius": 321.1596984863281,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportToUpper",
+   "center": [
+    -19.151899337768555,
+    3123.43994140625,
+    201.19329833984375
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

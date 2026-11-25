@@ -1,0 +1,41 @@
+{
+ "format": 1,
+ "zone": "Marleybone/G14_Gauntlet/MB_Z08_Dirigible_Main",
+ "named": {
+  "Start": [
+   -24.83222007751465,
+   -2989.33203125,
+   -300.00048828125
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To Cargo",
+   "center": [
+    -26.027339935302734,
+    -3516.3291015625,
+    -237.0780029296875
+   ],
+   "shape": "",
+   "radius": 293.631591796875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -30.69729995727539,
+    4803.10498046875,
+    -41.30746841430664
+   ],
+   "shape": "",
+   "radius": 14.735830307006836,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

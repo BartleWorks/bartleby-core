@@ -1,0 +1,51 @@
+{
+ "format": 1,
+ "zone": "Polaris/Interiors/PL_Z02_BabaYagaHut_Int",
+ "named": {
+  "Start": [
+   201.5343017578125,
+   24.844890594482422,
+   6.979550838470459
+  ],
+  "backdoor": [
+   -739.6168212890625,
+   -920.8455200195312,
+   6.979619026184082
+  ],
+  "PL-SnowglobeTeleport-Forlorn": [
+   -959.1528930664062,
+   -266.54791259765625,
+   6.979555130004883
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    537.5098266601562,
+    -8.65185546875,
+    6.97955322265625
+   ],
+   "shape": "",
+   "radius": 244.60060119628906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume",
+   "center": [
+    -1161.344970703125,
+    -914.3300170898438,
+    6.97955322265625
+   ],
+   "shape": "",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

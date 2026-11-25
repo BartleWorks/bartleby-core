@@ -1,0 +1,179 @@
+{
+ "format": 1,
+ "zone": "G14_SB/SB_Z07_Hallway",
+ "named": {
+  "Start": [
+   2.903796911239624,
+   -4880.658203125,
+   -0.00012207029794808477
+  ],
+  "Target location-FromShrine": [
+   -0.8252089023590088,
+   5423.55712890625,
+   0.2047118991613388
+  ],
+  "Target location-FromSKR": [
+   -1691.031982421875,
+   -1978.282958984375,
+   0.20251460373401642
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn-Boss",
+   "template": "G14-SB-GoatNinja",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -238.11720275878906,
+     -2214.136962890625,
+     50.499881744384766
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Minion",
+   "template": "G14-SB-GoatNinja",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     237.8927001953125,
+     -2213.5830078125,
+     50.5
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Pop",
+   "template": "G14-SB-GoatNinja",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     384.527587890625,
+     -1923.907958984375,
+     0.0001199807011289522
+    ],
+    [
+     208.06759643554688,
+     -1393.916015625,
+     0.0001199807011289522
+    ],
+    [
+     -240.3011932373047,
+     -1397.239990234375,
+     0.0001199807011289522
+    ],
+    [
+     -391.6296081542969,
+     -1872.510009765625,
+     0.00024205099907703698
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Boss (1)",
+   "template": "G14-SB-GoatNinja_Boss",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -242.56019592285156,
+     1780.5439453125,
+     0.00024414059589616954
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Minion (1)",
+   "template": "G14-SB-GoatNinja",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     234.03489685058594,
+     1791.6939697265625,
+     0.00024414059589616954
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Pop (1)",
+   "template": "G14-SB-GoatNinja",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     361.13690185546875,
+     2021.7779541015625,
+     0.0
+    ],
+    [
+     254.364501953125,
+     2538.073974609375,
+     0.00024414059589616954
+    ],
+    [
+     -343.5315856933594,
+     2548.715087890625,
+     0.0
+    ],
+    [
+     -446.5622863769531,
+     2080.23291015625,
+     0.00024414059589616954
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume-TeleportOut",
+   "center": [
+    10.68871021270752,
+    6191.9091796875,
+    3.9737548828125
+   ],
+   "shape": "Sphere",
+   "radius": 585.1455078125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location-back",
+   "center": [
+    -1.987396001815796,
+    -6152.509765625,
+    -108.09880065917969
+   ],
+   "shape": "Sphere",
+   "radius": 316.7593078613281,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-SkeletonKey",
+   "center": [
+    -2502.0048828125,
+    -1998.2979736328125,
+    41.29581832885742
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

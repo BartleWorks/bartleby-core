@@ -1,0 +1,85 @@
+{
+ "format": 1,
+ "zone": "Darkmoor/Interiors/DM_Z04I08_BogOfVengeance",
+ "named": {
+  "Start": [
+   -1019.8079833984375,
+   2932.8349609375,
+   366.9921875
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPoint_Mob_01_B",
+   "template": "DM_Blob_Shadow_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -469.29058837890625,
+     1715.0560302734375,
+     371.00909423828125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_A",
+   "template": "DM_Scholomari_PriestessF_B_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -267.6242980957031,
+     1955.9150390625,
+     371.00909423828125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_C",
+   "template": "DM_Blob_Shadow_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     218.4011993408203,
+     1589.8570556640625,
+     371.00909423828125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_D",
+   "template": "DM_Blob_Shadow_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -12.702580451965332,
+     1385.385009765625,
+     371.00909423828125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportSource_Exit_01",
+   "center": [
+    -1275.887939453125,
+    3178.492919921875,
+    371.00909423828125
+   ],
+   "shape": "",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

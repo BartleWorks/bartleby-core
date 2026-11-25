@@ -1,0 +1,46 @@
+{
+ "format": 1,
+ "zone": "G14_DM/Interiors/DM_Z05_I03_Staircase",
+ "named": {
+  "Start": [
+   610.3408203125,
+   51.639198303222656,
+   33.164058685302734
+  ],
+  "FromthirdHallway": [
+   -632.0443725585938,
+   -33.48270034790039,
+   1100.199951171875
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_BackToHallway2",
+   "center": [
+    422.45330810546875,
+    -419.0775146484375,
+    0.20001220703125
+   ],
+   "shape": "",
+   "radius": 379.341796875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_ToHallway3",
+   "center": [
+    -423.7297058105469,
+    -394.10321044921875,
+    1100.199951171875
+   ],
+   "shape": "",
+   "radius": 170.13429260253906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

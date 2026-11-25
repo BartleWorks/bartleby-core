@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "zone": "Marleybone/MB_Station/MB_FlightToIronworks",
+ "named": {
+  "Start": [
+   228.4416046142578,
+   329.585205078125,
+   53.060970306396484
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume 0",
+   "center": [
+    -25.18722915649414,
+    167.95559692382812,
+    73.02631378173828
+   ],
+   "shape": "",
+   "radius": 600.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

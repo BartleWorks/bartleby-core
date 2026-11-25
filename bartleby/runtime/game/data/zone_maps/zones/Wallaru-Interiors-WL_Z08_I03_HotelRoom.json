@@ -1,0 +1,57 @@
+{
+ "format": 1,
+ "zone": "Wallaru/Interiors/WL_Z08_I03_HotelRoom",
+ "named": {
+  "Start": [
+   -170.62379455566406,
+   -212.53610229492188,
+   5.8502588217379525e-05
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Boss",
+   "template": "WL_Frog_Owner_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -151.77830505371094,
+     -1107.1610107421875,
+     50.49980926513672
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Minion",
+   "template": "WL_Kangaroo_Judge_B_05",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     68.44091796875,
+     -1212.3170166015625,
+     50.49991989135742
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    -34.40224838256836,
+    50.698341369628906,
+    -4.6480639070978214e-07
+   ],
+   "shape": "Sphere",
+   "radius": 166.714599609375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

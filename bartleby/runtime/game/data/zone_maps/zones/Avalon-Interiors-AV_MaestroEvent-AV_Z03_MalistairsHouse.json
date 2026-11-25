@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "zone": "Avalon/Interiors/AV_MaestroEvent/AV_Z03_MalistairsHouse",
+ "named": {
+  "Start": [
+   537.66357421875,
+   1.3161720037460327,
+   1.5258790881489404e-05
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport To TelegraphBox",
+   "center": [
+    765.955322265625,
+    8.917363166809082,
+    3.887481927871704
+   ],
+   "shape": "Sphere",
+   "radius": 128.29640197753906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

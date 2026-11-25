@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "Novus/Interiors/NV_Z03_Safehouse",
+ "named": {
+  "Start": [
+   -94.72659301757812,
+   -4027.654052734375,
+   -86.13749694824219
+  ],
+  "Target_From_PuertoNuovo": [
+   -93.49642181396484,
+   -4048.8759765625,
+   -86.13751220703125
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn_Monquistador_01",
+   "template": "NV_Monkey_Monquistador_A_08",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -218.4134063720703,
+     -2153.139892578125,
+     -86.1397933959961
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_DonManzana_01",
+   "template": "NV_Monkey_Noble_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -565.9246826171875,
+     -2414.705078125,
+     -86.13973236083984
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_Monquistador_02",
+   "template": "NV_Monkey_Monquistador_A_08",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     89.11078643798828,
+     -1916.31396484375,
+     -86.13992309570312
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_Monquistador_03",
+   "template": "NV_Monkey_Monquistador_A_08",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     429.27880859375,
+     -2197.968017578125,
+     -86.13954162597656
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_2_PuertoNuovo",
+   "center": [
+    -173.95140075683594,
+    -4436.73583984375,
+    -86.13751220703125
+   ],
+   "shape": "",
+   "radius": 152.35159301757812,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

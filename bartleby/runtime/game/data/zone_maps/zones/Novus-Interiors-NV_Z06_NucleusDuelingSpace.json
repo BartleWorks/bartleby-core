@@ -1,0 +1,215 @@
+{
+ "format": 1,
+ "zone": "Novus/Interiors/NV_Z06_NucleusDuelingSpace",
+ "named": {
+  "Start": [
+   -14.158709526062012,
+   -14293.0498046875,
+   1.0008859634399414
+  ],
+  "From_NucleusGallery": [
+   -9.687311172485352,
+   -14294.4404296875,
+   1.0008859634399414
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point-Boss",
+   "template": "NV_Monkey_AberrantSoldierBoss_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -129.56739807128906,
+     -12939.9599609375,
+     0.41620808839797974
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Minion",
+   "template": "NV_Monkey_AberrantSoldierBoss_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     190.91529846191406,
+     -12831.1103515625,
+     0.4161889851093292
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Pop1",
+   "template": "NV_Monkey_AberrantSoldierBoss_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     459.76031494140625,
+     -12561.759765625,
+     1.001109004020691
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Pop2",
+   "template": "NV_Monkey_AberrantSoldierBoss_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -415.900390625,
+     -12482.25,
+     0.41616740822792053
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Pop2 (1)",
+   "template": "NV_Unicorn_AberrantGuard_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     127.62560272216797,
+     -7482.18994140625,
+     0.41565290093421936
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Pop1 (1)",
+   "template": "NV_Unicorn_AberrantGuard_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     465.9732971191406,
+     -7728.248046875,
+     1.0006840229034424
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Minion (1)",
+   "template": "NV_Unicorn_AberrantGuard_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     318.9237976074219,
+     -7928.7548828125,
+     0.4156889021396637
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Combat2_A",
+   "template": "NV_Unicorn_AberrantGuard_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -229.97940063476562,
+     -7986.02978515625,
+     0.41570109128952026
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Combat3_D_POP",
+   "template": "NV_Unicorn_AberrantGuard_A_04",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     100.33170318603516,
+     -2416.367919921875,
+     0.4156174957752228
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Combat3_C_POP",
+   "template": "NV_Monkey_AberrantSoldierBoss_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -344.3384094238281,
+     -2566.383056640625,
+     0.4723227024078369
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Combat3_B",
+   "template": "NV_Unicorn_AberrantGuard_A_03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     435.5799865722656,
+     -2676.81591796875,
+     0.47234880924224854
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Combat3_Boss",
+   "template": "NV_Dino_AberrantUndead_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -67.32756042480469,
+     -3041.56591796875,
+     0.47233930230140686
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_to_NucGal_01",
+   "center": [
+    -9.806320190429688,
+    -15033.599609375,
+    -13.955610275268555
+   ],
+   "shape": "",
+   "radius": 124.58619689941406,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_to_NucGal_02",
+   "center": [
+    -70.10807037353516,
+    -229.20750427246094,
+    0.47222378849983215
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,46 @@
+{
+ "format": 1,
+ "zone": "Zafaria/ZF_Z11_Mirror_Lake",
+ "named": {
+  "FromShiningMt": [
+   -3602.3359375,
+   3871.908935546875,
+   -1130.7869873046875
+  ],
+  "Start": [
+   110.61669921875,
+   -791.8297119140625,
+   -1523.85205078125
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVolToShiningMt",
+   "center": [
+    -3997.425048828125,
+    3989.5419921875,
+    -1067.43701171875
+   ],
+   "shape": "Sphere",
+   "radius": 250.25979614257812,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_BackToHub",
+   "center": [
+    84.10588836669922,
+    -1149.8480224609375,
+    -1494.3509521484375
+   ],
+   "shape": "",
+   "radius": 190.9761962890625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

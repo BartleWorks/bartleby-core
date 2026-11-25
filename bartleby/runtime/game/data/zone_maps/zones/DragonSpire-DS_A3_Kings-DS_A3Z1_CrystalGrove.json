@@ -1,0 +1,154 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A3_Kings/DS_A3Z1_CrystalGrove",
+ "named": {
+  "Target location (DS_CrystalGrove from T1)": [
+   -22529.58984375,
+   29680.630859375,
+   180.0048065185547
+  ],
+  "Target location (DS_CrystalGrove from T7)": [
+   -3859.010009765625,
+   9160.08203125,
+   -500.0000915527344
+  ],
+  "Target location (DS_CrystalGrove from T2)": [
+   -10.626460075378418,
+   -3184.12109375,
+   180.0045928955078
+  ],
+  "Target location (DS_CrystalGrove from T3)": [
+   22499.859375,
+   7300.4599609375,
+   180.00450134277344
+  ],
+  "Target location (DS_CrystalGrove from T4)": [
+   45682.91015625,
+   22524.51953125,
+   180.00469970703125
+  ],
+  "Target location (DS_CrystalGrove from T5)": [
+   30501.16015625,
+   37686.33984375,
+   180.0048065185547
+  ],
+  "Target location (DS_CrystalGrove from T6)": [
+   24806.33984375,
+   24415.25,
+   35.05567932128906
+  ],
+  "FromAcademy": [
+   8056.7548828125,
+   54650.73046875,
+   0.0032958979718387127
+  ],
+  "Target location (DS_CrystalGrove from T9)": [
+   3808.842041015625,
+   35698.41015625,
+   -500.0000915527344
+  ],
+  "Target location (DS_CrystalGrove from T8)": [
+   -2283.861083984375,
+   50917.76171875,
+   33.8614616394043
+  ],
+  "FromOuterStones": [
+   17.537900924682617,
+   44114.8203125,
+   30.001590728759766
+  ],
+  "FromMainStoneA": [
+   -22605.8203125,
+   22618.009765625,
+   30.00984001159668
+  ],
+  "FromMainStoneB": [
+   1.685333013534546,
+   -1373.3819580078125,
+   0.005073546897619963
+  ],
+  "FromMainStoneC": [
+   30535.029296875,
+   31463.41015625,
+   83.62346649169922
+  ],
+  "Start": [
+   8027.0,
+   54658.0,
+   0.0
+  ],
+  "RightSide": [
+   -4137.57080078125,
+   37605.80078125,
+   -500.0
+  ],
+  "LeftSide": [
+   4052.5048828125,
+   7226.4609375,
+   -500.0
+  ],
+  "From_PhotomongersOffice": [
+   14195.1103515625,
+   11550.7900390625,
+   163.45269775390625
+  ],
+  "From_HallOfVariousRituals": [
+   20365.6796875,
+   24250.91015625,
+   0.008495330810546875
+  ],
+  "From_HallOfBetrayal": [
+   12139.3603515625,
+   28152.189453125,
+   152.34539794921875
+  ],
+  "TargetLocation_From_Chamber-Of-Trials_01": [
+   8474.8798828125,
+   46082.609375,
+   -60.006961822509766
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport-ToAcademy",
+   "center": [
+    8013.744140625,
+    55279.6796875,
+    35.919429779052734
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_to_PhotomongersOffice",
+   "center": [
+    13904.3701171875,
+    11550.2197265625,
+    163.45069885253906
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume ToTower9",
+   "center": [
+    4172.7509765625,
+    36172.03125,
+    -498.9934997558594
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

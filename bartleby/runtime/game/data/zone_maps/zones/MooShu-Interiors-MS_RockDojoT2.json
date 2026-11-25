@@ -1,0 +1,64 @@
+{
+ "format": 1,
+ "zone": "MooShu/Interiors/MS_RockDojoT2",
+ "named": {
+  "FromMainHub": [
+   2445.055908203125,
+   9.151126861572266,
+   29.999940872192383
+  ],
+  "FromDeathHub": [
+   -1409.5909423828125,
+   1582.4510498046875,
+   0.0
+  ],
+  "Start": [
+   2464.5869140625,
+   64.7569580078125,
+   29.999940872192383
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToMainHub",
+   "center": [
+    2958.201904296875,
+    -5.9330878257751465,
+    30.0
+   ],
+   "shape": "Sphere",
+   "radius": 285.55029296875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location 0",
+   "center": [
+    -1897.6929931640625,
+    1713.8089599609375,
+    3.051758176297881e-05
+   ],
+   "shape": "Sphere",
+   "radius": 245.89639282226562,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location 1",
+   "center": [
+    -1882.7960205078125,
+    -1704.4119873046875,
+    0.0
+   ],
+   "shape": "Sphere",
+   "radius": 248.8874053955078,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,96 @@
+{
+ "format": 1,
+ "zone": "Avalon/Interiors/AV_Z02_TowerHarlequin",
+ "named": {
+  "Start": [
+   -57.63161849975586,
+   -1281.0889892578125,
+   -7.565437954326626e-06
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn Minion",
+   "template": "AV-DogKnight-Harlequin-R11-01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     230.80560302734375,
+     143.3623046875,
+     50.4998893737793
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Boss",
+   "template": "AV-Knight-Redthorn-R11-01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -194.2082061767578,
+     79.464599609375,
+     50.5
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Pop",
+   "template": "AV-Knight-Redthorn-R11-01",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -165.29409790039062,
+     620.5181884765625,
+     0.00024414059589616954
+    ],
+    [
+     -611.872314453125,
+     198.4239044189453,
+     0.0
+    ],
+    [
+     -570.5897216796875,
+     -221.6884002685547,
+     346.9867858886719
+    ],
+    [
+     -52.242919921875,
+     -531.9074096679688,
+     -0.00012207029794808477
+    ],
+    [
+     531.715576171875,
+     -267.6505126953125,
+     0.00012207029794808477
+    ],
+    [
+     512.584716796875,
+     457.0,
+     0.00024414059589616954
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    6.620666980743408,
+    -1612.6829833984375,
+    0.0
+   ],
+   "shape": "Sphere",
+   "radius": 174.9040069580078,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

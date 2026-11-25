@@ -1,0 +1,100 @@
+{
+ "format": 1,
+ "zone": "WizardCity/Gauntlets/WC_Triton_Gauntlet1/WC_Triton_Gauntlet_01",
+ "named": {
+  "Start": [
+   -3.013076066970825,
+   -1127.5899658203125,
+   0.006945961154997349
+  ],
+  "FromRoom2Fight": [
+   -1684.3189697265625,
+   51.699859619140625,
+   -2.145020008087158
+  ],
+  "FromRoom3Puzzle": [
+   1736.9189453125,
+   48.268009185791016,
+   -2.144896984100342
+  ],
+  "FromRoom5Fight": [
+   -1328.3499755859375,
+   1663.2010498046875,
+   -2.146667003631592
+  ],
+  "FromRoom7Puzzle": [
+   1371.0999755859375,
+   1683.406005859375,
+   -2.145324945449829
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location UnderewaterTritonAve",
+   "center": [
+    20.932979583740234,
+    -1607.3570556640625,
+    20.76947021484375
+   ],
+   "shape": "Sphere",
+   "radius": 159.2593994140625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Room2FightTeleport",
+   "center": [
+    -2338.132080078125,
+    53.763729095458984,
+    10.779509544372559
+   ],
+   "shape": "Sphere",
+   "radius": 155.20379638671875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Room4BossTeleport",
+   "center": [
+    2286.6650390625,
+    55.26976013183594,
+    25.118650436401367
+   ],
+   "shape": "Sphere",
+   "radius": 152.90310668945312,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Room6FightTeleport",
+   "center": [
+    -1620.969970703125,
+    1954.279052734375,
+    37.88077926635742
+   ],
+   "shape": "Sphere",
+   "radius": 117.38179779052734,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_ToRoom8FightTeleport",
+   "center": [
+    1613.112060546875,
+    1946.5589599609375,
+    -0.49684908986091614
+   ],
+   "shape": "Sphere",
+   "radius": 102.48799896240234,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

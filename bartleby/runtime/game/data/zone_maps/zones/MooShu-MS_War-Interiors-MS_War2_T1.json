@@ -1,0 +1,100 @@
+{
+ "format": 1,
+ "zone": "MooShu/MS_War/Interiors/MS_War2_T1",
+ "named": {
+  "Start": [
+   -50.0092887878418,
+   -1779.862060546875,
+   -0.004028319846838713
+  ],
+  "FromWarA": [
+   -77.52095794677734,
+   -1784.9510498046875,
+   -0.0056362152099609375
+  ],
+  "Target location 1": [
+   -972.2484130859375,
+   -1221.761962890625,
+   250.84970092773438
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Pig-War-Lord-MSBoss-L43",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     280.5080871582031,
+     17.73760986328125,
+     150.0
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Pig-War-Caster-L35",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -225.9427032470703,
+     316.0351867675781,
+     159.59010314941406
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 2",
+   "template": "Oni-War-MSBoss-L50",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -20.348880767822266,
+     20.796920776367188,
+     150.0
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Pop",
+   "template": "Pig-War-Ninja-L37",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -543.5938720703125,
+     569.74462890625,
+     150.0
+    ],
+    [
+     667.31591796875,
+     488.0238037109375,
+     150.0
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location 0",
+   "center": [
+    18.568470001220703,
+    -2150.76611328125,
+    24.33548927307129
+   ],
+   "shape": "Sphere",
+   "radius": 184.21969604492188,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

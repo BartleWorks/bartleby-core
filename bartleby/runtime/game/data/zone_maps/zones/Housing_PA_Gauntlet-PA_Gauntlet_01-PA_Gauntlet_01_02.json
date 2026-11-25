@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "zone": "Housing_PA_Gauntlet/PA_Gauntlet_01/PA_Gauntlet_01_02",
+ "named": {
+  "Start": [
+   -75.11711120605469,
+   1133.633056640625,
+   3.949950933456421
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To_Hall",
+   "center": [
+    587.9495849609375,
+    1424.737060546875,
+    -43.624691009521484
+   ],
+   "shape": "Sphere",
+   "radius": 228.18069458007812,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

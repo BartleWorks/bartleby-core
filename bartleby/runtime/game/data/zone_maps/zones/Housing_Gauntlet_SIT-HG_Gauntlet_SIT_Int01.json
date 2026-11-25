@@ -1,0 +1,766 @@
+{
+ "format": 1,
+ "zone": "Housing_Gauntlet_SIT/HG_Gauntlet_SIT_Int01",
+ "named": {
+  "Start": [
+   -283.8561096191406,
+   -12995.240234375,
+   -72.38424682617188
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPoint_L3_50_01",
+   "template": "HG_Ophidian_Thug_J_L50",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4593.37109375,
+     3376.23193359375,
+     -248.00050354003906
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_50_02",
+   "template": "HG_Ophidian_Thug_J_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4248.61083984375,
+     3389.428955078125,
+     -197.50070190429688
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_50_03",
+   "template": "HG_Ophidian_Thug_J_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4904.30419921875,
+     3524.614013671875,
+     -248.00050354003906
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_50_04",
+   "template": "HG_Ophidian_Thug_J_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3947.782958984375,
+     3677.50390625,
+     -197.5009002685547
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_100_01",
+   "template": "HG_Ophidian_Thug_J_L100",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4593.37109375,
+     3376.23193359375,
+     -248.00050354003906
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_100_03",
+   "template": "HG_Ophidian_Thug_J_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4904.30419921875,
+     3524.614013671875,
+     -248.00050354003906
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_100_02",
+   "template": "HG_Ophidian_Thug_J_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4248.61083984375,
+     3389.428955078125,
+     -197.50070190429688
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_100_04",
+   "template": "HG_Ophidian_Thug_J_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3947.782958984375,
+     3677.50390625,
+     -197.5009002685547
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_150_01",
+   "template": "HG_Ophidian_Thug_J_L150",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4593.37109375,
+     3376.23193359375,
+     -248.00050354003906
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_150_02",
+   "template": "HG_Ophidian_Thug_J_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4248.61083984375,
+     3389.428955078125,
+     -197.50070190429688
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_150_03",
+   "template": "HG_Ophidian_Thug_J_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4904.30419921875,
+     3524.614013671875,
+     -248.00050354003906
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_150_04",
+   "template": "HG_Ophidian_Thug_J_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3947.782958984375,
+     3677.50390625,
+     -197.5009002685547
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_180_01",
+   "template": "HG_Ophidian_Thug_J_L180",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4593.37109375,
+     3376.23193359375,
+     -248.00050354003906
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_180_03",
+   "template": "HG_Ophidian_Thug_J_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4904.30419921875,
+     3524.614013671875,
+     -248.00050354003906
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_180_02",
+   "template": "HG_Ophidian_Thug_J_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4248.61083984375,
+     3389.428955078125,
+     -197.50070190429688
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L3_180_04",
+   "template": "HG_Ophidian_Thug_J_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3947.782958984375,
+     3677.50390625,
+     -197.5009002685547
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_50_01",
+   "template": "HG_Iguana_Base_A_L50",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     154.56979370117188,
+     6365.662109375,
+     197.8166961669922
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_50_02",
+   "template": "HG_Iguana_Base_A_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -141.92539978027344,
+     6512.23388671875,
+     197.81809997558594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_50_03",
+   "template": "HG_Iguana_Base_A_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -358.3534851074219,
+     6714.43603515625,
+     197.82029724121094
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_50_04",
+   "template": "HG_Iguana_Base_A_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     348.39111328125,
+     6699.5869140625,
+     197.81900024414062
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_100_01",
+   "template": "HG_Iguana_Base_A_L100",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     154.56979370117188,
+     6365.662109375,
+     197.8166961669922
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_100_03",
+   "template": "HG_Iguana_Base_A_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -358.3534851074219,
+     6714.43603515625,
+     197.82029724121094
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_100_02",
+   "template": "HG_Iguana_Base_A_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -141.92539978027344,
+     6512.23388671875,
+     197.81809997558594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_100_04",
+   "template": "HG_Iguana_Base_A_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     348.39111328125,
+     6699.5869140625,
+     197.81900024414062
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_150_01",
+   "template": "HG_Iguana_Base_A_L150",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     154.56979370117188,
+     6365.662109375,
+     197.8166961669922
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_150_02",
+   "template": "HG_Iguana_Base_A_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -141.92539978027344,
+     6512.23388671875,
+     197.81809997558594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_150_03",
+   "template": "HG_Iguana_Base_A_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -358.3534851074219,
+     6714.43603515625,
+     197.82029724121094
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_150_04",
+   "template": "HG_Iguana_Base_A_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     348.39111328125,
+     6699.5869140625,
+     197.81900024414062
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_180_01",
+   "template": "HG_Iguana_Base_A_L180",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     154.56979370117188,
+     6365.662109375,
+     197.8166961669922
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_180_02",
+   "template": "HG_Iguana_Base_A_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -141.92539978027344,
+     6512.23388671875,
+     197.81809997558594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_180_03",
+   "template": "HG_Iguana_Base_A_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -358.3534851074219,
+     6714.43603515625,
+     197.82029724121094
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M3_180_04",
+   "template": "HG_Iguana_Base_A_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     348.39111328125,
+     6699.5869140625,
+     197.81900024414062
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_50_01",
+   "template": "HG_Parrot_Zombie_A_L50",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4204.251953125,
+     2646.866943359375,
+     646.2069091796875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_50_02",
+   "template": "HG_Parrot_Zombie_A_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4654.0361328125,
+     2650.333984375,
+     696.7069702148438
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_50_03",
+   "template": "HG_Parrot_Zombie_A_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4262.26611328125,
+     3108.239990234375,
+     646.2072143554688
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_50_04",
+   "template": "HG_Parrot_Zombie_A_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4539.23388671875,
+     3099.389892578125,
+     646.2069091796875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_100_01",
+   "template": "HG_Parrot_Zombie_A_L100",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4204.251953125,
+     2646.866943359375,
+     646.2069091796875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_100_02",
+   "template": "HG_Parrot_Zombie_A_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4654.0361328125,
+     2650.333984375,
+     696.7069702148438
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_100_03",
+   "template": "HG_Parrot_Zombie_A_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4262.26611328125,
+     3108.239990234375,
+     646.2072143554688
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_100_04",
+   "template": "HG_Parrot_Zombie_A_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4539.23388671875,
+     3099.389892578125,
+     646.2069091796875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_150_01",
+   "template": "HG_Parrot_Zombie_A_L150",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4204.251953125,
+     2646.866943359375,
+     646.2069091796875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_150_02",
+   "template": "HG_Parrot_Zombie_A_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4654.0361328125,
+     2650.333984375,
+     696.7069702148438
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_150_03",
+   "template": "HG_Parrot_Zombie_A_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4262.26611328125,
+     3108.239990234375,
+     646.2072143554688
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_150_04",
+   "template": "HG_Parrot_Zombie_A_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4539.23388671875,
+     3099.389892578125,
+     646.2069091796875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_180_01",
+   "template": "HG_Parrot_Zombie_A_L180",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4204.251953125,
+     2646.866943359375,
+     646.2069091796875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_180_02",
+   "template": "HG_Parrot_Zombie_A_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4654.0361328125,
+     2650.333984375,
+     696.7069702148438
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_180_03",
+   "template": "HG_Parrot_Zombie_A_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4262.26611328125,
+     3108.239990234375,
+     646.2072143554688
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R3_180_04",
+   "template": "HG_Parrot_Zombie_A_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4539.23388671875,
+     3099.389892578125,
+     646.2069091796875
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportSource_M_BR_01",
+   "center": [
+    -650.8829956054688,
+    8810.771484375,
+    70.4149169921875
+   ],
+   "shape": "Sphere",
+   "radius": 255.3737030029297,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_R_BR_01",
+   "center": [
+    3777.970947265625,
+    4863.76806640625,
+    557.3536987304688
+   ],
+   "shape": "Sphere",
+   "radius": 255.3737030029297,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_R_TR_01",
+   "center": [
+    5098.87890625,
+    4863.76806640625,
+    917.25048828125
+   ],
+   "shape": "Sphere",
+   "radius": 255.3737030029297,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_L_BL_01",
+   "center": [
+    -5065.44287109375,
+    5781.9072265625,
+    -373.1160888671875
+   ],
+   "shape": "Sphere",
+   "radius": 255.3737030029297,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_L_TL_01",
+   "center": [
+    -3739.493896484375,
+    5781.9072265625,
+    4.125092029571533
+   ],
+   "shape": "Sphere",
+   "radius": 255.3737030029297,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_M_TL_01",
+   "center": [
+    677.906005859375,
+    8810.771484375,
+    454.5863037109375
+   ],
+   "shape": "Sphere",
+   "radius": 255.3699951171875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

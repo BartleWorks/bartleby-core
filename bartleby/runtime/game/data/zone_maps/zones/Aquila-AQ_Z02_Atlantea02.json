@@ -1,0 +1,213 @@
+{
+ "format": 1,
+ "zone": "Aquila/AQ_Z02_Atlantea02",
+ "named": {
+  "From HallOfTheContriver": [
+   -4219.93212890625,
+   -1622.449951171875,
+   99.88379669189453
+  ],
+  "From HouseOfFury": [
+   -4156.27197265625,
+   870.5858764648438,
+   99.88379669189453
+  ],
+  "From HouseOfLostSaliors": [
+   2533.8740234375,
+   -1620.384033203125,
+   99.88391876220703
+  ],
+  "From PirateShip": [
+   2716.427001953125,
+   1157.6700439453125,
+   221.70030212402344
+  ],
+  "From SirenPuzzleRoom - back": [
+   -974.584716796875,
+   4145.7578125,
+   330.4375
+  ],
+  "From ThroneRoom": [
+   -2085.947021484375,
+   10818.75,
+   672.457275390625
+  ],
+  "Start": [
+   -837.1083984375,
+   4145.7578125,
+   330.4375
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point (2)",
+   "template": "AQ-Undead-LostMaiden",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3611.99609375,
+     5463.72802734375,
+     341.5835876464844
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (3)",
+   "template": "AQ-Kraken-Guard",
+   "proximity": 350.0,
+   "max_spawns": 4,
+   "start_node_type": 1,
+   "points": [
+    [
+     -1511.9239501953125,
+     9702.775390625,
+     672.4572143554688
+    ],
+    [
+     -2178.222900390625,
+     10137.4599609375,
+     683.7216796875
+    ],
+    [
+     -2687.89599609375,
+     9694.2919921875,
+     672.4572143554688
+    ],
+    [
+     -2421.6669921875,
+     8869.0126953125,
+     672.4572143554688
+    ],
+    [
+     -1770.9840087890625,
+     8899.7177734375,
+     672.4572143554688
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (5)",
+   "template": "AQ-Pirate-Large",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4177.93505859375,
+     5201.5400390625,
+     341.5837097167969
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (6)",
+   "template": "AQ-Pirate-Skinny",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4078.537109375,
+     5784.68505859375,
+     392.08349609375
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (6)",
+   "center": [
+    3125.594970703125,
+    1246.0369873046875,
+    221.7003936767578
+   ],
+   "shape": "Sphere",
+   "radius": 230.2071075439453,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (7)",
+   "center": [
+    -2115.488037109375,
+    11487.169921875,
+    672.457275390625
+   ],
+   "shape": "Sphere",
+   "radius": 231.82240295410156,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume Puzzle Room",
+   "center": [
+    -904.4995727539062,
+    2691.488037109375,
+    341.580810546875
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (1)",
+   "center": [
+    -5292.42919921875,
+    -2095.64599609375,
+    386.92779541015625
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (2)",
+   "center": [
+    -5255.796875,
+    1305.6700439453125,
+    386.92779541015625
+   ],
+   "shape": "Sphere",
+   "radius": 102.40270233154297,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (3)",
+   "center": [
+    3539.506103515625,
+    -2015.6090087890625,
+    386.9277038574219
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (4)",
+   "center": [
+    -907.9901733398438,
+    3812.280029296875,
+    341.58349609375
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

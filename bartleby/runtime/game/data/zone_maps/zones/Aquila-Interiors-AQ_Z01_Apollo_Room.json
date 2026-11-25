@@ -1,0 +1,91 @@
+{
+ "format": 1,
+ "zone": "Aquila/Interiors/AQ_Z01_Apollo_Room",
+ "named": {
+  "Target-ApolloRoom": [
+   -207.72390747070312,
+   -2054.297119140625,
+   109.26499938964844
+  ],
+  "Start": [
+   -190.77459716796875,
+   -2054.297119140625,
+   109.26499938964844
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn-Boss",
+   "template": "AQ-Immortal-Apollo",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -439.1453857421875,
+     -22.761310577392578,
+     -32.83341979980469
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Minion",
+   "template": "AQ-Cyclops-Guard",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     73.2122802734375,
+     -21.964780807495117,
+     -32.833499908447266
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Pop",
+   "template": "AQ-Cyclops-Guard",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -635.7156982421875,
+     252.74710083007812,
+     -32.8336296081543
+    ],
+    [
+     321.6075134277344,
+     221.33529663085938,
+     -32.833560943603516
+    ],
+    [
+     -133.98919677734375,
+     757.694580078125,
+     -32.83353042602539
+    ],
+    [
+     -547.2819213867188,
+     660.8095703125,
+     -32.83353042602539
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport-ExitApolloRoom",
+   "center": [
+    -190.14720153808594,
+    -2480.698974609375,
+    109.26509857177734
+   ],
+   "shape": "Sphere",
+   "radius": 153.87159729003906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

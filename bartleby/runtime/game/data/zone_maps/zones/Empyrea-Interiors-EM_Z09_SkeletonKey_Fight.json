@@ -1,0 +1,48 @@
+{
+ "format": 1,
+ "zone": "Empyrea/Interiors/EM_Z09_SkeletonKey_Fight",
+ "named": {
+  "Target_From_SkeletonKey_Landing": [
+   -4306.01416015625,
+   -7061.22412109375,
+   1.015136957168579
+  ],
+  "Start": [
+   -4305.2119140625,
+   -7008.865234375,
+   -0.0093994140625
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn_GoldBoss",
+   "template": "EM_GoldSkeletonKey_Elementals_BallAethyr_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3529.0458984375,
+     -5831.96923828125,
+     3.052259922027588
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_2_SkeletonKey01",
+   "center": [
+    -4540.81298828125,
+    -7437.62890625,
+    82.90335845947266
+   ],
+   "shape": "",
+   "radius": 270.5108947753906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

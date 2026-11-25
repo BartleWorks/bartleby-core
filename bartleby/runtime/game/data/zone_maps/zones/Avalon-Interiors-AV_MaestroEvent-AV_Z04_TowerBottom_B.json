@@ -1,0 +1,46 @@
+{
+ "format": 1,
+ "zone": "Avalon/Interiors/AV_MaestroEvent/AV_Z04_TowerBottom_B",
+ "named": {
+  "BackDoors": [
+   -43.48933029174805,
+   -998.5443115234375,
+   0.12343060225248337
+  ],
+  "Start": [
+   36.50115966796875,
+   1141.833984375,
+   0.12361370027065277
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume",
+   "center": [
+    0.7383003234863281,
+    -1539.06103515625,
+    16.47637939453125
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport to TelegraphBox",
+   "center": [
+    0.742970883846283,
+    1425.4990234375,
+    0.12349160015583038
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

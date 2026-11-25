@@ -1,0 +1,233 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Selenopolis/KT_Z04_Selenopolis",
+ "named": {
+  "Start": [
+   1804.5670166015625,
+   -60.148658752441406,
+   90.73851776123047
+  ],
+  "Target location-FromCere’sa’s House": [
+   8970.7890625,
+   -5698.60595703125,
+   570.3046875
+  ],
+  "Target location-FromQuasarHouse": [
+   10453.650390625,
+   -5632.03515625,
+   570.3045043945312
+  ],
+  "Target_From_Garden": [
+   9703.4404296875,
+   7336.580078125,
+   158.12550354003906
+  ],
+  "Target_From_Market": [
+   9688.8232421875,
+   -10451.419921875,
+   531.9107055664062
+  ],
+  "Target_From_Forgotten": [
+   22230.26953125,
+   -9614.4833984375,
+   1680.501953125
+  ],
+  "Target_From_SafeHouse": [
+   12649.9501953125,
+   -9235.724609375,
+   566.44921875
+  ],
+  "Target_From_BlendedGrove": [
+   19309.7890625,
+   -23.689769744873047,
+   -799.415283203125
+  ],
+  "Home": [
+   1444.60205078125,
+   -7.649506092071533,
+   81.00906372070312
+  ],
+  "Target_From_Zigurat_Lower": [
+   23668.4296875,
+   -2013.2889404296875,
+   2854.48388671875
+  ],
+  "Target_From_Zigurat_Upper": [
+   20669.330078125,
+   -13.95695972442627,
+   2005.0250244140625
+  ],
+  "Target_Teleport_Bypass_From_Upper": [
+   20652.900390625,
+   -2551.636962890625,
+   2011.676025390625
+  ],
+  "Target_Teleport_Bypass_From_Lower": [
+   22035.849609375,
+   -2643.10009765625,
+   2861.176025390625
+  ],
+  "Target_From_Sanctum": [
+   26670.029296875,
+   -2623.64404296875,
+   3378.967041015625
+  ],
+  "Target_From_MoonFestival": [
+   6929.68896484375,
+   -2857.333984375,
+   388.3479919433594
+  ],
+  "Target_Teleport_FromTop": [
+   15906.990234375,
+   -11.521140098571777,
+   531.9108276367188
+  ],
+  "Target_From_Sanctum2": [
+   27301.80078125,
+   -416.9985046386719,
+   3381.218017578125
+  ],
+  "Target_BalanceSpell": [
+   6012.001953125,
+   -10573.98046875,
+   390.6188049316406
+  ],
+  "Target location": [
+   20288.0,
+   244.0,
+   2013.0
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn_SecretBoss",
+   "template": "KT_SE_Krokosphinx_Base_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     23283.669921875,
+     18.816709518432617,
+     3919.506103515625
+    ]
+   ]
+  }
+ ],
+ "links": [
+  {
+   "name": "AV_Teleport_Bypass_2_Upper",
+   "kind": "volume",
+   "source": [
+    21608.970703125,
+    -2653.443115234375,
+    2877.700927734375
+   ],
+   "landing": "Target_Teleport_Bypass_From_Upper",
+   "target": [
+    20652.900390625,
+    -2551.636962890625,
+    2011.676025390625
+   ]
+  },
+  {
+   "name": "AV_Teleport_Bypass_2_Lower",
+   "kind": "volume",
+   "source": [
+    21000.109375,
+    -2564.408935546875,
+    2038.321044921875
+   ],
+   "landing": "Target_Teleport_Bypass_From_Lower",
+   "target": [
+    22035.849609375,
+    -2643.10009765625,
+    2861.176025390625
+   ]
+  },
+  {
+   "name": "AV_Teleport_FromTop",
+   "kind": "volume",
+   "source": [
+    19772.400390625,
+    -22.34556007385254,
+    3466.699951171875
+   ],
+   "landing": "Target_Teleport_FromTop",
+   "target": [
+    15906.990234375,
+    -11.521140098571777,
+    531.9108276367188
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport_2_Zigurat_Lower",
+   "kind": "volume",
+   "source": [
+    23670.98046875,
+    -1690.866943359375,
+    2854.5
+   ],
+   "landing": "Target_From_Zigurat_Upper",
+   "target": [
+    20669.330078125,
+    -13.95695972442627,
+    2005.0250244140625
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_2_Market",
+   "center": [
+    9686.5234375,
+    -10880.400390625,
+    531.9108276367188
+   ],
+   "shape": "Sphere",
+   "radius": 246.8282928466797,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_2_BlendedGrove",
+   "center": [
+    19894.880859375,
+    -19.240230560302734,
+    -830.3549194335938
+   ],
+   "shape": "Sphere",
+   "radius": 224.485107421875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_2_Tomb",
+   "center": [
+    22681.69921875,
+    -9630.509765625,
+    1680.508056640625
+   ],
+   "shape": "Sphere",
+   "radius": 198.76229858398438,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_2_Garden",
+   "center": [
+    9693.3037109375,
+    7707.8740234375,
+    128.04150390625
+   ],
+   "shape": "Sphere",
+   "radius": 236.05459594726562,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

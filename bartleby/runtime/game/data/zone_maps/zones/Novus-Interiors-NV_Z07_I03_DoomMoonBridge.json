@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "Novus/Interiors/NV_Z07_I03_DoomMoonBridge",
+ "named": {
+  "Start": [
+   -1677.968994140625,
+   603.4915161132812,
+   5.378787040710449
+  ],
+  "From NovisSkies": [
+   1451.27099609375,
+   548.6929931640625,
+   5.3790998458862305
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To_AnteChamber",
+   "center": [
+    -1946.375,
+    948.764404296875,
+    -4.0714111328125
+   ],
+   "shape": "",
+   "radius": 250.47250366210938,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

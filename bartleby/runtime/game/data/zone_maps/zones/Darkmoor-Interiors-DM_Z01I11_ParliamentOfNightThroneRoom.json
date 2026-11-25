@@ -1,0 +1,97 @@
+{
+ "format": 1,
+ "zone": "Darkmoor/Interiors/DM_Z01I11_ParliamentOfNightThroneRoom",
+ "named": {
+  "Start": [
+   12.252300262451172,
+   962.4378051757812,
+   184.85549926757812
+  ],
+  "TargetLocation_From_DarkHallways_01": [
+   3837.718994140625,
+   8334.615234375,
+   184.46820068359375
+  ],
+  "TargetLocation_From_Secret_Lab": [
+   2945.299072265625,
+   5950.4482421875,
+   273.85321044921875
+  ],
+  "TargetLocation_From_HallOfRecords_01": [
+   -3201.08203125,
+   8274.998046875,
+   184.4687957763672
+  ],
+  "TargetLocation_DM-GRAVE-MAIN-010_Goal_02": [
+   1500.3790283203125,
+   7486.73876953125,
+   184.4687042236328
+  ],
+  "TargetLocation_From_Graveholm_Entrance_03": [
+   6299.48486328125,
+   9149.09375,
+   184.4683074951172
+  ],
+  "TargetLocation_From_Graveholm_Entrance_02": [
+   -6294.73876953125,
+   9147.7724609375,
+   184.4687957763672
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportSource_Exit_to_Graveholm_01",
+   "center": [
+    2.9197099208831787,
+    -244.20989990234375,
+    257.6955871582031
+   ],
+   "shape": "",
+   "radius": 184.6374969482422,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "ActivatorVolume_to_HallOfRecords_01",
+   "center": [
+    -3092.636962890625,
+    8574.693359375,
+    184.4687957763672
+   ],
+   "shape": "Sphere",
+   "radius": 175.6750030517578,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_Exit_to_Graveholm_03",
+   "center": [
+    6895.77294921875,
+    9358.5087890625,
+    255.78759765625
+   ],
+   "shape": "Sphere",
+   "radius": 179.80039978027344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_Exit_to_Graveholm_02",
+   "center": [
+    -6861.083984375,
+    9352.9921875,
+    255.78819274902344
+   ],
+   "shape": "",
+   "radius": 165.83680725097656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,161 @@
+{
+ "format": 1,
+ "zone": "G14_SB/SB_Z05_CaveSystem",
+ "named": {
+  "Start": [
+   -507.904296875,
+   -501.4919128417969,
+   51.54766845703125
+  ],
+  "Target location-FromPuzzle": [
+   -6554.7587890625,
+   2305.1669921875,
+   814.9865112304688
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point-Boss",
+   "template": "G14-SB-Yeti",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -1716.0059814453125,
+     -1838.8609619140625,
+     127.9563980102539
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)-Minion",
+   "template": "G14-SB-Yeti",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -2109.034912109375,
+     -1540.512939453125,
+     127.95649719238281
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)-Pop",
+   "template": "G14-SB-Yeti",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -2509.679931640625,
+     -1614.991943359375,
+     127.95670318603516
+    ],
+    [
+     -2565.5390625,
+     -2193.55908203125,
+     127.9563980102539
+    ],
+    [
+     -2251.0830078125,
+     -2412.240966796875,
+     127.956298828125
+    ],
+    [
+     -1833.6619873046875,
+     -2335.264892578125,
+     127.95649719238281
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Boss (1)",
+   "template": "G14-SB-GoatNinja",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -7572.2080078125,
+     -496.0120849609375,
+     708.551513671875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)-Minion (1)",
+   "template": "G14-SB-GoatNinja",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -7133.2138671875,
+     -279.6883850097656,
+     708.551513671875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)",
+   "template": "G14-SB-GoatNinja",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -7084.2451171875,
+     153.2700958251953,
+     708.551513671875
+    ],
+    [
+     -7602.47900390625,
+     433.89898681640625,
+     708.5515747070312
+    ],
+    [
+     -7932.6220703125,
+     230.26080322265625,
+     727.5792846679688
+    ],
+    [
+     -7648.28515625,
+     -650.3726806640625,
+     1058.552001953125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location-ToPuzzle",
+   "center": [
+    -6375.8251953125,
+    3139.00390625,
+    1086.4429931640625
+   ],
+   "shape": "Sphere",
+   "radius": 335.6152038574219,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location-ToHub",
+   "center": [
+    -35.15367126464844,
+    75.89100646972656,
+    -60.125308990478516
+   ],
+   "shape": "Sphere",
+   "radius": 536.271484375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

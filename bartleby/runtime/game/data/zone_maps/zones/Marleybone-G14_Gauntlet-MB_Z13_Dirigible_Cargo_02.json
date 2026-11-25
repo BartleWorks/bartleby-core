@@ -1,0 +1,46 @@
+{
+ "format": 1,
+ "zone": "Marleybone/G14_Gauntlet/MB_Z13_Dirigible_Cargo_02",
+ "named": {
+  "From G14MB Cargo Puzzle": [
+   -41.00775146484375,
+   1514.573974609375,
+   0.00012207029794808477
+  ],
+  "Start": [
+   103.03459930419922,
+   -1400.97705078125,
+   0.20000340044498444
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    621.6159057617188,
+    -1343.7490234375,
+    160.49630737304688
+   ],
+   "shape": "",
+   "radius": 282.51519775390625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume",
+   "center": [
+    -13.945859909057617,
+    2109.864013671875,
+    117.3416976928711
+   ],
+   "shape": "",
+   "radius": 431.068115234375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,109 @@
+{
+ "format": 1,
+ "zone": "Aquila/Interiors/AQ_Z01_HallOfWatchfulEye",
+ "named": {
+  "Start": [
+   -55.732540130615234,
+   -4524.4130859375,
+   200.00010681152344
+  ],
+  "Target-HallOfWatchfulEyeEntrance": [
+   27.02981948852539,
+   -4536.615234375,
+   200.0
+  ],
+  "Target-FromHephaestusForge": [
+   7.135519027709961,
+   4614.28076171875,
+   199.99989318847656
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn-Boss",
+   "template": "AQ-Cyclops-Guard",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -221.0386962890625,
+     -226.34959411621094,
+     0.0
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Minion",
+   "template": "AQ-Cyclops-Guard",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     237.92039489746094,
+     -251.07179260253906,
+     50.5
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Pop",
+   "template": "AQ-Cyclops-Guard",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -518.5062866210938,
+     -24.8997802734375,
+     -2.089647978209541e-06
+    ],
+    [
+     563.9492797851562,
+     -2.960357904434204,
+     0.0001199807011289522
+    ],
+    [
+     294.56829833984375,
+     509.668212890625,
+     -2.089647978209541e-06
+    ],
+    [
+     -317.28460693359375,
+     528.198974609375,
+     0.0001199807011289522
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport-ToMountOlympis",
+   "center": [
+    -6.049129009246826,
+    -5082.158203125,
+    200.00010681152344
+   ],
+   "shape": "Sphere",
+   "radius": 191.08200073242188,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Volume-ToForge",
+   "center": [
+    8.054773330688477,
+    5067.73193359375,
+    219.1676025390625
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,99 @@
+{
+ "format": 1,
+ "zone": "Empyrea/EM_Z09_NWAeroplains",
+ "named": {
+  "Start": [
+   485.9794921875,
+   8943.3837890625,
+   88.37478637695312
+  ],
+  "Target_From_HelenasCamp": [
+   -2741.97607421875,
+   16322.6796875,
+   272.95770263671875
+  ],
+  "Target_From_VeloCity": [
+   -19001.83984375,
+   9832.015625,
+   15.824130058288574
+  ],
+  "Target_From_HumongishBattlefield": [
+   483.7106018066406,
+   10130.7001953125,
+   87.80570983886719
+  ],
+  "Target_From_TrollDen": [
+   -2147.0830078125,
+   -4923.82080078125,
+   -328.3371887207031
+  ],
+  "Target_From_GrandmasHouse": [
+   9047.9384765625,
+   -11440.9697265625,
+   123.33190155029297
+  ],
+  "Target_From_VoltergeistCave": [
+   -9400.5400390625,
+   -8637.14453125,
+   -422.37451171875
+  ],
+  "Target_From_SWPlains": [
+   -15407.75,
+   -16303.66015625,
+   230.6457061767578
+  ],
+  "Target_From_SphinxCavern": [
+   -8975.23828125,
+   5991.93212890625,
+   -170.8437042236328
+  ],
+  "Target_From_SkeletonKey_Landing": [
+   3650.498046875,
+   -11271.6904296875,
+   -461.0133972167969
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_2_VeloCity",
+   "center": [
+    -20232.259765625,
+    9965.4189453125,
+    184.7216033935547
+   ],
+   "shape": "",
+   "radius": 886.4840698242188,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_2_HelenasCamp",
+   "center": [
+    -2726.52001953125,
+    17333.779296875,
+    319.8042907714844
+   ],
+   "shape": "",
+   "radius": 653.6630859375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_2_SWPlains",
+   "center": [
+    -15365.73046875,
+    -17207.0703125,
+    248.24749755859375
+   ],
+   "shape": "",
+   "radius": 557.901611328125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

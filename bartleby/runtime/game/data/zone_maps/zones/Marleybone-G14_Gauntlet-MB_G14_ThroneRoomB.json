@@ -1,0 +1,43 @@
+{
+ "format": 1,
+ "zone": "Marleybone/G14_Gauntlet/MB_G14_ThroneRoomB",
+ "named": {
+  "Start": [
+   3.603027105331421,
+   -4704.8369140625,
+   1.4999690055847168
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point",
+   "template": "G14-BP-Monster_Katzenstein_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     61.876461029052734,
+     -1590.260986328125,
+     1.5
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    3.9765539169311523,
+    -4923.0,
+    -16.603219985961914
+   ],
+   "shape": "",
+   "radius": 138.64649963378906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

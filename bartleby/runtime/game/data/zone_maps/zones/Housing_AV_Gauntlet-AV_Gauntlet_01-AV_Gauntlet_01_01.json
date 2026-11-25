@@ -1,0 +1,172 @@
+{
+ "format": 1,
+ "zone": "Housing_AV_Gauntlet/AV_Gauntlet_01/AV_Gauntlet_01_01",
+ "named": {
+  "Start": [
+   -995.99072265625,
+   274.0014953613281,
+   -12.37090015411377
+  ],
+  "SirClaudasDagrodolce": [
+   398.65020751953125,
+   -1351.3699951171875,
+   -10.87913990020752
+  ],
+  "SirLyonelLaughingStorm": [
+   -928.6994018554688,
+   -3171.343017578125,
+   -15.55933952331543
+  ],
+  "LadyTanselle": [
+   -2026.64599609375,
+   -2764.612060546875,
+   -15.751230239868164
+  ],
+  "SirDunkTheTall": [
+   -931.0335083007812,
+   -3178.322998046875,
+   -15.559240341186523
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SirLionel",
+   "template": "DD-AV01-DeerKnight",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -934.0515747070312,
+     -1560.7130126953125,
+     57.693111419677734
+    ]
+   ]
+  },
+  {
+   "spawner": "LadyTanselleMob",
+   "template": "DD-AV01-FoxKnight",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -929.5667724609375,
+     -1653.93505859375,
+     57.693111419677734
+    ]
+   ]
+  },
+  {
+   "spawner": "SirDunk",
+   "template": "DD-AV01-BadgerKnight",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -929.5667724609375,
+     -1653.93505859375,
+     57.693111419677734
+    ]
+   ]
+  },
+  {
+   "spawner": "SirBadApple",
+   "template": "DD-AV01-DogKnight",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -929.5667724609375,
+     -1653.93505859375,
+     57.693111419677734
+    ]
+   ]
+  },
+  {
+   "spawner": "CrabDolce",
+   "template": "DD-AV01-CrabKnight",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -948.9605712890625,
+     -1455.842041015625,
+     57.693180084228516
+    ]
+   ]
+  },
+  {
+   "spawner": "WyrmSpawner",
+   "template": "DD-AV01-WyrmBoss",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -930.1541748046875,
+     -1756.0350341796875,
+     57.69316101074219
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "ToLaughingStorm",
+   "center": [
+    -1332.8740234375,
+    -3485.85498046875,
+    75.1763916015625
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "ToLadyTanselle",
+   "center": [
+    -2220.402099609375,
+    -3044.027099609375,
+    99.3450927734375
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "SirDunkTheTall",
+   "center": [
+    -432.6419982910156,
+    -3509.700927734375,
+    -2.822844982147217
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "SirClaudasDAgrodolce",
+   "center": [
+    735.5081787109375,
+    -1375.001953125,
+    -3.3002700805664062
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

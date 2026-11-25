@@ -1,0 +1,196 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Selenopolis/Interiors/KT_Z06I12_CryptOfRa_Int",
+ "named": {
+  "MotherSunnRoom": [
+   9267.837890625,
+   33706.640625,
+   0.08660888671875
+  ],
+  "Start": [
+   -3342.333984375,
+   33684.73046875,
+   0.09979248046875
+  ],
+  "From MotherSunn": [
+   4813.0419921875,
+   33681.609375,
+   0.10009770095348358
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn GhostManders",
+   "template": "KT_SE_Mander_Citizen_F_D_05",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     1078.4639892578125,
+     34114.01171875,
+     0.10028079897165298
+    ],
+    [
+     1043.364990234375,
+     33295.390625,
+     0.10003659874200821
+    ],
+    [
+     179.2545928955078,
+     33274.76953125,
+     0.10028079897165298
+    ],
+    [
+     82.7613525390625,
+     34055.30078125,
+     0.10003659874200821
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn Mother Sunn",
+   "template": "KT_SE_Mander_MummyF_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     13048.4697265625,
+     33596.33984375,
+     50.586910247802734
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn GhostManders (1)",
+   "template": "KT_SE_Mander_Citizen_F_D_05",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     1078.4639892578125,
+     34114.01171875,
+     0.10028079897165298
+    ],
+    [
+     1043.364990234375,
+     33295.390625,
+     0.10003659874200821
+    ],
+    [
+     179.2545928955078,
+     33274.76953125,
+     0.10028079897165298
+    ],
+    [
+     82.7613525390625,
+     34055.30078125,
+     0.10003659874200821
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn ExtraManders",
+   "template": "KT_SE_Mander_Citizen_F_D_05",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     13500.91015625,
+     33973.6484375,
+     0.5687081813812256
+    ],
+    [
+     13548.8896484375,
+     33491.390625,
+     0.568947970867157
+    ],
+    [
+     13324.58984375,
+     33276.9609375,
+     0.568947970867157
+    ],
+    [
+     13290.009765625,
+     34048.5,
+     0.5690745115280151
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn Bodyguard",
+   "template": "KT_SE_Mander_Citizen_F_D_05",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     13170.6201171875,
+     34100.140625,
+     0.5689523816108704
+    ]
+   ]
+  }
+ ],
+ "links": [
+  {
+   "name": "TeleportVol_Teleport To CryptRoom01",
+   "kind": "volume",
+   "source": [
+    8335.3056640625,
+    33699.69140625,
+    9.746986389160156
+   ],
+   "landing": "From MotherSunn",
+   "target": [
+    4813.0419921875,
+    33681.609375,
+    0.10009770095348358
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport To MotherSunnRoom",
+   "center": [
+    5367.7587890625,
+    33673.9296875,
+    0.09979248046875
+   ],
+   "shape": "Sphere",
+   "radius": 253.68370056152344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport To TombOfForgotten",
+   "center": [
+    -4173.0322265625,
+    33683.28125,
+    0.09979248046875
+   ],
+   "shape": "Sphere",
+   "radius": 266.7239990234375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport To TombOfForgotten (1)",
+   "center": [
+    17798.859375,
+    33683.28125,
+    0.09979248046875
+   ],
+   "shape": "Sphere",
+   "radius": 305.19781494140625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,104 @@
+{
+ "format": 1,
+ "zone": "G14_SB/SB_Z02_PagodaRoom01",
+ "named": {
+  "Target location-FromLvl2": [
+   28.698429107666016,
+   1783.708984375,
+   133.83200073242188
+  ],
+  "Start": [
+   -20.652090072631836,
+   -2251.5859375,
+   133.93299865722656
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point-Boss",
+   "template": "G14-SB-SheepMonk_Spirit",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -14.053239822387695,
+     -296.65789794921875,
+     0.00024205099907703698
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Minion",
+   "template": "G14-SB-SheepMonk_Spirit",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     119.26280212402344,
+     58.171260833740234,
+     0.00030517581035383046
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Pop",
+   "template": "G14-SB-SheepMonk_Spirit",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -399.1422119140625,
+     -231.60020446777344,
+     0.00024205099907703698
+    ],
+    [
+     521.1035766601562,
+     -242.8607940673828,
+     6.103516352595761e-05
+    ],
+    [
+     397.80999755859375,
+     338.360107421875,
+     0.0001199807011289522
+    ],
+    [
+     -285.4007873535156,
+     367.9840087890625,
+     0.00011566210014279932
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume",
+   "center": [
+    5.473075866699219,
+    2607.72900390625,
+    154.1343994140625
+   ],
+   "shape": "Sphere",
+   "radius": 279.85369873046875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport-ExitPagoda",
+   "center": [
+    -0.7363423705101013,
+    -2614.06103515625,
+    133.93299865722656
+   ],
+   "shape": "Sphere",
+   "radius": 208.24270629882812,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

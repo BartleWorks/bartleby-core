@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "Marleybone/MB_ScotlandYard/Interiors/MB_KatzLab_T6",
+ "named": {
+  "From the Lab": [
+   -1.9731179475784302,
+   -1021.2630004882812,
+   0.0
+  ],
+  "Start": [
+   2.6518709659576416,
+   -1021.8280029296875,
+   -2.4713569857226503e-08
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Spider-Golem-MBBoss-L42",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -73.59420013427734,
+     22.14868927001953,
+     50.500118255615234
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Golem-Clockwork-Elite-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     130.8542938232422,
+     24.909069061279297,
+     50.5
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "Golem-Clockwork-Elite-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -245.86830139160156,
+     462.9189147949219,
+     0.11537530273199081
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1 (1)",
+   "template": "Golem-Clockwork-Elite-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     329.53179931640625,
+     489.78179931640625,
+     0.11537530273199081
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To the Lab",
+   "center": [
+    3.3840699195861816,
+    -1328.696044921875,
+    0.0
+   ],
+   "shape": "",
+   "radius": 159.2751007080078,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

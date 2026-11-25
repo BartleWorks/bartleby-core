@@ -1,0 +1,43 @@
+{
+ "format": 1,
+ "zone": "Empyrea/EM_Z06_NimbusHanger",
+ "named": {
+  "Start": [
+   -1883.06201171875,
+   -685.2114868164062,
+   4.999995231628418
+  ],
+  "Target location-FromFieldPartyCrash": [
+   -1911.333984375,
+   950.1146850585938,
+   2.0000510215759277
+  ],
+  "Target location-FromCitadel": [
+   8067.00390625,
+   5.198485851287842,
+   1.9999430179595947
+  ],
+  "Streamportal-NimbusDock": [
+   -2217.383056640625,
+   37.416019439697266,
+   2.0000040531158447
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume-ToCitadel",
+   "center": [
+    9379.1845703125,
+    26.049909591674805,
+    2.0000040531158447
+   ],
+   "shape": "Box",
+   "radius": 0.0,
+   "length": 492.5696105957031,
+   "width": 3675.25390625,
+   "height": 400.0
+  }
+ ]
+}

@@ -1,0 +1,200 @@
+{
+ "format": 1,
+ "zone": "Grizzleheim/GH_MainHub",
+ "named": {
+  "FromHeroCamp": [
+   9572.876953125,
+   3716.68603515625,
+   542.7346801757812
+  ],
+  "FromRedClaw": [
+   -9658.9453125,
+   6352.35302734375,
+   922.6680908203125
+  ],
+  "FromRavenFortress": [
+   -8567.591796875,
+   2203.093017578125,
+   200.0998992919922
+  ],
+  "FromAbandonedCity": [
+   5941.43408203125,
+   -4857.89892578125,
+   -1098.7459716796875
+  ],
+  "FromWolfFortress": [
+   8810.4287109375,
+   5647.93408203125,
+   651.5374145507812
+  ],
+  "FromThroneRoom": [
+   -16.0712890625,
+   6001.39697265625,
+   671.0164184570312
+  ],
+  "FromGH_ShopHat_Shoes": [
+   2066.98388671875,
+   4746.4921875,
+   200.1999053955078
+  ],
+  "Home": [
+   990.3820190429688,
+   -3005.366943359375,
+   1.5915069580078125
+  ],
+  "Start": [
+   -47.037601470947266,
+   -8096.5732421875,
+   643.4179077148438
+  ],
+  "FromShopHouseFurniture": [
+   -2066.5859375,
+   5027.42919921875,
+   200.19749450683594
+  ],
+  "From_GH2": [
+   -2385.31103515625,
+   -4867.14697265625,
+   -280.3894958496094
+  ],
+  "FromGH_Crafting": [
+   7104.09521484375,
+   7955.591796875,
+   200.20010375976562
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToAbandonedCity",
+   "center": [
+    6459.365234375,
+    -5422.869140625,
+    -1099.801025390625
+   ],
+   "shape": "Sphere",
+   "radius": 314.1965026855469,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_ToHatShoeShop",
+   "center": [
+    2220.196044921875,
+    5336.66796875,
+    200.1999053955078
+   ],
+   "shape": "Sphere",
+   "radius": 137.43370056152344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_ToFurnitureShop",
+   "center": [
+    -2249.18505859375,
+    5368.43408203125,
+    200.1999969482422
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "ToGH_HubThroneRoom",
+   "center": [
+    -5.6033101081848145,
+    6613.93603515625,
+    777.9647216796875
+   ],
+   "shape": "Sphere",
+   "radius": 316.86590576171875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "HeroCampTeleportVolume",
+   "center": [
+    10517.6298828125,
+    3675.860107421875,
+    503.9211120605469
+   ],
+   "shape": "Sphere",
+   "radius": 401.7203063964844,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "WolfFortressTeleportVolume",
+   "center": [
+    8963.5087890625,
+    6058.39111328125,
+    748.4691772460938
+   ],
+   "shape": "Sphere",
+   "radius": 312.3232116699219,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "RavenFortressTeleportVolume",
+   "center": [
+    -8596.005859375,
+    1512.3070068359375,
+    200.1999969482422
+   ],
+   "shape": "Sphere",
+   "radius": 372.4635925292969,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "RedClawFortressTeleportVolume",
+   "center": [
+    -9998.2421875,
+    6697.5087890625,
+    1000.2000122070312
+   ],
+   "shape": "Sphere",
+   "radius": 320.4142150878906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location 0",
+   "center": [
+    7392.19384765625,
+    8172.94580078125,
+    200.1999053955078
+   ],
+   "shape": "Sphere",
+   "radius": 142.8291015625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Volume_GoToGH2",
+   "center": [
+    -2398.868896484375,
+    -5181.89794921875,
+    -280.3893127441406
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

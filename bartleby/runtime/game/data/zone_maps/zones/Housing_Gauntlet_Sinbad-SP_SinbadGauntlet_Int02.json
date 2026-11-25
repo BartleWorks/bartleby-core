@@ -1,0 +1,122 @@
+{
+ "format": 1,
+ "zone": "Housing_Gauntlet_Sinbad/SP_SinbadGauntlet_Int02",
+ "named": {
+  "Start": [
+   -4071.68603515625,
+   -1225.012939453125,
+   -4447.15380859375
+  ],
+  "From_Ferros": [
+   -4071.68603515625,
+   -1225.012939453125,
+   -4447.15380859375
+  ],
+  "From_Summit": [
+   -6056.35400390625,
+   -4847.85107421875,
+   -1699.27099609375
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawner_Metallossus_Leader_Tier25",
+   "template": "HG_Sinbad_Colossus_25",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1072.4530029296875,
+     4783.56591796875,
+     -3528.431884765625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Metallossus_Leader_Tier50",
+   "template": "HG_Sinbad_Colossus_50",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1072.4530029296875,
+     4783.56591796875,
+     -3528.431884765625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Metallossus_Leader_Tier75",
+   "template": "HG_Sinbad_Colossus_75",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1072.4530029296875,
+     4783.56591796875,
+     -3528.431884765625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Metallossus_Leader_Tier100",
+   "template": "HG_Sinbad_Colossus_100",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1072.4530029296875,
+     4783.56591796875,
+     -3528.431884765625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Metallossus_Leader_Tier130",
+   "template": "HG_Sinbad_Colossus_130",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1072.4530029296875,
+     4783.56591796875,
+     -3528.431884765625
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_to_Ferros",
+   "center": [
+    -4646.4228515625,
+    -1324.9010009765625,
+    -4461.4521484375
+   ],
+   "shape": "",
+   "radius": 317.50970458984375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Telepor_to_Summit",
+   "center": [
+    -6226.94677734375,
+    -5306.97705078125,
+    -1444.93798828125
+   ],
+   "shape": "Box",
+   "radius": 0.0,
+   "length": 400.0,
+   "width": 809.7819213867188,
+   "height": 661.3875122070312
+  }
+ ]
+}

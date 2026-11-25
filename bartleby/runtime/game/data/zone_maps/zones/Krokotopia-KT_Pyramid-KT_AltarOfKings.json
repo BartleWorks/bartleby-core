@@ -1,0 +1,115 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Pyramid/KT_AltarOfKings",
+ "named": {
+  "LIFE-C05Target": [
+   -3146.176025390625,
+   7182.43115234375,
+   -1000.0
+  ],
+  "CinematicLocation": [
+   -23.096599578857422,
+   5188.68505859375,
+   439.69281005859375
+  ],
+  "Start": [
+   12.942119598388672,
+   1700.011962890625,
+   0.0
+  ],
+  "Target (Krok_Pyramd_Level01 Krok_Pyramid_Hub Exit)": [
+   1139.031005859375,
+   2126.958984375,
+   4.617006197804585e-06
+  ],
+  "Target (Krok_Pyramid_Hub KT_Hub Entrance)": [
+   4.002967834472656,
+   -2029.072021484375,
+   -6.687400309601799e-05
+  ],
+  "Target (Krok_Pyramid_Level02 Krok_Pyramid_Hub Exit)": [
+   4225.8837890625,
+   7061.35791015625,
+   973.6719970703125
+  ],
+  "Target (Krok_Pyramid_Level03 Krok_Pyramid_Hub Exit)": [
+   -3665.195068359375,
+   3706.467041015625,
+   -311.53350830078125
+  ],
+  "ExitPalaceOfFire": [
+   3098.402099609375,
+   7073.02294921875,
+   950.0
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport (KT_Hub Krok_Pyramid_Hub Exit)",
+   "center": [
+    0.1553059071302414,
+    -2568.991943359375,
+    -8.423373219557106e-05
+   ],
+   "shape": "Sphere",
+   "radius": 291.9797058105469,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport (Krok_Pyramid_Hub Krok_Pyramid_Level02 Entrance)",
+   "center": [
+    5280.1708984375,
+    7058.001953125,
+    986.4290771484375
+   ],
+   "shape": "Sphere",
+   "radius": 252.90280151367188,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport (Krok_Pyramid_Hub Krok_Pyramid_Level03 Entrance)",
+   "center": [
+    -4511.26806640625,
+    3836.126953125,
+    -318.55419921875
+   ],
+   "shape": "Sphere",
+   "radius": 486.60809326171875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport (Krok_Pyramid_Hub Krok_Pyramind_Level01 Entrance)",
+   "center": [
+    1702.6729736328125,
+    1970.323974609375,
+    18.544790267944336
+   ],
+   "shape": "Sphere",
+   "radius": 350.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (1)",
+   "center": [
+    4699.89794921875,
+    7054.951171875,
+    950.0
+   ],
+   "shape": "Sphere",
+   "radius": 281.4921875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

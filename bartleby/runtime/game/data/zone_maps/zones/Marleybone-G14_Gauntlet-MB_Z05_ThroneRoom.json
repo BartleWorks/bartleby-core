@@ -1,0 +1,41 @@
+{
+ "format": 1,
+ "zone": "Marleybone/G14_Gauntlet/MB_Z05_ThroneRoom",
+ "named": {
+  "Start": [
+   -0.1779785007238388,
+   -4659.18310546875,
+   3.862061023712158
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To G14MBMain02",
+   "center": [
+    3.1477279663085938,
+    -4930.63818359375,
+    5.694655895233154
+   ],
+   "shape": "",
+   "radius": 154.3759002685547,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume",
+   "center": [
+    -1372.469970703125,
+    -1493.4840087890625,
+    40.19136047363281
+   ],
+   "shape": "Sphere",
+   "radius": 206.44369506835938,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

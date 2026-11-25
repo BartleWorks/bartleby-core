@@ -1,0 +1,67 @@
+{
+ "format": 1,
+ "zone": "G14_DM/Interiors/DM_Z08_I01_MausoleumTop",
+ "named": {
+  "Start": [
+   -20.777490615844727,
+   -3024.012939453125,
+   3.8146970382513246e-06
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Malistaire",
+   "template": "G14-DM-Malistaire_Boss",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     7.738983154296875,
+     -512.6240844726562,
+     7.207031012512743e-05
+    ]
+   ]
+  },
+  {
+   "spawner": "MalMinions",
+   "template": "G14-DM-Draconian_Malistaire_F",
+   "proximity": 350.0,
+   "max_spawns": 3,
+   "start_node_type": 1,
+   "points": [
+    [
+     567.6328125,
+     220.00039672851562,
+     0.00018773239571601152
+    ],
+    [
+     -595.336669921875,
+     245.16709899902344,
+     -5.64081892662216e-05
+    ],
+    [
+     -16.924850463867188,
+     -273.5082092285156,
+     0.0001920509967021644
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_BacktoLower",
+   "center": [
+    -20.812349319458008,
+    -3690.9970703125,
+    0.00506591796875
+   ],
+   "shape": "",
+   "radius": 220.33749389648438,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

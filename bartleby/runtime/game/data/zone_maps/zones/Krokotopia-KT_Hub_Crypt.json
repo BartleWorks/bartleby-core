@@ -1,0 +1,51 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Hub_Crypt",
+ "named": {
+  "Target location (Krok_Hub StormCrypt Exit)": [
+   -10355.4501953125,
+   -8239.1796875,
+   -373.41259765625
+  ],
+  "Target location (Krok_Hub StormIsland Arrive)": [
+   -8870.5888671875,
+   -6836.14208984375,
+   -261.76629638671875
+  ],
+  "Start": [
+   -9508.9580078125,
+   -6861.14013671875,
+   -373.4002990722656
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (Krok_Hub StormCrypt Entrance)",
+   "center": [
+    -10659.1796875,
+    -8513.27734375,
+    -373.4804992675781
+   ],
+   "shape": "Sphere",
+   "radius": 282.1874084472656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Krok_Hub StormIsland Return)",
+   "center": [
+    -8675.853515625,
+    -6633.97216796875,
+    -262.8258972167969
+   ],
+   "shape": "Sphere",
+   "radius": 157.43310546875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

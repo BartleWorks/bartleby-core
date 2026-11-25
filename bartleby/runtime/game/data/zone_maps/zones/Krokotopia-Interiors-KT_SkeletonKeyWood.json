@@ -1,0 +1,85 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/Interiors/KT_SkeletonKeyWood",
+ "named": {
+  "Start": [
+   1799.45703125,
+   16.655799865722656,
+   9.29125671973452e-05
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Boss_Spawn",
+   "template": "KT_WoodenSkeletonKey_Ra",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     441.56109619140625,
+     96.86968994140625,
+     7.599664211273193
+    ]
+   ]
+  },
+  {
+   "spawner": "Minion1_Spawn",
+   "template": "KT_WoodenSkeletonKey_Minion_Fire",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -287.1451110839844,
+     -206.627197265625,
+     9.67825698852539
+    ]
+   ]
+  },
+  {
+   "spawner": "Minion2_Spawn",
+   "template": "KT_WoodenSkeletonKey_Minion_Myth",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     25.650510787963867,
+     596.7191162109375,
+     15.551730155944824
+    ]
+   ]
+  },
+  {
+   "spawner": "Minion3_Spawn",
+   "template": "KT_WoodenSkeletonKey_Minion_Life",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     24.912540435791016,
+     -654.7739868164062,
+     16.694629669189453
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    2706.31201171875,
+    10.86279010772705,
+    22.610979080200195
+   ],
+   "shape": "Sphere",
+   "radius": 329.0705871582031,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

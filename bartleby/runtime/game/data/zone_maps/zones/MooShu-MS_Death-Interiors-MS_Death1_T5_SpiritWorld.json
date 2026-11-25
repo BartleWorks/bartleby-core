@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "MooShu/MS_Death/Interiors/MS_Death1_T5_SpiritWorld",
+ "named": {
+  "FromDeath1": [
+   0.0,
+   0.0,
+   -0.0003662109957076609
+  ],
+  "Start": [
+   -0.9541854858398438,
+   -4.12022382079158e-06,
+   -0.0003662109957076609
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Wraith-MSBoss-L49",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     42.670650482177734,
+     5646.5830078125,
+     -0.0004882811917923391
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Pig-Death-Ninja-L40",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     150.0,
+     6000.0,
+     0.0
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 2",
+   "template": "Pig-Death-Ninja-L40",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -390.7934875488281,
+     6451.3271484375,
+     0.11555840075016022
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 3",
+   "template": "Pig-Death-Ninja-L40",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     424.5718994140625,
+     6462.7919921875,
+     0.1153142973780632
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToDeath1",
+   "center": [
+    -30.70383071899414,
+    -1337.157958984375,
+    0.0
+   ],
+   "shape": "Sphere",
+   "radius": 1173.095947265625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

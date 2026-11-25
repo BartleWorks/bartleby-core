@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "Housing_Gauntlet_Sinbad/SP_SinbadGauntlet_Int01",
+ "named": {
+  "Start": [
+   -12.699219703674316,
+   -4788.85595703125,
+   -2052.445068359375
+  ],
+  "From_Metallos": [
+   3817.842041015625,
+   -3060.343994140625,
+   -2052.532958984375
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "AV_Teleporter_to_Metallos",
+   "center": [
+    3667.751953125,
+    -2110.239990234375,
+    -1901.27294921875
+   ],
+   "shape": "Box",
+   "radius": 0.0,
+   "length": 1774.52197265625,
+   "width": 548.922119140625,
+   "height": 964.9931030273438
+  }
+ ]
+}

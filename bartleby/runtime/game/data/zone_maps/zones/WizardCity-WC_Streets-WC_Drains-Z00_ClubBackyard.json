@@ -1,0 +1,43 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/WC_Drains/Z00_ClubBackyard",
+ "named": {
+  "Start": [
+   -6.8615617752075195,
+   2721.782958984375,
+   1.800004005432129
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point",
+   "template": "CC_Trash_Boss_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -322.94281005859375,
+     1369.5479736328125,
+     1.799996018409729
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume-TeleportOut",
+   "center": [
+    -11.418560028076172,
+    -61.9893684387207,
+    1.7999999523162842
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

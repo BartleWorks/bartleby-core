@@ -1,0 +1,1452 @@
+{
+ "format": 1,
+ "zone": "Marleybone/MB_BigBen/MB_BigBen",
+ "named": {
+  "Target location (Level 2 Level 1 Exit)": [
+   -27734.359375,
+   21004.2890625,
+   -203.34730529785156
+  ],
+  "Target location (BigBen Hub TowerLevel1 Entrance)": [
+   -31410.099609375,
+   21011.119140625,
+   -203.34730529785156
+  ],
+  "Target location (Level1 Level2 Entrance)": [
+   -25492.630859375,
+   21005.44921875,
+   -203.34730529785156
+  ],
+  "Target location (Level3 Level2 Exit)": [
+   -21859.490234375,
+   21011.7109375,
+   -203.34730529785156
+  ],
+  "Target location (Level2 Level3 Entrance)": [
+   -19581.880859375,
+   21004.509765625,
+   -203.34730529785156
+  ],
+  "Target location (Level4 Level3 Exit)": [
+   -15815.8203125,
+   21011.7109375,
+   -203.34730529785156
+  ],
+  "Target location (Level3 Level4 Entrance)": [
+   -13542.490234375,
+   20999.83984375,
+   -203.34730529785156
+  ],
+  "Target location (Level5 Level4 Exit)": [
+   -9875.8388671875,
+   21010.720703125,
+   -203.34730529785156
+  ],
+  "Target location (Level4 Level5 Entrance)": [
+   -7587.8798828125,
+   21010.7890625,
+   -203.34730529785156
+  ],
+  "Target location (Level6 Level5 Exit)": [
+   -3875.875,
+   21011.7109375,
+   -203.34730529785156
+  ],
+  "Target location (Level5 Level6 Entrance)": [
+   -1586.251953125,
+   21007.470703125,
+   -203.34730529785156
+  ],
+  "Target location (Level7 Level6 Exit)": [
+   2158.924072265625,
+   21011.7109375,
+   -203.34730529785156
+  ],
+  "Target location (Level6 Level7 Entrance)": [
+   4454.52880859375,
+   20999.529296875,
+   -203.34730529785156
+  ],
+  "Target location (Leve8 Level7 Exit)": [
+   8158.048828125,
+   21011.7109375,
+   -203.34730529785156
+  ],
+  "Target location (Level7 Leve8 Entrance)": [
+   10485.900390625,
+   20996.1796875,
+   -203.34730529785156
+  ],
+  "Target location (Level9 Level8 Exit)": [
+   14147.48046875,
+   21011.7109375,
+   -203.34730529785156
+  ],
+  "Target location (Level8 Level9 Entrance)": [
+   16570.859375,
+   20999.029296875,
+   -203.34730529785156
+  ],
+  "Target location (Level10 Level9 Exit)": [
+   20149.759765625,
+   21011.7109375,
+   -203.34730529785156
+  ],
+  "Target location (Level9 Level10 Entrance)": [
+   22589.130859375,
+   20995.970703125,
+   -203.34730529785156
+  ],
+  "Target location (Level11 Level10 Exit)": [
+   26157.259765625,
+   21011.7109375,
+   -203.34730529785156
+  ],
+  "Target location (Level10 Level11 Entrance)": [
+   -31369.109375,
+   11963.9296875,
+   -203.34730529785156
+  ],
+  "Target location (Level12 Level11 Exit)": [
+   -27854.029296875,
+   11976.26953125,
+   -203.34730529785156
+  ],
+  "Target location (Level11 Level12 Entrance)": [
+   -25527.630859375,
+   11985.4697265625,
+   -203.34730529785156
+  ],
+  "Target location (Level13 Level12 Exit)": [
+   -21859.490234375,
+   11993.26953125,
+   -203.34730529785156
+  ],
+  "Target location (Level12 Level13 Entrance)": [
+   -19513.109375,
+   11993.5400390625,
+   -203.34730529785156
+  ],
+  "Target location (Level14 Level13 Exit)": [
+   -15850.8798828125,
+   12002.9296875,
+   -203.34730529785156
+  ],
+  "Target location (Level13 Level14 Entrance)": [
+   -13501.98046875,
+   11950.4501953125,
+   -203.34730529785156
+  ],
+  "Target location (Level15 Level14 Exit)": [
+   -9859.9208984375,
+   11959.75,
+   -203.34730529785156
+  ],
+  "Target location (Level14 Level15 Entrance)": [
+   -7550.001953125,
+   12008.830078125,
+   -203.34730529785156
+  ],
+  "Target location (Level16 Level15 Exit)": [
+   -3861.737060546875,
+   12020.66015625,
+   -203.34730529785156
+  ],
+  "Target location (Level15 Level16 Entrance)": [
+   -1501.3499755859375,
+   11984.0703125,
+   -203.34730529785156
+  ],
+  "Target location (Level17 Level16 Exit)": [
+   2137.653076171875,
+   11990.2001953125,
+   -203.34730529785156
+  ],
+  "Target location (Level16 Leve17 Entrance)": [
+   4500.56884765625,
+   11999.1201171875,
+   -203.34730529785156
+  ],
+  "Target location (Leve18 Level17 Exit)": [
+   8151.14404296875,
+   12008.6201171875,
+   -203.34730529785156
+  ],
+  "Target location (Level17 Level18 Entrance)": [
+   10517.2001953125,
+   11991.1796875,
+   -203.34730529785156
+  ],
+  "Target location (Level19 Level18 Exit)": [
+   14161.9599609375,
+   11992.1298828125,
+   -203.34730529785156
+  ],
+  "Target location (Level18 Level19 Entrance)": [
+   16572.25,
+   12002.9296875,
+   -203.34730529785156
+  ],
+  "Target location (Level20 Level19 Exit)": [
+   20137.400390625,
+   12014.6796875,
+   -203.34730529785156
+  ],
+  "Target location (Level19 Level20 Entrance)": [
+   22484.33984375,
+   11938.75,
+   -203.34730529785156
+  ],
+  "Target location (Boss Level20 Exit)": [
+   26142.369140625,
+   11985.759765625,
+   -203.34730529785156
+  ],
+  "Target location (Level20 Boss Entrance)": [
+   -0.5904830098152161,
+   -1934.3349609375,
+   -279.5791931152344
+  ],
+  "Start by puzzle": [
+   -29080.16015625,
+   10695.240234375,
+   -203.3477020263672
+  ],
+  "Start at Final Room": [
+   -4.14373779296875,
+   -1926.300048828125,
+   -279.67620849609375
+  ],
+  "Start": [
+   -31363.08984375,
+   21033.580078125,
+   -203.34759521484375
+  ],
+  "Start-Z": [
+   10607.8896484375,
+   12000.0,
+   -203.34719848632812
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Cat-Hobo-HatGray-Elite-L35",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -29382.69921875,
+     21583.689453125,
+     -203.2534942626953
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Cat-Hobo-HatGray-Elite-L35",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -29558.740234375,
+     20457.109375,
+     -203.2534942626953
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 3",
+   "template": "Cat-Burglar-Gray-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -23628.0,
+     21359.470703125,
+     -203.25340270996094
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 4",
+   "template": "Cat-Burglar-Yellow-Elite-L31",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -23655.349609375,
+     20720.669921875,
+     -173.6313018798828
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 5",
+   "template": "Cat-Thug-Green-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -17677.9609375,
+     21507.779296875,
+     -203.2541046142578
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 6",
+   "template": "Golem-Clockwork-MBBoss-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -17717.01953125,
+     20521.759765625,
+     -153.34689331054688
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 7",
+   "template": "Cat-Hobo-HatGray-Elite-L35",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -11487.9501953125,
+     21404.98046875,
+     -203.2523956298828
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 8",
+   "template": "Frog-L29",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -11489.240234375,
+     20537.599609375,
+     -153.34719848632812
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 9",
+   "template": "Golem-Steel-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     628.75048828125,
+     21525.140625,
+     -203.25340270996094
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 10",
+   "template": "Golem-Wood-Elite-L35",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     692.1702270507812,
+     20577.0,
+     -203.25340270996094
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 11",
+   "template": "Cat-Burglar-Gray-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     6453.06103515625,
+     21582.80078125,
+     -203.25390625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 12",
+   "template": "Golem-Brass-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     6564.498046875,
+     20480.9609375,
+     -203.25390625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 13",
+   "template": "Cat-Thug-Green-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     12476.599609375,
+     21440.16015625,
+     -203.25439453125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 14",
+   "template": "Cat-Burglar-Gray-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     12432.8701171875,
+     20542.169921875,
+     -153.34719848632812
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 15",
+   "template": "Golem-Brass-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     18473.80078125,
+     21435.23046875,
+     -203.25360107421875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 16",
+   "template": "Golem-Clockwork-MBBoss-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     18429.19921875,
+     20500.599609375,
+     -153.34739685058594
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 17",
+   "template": "Spider-Brown-L34",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     24422.810546875,
+     21480.810546875,
+     -203.25360107421875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 18",
+   "template": "Spider-Brown-L34",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     24377.9609375,
+     20441.19921875,
+     -153.34840393066406
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 19",
+   "template": "Cat-Thug-Green-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     24991.330078125,
+     20912.890625,
+     -203.25360107421875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 20",
+   "template": "Cat-Burglar-Gray-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -23373.390625,
+     12591.5,
+     -203.2534942626953
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 21",
+   "template": "Ghost-Red-Elite-L39",
+   "proximity": 500.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -23290.91015625,
+     11655.76953125,
+     -203.2534942626953
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 22",
+   "template": "Cat-Thug-Green-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -17247.0,
+     12520.73046875,
+     -203.2528076171875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 23",
+   "template": "Ghost-Red-Elite-L39",
+   "proximity": 500.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -17185.349609375,
+     11729.599609375,
+     -203.2528076171875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 24",
+   "template": "Ghost-Red-Elite-L39",
+   "proximity": 500.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -11618.2802734375,
+     12596.5302734375,
+     -153.34629821777344
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 25",
+   "template": "Golem-Brass-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -11561.0595703125,
+     11709.83984375,
+     -153.34829711914062
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 26",
+   "template": "Spider-Golem-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -5555.60986328125,
+     12566.91015625,
+     -203.25390625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 27",
+   "template": "Spider-Golem-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -5616.9912109375,
+     11637.5302734375,
+     -153.3477020263672
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 28",
+   "template": "Banshee-Red-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -5048.43994140625,
+     12084.349609375,
+     -203.25390625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 29",
+   "template": "Ghost-Red-Elite-L39",
+   "proximity": 500.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     441.1087951660156,
+     12556.919921875,
+     -203.2545928955078
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 30",
+   "template": "Golem-Steel-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     938.0244140625,
+     12107.580078125,
+     -203.2545928955078
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 31",
+   "template": "Ghost-Red-Elite-L39",
+   "proximity": 500.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     406.2716979980469,
+     11555.259765625,
+     -153.34739685058594
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 32",
+   "template": "Golem-Brass-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     6560.89892578125,
+     12540.0400390625,
+     -203.2528076171875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 33",
+   "template": "Skeleton-Gold-Elite-L38",
+   "proximity": 500.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     6602.05615234375,
+     11678.650390625,
+     -153.34750366210938
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 36",
+   "template": "Golem-Steel-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     18598.0703125,
+     12396.8798828125,
+     -203.25169372558594
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 37",
+   "template": "Skeleton-Gold-Elite-L38",
+   "proximity": 500.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     18548.01953125,
+     11531.41015625,
+     -153.34739685058594
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 38",
+   "template": "Golem-Steel-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     24616.80078125,
+     12429.3701171875,
+     -203.25270080566406
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 40",
+   "template": "Golem-Steel-Elite-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     24661.140625,
+     11584.6904296875,
+     -203.25270080566406
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 41",
+   "template": "Wraith-Elite-L43",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     518.730224609375,
+     -340.5148010253906,
+     -279.4858093261719
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 42",
+   "template": "Cat-Meowiarty-MBBoss-L61",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -7.678955078125,
+     -546.2659301757812,
+     -279.485595703125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 43",
+   "template": "Golem-Wood-Elite-L35",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -540.826904296875,
+     -290.3575134277344,
+     -279.4861145019531
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn Spike",
+   "template": "Cat-Thug-Purple-MBBoss-LXX",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     24893.369140625,
+     12029.8701171875,
+     -203.25360107421875
+    ]
+   ]
+  }
+ ],
+ "links": [
+  {
+   "name": "Activator Volume (1)",
+   "kind": "volume",
+   "source": [
+    -17.577470779418945,
+    -1906.0799560546875,
+    -277.8478088378906
+   ],
+   "landing": "Target location (Level 2 Level 1 Exit)",
+   "target": [
+    -27734.359375,
+    21004.2890625,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level1 to Level2)",
+   "kind": "volume",
+   "source": [
+    -27158.140625,
+    20996.810546875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level1 Level2 Entrance)",
+   "target": [
+    -25492.630859375,
+    21005.44921875,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level3 Level2 Exit)",
+   "kind": "volume",
+   "source": [
+    -20062.44921875,
+    21008.560546875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level3 Level2 Exit)",
+   "target": [
+    -21859.490234375,
+    21011.7109375,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level4 Level3 Exit)",
+   "kind": "volume",
+   "source": [
+    -14064.1396484375,
+    21008.560546875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level4 Level3 Exit)",
+   "target": [
+    -15815.8203125,
+    21011.7109375,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level5 Level4 Exit)",
+   "kind": "volume",
+   "source": [
+    -8059.05419921875,
+    21008.560546875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level5 Level4 Exit)",
+   "target": [
+    -9875.8388671875,
+    21010.720703125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level6 Level5 Exit)",
+   "kind": "volume",
+   "source": [
+    -2058.094970703125,
+    21008.560546875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level6 Level5 Exit)",
+   "target": [
+    -3875.875,
+    21011.7109375,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level7 Level6 Exit)",
+   "kind": "volume",
+   "source": [
+    3938.259033203125,
+    21008.560546875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level7 Level6 Exit)",
+   "target": [
+    2158.924072265625,
+    21011.7109375,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level9 Level8 Exit)",
+   "kind": "volume",
+   "source": [
+    15935.7197265625,
+    21008.560546875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level9 Level8 Exit)",
+   "target": [
+    14147.48046875,
+    21011.7109375,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level10 Level9 Exit)",
+   "kind": "volume",
+   "source": [
+    21936.009765625,
+    21008.560546875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level10 Level9 Exit)",
+   "target": [
+    20149.759765625,
+    21011.7109375,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level11 Level10 Exit)",
+   "kind": "volume",
+   "source": [
+    -32064.390625,
+    12002.580078125,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level11 Level10 Exit)",
+   "target": [
+    26157.259765625,
+    21011.7109375,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level12 Level11 Exit)",
+   "kind": "volume",
+   "source": [
+    -25945.919921875,
+    11990.1298828125,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level12 Level11 Exit)",
+   "target": [
+    -27854.029296875,
+    11976.26953125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level13 Level12 Exit)",
+   "kind": "volume",
+   "source": [
+    -20061.029296875,
+    11999.7802734375,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level13 Level12 Exit)",
+   "target": [
+    -21859.490234375,
+    11993.26953125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level14 Level13 Exit)",
+   "kind": "volume",
+   "source": [
+    -14058.7802734375,
+    12011.08984375,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level14 Level13 Exit)",
+   "target": [
+    -15850.8798828125,
+    12002.9296875,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level15 Level14 Exit)",
+   "kind": "volume",
+   "source": [
+    -8055.740234375,
+    12009.41015625,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level15 Level14 Exit)",
+   "target": [
+    -9859.9208984375,
+    11959.75,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level16 Level15 Exit)",
+   "kind": "volume",
+   "source": [
+    -2057.701904296875,
+    11987.0498046875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level16 Level15 Exit)",
+   "target": [
+    -3861.737060546875,
+    12020.66015625,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level17 Level16 Exit)",
+   "kind": "volume",
+   "source": [
+    3942.152099609375,
+    12005.4697265625,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level17 Level16 Exit)",
+   "target": [
+    2137.653076171875,
+    11990.2001953125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level17 to Level18)",
+   "kind": "volume",
+   "source": [
+    8838.94921875,
+    12015.98046875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level17 Level18 Entrance)",
+   "target": [
+    10517.2001953125,
+    11991.1796875,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level19 Level18 Exit)",
+   "kind": "volume",
+   "source": [
+    15940.16015625,
+    12011.5302734375,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level19 Level18 Exit)",
+   "target": [
+    14161.9599609375,
+    11992.1298828125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level20 Level19 Exit)",
+   "kind": "volume",
+   "source": [
+    21936.7890625,
+    11982.6201171875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level20 Level19 Exit)",
+   "target": [
+    20137.400390625,
+    12014.6796875,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Boss Level20 Exit)",
+   "kind": "volume",
+   "source": [
+    6.01251220703125,
+    -2403.367919921875,
+    -269.8147888183594
+   ],
+   "landing": "Target location (Boss Level20 Exit)",
+   "target": [
+    26142.369140625,
+    11985.759765625,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level4 to Level5)",
+   "kind": "volume",
+   "source": [
+    -9166.0986328125,
+    20996.810546875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level4 Level5 Entrance)",
+   "target": [
+    -7587.8798828125,
+    21010.7890625,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level6 to Level7)",
+   "kind": "volume",
+   "source": [
+    2836.5439453125,
+    20996.810546875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level6 Level7 Entrance)",
+   "target": [
+    4454.52880859375,
+    20999.529296875,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level3 to Level4)",
+   "kind": "volume",
+   "source": [
+    -15163.26953125,
+    20996.810546875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level3 Level4 Entrance)",
+   "target": [
+    -13542.490234375,
+    20999.83984375,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level11 to Level12)",
+   "kind": "volume",
+   "source": [
+    -27167.189453125,
+    12001.509765625,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level11 Level12 Entrance)",
+   "target": [
+    -25527.630859375,
+    11985.4697265625,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level19 to Level20)",
+   "kind": "volume",
+   "source": [
+    20836.220703125,
+    11999.7802734375,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level19 Level20 Entrance)",
+   "target": [
+    22484.33984375,
+    11938.75,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level7 to Level8)",
+   "kind": "volume",
+   "source": [
+    8832.853515625,
+    20996.810546875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level7 Leve8 Entrance)",
+   "target": [
+    10485.900390625,
+    20996.1796875,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level15 to Level16)",
+   "kind": "volume",
+   "source": [
+    -3168.132080078125,
+    12005.759765625,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level15 Level16 Entrance)",
+   "target": [
+    -1501.3499755859375,
+    11984.0703125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level2 Level1 Exit)",
+   "kind": "volume",
+   "source": [
+    -26061.25,
+    21008.560546875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level 2 Level 1 Exit)",
+   "target": [
+    -27734.359375,
+    21004.2890625,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level13 to Level14)",
+   "kind": "volume",
+   "source": [
+    -15175.5595703125,
+    11988.0302734375,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level13 Level14 Entrance)",
+   "target": [
+    -13501.98046875,
+    11950.4501953125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level8 to Level9)",
+   "kind": "volume",
+   "source": [
+    14842.9599609375,
+    20996.810546875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level8 Level9 Entrance)",
+   "target": [
+    16570.859375,
+    20999.029296875,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level18 to Level19)",
+   "kind": "volume",
+   "source": [
+    14835.0703125,
+    12012.01953125,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level18 Level19 Entrance)",
+   "target": [
+    16572.25,
+    12002.9296875,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level8 Level7 Exit)",
+   "kind": "volume",
+   "source": [
+    9934.67578125,
+    21008.560546875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Leve8 Level7 Exit)",
+   "target": [
+    8158.048828125,
+    21011.7109375,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level9 to Level10)",
+   "kind": "volume",
+   "source": [
+    20831.439453125,
+    20996.810546875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level9 Level10 Entrance)",
+   "target": [
+    22589.130859375,
+    20995.970703125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level12 to Level13)",
+   "kind": "volume",
+   "source": [
+    -21160.390625,
+    12003.7900390625,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level13 Level14 Entrance)",
+   "target": [
+    -13501.98046875,
+    11950.4501953125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (Level18 Level17 Exit)",
+   "kind": "volume",
+   "source": [
+    9940.5068359375,
+    11988.98046875,
+    -194.29820251464844
+   ],
+   "landing": "Target location (Level17 Level16 Exit)",
+   "target": [
+    2137.653076171875,
+    11990.2001953125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level16 to Level17)",
+   "kind": "volume",
+   "source": [
+    2835.716064453125,
+    12015.740234375,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level17 Level18 Entrance)",
+   "target": [
+    10517.2001953125,
+    11991.1796875,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level14 to Level15)",
+   "kind": "volume",
+   "source": [
+    -9165.951171875,
+    12018.169921875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level15 Level16 Entrance)",
+   "target": [
+    -1501.3499755859375,
+    11984.0703125,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level5 to Level6)",
+   "kind": "volume",
+   "source": [
+    -3163.845947265625,
+    20996.810546875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level6 Level7 Entrance)",
+   "target": [
+    4454.52880859375,
+    20999.529296875,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Volume-TeleportOut",
+   "kind": "volume",
+   "source": [
+    4.260985851287842,
+    -2327.248046875,
+    -269.8153076171875
+   ],
+   "landing": "Target location (Boss Level20 Exit)",
+   "target": [
+    26142.369140625,
+    11985.759765625,
+    -203.34730529785156
+   ]
+  },
+  {
+   "name": "Activator Volume (Level20 to Boss)",
+   "kind": "volume",
+   "source": [
+    26825.69921875,
+    12005.98046875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level20 Boss Entrance)",
+   "target": [
+    -0.5904830098152161,
+    -1934.3349609375,
+    -279.5791931152344
+   ]
+  },
+  {
+   "name": "Activator Volume (Level10 to Level11)",
+   "kind": "volume",
+   "source": [
+    26834.169921875,
+    20996.810546875,
+    -194.2819061279297
+   ],
+   "landing": "Target location (Level10 Level11 Entrance)",
+   "target": [
+    -31369.109375,
+    11963.9296875,
+    -203.34730529785156
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport (Tower Level 1 BigBen Hub Exit)",
+   "center": [
+    -32079.140625,
+    21008.560546875,
+    -194.29820251464844
+   ],
+   "shape": "",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (Level2 to Level3)",
+   "center": [
+    -21165.1796875,
+    20996.810546875,
+    -194.2819061279297
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

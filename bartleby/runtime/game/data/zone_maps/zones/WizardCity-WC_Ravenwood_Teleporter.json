@@ -1,0 +1,51 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Ravenwood_Teleporter",
+ "named": {
+  "Start": [
+   12.09943962097168,
+   -477.8982849121094,
+   89.21309661865234
+  ],
+  "Target Marker (Ravenwood_Teleporter Ravenwood Exit)": [
+   1.3105640411376953,
+   -2950.0,
+   244.0305938720703
+  ],
+  "Teleport from AltarChamber": [
+   2517.51708984375,
+   81.32872772216797,
+   247.7480926513672
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Teleport_to_AltarChamber",
+   "center": [
+    2754.52099609375,
+    92.09577941894531,
+    248.96609497070312
+   ],
+   "shape": "Sphere",
+   "radius": 151.94189453125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Ravenwood_Teleporter Ravenwood Entrance)",
+   "center": [
+    -7.4684929847717285,
+    -3295.238037109375,
+    283.97259521484375
+   ],
+   "shape": "Sphere",
+   "radius": 180.52760314941406,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

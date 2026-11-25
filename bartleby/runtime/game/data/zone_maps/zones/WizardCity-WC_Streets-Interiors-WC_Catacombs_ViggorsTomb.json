@@ -1,0 +1,122 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_Catacombs_ViggorsTomb",
+ "named": {
+  "Start": [
+   -9.867188453674316,
+   10921.23046875,
+   -1636.6240234375
+  ],
+  "From_Catacombs": [
+   -9.867188453674316,
+   10921.23046875,
+   -1636.6240234375
+  ],
+  "From_InZoneTeleport": [
+   439.5310974121094,
+   11118.919921875,
+   -1654.39599609375
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawner_PlagueMob_01",
+   "template": "CC_Wisp_Plague_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -102.06659698486328,
+     23364.8203125,
+     -2405.033935546875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_PlagueMob_02",
+   "template": "CC_Wisp_Plague_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     119.60590362548828,
+     23357.869140625,
+     -2405.033935546875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_PlagueMob_Pop",
+   "template": "CC_Wisp_Plague_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     8.721221923828125,
+     23472.890625,
+     -2405.068115234375
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_PlagueMob_Pop02",
+   "template": "CC_Wisp_Plague_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -248.7270050048828,
+     23436.119140625,
+     -2405.156982421875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_PrinceViggor",
+   "template": "CC_Human_DSWarPrince_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     6837.4609375,
+     32435.25,
+     -3787.241943359375
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_to_Catacombs",
+   "center": [
+    -17.02128028869629,
+    10631.2998046875,
+    -1672.89599609375
+   ],
+   "shape": "Sphere",
+   "radius": 159.21820068359375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_to_Catacombs_End",
+   "center": [
+    6955.60693359375,
+    21955.83984375,
+    -3280.735107421875
+   ],
+   "shape": "Sphere",
+   "radius": 132.90109252929688,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

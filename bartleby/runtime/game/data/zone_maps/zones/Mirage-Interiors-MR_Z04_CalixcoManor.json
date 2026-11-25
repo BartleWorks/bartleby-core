@@ -1,0 +1,56 @@
+{
+ "format": 1,
+ "zone": "Mirage/Interiors/MR_Z04_CalixcoManor",
+ "named": {
+  "Start": [
+   -4.697174072265625,
+   77.46835327148438,
+   1.629234066058416e-05
+  ],
+  "From_AudienceChamber": [
+   1538.594970703125,
+   -2535.302001953125,
+   2.524240016937256
+  ],
+  "From_CalixcoNursery": [
+   -1753.0579833984375,
+   -2543.56591796875,
+   3.3388270821888e-05
+  ],
+  "Target location-FromBaronsRetreat": [
+   -5.590538024902344,
+   -5036.490234375,
+   2.524169921875
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    12.981019973754883,
+    471.5069885253906,
+    19.660690307617188
+   ],
+   "shape": "",
+   "radius": 188.68690490722656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume Teleport Nursery",
+   "center": [
+    -2189.39599609375,
+    -2541.60595703125,
+    6.103516352595761e-05
+   ],
+   "shape": "",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_Firecat_Theatre",
+ "named": {
+  "Target (Street5 FireTheatre Entrance)": [
+   22.180509567260742,
+   -2209.760009765625,
+   2.005462884902954
+  ],
+  "Start": [
+   22.180509567260742,
+   -2209.760009765625,
+   2.005462884902954
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "FireElf-Prince-WCBoss-L04",
+   "proximity": 800.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     22.83111000061035,
+     33.31753921508789,
+     -300.0002136230469
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (2)",
+   "template": "Snowman-Fire-L12",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -209.09519958496094,
+     265.1112060546875,
+     -249.50010681152344
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "Snowman-Fire-L12",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -21.89742088317871,
+     539.5266723632812,
+     -299.8847961425781
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Snowman-Fire-L12",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     306.87921142578125,
+     295.18548583984375,
+     -299.8847961425781
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport (FireTheatre Street5 Exit)",
+   "center": [
+    6.980469226837158,
+    -2929.501953125,
+    -0.0004882813082076609
+   ],
+   "shape": "Sphere",
+   "radius": 163.89390563964844,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

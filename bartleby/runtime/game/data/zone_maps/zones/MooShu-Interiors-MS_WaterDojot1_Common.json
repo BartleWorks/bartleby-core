@@ -1,0 +1,64 @@
+{
+ "format": 1,
+ "zone": "MooShu/Interiors/MS_WaterDojot1_Common",
+ "named": {
+  "FromMainHub": [
+   2410.509033203125,
+   7.650936126708984,
+   29.999879837036133
+  ],
+  "FromPlagueHub": [
+   -1460.489990234375,
+   -1608.06494140625,
+   0.0
+  ],
+  "Start": [
+   2411.693115234375,
+   -59.34455871582031,
+   29.999879837036133
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToMainHub",
+   "center": [
+    2966.757080078125,
+    0.9139708876609802,
+    29.999879837036133
+   ],
+   "shape": "Sphere",
+   "radius": 290.17919921875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_ToPlagueHub2",
+   "center": [
+    -1917.14794921875,
+    1713.385009765625,
+    0.00012207029794808477
+   ],
+   "shape": "Sphere",
+   "radius": 254.00180053710938,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_ToPlagueHub1",
+   "center": [
+    -1912.4100341796875,
+    -1714.8160400390625,
+    0.00012207029794808477
+   ],
+   "shape": "Sphere",
+   "radius": 242.49929809570312,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

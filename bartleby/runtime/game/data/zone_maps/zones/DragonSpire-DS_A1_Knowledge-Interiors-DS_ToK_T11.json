@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A1_Knowledge/Interiors/DS_ToK_T11",
+ "named": {
+  "Target location (DS_T11 fromToK)": [
+   -19.023189544677734,
+   1141.833984375,
+   0.12361370027065277
+  ],
+  "Start": [
+   54.170928955078125,
+   1141.833984375,
+   0.12361370027065277
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (DS_T11 to ToK)",
+   "center": [
+    0.742970883846283,
+    1425.4990234375,
+    0.12349160015583038
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

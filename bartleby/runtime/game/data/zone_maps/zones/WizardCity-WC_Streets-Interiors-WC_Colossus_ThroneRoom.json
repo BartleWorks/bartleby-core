@@ -1,0 +1,103 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_Colossus_ThroneRoom",
+ "named": {
+  "Start": [
+   1613.7010498046875,
+   -5057.81396484375,
+   -3166.14990234375
+  ],
+  "Target (Street6 WC_Street6_GobblerKing_ThroneRoom Entrance)": [
+   1618.071044921875,
+   -5061.0869140625,
+   -3166.14990234375
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Minion Spawner",
+   "template": "Gobbler-Green-Fat-L02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     1824.595947265625,
+     -2222.52099609375,
+     -3166.14990234375
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "Gobbler-Green-Skinny-L02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     1037.9959716796875,
+     -2898.14697265625,
+     -3166.14990234375
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Gobbler-Green-Fat-L02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     2237.48388671875,
+     -2957.804931640625,
+     -3166.14990234375
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Prince",
+   "template": "Gobbler-Green-Baron-L04",
+   "proximity": 1.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1622.3509521484375,
+     -2469.339111328125,
+     -3166.14990234375
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume 0",
+   "center": [
+    42.3060417175293,
+    -497.4397888183594,
+    -3166.14990234375
+   ],
+   "shape": "Sphere",
+   "radius": 115.28839874267578,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport (WC_Street6_GobblerKing_ThroneRoom Street6 Exit)",
+   "center": [
+    1630.137939453125,
+    -5511.69287109375,
+    -3166.14990234375
+   ],
+   "shape": "Sphere",
+   "radius": 181.6811981201172,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

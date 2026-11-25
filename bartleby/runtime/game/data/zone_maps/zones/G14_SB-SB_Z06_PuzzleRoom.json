@@ -1,0 +1,61 @@
+{
+ "format": 1,
+ "zone": "G14_SB/SB_Z06_PuzzleRoom",
+ "named": {
+  "Start": [
+   -144.60079956054688,
+   190.03219604492188,
+   -49.76068115234375
+  ],
+  "Target location-FromHallway": [
+   458.8782043457031,
+   -9608.80078125,
+   -2064.4970703125
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point-Boss",
+   "template": "G14-SB-TempleOni_Boss",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     593.9102783203125,
+     -5264.06494140625,
+     -2617.68310546875
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume-TeleportToHall",
+   "center": [
+    496.2025146484375,
+    -10298.8798828125,
+    -1871.10595703125
+   ],
+   "shape": "Sphere",
+   "radius": 327.6495056152344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location-ToCaves",
+   "center": [
+    -641.5975952148438,
+    2009.0670166015625,
+    343.5658874511719
+   ],
+   "shape": "Sphere",
+   "radius": 406.76129150390625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

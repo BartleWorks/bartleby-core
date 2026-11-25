@@ -1,0 +1,59 @@
+{
+ "format": 1,
+ "zone": "Marleybone/G14_Gauntlet/MB_Z04_PalaceWestWing_03",
+ "named": {
+  "Start": [
+   1.8802909851074219,
+   -1336.4940185546875,
+   9.692719459533691
+  ],
+  "From SKey01": [
+   -1095.9659423828125,
+   595.2576293945312,
+   0.1998901069164276
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -1.087967038154602,
+    -1680.342041015625,
+    19.51306915283203
+   ],
+   "shape": "",
+   "radius": 164.9468994140625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-SkeletonKey",
+   "center": [
+    -1400.2860107421875,
+    579.4420776367188,
+    41.27677917480469
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-EncounterExit",
+   "center": [
+    443.0580139160156,
+    1521.876953125,
+    0.1999817043542862
+   ],
+   "shape": "Sphere",
+   "radius": 79.47178649902344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

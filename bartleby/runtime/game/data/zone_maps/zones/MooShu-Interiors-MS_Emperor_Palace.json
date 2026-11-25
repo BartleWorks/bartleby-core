@@ -1,0 +1,48 @@
+{
+ "format": 1,
+ "zone": "MooShu/Interiors/MS_Emperor_Palace",
+ "named": {
+  "From MooShu Hub": [
+   208.0968017578125,
+   -5.6914191246032715,
+   -7.903397090558428e-06
+  ],
+  "Start": [
+   127.29540252685547,
+   -5.691415786743164,
+   -7.903397090558428e-06
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Oni-Jade-MSBoss-L76",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -5540.783203125,
+     -2.0674901008605957,
+     767.7667236328125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To MooShu Hub",
+   "center": [
+    656.9550170898438,
+    0.0,
+    0.0
+   ],
+   "shape": "Sphere",
+   "radius": 326.231689453125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

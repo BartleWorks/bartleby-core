@@ -1,0 +1,97 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Tomb/KT_WellOfSpirits",
+ "named": {
+  "GauntletReturn": [
+   -2254.26904296875,
+   6245.14990234375,
+   0.09376826882362366
+  ],
+  "Start": [
+   -156.0821075439453,
+   461.93121337890625,
+   -0.00014736400044057518
+  ],
+  "Target (KT_Crypt_Level01 KT_Crypt_Hub Exit)": [
+   -1548.083984375,
+   4194.97900390625,
+   -499.9999084472656
+  ],
+  "Target (KT_Crypt_Level02 KT_Crypt_Hub Exit)": [
+   2289.72802734375,
+   6603.2490234375,
+   4.952963081450434e-06
+  ],
+  "Target (KT_Crypt_Level03 KT_Crypt_Hub Exit)": [
+   1510.64599609375,
+   7237.041015625,
+   -881.0604858398438
+  ],
+  "Target (KT_Crypt_Level05 KT_Crypt_Hub Exit)": [
+   6.841308116912842,
+   6202.4990234375,
+   -503.27740478515625
+  ],
+  "Target (KT_Hub KT_Crypt_Hub Entrance)": [
+   22.74201011657715,
+   -182.69309997558594,
+   -0.00011734700092347339
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport (KT_Crypt_Hub KT_Crypt_Level01 Entrance)",
+   "center": [
+    -2304.81298828125,
+    4162.19677734375,
+    -500.0
+   ],
+   "shape": "Sphere",
+   "radius": 387.9230041503906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport (KT_Crypt_Hub KT_Crypt_Level02 Entrance) (1)",
+   "center": [
+    2920.43994140625,
+    6622.81689453125,
+    0.0
+   ],
+   "shape": "Sphere",
+   "radius": 373.3669128417969,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport (KT_Crypt_Hub KT_Crypt_Level03 Entrance)",
+   "center": [
+    1490.29296875,
+    8024.84912109375,
+    -1000.0
+   ],
+   "shape": "Sphere",
+   "radius": 600.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport (KT_Crypt_Hub KT_Hub Exit)",
+   "center": [
+    22.827199935913086,
+    -720.035888671875,
+    10.157050132751465
+   ],
+   "shape": "Sphere",
+   "radius": 400.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

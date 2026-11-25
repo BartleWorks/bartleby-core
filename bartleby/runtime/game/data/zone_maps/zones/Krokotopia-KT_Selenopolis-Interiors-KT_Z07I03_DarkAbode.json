@@ -1,0 +1,85 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Selenopolis/Interiors/KT_Z07I03_DarkAbode",
+ "named": {
+  "Start": [
+   8.680137634277344,
+   -2919.450927734375,
+   40.162109375
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point",
+   "template": "KT_SE_Treant_Tormented_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     25.059139251708984,
+     -282.0987854003906,
+     -222.0225067138672
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)",
+   "template": "KT_SE_Treant_Base_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -384.7904052734375,
+     29.74519920349121,
+     -222.022705078125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)",
+   "template": "KT_SE_Treant_Base_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     453.99090576171875,
+     -4.950564861297607,
+     -222.0225067138672
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (3)",
+   "template": "KT_SE_Treant_Base_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     199.38650512695312,
+     419.5528869628906,
+     -222.0225067138672
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    -23.684329986572266,
+    -3713.94189453125,
+    -29.183589935302734
+   ],
+   "shape": "Sphere",
+   "radius": 353.5892028808594,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

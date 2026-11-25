@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "zone": "WizardCity/Gauntlets/WC_Triton_Gauntlet1/WC_Triton_Gauntlet_02",
+ "named": {
+  "Start": [
+   1129.02099609375,
+   32.61362075805664,
+   -48.924190521240234
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToLevel1",
+   "center": [
+    1567.3909912109375,
+    8.105630874633789,
+    15.66802978515625
+   ],
+   "shape": "Sphere",
+   "radius": 199.44900512695312,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

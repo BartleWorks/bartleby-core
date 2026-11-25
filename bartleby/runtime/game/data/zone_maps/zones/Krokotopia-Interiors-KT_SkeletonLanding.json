@@ -1,0 +1,51 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/Interiors/KT_SkeletonLanding",
+ "named": {
+  "FromRaReadingRoom": [
+   411.1995849609375,
+   1.2546299695968628,
+   1.0
+  ],
+  "Start": [
+   -657.807373046875,
+   7.060805797576904,
+   1.0
+  ],
+  "FromHallofDoors": [
+   -637.7606201171875,
+   1.6144969463348389,
+   13.586790084838867
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (1)",
+   "center": [
+    -987.561279296875,
+    8.139233589172363,
+    28.820289611816406
+   ],
+   "shape": "Sphere",
+   "radius": 158.57809448242188,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "SkeletonKeyVolume",
+   "center": [
+    888.7401123046875,
+    -10.906909942626953,
+    55.216609954833984
+   ],
+   "shape": "Sphere",
+   "radius": 262.9814147949219,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

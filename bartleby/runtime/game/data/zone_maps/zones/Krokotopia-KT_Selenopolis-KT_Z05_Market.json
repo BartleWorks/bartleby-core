@@ -1,0 +1,102 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Selenopolis/KT_Z05_Market",
+ "named": {
+  "Start": [
+   -30.98603057861328,
+   -2483.18798828125,
+   4.777541835210286e-05
+  ],
+  "TargetLocation_From_PrologueHall_01": [
+   -1081.2659912109375,
+   1374.3060302734375,
+   0.00015258790517691523
+  ],
+  "TargetLocation_From_UndergroundMarket": [
+   -3984.14892578125,
+   -16.182619094848633,
+   4.391622951516183e-06
+  ],
+  "TargetLocation_From_GrandExposition": [
+   3782.77490234375,
+   -9.11766529083252,
+   7.391539838863537e-05
+  ],
+  "TargetLocation_From_RogueTheater_Solo_01": [
+   15.800339698791504,
+   8011.35888671875,
+   -135.00360107421875
+  ],
+  "TargetLocation_From_RogueTheater_Multi_01": [
+   1357.9739990234375,
+   7524.9921875,
+   -234.7469024658203
+  ],
+  "Target_From_StorytellersDen": [
+   -2812.8359375,
+   571.1112060546875,
+   7.396867295028642e-05
+  ],
+  "ReturnFromSutekh": [
+   -3113.364990234375,
+   -1229.10400390625,
+   0.00024414059589616954
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_Source_To_UndergroundMarket",
+   "center": [
+    -4515.0908203125,
+    -12.729900360107422,
+    41.278568267822266
+   ],
+   "shape": "Sphere",
+   "radius": 287.71978759765625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_Source_To_GrandExposition",
+   "center": [
+    4530.63720703125,
+    -11.512700080871582,
+    3.3927390575408936
+   ],
+   "shape": "Sphere",
+   "radius": 311.119384765625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "ActivatorVolume_Teleport_To_RogueTheater_Soloi_01",
+   "center": [
+    -15.842000007629395,
+    8411.7138671875,
+    -135.00360107421875
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_2_Selenopolis",
+   "center": [
+    10.22387981414795,
+    -3034.212890625,
+    0.00018310549785383046
+   ],
+   "shape": "Sphere",
+   "radius": 253.7086944580078,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_HauntedCave_T1",
+ "named": {
+  "Target location (Cave2 to BossTower)": [
+   -1011.760009765625,
+   4.424914836883545,
+   0.007291337940841913
+  ],
+  "Start": [
+   -1004.9760131835938,
+   15.6773099899292,
+   0.0072196777909994125
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Wraith-WCBoss-L05",
+   "proximity": 800.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -150.5308074951172,
+     -99.06243133544922,
+     0.10793840140104294
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "Scarecrow-L03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     432.18701171875,
+     143.18190002441406,
+     50.50706100463867
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (2)",
+   "template": "Scarecrow-L03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     225.91920471191406,
+     -386.7854919433594,
+     10.648139953613281
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Scarecrow-L03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     217.40060424804688,
+     375.1133117675781,
+     1.5952149629592896
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (BossTower to Cave2)",
+   "center": [
+    -1322.52197265625,
+    -7.132686138153076,
+    0.0069580078125
+   ],
+   "shape": "Sphere",
+   "radius": 168.1934051513672,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

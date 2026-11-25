@@ -1,0 +1,448 @@
+{
+ "format": 1,
+ "zone": "Lemuria/LM_Z00_Hub",
+ "named": {
+  "Start": [
+   0.5487061142921448,
+   403.4206848144531,
+   171.90159606933594
+  ],
+  "Home": [
+   -690.3455810546875,
+   2263.2119140625,
+   2.0106201171875
+  ],
+  "From_GreatHall": [
+   52.696258544921875,
+   -11568.6298828125,
+   -288.118408203125
+  ],
+  "From_SanctumOfDiscord": [
+   -4827.02587890625,
+   -12746.6904296875,
+   -695.369384765625
+  ],
+  "Target location_HierarchsSanctum": [
+   5860.0322265625,
+   -6347.1201171875,
+   -429.64019775390625
+  ],
+  "From_SanctumOfMana": [
+   -4842.88818359375,
+   -288.2568054199219,
+   -695.3693237304688
+  ],
+  "From_Wildlands": [
+   -6007.39013671875,
+   -6441.1611328125,
+   -428.5047912597656
+  ],
+  "Target_ToTelos": [
+   1.1355589628219604,
+   -3640.297119140625,
+   -695.3693237304688
+  ],
+  "TargetFrom_SanctumOfLifeforce": [
+   4842.01708984375,
+   -262.4389953613281,
+   -695.369384765625
+  ],
+  "Target_From_SactumOfPurpose": [
+   6241.26416015625,
+   -11366.83984375,
+   -693.072998046875
+  ],
+  "Target location_HarmonicGate": [
+   -1.481374979019165,
+   -4844.11083984375,
+   -552.6823120117188
+  ],
+  "From_DonnyKong": [
+   3501.0849609375,
+   -8558.3037109375,
+   -695.3690795898438
+  ],
+  "Target location Tower01-Top": [
+   6681.68896484375,
+   1279.0350341796875,
+   255.48770141601562
+  ],
+  "Target location Tower01-Bottom": [
+   8313.626953125,
+   -1185.7039794921875,
+   -676.6043701171875
+  ],
+  "Target location Tower02-Top": [
+   -7849.34912109375,
+   302.25628662109375,
+   255.49099731445312
+  ],
+  "Target location Tower02-Bottom": [
+   -5192.76123046875,
+   1835.06298828125,
+   -676.600830078125
+  ],
+  "Target location Tower03-Top": [
+   -6680.39794921875,
+   -14192.0595703125,
+   255.4882049560547
+  ],
+  "Target location Tower03-Bottom": [
+   -8307.154296875,
+   -11641.3896484375,
+   -676.606201171875
+  ],
+  "Target location Tower04-Bottom": [
+   5223.1337890625,
+   -14692.0,
+   -676.6015014648438
+  ],
+  "Target location Tower04-Top": [
+   7853.19384765625,
+   -13228.419921875,
+   255.49000549316406
+  ],
+  "Target location Tower02-Bottom_B": [
+   -8311.7138671875,
+   -1131.2750244140625,
+   -676.6063842773438
+  ],
+  "Target location Tower02-Top_B": [
+   -6788.384765625,
+   1389.2540283203125,
+   255.48910522460938
+  ],
+  "Target location Tower03-Bottom_B": [
+   -5244.43505859375,
+   -14711.580078125,
+   -676.6029052734375
+  ],
+  "Target location Tower03-Top_B": [
+   -7864.9267578125,
+   -13100.580078125,
+   255.49099731445312
+  ],
+  "Target location Tower04-Top_B": [
+   6696.48193359375,
+   -14322.080078125,
+   255.4897003173828
+  ],
+  "TargetLocation_From_ShrineTatteredUnity": [
+   3496.201904296875,
+   -1667.6650390625,
+   -693.3781127929688
+  ],
+  "Target location Tower04-Bottom_B": [
+   8309.9638671875,
+   -11662.7900390625,
+   -676.603271484375
+  ],
+  "Target location Tower01-Top_B": [
+   7700.0498046875,
+   254.4906005859375,
+   255.49119567871094
+  ],
+  "Target location Tower01-Bottom_B": [
+   5321.97216796875,
+   1859.3330078125,
+   -676.6063232421875
+  ]
+ },
+ "patrols": [],
+ "links": [
+  {
+   "name": "TeleportVol_Teleport source Tower02-Top_B",
+   "kind": "volume",
+   "source": [
+    -6728.68017578125,
+    1045.3409423828125,
+    255.4866943359375
+   ],
+   "landing": "Target location Tower02-Bottom_B",
+   "target": [
+    -8311.7138671875,
+    -1131.2750244140625,
+    -676.6063842773438
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower02-Bottom_B",
+   "kind": "volume",
+   "source": [
+    -8302.4736328125,
+    -778.3729248046875,
+    -676.6134033203125
+   ],
+   "landing": "Target location Tower02-Top_B",
+   "target": [
+    -6788.384765625,
+    1389.2540283203125,
+    255.48910522460938
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower02-Bottom",
+   "kind": "volume",
+   "source": [
+    -5653.37890625,
+    1828.134033203125,
+    -676.2877197265625
+   ],
+   "landing": "Target location Tower02-Top",
+   "target": [
+    -7849.34912109375,
+    302.25628662109375,
+    255.49099731445312
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower01-Top_B",
+   "kind": "volume",
+   "source": [
+    7524.80810546875,
+    232.8748016357422,
+    255.4893035888672
+   ],
+   "landing": "Target location Tower01-Bottom_B",
+   "target": [
+    5321.97216796875,
+    1859.3330078125,
+    -676.6063232421875
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower01-Bottom_B",
+   "kind": "volume",
+   "source": [
+    5633.7919921875,
+    1826.373046875,
+    -676.4196166992188
+   ],
+   "landing": "Target location Tower01-Top_B",
+   "target": [
+    7700.0498046875,
+    254.4906005859375,
+    255.49119567871094
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower03-Top_B",
+   "kind": "volume",
+   "source": [
+    -7528.30908203125,
+    -13109.7900390625,
+    255.48899841308594
+   ],
+   "landing": "Target location Tower03-Bottom_B",
+   "target": [
+    -5244.43505859375,
+    -14711.580078125,
+    -676.6029052734375
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower04-Top_B",
+   "kind": "volume",
+   "source": [
+    6713.078125,
+    -13966.990234375,
+    279.2510070800781
+   ],
+   "landing": "Target location Tower04-Bottom_B",
+   "target": [
+    8309.9638671875,
+    -11662.7900390625,
+    -676.603271484375
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower04-Bottom_B",
+   "kind": "volume",
+   "source": [
+    8302.931640625,
+    -12013.3798828125,
+    -676.6126708984375
+   ],
+   "landing": "Target location Tower04-Top_B",
+   "target": [
+    6696.48193359375,
+    -14322.080078125,
+    255.4897003173828
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower04-Top",
+   "kind": "volume",
+   "source": [
+    7551.033203125,
+    -13135.7998046875,
+    255.4906005859375
+   ],
+   "landing": "Target location Tower04-Bottom",
+   "target": [
+    5223.1337890625,
+    -14692.0,
+    -676.6015014648438
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower01-Bottom",
+   "kind": "volume",
+   "source": [
+    8311.2666015625,
+    -892.49072265625,
+    -676.6151123046875
+   ],
+   "landing": "Target location Tower01-Top",
+   "target": [
+    6681.68896484375,
+    1279.0350341796875,
+    255.48770141601562
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower03-Top",
+   "kind": "volume",
+   "source": [
+    -6713.02978515625,
+    -13969.740234375,
+    255.48680114746094
+   ],
+   "landing": "Target location Tower03-Bottom",
+   "target": [
+    -8307.154296875,
+    -11641.3896484375,
+    -676.606201171875
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower03-Bottom_B",
+   "kind": "volume",
+   "source": [
+    -5668.09912109375,
+    -14700.830078125,
+    -676.4840087890625
+   ],
+   "landing": "Target location Tower03-Top_B",
+   "target": [
+    -7864.9267578125,
+    -13100.580078125,
+    255.49099731445312
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower03-Bottom",
+   "kind": "volume",
+   "source": [
+    -8311.734375,
+    -12024.9501953125,
+    -676.442626953125
+   ],
+   "landing": "Target location Tower03-Top",
+   "target": [
+    -6680.39794921875,
+    -14192.0595703125,
+    255.4882049560547
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower04-Bottom",
+   "kind": "volume",
+   "source": [
+    5684.98095703125,
+    -14699.6103515625,
+    -676.4981079101562
+   ],
+   "landing": "Target location Tower04-Top",
+   "target": [
+    7853.19384765625,
+    -13228.419921875,
+    255.49000549316406
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower02-Top",
+   "kind": "volume",
+   "source": [
+    -7551.26513671875,
+    294.84521484375,
+    255.48880004882812
+   ],
+   "landing": "Target location Tower02-Bottom",
+   "target": [
+    -5192.76123046875,
+    1835.06298828125,
+    -676.600830078125
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source Tower01-Top",
+   "kind": "volume",
+   "source": [
+    6711.546875,
+    1054.1710205078125,
+    255.48680114746094
+   ],
+   "landing": "Target location Tower04-Top",
+   "target": [
+    7853.19384765625,
+    -13228.419921875,
+    255.49000549316406
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_HallofHeroes",
+   "center": [
+    0.031334880739450455,
+    -12323.0400390625,
+    -288.1181945800781
+   ],
+   "shape": "Sphere",
+   "radius": 117.57150268554688,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    -6384.4169921875,
+    -6426.6669921875,
+    -428.21258544921875
+   ],
+   "shape": "Sphere",
+   "radius": 253.33169555664062,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume_ToOldOnesComplex",
+   "center": [
+    -26.473329544067383,
+    -5683.5439453125,
+    -440.6234130859375
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "ActivatorVolume_DM-SPELL-ICE-180_Teleporter",
+   "center": [
+    3498.5791015625,
+    -2121.986083984375,
+    -635.4708251953125
+   ],
+   "shape": "Sphere",
+   "radius": 222.6616973876953,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

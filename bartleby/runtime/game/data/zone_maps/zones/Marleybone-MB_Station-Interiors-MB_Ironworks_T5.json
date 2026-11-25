@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "Marleybone/MB_Station/Interiors/MB_Ironworks_T5",
+ "named": {
+  "FactorytoTower5": [
+   69.05563354492188,
+   -1663.3580322265625,
+   -724.992919921875
+  ],
+  "Start": [
+   69.94898223876953,
+   -1692.6219482421875,
+   -724.6168823242188
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawner1",
+   "template": "Cat-Burglar-Yellow-MBBoss-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -191.44259643554688,
+     465.85369873046875,
+     -674.492919921875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner2",
+   "template": "Cat-Hobo-HatGray-L28",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     214.76010131835938,
+     439.660400390625,
+     -674.492919921875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0",
+   "template": "Cat-Hobo-HatGray-L28",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -463.4630126953125,
+     -127.75199890136719,
+     -724.8779296875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Cat-Hobo-HatGray-L28",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     535.1198120117188,
+     -96.36798095703125,
+     -724.8773803710938
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Tower5toFactory",
+   "center": [
+    7.355648040771484,
+    -2330.837890625,
+    -724.992919921875
+   ],
+   "shape": "",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

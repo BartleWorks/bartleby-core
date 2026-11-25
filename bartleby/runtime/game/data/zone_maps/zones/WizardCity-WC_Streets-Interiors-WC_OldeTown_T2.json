@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_OldeTown_T2",
+ "named": {
+  "Target location (Street2 Tower2 Entrance)": [
+   -38.87284851074219,
+   -981.8115234375,
+   0.0070803179405629635
+  ],
+  "Start": [
+   -46.51148986816406,
+   -953.7288818359375,
+   0.006918796803802252
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Ghost-Red-WCBoss-L03",
+   "proximity": 800.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     39.65388870239258,
+     -72.15255737304688,
+     50.00733184814453
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "Ghost-Blue-L02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -79.97392272949219,
+     389.106201171875,
+     50.007320404052734
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (2)",
+   "template": "Scarecrow-L03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -387.7331848144531,
+     246.9188995361328,
+     34.20458984375
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Scarecrow-L03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     278.5740966796875,
+     471.0719909667969,
+     16.924800872802734
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (Street2 Tower2 Exit)",
+   "center": [
+    2.4383931159973145,
+    -1257.592041015625,
+    0.663330078125
+   ],
+   "shape": "Sphere",
+   "radius": 132.8538055419922,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,131 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Hub_Sphinx",
+ "named": {
+  "Start": [
+   12089.23046875,
+   359.1007995605469,
+   1200.43603515625
+  ],
+  "Target location (Krok_Hub Sphinx Island Arrive)": [
+   12018.98046875,
+   255.7534942626953,
+   1219.3310546875
+  ],
+  "Target location (Krok_Hub StormIsland Arrive)": [
+   -8870.5888671875,
+   -6836.14208984375,
+   -261.76629638671875
+  ],
+  "Target location (Hub School Exit)": [
+   13527.5703125,
+   1959.845947265625,
+   1138.6080322265625
+  ],
+  "Target location (Krok_Hub IceCrypt Exit)": [
+   14760.740234375,
+   3914.590087890625,
+   1083.126953125
+  ],
+  "Target location (Krok_Hub StormCrypt Exit)": [
+   -10355.4501953125,
+   -8239.1796875,
+   -373.41259765625
+  ],
+  "FromHousingShop": [
+   13042.75,
+   3780.6708984375,
+   1204.3900146484375
+  ],
+  "CinematicTrigger KT-BAL-C06": [
+   15165.3203125,
+   2232.243896484375,
+   1192.2740478515625
+  ]
+ },
+ "patrols": [],
+ "links": [
+  {
+   "name": "TeleportVol_Teleport-FixForQH",
+   "kind": "volume",
+   "source": [
+    1010.81201171875,
+    -4895.4091796875,
+    1620.116943359375
+   ],
+   "landing": "zone.nav node 311",
+   "target": [
+    11366.1025390625,
+    -742.5440673828125,
+    1219.797119140625
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (Krok_Hub StormIsland Return)",
+   "center": [
+    -8675.853515625,
+    -6633.97216796875,
+    -262.8258972167969
+   ],
+   "shape": "Sphere",
+   "radius": 157.43310546875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Krok_Hub IceCrypt Entrance)",
+   "center": [
+    15743.240234375,
+    4004.876953125,
+    826.7988891601562
+   ],
+   "shape": "Sphere",
+   "radius": 476.6778869628906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Krok_Hub StormCrypt Entrance)",
+   "center": [
+    -10659.1796875,
+    -8513.27734375,
+    -373.4804992675781
+   ],
+   "shape": "Sphere",
+   "radius": 282.1874084472656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location 239",
+   "center": [
+    13069.169921875,
+    4146.7001953125,
+    1204.677001953125
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleporttoSphinxShip",
+   "center": [
+    11126.169921875,
+    -1096.4739990234375,
+    1219.43505859375
+   ],
+   "shape": "Sphere",
+   "radius": 591.7783813476562,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

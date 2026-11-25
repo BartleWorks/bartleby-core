@@ -1,0 +1,187 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Selenopolis/Interiors/KT_Z04_Pyramid",
+ "named": {
+  "Start": [
+   -15.338939666748047,
+   -2772.196044921875,
+   -5.305908203125
+  ],
+  "Target_From_Sele_Lower": [
+   -63.50410079956055,
+   -2768.4208984375,
+   -5.305787086486816
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn_OldQuack",
+   "template": "KT_SE_Duck_Librarian_B_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -530.3662719726562,
+     10907.849609375,
+     751.8297119140625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_SoulEater_1",
+   "template": "KT_SE_Ammit_Base_A_07",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -234.23800659179688,
+     11151.509765625,
+     748.830810546875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_SoulEater_2",
+   "template": "KT_SE_Ammit_Base_A_07",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     135.29420471191406,
+     11141.919921875,
+     748.8306884765625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_SoulEater_3",
+   "template": "KT_SE_Ammit_Base_A_07",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     438.6474914550781,
+     10935.400390625,
+     748.8306274414062
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_QuentinQual",
+   "template": "KT_SE_Duck_Librarian_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     165.6470947265625,
+     4794.5361328125,
+     371.79998779296875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_DrakeLockely",
+   "template": "KT_SE_Duck_Adventurer_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -197.8574981689453,
+     4810.77978515625,
+     371.79998779296875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_LoonKnight",
+   "template": "KT_SE_Duck_Moon_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -505.6588134765625,
+     18132.7109375,
+     1000.469970703125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_QuentinQuail_R4",
+   "template": "KT_SE_Roach_Warrior_C_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -203.23280334472656,
+     18359.009765625,
+     1000.469970703125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_DrakeLockely_R4",
+   "template": "KT_SE_Roach_Warrior_C_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     163.56460571289062,
+     18358.990234375,
+     1000.469970703125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_OldQuack_R4",
+   "template": "KT_SE_Roach_Warrior_C_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     471.4148864746094,
+     18139.0390625,
+     1000.469970703125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_2_Sele_Lower",
+   "center": [
+    -28.640979766845703,
+    -3033.113037109375,
+    -5.306151866912842
+   ],
+   "shape": "Sphere",
+   "radius": 208.2397003173828,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_2_Sele_Upper",
+   "center": [
+    4620.88720703125,
+    17776.560546875,
+    1345.012939453125
+   ],
+   "shape": "Sphere",
+   "radius": 744.5626831054688,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

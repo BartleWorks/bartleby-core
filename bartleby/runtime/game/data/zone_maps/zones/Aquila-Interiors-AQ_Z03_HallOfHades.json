@@ -1,0 +1,57 @@
+{
+ "format": 1,
+ "zone": "Aquila/Interiors/AQ_Z03_HallOfHades",
+ "named": {
+  "Start": [
+   -102.16480255126953,
+   -281.9303894042969,
+   0.0016479879850521684
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "PoseidonSpawner",
+   "template": "AQ-Immortal-Poseidon-B",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     244.68020629882812,
+     -3628.34912109375,
+     0.001467296970076859
+    ]
+   ]
+  },
+  {
+   "spawner": "ZeusSpawner",
+   "template": "AQ-Immortal-Zeus-B",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -471.6806945800781,
+     -3752.56494140625,
+     50.50128173828125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToTartarus",
+   "center": [
+    -45.40044021606445,
+    680.7098999023438,
+    0.002744491910561919
+   ],
+   "shape": "Sphere",
+   "radius": 364.0911865234375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

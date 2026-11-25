@@ -1,0 +1,79 @@
+{
+ "format": 1,
+ "zone": "G14_SB/SB_Z01_KimbaalungVillage",
+ "named": {
+  "Start": [
+   3819.242919921875,
+   -3302.2470703125,
+   -153.93490600585938
+  ],
+  "Target location-FromPagoda": [
+   -2489.388916015625,
+   -5760.7451171875,
+   1388.6429443359375
+  ],
+  "Target location-FromTemple": [
+   3056.787109375,
+   -11278.4599609375,
+   3888.929931640625
+  ],
+  "Target location-FromMountainTop": [
+   -993.892822265625,
+   -10915.8798828125,
+   1043.5069580078125
+  ],
+  "Target location-FromMountainBottom": [
+   2745.531005859375,
+   -11219.5,
+   3738.93408203125
+  ]
+ },
+ "patrols": [],
+ "links": [
+  {
+   "name": "G14-SB-TeleportUpMountain",
+   "kind": "interact",
+   "source": [
+    -221.50840759277344,
+    -11310.2900390625,
+    1056.0469970703125
+   ],
+   "landing": "Target location-FromMountainBottom",
+   "target": [
+    2745.531005859375,
+    -11219.5,
+    3738.93408203125
+   ]
+  },
+  {
+   "name": "G14-SB-TeleportDownMountain",
+   "kind": "interact",
+   "source": [
+    2379.25,
+    -11370.669921875,
+    3738.93408203125
+   ],
+   "landing": "Target location-FromMountainTop",
+   "target": [
+    -993.892822265625,
+    -10915.8798828125,
+    1043.5069580078125
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport-ToKT",
+   "center": [
+    4898.47900390625,
+    -2399.946044921875,
+    -396.38580322265625
+   ],
+   "shape": "Sphere",
+   "radius": 1082.7650146484375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

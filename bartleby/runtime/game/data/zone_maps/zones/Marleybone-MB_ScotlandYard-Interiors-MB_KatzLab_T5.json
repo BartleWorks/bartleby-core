@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "Marleybone/MB_ScotlandYard/Interiors/MB_KatzLab_T5",
+ "named": {
+  "From the Lab": [
+   7.964188098907471,
+   -1436.7249755859375,
+   -724.992919921875
+  ],
+  "Start": [
+   8.662420272827148,
+   -1417.23095703125,
+   -724.992919921875
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Golem-Steel-MBBoss-L40",
+   "proximity": 500.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     134.62530517578125,
+     31.230770111083984,
+     -674.492919921875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Golem-Brass-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -75.75579071044922,
+     28.097850799560547,
+     -674.4929809570312
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "Golem-Brass-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -258.497802734375,
+     429.39129638671875,
+     -724.9927978515625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1 (1)",
+   "template": "Golem-Brass-Elite-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     310.7742919921875,
+     447.99920654296875,
+     -724.9927978515625
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport to Lab",
+   "center": [
+    3.403172016143799,
+    -2223.867919921875,
+    -724.9796752929688
+   ],
+   "shape": "",
+   "radius": 172.756103515625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

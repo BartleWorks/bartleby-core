@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "zone": "Avalon/Interiors/AV_MaestroEvent/AV_Z04_TowerBottom",
+ "named": {
+  "Start": [
+   36.50115966796875,
+   1141.833984375,
+   0.12361370027065277
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport to TelegraphBox",
+   "center": [
+    0.742970883846283,
+    1425.4990234375,
+    0.12349160015583038
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}
