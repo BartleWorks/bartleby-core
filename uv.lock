@@ -72,7 +72,7 @@ requires-dist = [
     { name = "pyqt6", marker = "extra == 'qt'", specifier = ">=6.9" },
     { name = "vdf", specifier = ">=3.4" },
     { name = "wizsprinter", marker = "extra == 'runtime'", git = "https://github.com/BartleWorks/wizsprinter.git?rev=bcd5758b4d370ce53940274732e8a9c3086d67e2" },
-    { name = "wizwalker", marker = "extra == 'runtime'", git = "https://github.com/BartleWorks/wizwalker.git?rev=087ad7e3601e5343abe11cae40c6a0cd3c12bde7" },
+    { name = "wizwalker", marker = "extra == 'runtime'", git = "https://github.com/BartleWorks/wizwalker.git?rev=ed97af1a8d91cd74afcbccd81ae2afd10dc742f4" },
 ]
 provides-extras = ["qt", "runtime"]
 
@@ -950,7 +950,7 @@ dependencies = [
 [[package]]
 name = "wizwalker"
 version = "1.8.2"
-source = { git = "https://github.com/BartleWorks/wizwalker.git?rev=087ad7e3601e5343abe11cae40c6a0cd3c12bde7#087ad7e3601e5343abe11cae40c6a0cd3c12bde7" }
+source = { git = "https://github.com/BartleWorks/wizwalker.git?rev=ed97af1a8d91cd74afcbccd81ae2afd10dc742f4#ed97af1a8d91cd74afcbccd81ae2afd10dc742f4" }
 dependencies = [
     { name = "aiofiles" },
     { name = "appdirs" },
