@@ -56,6 +56,29 @@ Core's own are not among them: in a core checkout, run `dump_dialog_captions.py`
 `--wad` naming the update's `Root.wad` and `--out` a scratch file, and diff those.
 `dump_deck_names.py --verify --wad <Root.wad>` is that diff: a new world adds a `Class_N`.
 
+**The zone maps** (`WALKING.md`, *The shipped zone maps*) are rebuilt from the live install
+once the update is live, since only a complete install has every zone's wad. From core's
+checkout, with BartleBot's beside it:
+
+```bash
+B=../BartleBot
+ARGS="--types $B/bartlebot/game/data/r<rev>_WizardDev.json --zone-nav $B/bartlebot/game/data/zone_nav.json --names $B/bots --names $B/subgraphs"
+uv run python tools/build_zone_maps.py $ARGS --verify     # which zones the update changed
+uv run python tools/build_zone_maps.py $ARGS              # rebuild every map, in about a minute
+git status bartleby/runtime/game/data/zone_maps           # the maps that changed
+uv run python tools/build_zone_maps.py $ARGS --compare --zone <a changed zone>
+```
+
+`--verify` names every zone whose map-building entries changed (`changed:`), lost its wad
+(`no wad:`), or has no map (`no map:`, a zone newly in `zone_nav.json` or a bot). It cannot see a
+change in Root.wad's templates, a mob's trigger radius or what a placed object does, which is
+why the rebuild runs anyway: the build is deterministic, so an unchanged zone writes the same
+bytes, and `git status` lists exactly what the update changed. The type list is the update's,
+from step 4. `--compare` plans on a rebuilt map and on its wad, cell for cell; run it on a
+changed zone or two. A build that reports `failed:` for a zone has met something the reader
+does not know yet, as the world data wads' templates were once. Users' saved copies of a
+changed map are rebuilt on their own (`zone_maps.CACHE_VERSION` covers a change to the planner).
+
 What a diff usually means:
 
 | the diff shows | change |

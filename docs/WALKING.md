@@ -11,15 +11,18 @@ has the server's rules of movement). BartleBot's Walking Routes epic (BartleBot 
 ahead anyway, by choice, to take every long teleport out of the app: everything walks, takes
 the game's own links, or crosses one gate an author placed by a hop no longer than its limit.
 
-Route planning is core's, in `bartleby.runtime.movement` (Stage 1 of that epic). Walking a
-route is still a probe in BartleBot's `tools/` until Stage 2 brings it here, and nothing in
-`bartlebot/` walks yet. Each probe's docstring has its own OUTCOME section with the run-by-run
+Route planning is core's, in `bartleby.runtime.movement` (Stage 1 of that epic), and so are
+the maps it plans on, one for every zone BartleBot walks, shipped with core. Walking a route is
+still a probe in BartleBot's `tools/` until Stage 2 brings it here, and nothing in `bartlebot/`
+walks yet. Each probe's docstring has its own OUTCOME section with the run-by-run
 numbers.
 
 | where | what it does | needs a client |
 |---|---|---|
 | core's `movement/collision.py`, `zone_grid.py`, `patrols.py`, `zone_links.py`, `route.py` | plans a route in a zone from what its files hold | no |
-| BartleBot's `tools/probe_walk_route.py` | reads a zone's wad into core's `ZoneFiles`, plans, draws the routes | no |
+| core's `movement/zone_maps.py` | a zone's planner from its shipped map, saved on the user's machine once built | no |
+| core's `tools/zone_files.py`, `tools/build_zone_maps.py` | reads a zone's wad into `ZoneFiles`; builds, verifies and compares the shipped maps | no |
+| BartleBot's `tools/probe_walk_route.py` | plans on a zone's wad with core's reader, draws the routes | no |
 | BartleBot's `tools/probe_walk_input.py` | walks a planned route on a live client, around mobs, through links | yes |
 | BartleBot's `tools/probe_walk_zones.py` | checks every zone's arrival points can reach each other | no |
 | BartleBot's `tools/probe_mob_paths.py` | watches a zone's mobs and says whether they walk their paths | yes |
@@ -44,9 +47,10 @@ solids of `collision.bcd`, the patrols, the named arrival points of `gamedata.bi
 of `volumes.xml`, the volumes `triggers.xml` teleports from, the placed objects that can be
 interacted with, and `zone.nav`. **No planner module opens a file or imports katsuba**: each
 parser takes bytes, and a tool reads them out of the zone's wad (`GameData/<zone with / as
-->.wad`), as BartleBot's `probe_walk_route.zone_files` does with katsuba
-(`tools/zone_graph/wad_common.py`); a test holds it. No client is needed; a zone builds in 0.1
-to 2 s, Unicorn Way in about 4 s with everything.
+->.wad`): core's `tools/zone_files.py`, with katsuba, whose `ZoneReader.zone_files(zone)` both
+the map build and BartleBot's probes use; a test holds it. No client is needed; a zone builds in
+0.1 to 2 s, Unicorn Way in about 4 s with everything. A run never reads a wad: it plans on the
+zone's shipped map (below).
 
 `planner.route(start, goal, avoid=True)` gives a `Route`, or None, and `planner.legs(route)` the
 stretches to walk.
@@ -247,6 +251,75 @@ three in its OUTCOME, shortest and avoiding, and four each in Triton Avenue (10 
 Floating Mountains (5 rides), whose links matched by name and landing. The Unicorn Way times
 are the OUTCOME's still: 75.5, 53.3 and 34.4 s straightened, against about 75, 55 and 36.
 
+### The shipped zone maps
+
+`movement/zone_maps.py`, and the files under `bartleby/runtime/game/data/zone_maps/`, which
+`tools/build_zone_maps.py` writes. A run plans on these, so it needs neither the zone's wad nor
+the type dump, and `has(zone)` says from the index alone, without opening a map, whether a
+zone can be planned at all (BartleBot's Stage 4 checks a bot's zones with it).
+
+**Which zones:** every zone a product names, given to the build as arguments, since core reads
+no product's files: BartleBot's `zone_nav.json` (each world's zones) and every `zone` or `*_zone`
+param in its `bots/` and `subgraphs/`, as its `restricted_zones` reads them. On r814353 that is
+464 zones, every one with a wad and a map. BartleBot's
+`test_every_zone_on_the_map_has_a_walking_map_core_ships` fails on a `zone_nav.json` zone
+without one. A later product's zones (BartleBuddy's quests) join by a further `--names` or
+`--zone-nav`.
+
+**What a map holds:**
+
+| file | holds |
+|---|---|
+| `floors/<key>.npz` | the floor: `collision.bcd`'s walkable triangles, and each solid's footprint (its hull or circle, the heights it spans, whether it is firm), as `collision.py` finds them. Keyed by the start of `collision.bcd`'s SHA-256, so zones with the same file share it |
+| `zones/<zone with / as ->.json` | what differs between zones on one floor: the patrols, the named arrival points, the links and the exits, already found, in the order found |
+| `index.json` | each zone's two files, and the SHA-256 of the wad entries it was built from (`zone_files.MAP_ENTRIES`, not the models and textures) |
+
+Only derived geometry, names and positions: no game file and nothing pickled (`np.load(...,
+allow_pickle=False)`); the arrays are plain floats and ints. 464 zones on 442 floors, so only
+22 zones share one; the same room placed at another spot does not share, and sharing those too
+would save under a tenth. 18.5 MB in all, the largest floor 0.2 MB.
+
+**Deterministic:** the same zone writes the same bytes. Every zip entry is dated 1980 and written
+in name order (`np.savez_compressed` stamps the time, so the zip is built by hand), and every
+float is written as Python writes it, which reads back exactly. A rebuild after a game update
+changes only the zones it changed (`GAME_UPDATES.md`, step 2). The maps built under katsuba 0.4
+(BartleBot's) and 0.6 (core's) are byte for byte the same.
+
+**Why geometry and not the grid:** shipped as grids, the maps came to 147 MB, and the patrols'
+clearance, a float per cell and 4 MB a street, would have added about 700 MB more, all in git and
+growing with every update. So a map ships what the grid is built from, and **a load builds the
+rest once and saves it on the user's machine**: the grid, its passable floor and the clearance,
+built by the same `route.grid_of` and `assemble` as from a wad, under
+`%LocalAppData%/Bartleby/cache/zone_maps/` (`zone_maps.cache_dir`), shared by every product.
+
+| zone | first load, built | after, from the saved copy | saved copy |
+|---|---|---|---|
+| Unicorn Way | 2.1 s | 0.05 s | 4.9 MB |
+| Triton Avenue | 4.4 s | 0.06 s | 4.5 MB |
+| Wallaru's Outback, the largest | 16.5 s | 0.25 s | 39 MB |
+| all 464 zones (`warm()`, one thread) | 456 s | | 854 MB |
+
+`ZoneMaps.warm(zones)` builds the copies ahead of need, one zone at a time on the caller's
+thread, until a stop event is set, and finds every copy already saved in 0.4 s; when a product
+calls it is Stage 4's to decide. A saved copy
+is used only when its key matches: the SHA-256 of the zone's two map files and
+`zone_maps.CACHE_VERSION`. A changed map, a raised version and a damaged file (logged) are
+rebuilt; a copy that cannot be saved is logged, and the planner is still given.
+`CACHE_VERSION` is raised by hand whenever the code that builds a copy changes, and
+`test_cache_version_follows_the_planner` fails until it is.
+
+`await zone_maps.load(zone)` builds or reads off the event loop. A session keeps the 8 planners
+used last (`KEPT`; a big street holds some 20 MB), and each caller gets its own copy of what a
+walk changes: the floor it blocks and the links it drops.
+
+**Checked against the wad** (2026-11-24, r814353): `build_zone_maps.py --compare` built eight
+zones' planners from their wads and from their maps, both built and read back from the saved
+copy: Unicorn Way, Triton Avenue, the Outback, Floating Mountains, Mirage's hub, Lemuria's hub,
+Graveholm and Karamelle's hub. The grids, floors, clearance, costs, points, links and exits were
+the same, and so were all 470 routes between their arrival points, shortest and avoiding, cell
+for cell, legs included. BartleBot's `probe_walk_route.py`, on core's reader, plans Unicorn Way's
+three routes as its OUTCOME has them: 75.5, 53.3 and 34.4 s straightened.
+
 ## Walking a route
 
 BartleBot's `probe_walk_input.py --to <arrival point, placed object or x,y[,z]>` walks from
@@ -314,8 +387,8 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
 
 1. **Walking a route in core** (Stage 2): `probe_walk_input.py`'s walk, on a movement lease, its
    timing constants in `timing.py`. Several clients walking together belongs there too.
-2. **The shipped zone maps** (Stage 1.2): each zone's planner inputs built once from the wads and
-   shipped, so a run needs no wad and no type dump.
+2. **Saving the zone maps' copies ahead of need** (Stage 4): when a product calls
+   `ZoneMaps.warm`, so a walk's first load in a zone is never the 2 to 16 s build.
 3. **Placed objects' collision** (Stage 3). Read each placed object's `CollisionBehavior` solid
    file into the grid, so a walk does not have to stall on a teleporter stone to find it.
 4. **A volume link a route does not take is not closed to it.** A route planned past one could
