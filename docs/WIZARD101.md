@@ -80,8 +80,9 @@ lets the client claim has changed twice in 2026:
   fallback.
 
 Walking routes, planned from a zone's own files, were built while long teleports were reset,
-and are still shelved on the `walking-shelf` branches of core and BartleBot since 2026-11-16.
-Core's holds `docs/WALKING.md`, with every measurement and what was not done.
+shelved on 2026-11-16, and taken up again on 2026-11-24 by choice (BartleBot's Walking Routes
+epic, #322). Planning a route is core's (`bartleby.runtime.movement.route`); `WALKING.md` has
+how, and every measurement.
 
 ## Battles, the ghost window and wisps
 

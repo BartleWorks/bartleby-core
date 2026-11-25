@@ -19,6 +19,8 @@ runtime = [
     "wizsprinter",
     # Walks a client's memory regions (runtime/clients/heap_scan.py). wizwalker brings it, but we import it.
     "pymem>=1.13",
+    # A zone's grid, its patrol costs and straightening a route are array work (runtime/movement/route.py).
+    "numpy>=2.0",
 ]
 # Theming and the widgets the products share.
 qt = [

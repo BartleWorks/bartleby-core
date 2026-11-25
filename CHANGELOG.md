@@ -10,8 +10,9 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ## Unreleased
 
-Deck sets (BartleBuddy #31, Stage 9), and followers that find the trail again once something
-moved them. A minor release: a product that called `Trail.nearest` fixes the Breaking item below.
+Deck sets (BartleBuddy #31, Stage 9), followers that find the trail again once something
+moved them, and route planning (BartleBot #322, Stage 1.1). A minor release: a product that
+called `Trail.nearest` fixes the Breaking item below, and the `runtime` extra now brings numpy.
 
 ### Breaking
 
@@ -58,6 +59,13 @@ moved them. A minor release: a product that called `Trail.nearest` fixes the Bre
 - **`DeckSetList(card_factory=, add_card=)`**: a product draws each set on a `DeckSetCard` of its own,
   with what it adds, and leaves the add card out where its surface has an add button of its own,
   calling `DeckSetList.add`. BartleBuddy's sidebar Combat tab does both.
+- **Route planning** (`docs/WALKING.md`), moved from BartleBot's `tools/probe_walk_route.py`:
+  `movement.route.build_planner(ZoneFiles)` gives a zone's `ZonePlanner`, whose `route(start,
+  goal, avoid=)` keeps around patrols, through the zone's links, and out of its exits, and whose
+  `legs(route)` are the stretches to walk. The files come in parsed: `movement.collision`,
+  `movement.patrols.mob_patrols`, and `movement.zone_links`' `parse_volumes`,
+  `teleport_volumes`, `parse_zone_nav` and `parse_interact_template`, each from bytes a tool read.
+  Nothing calls it at run time yet. The `runtime` extra adds numpy for it.
 
 ## 0.10.1
 
