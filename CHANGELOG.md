@@ -8,10 +8,10 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
-## Unreleased
+## 0.11.1
 
 The shipped zone maps (BartleBot #322, Stage 1.2): every zone BartleBot walks has a map, so a run
-plans a route with no wad and no type dump. It breaks nothing.
+plans a route with no wad and no type dump. A patch release: it breaks nothing.
 
 ### Added
 
