@@ -300,6 +300,18 @@ async def test_a_listed_gate_with_no_way_around_ends_no_route_naming_it_and_pres
     assert [r for r in client.inputs if r.kind == "down"] == []
 
 
+async def test_a_goal_behind_a_listed_gate_ends_no_route_naming_it_not_arrived_short_of_it():
+    # The Shopping District's Colossus blocker: the goal, a zone's exit, is where the gate stands.
+    planner = _walled((400, 600), gates=[_gate()])
+    client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door, entities=[_door()])
+
+    result = await _walk(client, planner, (1500, 500, 0))
+
+    assert result.end is WalkEnd.NO_ROUTE
+    assert result.no_route.gate == "Door"
+    assert [r for r in client.inputs if r.kind == "down"] == []
+
+
 async def test_a_gate_listed_mid_walk_on_the_way_left_is_replanned_around_with_no_stall(quick_stalls, quick_passes):
     planner = _walled((400, 600), (750, 1000), gates=[_gate()])
     client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door)

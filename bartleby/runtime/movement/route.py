@@ -329,10 +329,14 @@ class ZonePlanner:
         It steps onto a volume link's floor only to take that link, since stepping in moves the
         wizard, unless the start or the goal is in it. Where that leaves no route (a volume
         across the only way, whose landing is off the floor), it plans once more as if the
-        volumes were floor, and the walker deals with whatever moves it."""
+        volumes were floor, and the walker deals with whatever moves it.
+
+        A goal on a closed gate's floor has no route: snapped to the nearest floor left, it
+        would end short of the gate as if arrived, when the gate is what is in the way
+        (:meth:`no_route` names it)."""
         floor = self.floor_for(start, goal)
         s, g = self.node(*start, passable=floor), self.node(*goal, passable=floor)
-        if s is None or g is None:
+        if s is None or g is None or self._goal_behind_gate(floor, goal, g):
             return None
         cost = self.cost if avoid else np.ones_like(self.cost)
         portals = self.portals(floor)
@@ -556,6 +560,22 @@ class ZonePlanner:
             after = self.grid.world(*found.nodes[last + 1]) if last + 1 < len(found.nodes) else goal3
             return NoRoute(self.zone, start3, goal3, gate.name, Crossing(before, after, math.dist(before, after)))
         return NoRoute(self.zone, start3, goal3)
+
+    def _goal_behind_gate(self, floor: np.ndarray, goal: Sequence[float], snapped: Node) -> bool:
+        """Whether a closed gate is what moved *goal* off its own floor: with every closed gate's
+        floor given back, the goal snaps elsewhere, onto one of theirs."""
+        if not self.closed:
+            return False
+        given_back = floor.copy()
+        for gate in self.closed:
+            layer, rows, cols, spots = self._gate_spots(gate)
+            given_back[layer, rows, cols] |= spots
+        own = self.node(*goal, passable=given_back)
+        if own is None or own == snapped:
+            return False
+        return any(
+            _first_on(np.asarray([own], dtype=np.intp), self.gate_floor(gate)) is not None for gate in self.closed
+        )
 
     def _with_height(self, point: Sequence[float]) -> XYZ:
         """*point* with a height: its own, or the floor's where it snaps to."""

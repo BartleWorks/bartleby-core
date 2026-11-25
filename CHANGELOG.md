@@ -27,6 +27,8 @@ The walker reads its zone's gates from the client (Stage 3.2 of BartleBot #322).
   no stall. One not listed within `GATE_LISTED_RANGE` (3,500) is gone: a stall near it closes
   the floor ahead instead, and a gate a pass closed opens again after `GATE_GONE_PASSES` (2)
   passes show it gone. `WalkResult.gates_seen` and `gates_opened` list them. No map rebuild.
+- **A goal on a closed gate's floor has no route**: `ZonePlanner.route` returns None, and
+  `no_route` names the gate, where it used to snap the goal to the floor beside the gate.
 - `ZonePlanner.open(gate)`, the inverse of `close`, and `crosses(gate, path)`, whether a line of
   waypoints steps on a gate's floor. `ZonePlanner.blocks` records each `block`.
 - `testing.sim_client.SimEntity`, and `SimClient.entities`, its entity list (None for one that

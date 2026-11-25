@@ -393,6 +393,17 @@ def test_a_closed_gate_that_separates_two_floors_is_named_with_its_crossing():
     assert why.crossing.before[0] < 1500 < why.crossing.after[0]
 
 
+def test_a_goal_on_a_closed_gates_floor_has_no_route_and_the_gate_is_named():
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    planner.close(planner.gates[0])
+
+    # Not snapped to the floor beside the gate, short of it as if arrived.
+    assert planner.route((300, 500), (1500, 500)) is None
+    assert planner.no_route((300, 500), (1500, 500)).gate == "Door"
+    assert planner.route((300, 500), (1300, 500)) is not None  # short of the gate: a route
+    assert planner.route((300, 500), (2700, 500)) is not None  # beyond it, by the other way
+
+
 def test_no_route_names_no_gate_when_none_is_closed_or_opening_one_would_not_help():
     planner = _planner(mesh(floor(0, 0, 1000, 1000, 0), floor(3000, 0, 4000, 1000, 0)), gates=[_gate(x=2000)])
     assert planner.no_route((500, 500), (3500, 500)).gate is None

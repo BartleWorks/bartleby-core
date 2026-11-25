@@ -292,6 +292,10 @@ checked.
   that route and the distance between them. That is about the gate's depth plus the clearance
   on each side: a gate 120 deep comes out at 220, to within a cell. It is the length a hop
   past the gate would need (BartleBot's `HOP_MAX`).
+- **A goal on a closed gate's floor has no route**: `route()` returns None rather than snap the
+  goal to the floor left beside the gate, which would end a walk short of it as if arrived (the
+  Shopping District's Colossus blocker covers half of the exit behind it), and `no_route` names
+  the gate.
 - `open(gate)` undoes `close` for a gate the client shows gone after all: it gives back only the
   floor closing it took, and re-walls every other closed gate and every `block`, which may share
   it.
