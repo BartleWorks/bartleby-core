@@ -3,7 +3,9 @@
 :class:`DeckSetList` is a product's list of them: a card per set that edits, duplicates and
 deletes it, and the card that adds one. **A set is saved as it is edited**, OK or not, as a
 launch profile is on the Game tab: it is the user's, in a file every product reads, and not one
-product's setting. What a set is *for* is the product's own setting, which waits for OK.
+product's setting. What a set is *for* is the product's own setting. A product may draw each set
+on a :class:`DeckSetCard` of its own, with what it adds (``card_factory``), and leave the add
+card out where its surface has an add button of its own (``add_card``), calling :meth:`DeckSetList.add`.
 
 :class:`DeckSetDialog` edits one: its name, everyone's deck, and an exception for each wizard
 that differs, all three by :class:`~bartleby.qt.widgets.pickers.deck_name_picker.DeckNamePicker`.
@@ -262,11 +264,17 @@ class DeckSetList(QWidget):
         wizards: DeckWizards,
         accounts: Callable[[], Sequence[dict]],
         parent: QWidget | None = None,
+        *,
+        card_factory: Callable[[DeckSet, Sequence[DeckWizard], QWidget], DeckSetCard] | None = None,
+        add_card: bool = True,
     ) -> None:
+        """*card_factory* builds each set's card from the set, the wizards known and its parent;
+        core's own by default. *add_card* False leaves the card that adds one out."""
         super().__init__(parent)
         self._store = store
         self._wizards = wizards
         self._accounts = accounts
+        self._card_factory = card_factory or (lambda deck_set, known, parent: DeckSetCard(deck_set, known, parent))
         self._cards: list[DeckSetCard] = []
         self._column = QVBoxLayout(self)
         # The card gap of the settings column it sits in, below it too.
@@ -278,6 +286,8 @@ class DeckSetList(QWidget):
         self._add = AddCard(ADD_SET, gutter=False)
         self._add.add_requested.connect(self.add)
         self._column.addWidget(self._add)
+        if not add_card:
+            self._add.hide()
         wizards.changed.connect(self.refresh)
         self.refresh()
         wizards.request()
@@ -302,7 +312,7 @@ class DeckSetList(QWidget):
         sets = self._store.sets()
         known = self.known() if any(s.exceptions for s in sets) else []
         for at, deck_set in enumerate(sets):
-            card = DeckSetCard(deck_set, known, parent=self)
+            card = self._card_factory(deck_set, known, self)
             card.edit_requested.connect(self.edit)
             card.duplicate_requested.connect(self.duplicate)
             card.delete_requested.connect(self.delete)

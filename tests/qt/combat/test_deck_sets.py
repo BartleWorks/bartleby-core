@@ -357,3 +357,28 @@ def test_the_editor_shows_nothing_before_it_has_a_parent(store, wizards, parentl
     wizards.show([P1])
 
     assert parentless_shows == []
+
+
+def test_a_product_draws_each_set_on_its_own_card(store, wizards):
+    class Mine(deck_sets.DeckSetCard):
+        pass
+
+    store.save(DeckSet(id="a", name="Mob decks", everyone=MAIN), expected=None)
+    built = []
+
+    def make(deck_set, known, parent):
+        built.append((deck_set.id, parent))
+        return Mine(deck_set, known, parent)
+
+    sets = DeckSetList(store, wizards, lambda: ACCOUNTS, card_factory=make)
+
+    assert [type(card) for card in sets.cards] == [Mine]
+    assert built == [("a", sets)]
+
+
+def test_a_product_with_an_add_button_of_its_own_leaves_the_add_card_out(store, wizards):
+    sets = DeckSetList(store, wizards, lambda: ACCOUNTS, add_card=False)
+    shown = DeckSetList(store, wizards, lambda: ACCOUNTS)
+
+    assert sets.add_card.isHidden()
+    assert not shown.add_card.isHidden()
