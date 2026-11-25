@@ -220,11 +220,13 @@ class WalkResult:
             f"walk in {self.zone} from ({self.start[0]:.0f}, {self.start[1]:.0f}) to "
             f"({self.goal[0]:.0f}, {self.goal[1]:.0f}): {self.end.value} at {where} after {self.seconds:.1f} s"
         )
+        if self.detail:
+            text += f", {self.detail}"
         if self.gates_seen:
             text += f"; gates listed, so closed: {', '.join(self.gates_seen)}"
         if self.gates_opened:
             text += f"; opened again, gone: {', '.join(self.gates_opened)}"
-        return f"{text}, {self.detail}" if self.detail else text
+        return text
 
 
 @dataclass

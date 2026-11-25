@@ -298,6 +298,8 @@ async def test_a_listed_gate_with_no_way_around_ends_no_route_naming_it_and_pres
     assert result.no_route.gate == "Door"
     assert result.recoveries == 0
     assert [r for r in client.inputs if r.kind == "down"] == []
+    # Why first, then the gates the read closed.
+    assert result.describe().index("is in the way") < result.describe().index("gates listed")
 
 
 async def test_a_goal_behind_a_listed_gate_ends_no_route_naming_it_not_arrived_short_of_it():
