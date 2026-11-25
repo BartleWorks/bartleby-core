@@ -35,6 +35,13 @@ Gates in the zone maps: Stage 3.1 of BartleBot #322. Nothing breaks.
 - `tools/build_zone_maps.py --verify` sees a change to a template or solid file a zone's gates
   were read from (`index.json`'s `objects` hash).
 
+### Changed
+
+- **wizwalker is pinned at `ed97af1`** (`bartlebot-pin-20261125`), whose card and combatant
+  window reads follow live r815378's +8 move; on the old pin every wizard passes every round.
+  A product pinning wizwalker itself moves its own pin with it.
+- `spell_names.json`: six Beastmoon sigil spells renamed on r815378.
+
 ## 0.12.0
 
 Fixes to walking a route found by reviewing Stages 1.1 to 2 of BartleBot #322 and by walking the

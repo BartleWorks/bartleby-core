@@ -239,7 +239,10 @@ should name one property.
 
 What `stale` cannot see: the wizwalker classes with no reflected game class (the camera
 controllers, the scene manager, the duel and quest managers, `GameClient`, the deck and spell
-list entries), and BartleBot's own offsets, which are not in classes named for the game's:
+list entries), the `maybe_*` reads on wizwalker's `Window`, each an offset of one subclass
+that `stale` checks against `Window` (`SpellCheckBox`'s spell and grayed flag,
+`CombatantDataControl`'s participant, which has no reflected class at all; *Record: r815378*),
+and BartleBot's own offsets, which are not in classes named for the game's:
 `bartleby/runtime/game/wizard_names.py` (`ClientWizPlayerNameBehavior` and `ClientObject`) and
 `bartlebot/combat/deck_io.py` (the deck lists, a raw gap of `DeckListControl`). Check
 those by hand with `typedump.py at` on both dumps, and the probes `tools/README.md` lists
@@ -508,3 +511,38 @@ against the Test realm's r812087, since no copy of r813697 was kept.
   config object's slot at `+0x33BD0B0` and the bindings holder's at `+0x33BD518`, each pattern
   matching once, and once too on the Test realm's r812087 exe on disk, at `+0x33A06D0` and
   `+0x33A0B38`. Both finders take them first since then.
+
+## Record: r815378
+
+Live on 2026-11-24 (`r815378.Wizard_1_620_0_Live`), with no Test realm build ahead of it.
+Read against r814353, whose dump was checked in.
+
+- **Auto-combat passed every round**, for every wizard, before the strategy was read:
+  wizsprinter found no combatant window holding its own client and gave the turn up, and
+  no card in any hand had a readable spell. Hooks, follow, auto-select and the duel's own
+  participant list all worked, and so did every check `smoke_test_client.py --in-duel` then
+  made, which read the participants through the duel rather than through the combat screen.
+  It now goes through wizwalker's `CombatHandler` too, in the planning phase: the client
+  among the combatants, each card's name and whether it is castable. Run against the old pin,
+  those checks fail the way the fights did.
+- **Type layout:** 42 classes changed, all of them `ControlButton`'s subclasses but one
+  (`MountItemBehavior`, `m_housingDisplayID` added). `ControlButton`'s unreflected block after
+  `m_labelOffset` grew from 44 bytes to 52, so every member after it moved +8, the reflected
+  ones (`m_nGroupID`, `m_bChecked`, the checked states) and the unreflected ones after them.
+  `CombatParticipant`, `WizGameStats`, `ClientObject` and `Window` did not move. `stale` and
+  `misnamed` found nothing: the reads that broke are `Window`'s `maybe_*` (section 4).
+- **Offsets**, each found again in a live duel by the type name of what it points at:
+  `maybe_graphical_spell` 1104 to 1112 (`GraphicalSpell`) and `maybe_combat_participant` 1888
+  to 1896 (`ClientCombatParticipant`). `maybe_spell_grayed` 1208 to 1216, by the same move:
+  with a hand holding one card short of pips, that card alone read 1 there, and 0 at 1208
+  like the rest. `maybe_checked` read 1028,
+  wrong before this build too, and now reads `m_bChecked` at 1044; nothing calls it.
+- **Hooks:** nothing broken. Every pattern matches as often as on the Test realm's r812087,
+  old-compiler code, and the smoke test's hooks passed in game.
+- **In game, 2026-11-25:** with wizwalker `e795605` installed, BartleBuddy ran a four-wizard boss
+  fight and every wizard cast. A game crashed in that fight as it was resized; the same crash
+  hit three clients on r814353, so it is not this build's.
+- **Game data:** six Beastmoon sigil spells renamed (`The Pips Fairy` to `Glorious Unicorn`,
+  `Redirect Current` to `Furious Resolve`, I to III), one Ahmarra boss respelled and one NPC
+  added; no shipped content names any of them. The live install now holds Ahmarra's other
+  zone wads, so `zone_names.json` gained its 140 zones. Core's other snapshots are unchanged.

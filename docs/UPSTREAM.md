@@ -168,7 +168,10 @@ forks' scheme alone: core has releases, tagged `vX.Y.Z` (*Core's releases*, belo
 
 Current pins, both on `main`:
 
-- **wizwalker `087ad7e`** (`bartlebot-pin-20261121b`): a deck's name
+- **wizwalker `ed97af1`** (`bartlebot-pin-20261125`): the card and combatant windows' reads on
+  live r815378, which grew `ControlButton` 8 bytes and so moved each spell, participant and
+  grayed flag +8 (`docs/GAME_UPDATES.md`, *Record: r815378*). On top of `087ad7e`
+  (`bartlebot-pin-20261121b`): a deck's name
   (`ClientDeckBehavior.name_indices`), the three wheels at +0xF0 of its behavior, past the
   reflected fields, measured on live r814353 (core #22; `docs/WIZARD101.md`, *Decks and the
   backpack*). On top of `d68082c` (`bartlebot-pin-20261121`): a module scan's result kept per
