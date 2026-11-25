@@ -259,6 +259,8 @@ def test_each_caller_gets_its_own_floor_and_links(shipped, tmp_path):
     assert other.links and not one.links
     assert maps.planner(ZONE).links == other.links
     assert one.closed and other.closed == [] and maps.planner(ZONE).closed == []
+    # What open gives back is the caller's own as well.
+    assert one.blocks and other.blocks == [] and other.open(one.gates[0]) == 0
 
 
 def test_a_session_keeps_only_the_planners_used_last(shipped, tmp_path, monkeypatch):

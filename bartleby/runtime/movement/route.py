@@ -10,8 +10,9 @@ does not take, since stepping in moves the wizard. Moved from BartleBot's
 *Planning a route*, has what each number was measured against.
 
 A zone's gates (``gates.py``) are open until a planner is told one is closed
-(:meth:`ZonePlanner.close`); a closed one is walled for every route after, and when one is what
-keeps a route from its goal, :meth:`ZonePlanner.no_route` names it.
+(:meth:`ZonePlanner.close`); a closed one is walled for every route after, until the client shows
+it gone (:meth:`ZonePlanner.open`), and when one is what keeps a route from its goal,
+:meth:`ZonePlanner.no_route` names it.
 
 Planning needs no client and opens no file: :class:`ZoneFiles` is what a tool reads out of the
 zone's wad.
@@ -286,6 +287,9 @@ class ZonePlanner:
     exits: list[Volume] = field(default_factory=list)
     gates: list[Gate] = field(default_factory=list)  # a link object's, marked wall, is in the grid's walls
     closed: list[Gate] = field(default_factory=list)  # the gates this planner was told are closed
+    blocks: list[tuple[float, float, float, float]] = field(default_factory=list)  # block's (x, y, z, radius)
+    # The floor spots each closed gate took when it was closed, for open to give back.
+    _took: dict[Gate, np.ndarray] = field(default_factory=dict, repr=False)
     # Each gate's floor (gate_floor), shared by every copy of a planner, since the grid is.
     _gate_floors: dict[tuple, tuple[int, int, np.ndarray]] = field(default_factory=dict, repr=False)
     _exit_floors: dict[int, np.ndarray] = field(default_factory=dict, init=False, repr=False)
@@ -462,6 +466,24 @@ class ZonePlanner:
         taken = spots & self.passable[layer, rows, cols]
         self.passable[layer, rows, cols] &= ~spots
         self.closed.append(gate)
+        self._took[gate] = taken
+        return int(taken.sum())
+
+    def open(self, gate: Gate) -> int:
+        """Undo :meth:`close`: the client shows *gate* gone after all. Gives back only the floor
+        closing it took, and none that another closed gate or a :meth:`block` still takes.
+        Returns how many floor spots it opened; 0 for a gate that is not closed."""
+        taken = self._took.pop(gate, None)
+        if taken is None:
+            return 0
+        self.closed[:] = [g for g in self.closed if g is not gate]
+        layer, rows, cols, _ = self._gate_spots(gate)
+        self.passable[layer, rows, cols] |= taken
+        for other in self.closed:
+            o_layer, o_rows, o_cols, o_spots = self._gate_spots(other)
+            self.passable[o_layer, o_rows, o_cols] &= ~o_spots
+        for x, y, z, radius in self.blocks:
+            self._block(x, y, z, radius)
         return int(taken.sum())
 
     def gates_on(self, route: Route) -> list[Gate]:
@@ -524,6 +546,10 @@ class ZonePlanner:
     def block(self, x: float, y: float, z: float, radius: float) -> int:
         """Mark the floor within *radius* of (x, y), at about height z, impassable: something a
         walk ran into that the collision file does not have. Returns how many spots it closed."""
+        self.blocks.append((x, y, z, radius))
+        return self._block(x, y, z, radius)
+
+    def _block(self, x: float, y: float, z: float, radius: float) -> int:
         grid = self.grid
         px, py = grid.all_centers()
         near = np.hypot(px - x, py - y) <= radius
