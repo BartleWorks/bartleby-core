@@ -354,7 +354,7 @@ def test_a_gate_is_open_until_closed_so_a_route_crosses_it_and_names_it():
     assert [g.name for g in planner.gates_on(route)] == ["Door"]
 
 
-def test_a_placed_solid_closed_takes_its_floor_and_the_clearance_round_it():
+def test_a_placed_solid_closed_takes_its_floor_and_the_clearance_around_it():
     planner = _walled((400, 600), gates=[_gate()])
     spot = (0, *planner.grid.index(1500, 500))
     beside = (0, *planner.grid.index(1500 - GATE_DEPTH / 2 - 20, 500))
@@ -409,7 +409,7 @@ def test_gates_near_a_point_are_the_open_ones_within_reach_nearest_first():
     assert planner.gates_near(1350, 500, 0, 150) == []
 
 
-def test_a_link_objects_solid_is_a_wall_and_its_link_is_still_taken_from_the_floor_round_it():
+def test_a_link_objects_solid_is_a_wall_and_its_link_is_still_taken_from_the_floor_around_it():
     teleport = InteractTemplate("Stone", "Press X to Teleport")
     placed = [PlacedObject("Stone_A", (500, 500, 0), teleport), PlacedObject("Stone_A_B", (3500, 500, 0), teleport)]
     stone = Gate("Stone_A", "Stone", (500.0, 500.0, 0.0), (Footprint(None, (500.0, 500.0), 43.0, 0.0, 210.0, True),))

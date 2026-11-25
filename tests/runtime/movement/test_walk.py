@@ -223,7 +223,7 @@ def _shut_door(old, new):
     return old if abs(new[0] - 1500) < 60 + 45 and 400 - 45 < new[1] < 600 + 45 else new
 
 
-async def test_a_stall_at_a_gate_closes_it_and_the_walk_goes_round_by_another_way(quick_stalls):
+async def test_a_stall_at_a_gate_closes_it_and_the_walk_goes_around_by_another_way(quick_stalls):
     planner = _walled((400, 600), (750, 1000), gates=[_gate()])
     client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door)
 
@@ -234,7 +234,7 @@ async def test_a_stall_at_a_gate_closes_it_and_the_walk_goes_round_by_another_wa
     assert result.recoveries == 1
 
 
-async def test_a_stall_at_a_gate_with_no_way_round_ends_no_route_naming_it_and_the_crossing(quick_stalls):
+async def test_a_stall_at_a_gate_with_no_way_around_ends_no_route_naming_it_and_the_crossing(quick_stalls):
     planner = _walled((400, 600), gates=[_gate()])
     client = _client(at=(300.0, 500.0, 0.0), on_step=_shut_door)
 

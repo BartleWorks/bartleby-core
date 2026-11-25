@@ -8,6 +8,33 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Gates in the zone maps: Stage 3.1 of BartleBot #322. Nothing breaks.
+
+### Added
+
+- **Each zone's map holds its gates** (`movement/gates.py`): every placed object whose template
+  names a solid file, its solids where it stands. 3,152 of them in the 464 zones, and the maps
+  come to 20.5 MB, from 18.5; the floors are unchanged, and the map format is 2. **A gate is open
+  until a walk finds it closed**, since the game's files cannot say which a player's quests have
+  removed, so every route planned with no gate closed is the route it was. A link object's
+  solid, such as a teleporter stone's, is always a wall (78 of them), and its link is still
+  taken from the floor around it. `CACHE_VERSION` is 2, so every saved copy is rebuilt once.
+- `ZonePlanner.close(gate)`, `gates_on(route)`, `gates_near(x, y, z, reach)`, and
+  **`no_route(start, goal)`**, which explains a missing route as a `NoRoute`: the zone, both
+  points, and the closed gate in the way with its `Crossing`, the length a hop past it would
+  need. `route()` still returns None.
+- `RouteWalker` closes a gate it stalls within `GATE_REACH` (150) of, on its own planner, and
+  replans; with no way around, the walk ends `NO_ROUTE` naming the gate.
+  `WalkResult.gates_closed` and `WalkResult.no_route` say what it found.
+- `collision.parse_solid_xml`, `place_solids`, `placed_footprints` and `object_rotation`, for a
+  placed object's solid file.
+- **Core writes no position**: `tests/test_no_position_writes.py` fails on any call under
+  `bartleby/` to `teleport`, `tp_to`, `write_position` or `write_xyz`.
+- `tools/build_zone_maps.py --verify` sees a change to a template or solid file a zone's gates
+  were read from (`index.json`'s `objects` hash).
+
 ## 0.12.0
 
 Fixes to walking a route found by reviewing Stages 1.1 to 2 of BartleBot #322 and by walking the

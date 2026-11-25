@@ -19,7 +19,7 @@ numbers.
 
 | where | what it does | needs a client |
 |---|---|---|
-| core's `movement/collision.py`, `zone_grid.py`, `patrols.py`, `zone_links.py`, `route.py` | plans a route in a zone from what its files hold | no |
+| core's `movement/collision.py`, `zone_grid.py`, `patrols.py`, `zone_links.py`, `gates.py`, `route.py` | plans a route in a zone from what its files hold | no |
 | core's `movement/zone_maps.py` | a zone's planner from its shipped map, saved on the user's machine once built | no |
 | core's `movement/walk.py` | walks a planned route on a movement lease, around mobs, through links | yes |
 | core's `tools/zone_files.py`, `tools/build_zone_maps.py` | reads a zone's wad into `ZoneFiles`; builds, verifies and compares the shipped maps | no |
@@ -85,8 +85,8 @@ stretches to walk.
   water (flag bit 6). Whether any are real walls is unchecked.
 - **Placed objects' collision is not in `collision.bcd`.** An object's template can carry a
   `CollisionBehavior` with its own `m_solidCollisionFilename` (Triton's teleporter stones use
-  `MU_TeleportStoneCollision.xml`), and the grid does not read those yet. Every walk up to a
-  stone stalled on it once; the walk recovers (below), but the planner should know.
+  `MU_TeleportStoneCollision.xml`). Those are the zone's gates (below): every walk up to a stone
+  stalled on it once before they were read.
 
 The grid is 40-unit cells, with the player's clearance taken as 50 (49 measured). **Each cell
 keeps every floor it has** (floors more than 150 apart are separate; a 3-storey house has
@@ -233,6 +233,67 @@ around. A volume that is one of the zone's links is not closed: a route through 
 to step in. Unicorn Way has nine exits; of the six routes in the probe's OUTCOME, one moved, by
 2.8 cells, to go around one.
 
+### Gates
+
+`gates.py`, and `ZonePlanner`'s gate methods in `route.py`. **A gate is a placed object's solids
+where it stands**, and **it is open until a walk finds it closed** (Stage 3 of BartleBot's epic
+#322; its plan page has the decision).
+
+**Why open:** a survey of the 464 mapped zones on r814353 (2026-11-25) found 3,163 placed objects
+whose template names a solid file, in 413 zones. Nearly all of them are things a player's quests
+decide: 789 are removable by a quest (`DeletedBehavior`), 233 spawn only on a requirement, and
+845 have a start state. Among them are the dungeon doors that open once a room's fight is won
+(43 `AZ_TempleDoor_col` in the Gauntlet's rooms), blockers gone once a quest is done
+(`BigGenericBlocker`, 1,360 by 2,117, `GenericWallBlocker`, 500 deep, `AV-IceBlocker`,
+`AZ-FlamingBridgeBlocker`), and the quest lights that show only while their quest is on. And the
+files cannot tell them apart from real walls: the quest lights, and 57 objects named as doors,
+gates or blockers (`MS_Barricade`, `KT_IguanaBlocker`, Novus's ley line doors), carry none of
+those markers. So a farming player, past most of them, keeps the routes the floor gives, and an
+auto-quester, who meets many, learns which are there as it walks.
+
+**A link object's solid is always a wall**: a gate standing where a pressed link is taken, named
+for the same object (`gates.mark_walls`), such as a teleporter stone or a zipline's post, since
+the link proves it is there. Its footprints are walled after the links are found, so its own
+solid never hides its link: the link is taken from the floor around it.
+
+**Reading one:** `tools/zone_files.py`'s `ZoneReader.gates` reads each placed object
+(`gamedata.bin`'s `m_objectList`) whose template's `CollisionBehavior` names a solid file and
+does not set `m_bDisableCollision`. The solid file is plain XML: a `<world>` of `<primitive
+type="box|cylinder|sphere|mesh">`, each with its `<location>` and `<rotation matrix>`; a box's
+`<dimensions l w d>` are its full sides along x, y and z, a cylinder's `<cylinder radius length>`
+stand along z, a sphere has `<radius value>`, and a mesh lists its vertices and faces
+(`collision.parse_solid_xml`). Of the files the 3,163 objects name, 329 hold cylinders, 324
+boxes, 91 meshes and 10 spheres; four are missing from their wads and two unreadable, and a mesh
+naming another file (`<mesh source>`) is skipped. The solids are put where the object stands
+(`collision.place_solids`): turned by its `m_orientation`, scaled by `m_fScale` and moved to its
+`m_location`. Each wall's footprint is found as `collision.bcd`'s are, a mesh's as the hull of its
+vertices (`collision.placed_footprints`), and **whatever its category**: the blockers are tagged
+`CT_ClientObject`, which in `collision.bcd` marks a solid that walls nobody.
+
+**Which way a yaw turns an object** was settled on the gates (2026-11-25): an object's yaw turns
+it the way a wizard's yaw turns a wizard (`geometry.facing`). Of the door-, gate- and
+blocker-named objects in ten zones turned off the axes, walled one way 10 of 12 split their
+floor in two and each closed 12 to 135 cells, a gate filling its doorway; walled the other way 7
+of 11 did, and several closed 160 to 931, lying across open floor. Pitch and roll, which 61 of
+the objects have, are applied about x and then y before the yaw, by a convention nothing has
+checked.
+
+**What the planner does with them:**
+
+- `ZonePlanner.close(gate)` walls a gate for every route the planner plans after: the floor its
+  footprints take, and the wizard's clearance around them (`gate_floor`, built once a session on a
+  window around the gate and shared by every copy of the planner). Each caller of
+  `zone_maps.load` gets its own list of closed gates, as it gets its own floor.
+- `gates_on(route)` names the gates a route crosses, in order: BartleBot's `check_bot_routes.py`
+  (its Stage 4) lists them. `gates_near(x, y, z, reach)` names the open ones near a point.
+- `route()` still returns None when there is no route, and `no_route(start, goal)` explains it as
+  a `gates.NoRoute`: the zone and both points, and, when opening one closed gate alone gives a
+  route, that gate's name and a `Crossing`, the last floor before it and the first after it on
+  that route and the distance between them. That is about the gate's depth plus the clearance
+  on each side: a gate 120 deep comes out at 220, to within a cell. It is the length a hop
+  past the gate would need (BartleBot's `HOP_MAX`).
+- **The walker closes a gate it stalls at** (*Walking a route*, below).
+
 ### Routes
 
 `route.py`. A* over the cells (8 neighbors, no cutting a wall's corner), with each link an extra edge from
@@ -282,13 +343,13 @@ without one. A later product's zones (BartleBuddy's quests) join by a further `-
 | file | holds |
 |---|---|
 | `floors/<key>.npz` | the floor: `collision.bcd`'s walkable triangles, and each solid's footprint (its hull or circle, the heights it spans, whether it is firm), as `collision.py` finds them. Keyed by the start of `collision.bcd`'s SHA-256, so zones with the same file share it |
-| `zones/<zone with / as ->.json` | what differs between zones on one floor: the patrols, the named arrival points, the links and the exits, already found, in the order found |
-| `index.json` | each zone's two files, and the SHA-256 of the wad entries it was built from (`zone_files.MAP_ENTRIES`, not the models and textures) |
+| `zones/<zone with / as ->.json` | what differs between zones on one floor: the patrols, the named arrival points, the links and the exits, already found, in the order found, and the gates, each with its footprints and whether it is a link object's wall. Zones that share a floor place different objects, so the gates go here |
+| `index.json` | each zone's two files, the SHA-256 of the wad entries it was built from (`zone_files.MAP_ENTRIES`, not the models and textures), and `objects`, the SHA-256 of every template and solid file its gates were read from (`ZoneReader.gate_hashes`), so `--verify` sees a change to one |
 
 Only derived geometry, names and positions: no game file and nothing pickled (`np.load(...,
 allow_pickle=False)`); the arrays are plain floats and ints. 464 zones on 442 floors, so only
 22 zones share one; the same room placed at another spot does not share, and sharing those too
-would save under a tenth. 18.5 MB in all, the largest floor 0.2 MB.
+would save under a tenth. 20.5 MB in all with the gates (18.5 before them, 2026-11-25), the largest floor 0.2 MB, and 3,152 gates, 78 of them a link object's wall.
 
 **Deterministic:** the same zone writes the same bytes. Every zip entry is dated 1980 and written
 in name order (`np.savez_compressed` stamps the time, so the zip is built by hand), and every
@@ -331,6 +392,13 @@ the same, and so were all 470 routes between their arrival points, shortest and 
 for cell, legs included. BartleBot's `probe_walk_route.py`, on core's reader, plans Unicorn Way's
 three routes as its OUTCOME has them: 75.5, 53.3 and 34.4 s straightened.
 
+**Checked again with the gates** (2026-11-25, r814353): rebuilt with them, every one of the 464
+zones kept the links, exits, patrols and arrival points it had, and every link one of the 78
+link-object walls stands at still has floor to be taken from, in the 17 zones that have one.
+`--compare` on the same eight zones found map and wad the same again, gates included, and all
+866 routes between their arrival points the same cell for cell; `--verify` found all 464 maps as
+the install has them, gates' templates and solid files included.
+
 ## Walking a route
 
 Core's `movement/walk.py`: `RouteWalker(client, planner, avoid=…, mobs=…).walk(lease, goal)`
@@ -365,7 +433,12 @@ walks on it, on a planner built from the wad.
 - **Stalls** (forward held 1.5 s, under 60 units moved): back off 150 units with the backward
   key, close the floor 80 units ahead within 110, replan from there, three times; the fourth
   stall ends the walk blocked. A wizard grazing a round trunk slides around it unaided; only one
-  walking straight at an obstacle stalls.
+  walking straight at an obstacle stalls. **A stall within 150 units of an open gate's solid**
+  (`GATE_REACH`) closes the nearest such gate on the walk's own planner, instead of the floor
+  ahead, and replans: around it, or the walk ends `NO_ROUTE` with its `NoRoute` on
+  `WalkResult.no_route`, naming the gate and the crossing past it. `WalkResult.gates_closed` lists
+  each gate a stall closed. A stall near a gate for another reason (a mob, say) closes the gate
+  all the same; Stage 3.2's live read is what tells the two apart.
 - **Mobs**, when the walk is given `client_mobs(client)`: a `MobWatch` reads every listed
   mob's position five times a second and estimates its velocity, listing them afresh every 2 s.
   Each tick the walk projects itself 2.5 s along its route and every mob along its velocity, and
@@ -435,8 +508,12 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
    walker has not been run on a live client yet.
 2. **Saving the zone maps' copies ahead of need** (Stage 4): when a product calls
    `ZoneMaps.warm`, so a walk's first load in a zone is never the 2 to 16 s build.
-3. **Placed objects' collision** (Stage 3). Read each placed object's `CollisionBehavior` solid
-   file into the grid, so a walk does not have to stall on a teleporter stone to find it.
+3. **Gates read from the client** (Stage 3.2). Today a gate is found closed only by stalling at
+   it. After a read-only session in game, which settles whether a blocker a quest removed is
+   missing from the client's entity list, whether a door's open or closed state reads and its
+   collision follows it, and how far away the client lists placed objects (637 of the solid ones
+   are flagged `m_exemptFromAOI`), the walker reads the gates near its route on `MobWatch`'s pass
+   and closes those that are there before it reaches them.
 4. **Walk the link kinds not yet tried**: a rope (Novus's Stone of Heaven), a Lemuria tower
    lift, a Krokotopia stone pair, an X / X_B pair. How near an object a press must be is
    assumed (150; every Mirage ladder took a press from where its leg ended); whether facing it
@@ -448,6 +525,10 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
 7. **Zone exits as a route's end.** A walk's goal across zones is the zone map's route
    (BartleBot's `docs/ZONE_NAVIGATION.md`), with each crossing an exit to walk into; today every
    crossing is reached by `client.teleport` (Stage 4).
-8. **Smaller:** whether any of the 250 non-walkable meshes are walls; a box volume's turn, and
+8. **Placed objects that add floor**: 63 objects name a walkable collision file
+   (`m_walkableCollisionFilename`), most of them teleporter pads (Krokotopia's, Celestia's,
+   Empyrea's, Triton's), and the maps do not read them (BartleBot's Stage 8).
+9. **Smaller:** whether `collision.bcd`'s own client-object solids are walls after all, since the
+   placed blockers carry the same tag and are; whether any of the 250 non-walkable meshes are walls; a box volume's turn, and
    the name of its third side's property; whether a quest-gated link can be told from the
    client before stepping into it (a trigger's `ReqHasQuest` may say).
