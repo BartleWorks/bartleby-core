@@ -352,13 +352,16 @@ walks on it, on a planner built from the wad.
   mount: 840 expected, 838 measured.
 - **Planning never runs on the event loop.** A long route takes about 5 s to plan in the Outback,
   1 to 1.5 s in Triton Avenue and 0.2 s in Olde Town (on the shipped maps, 2026-11-25), so every
-  plan and replan runs in a worker thread, with forward let go meanwhile.
+  plan, replan and detour runs in a worker thread, with forward and backward let go meanwhile: a
+  wizard backing off from a mob would otherwise back on for the seconds a detour takes to plan.
 - **Following** a leg: hold forward, re-aim at the next waypoint each 50 ms tick, pass a
   waypoint within 80 units or once past it along its leg, stop within 50 of the goal.
 - **Resets and jumps.** A move faster than 1,600 units a second (or twice the speed expected)
   between two reads is a jump. One that leaves the wizard within 150 of the leg it walks is the
   server putting it back, and the stretch is walked again; one that leaves it off the leg, a link
-  it did not plan for, is replanned from where it landed.
+  it did not plan for, is replanned from where it landed. A zone's exit and being pulled into a
+  duel are jumps too, so on any jump but the pending link's, the walk checks for a fight and a
+  zone change first, and ends on either rather than planning on in the zone it left.
 - **Stalls** (forward held 1.5 s, under 60 units moved): back off 150 units with the backward
   key, close the floor 80 units ahead within 110, replan from there, three times; the fourth
   stall ends the walk blocked. A wizard grazing a round trunk slides around it unaided; only one
@@ -390,10 +393,17 @@ walks on it, on a planner built from the wad.
   over a walk tick on a thread of its own, which would have had to cross the arbiter, the leases
   and the key repeat, all on the loop.
 - **It ends** on the goal, no route, being blocked (stalls, or mobs), a fight, a zone change or
-  running out of time (three times the walking planned, its links' waits, its waits for mobs
-  and its planning, plus 20 s), with a `WalkResult` saying which and `describe()` naming the zone
-  and both points; and it lets go of every key however it ends. A cancel, or the lease being
-  lost, goes on up to the caller.
+  running out of time, with a `WalkResult` saying which and `describe()` naming the zone and both
+  points; and it lets go of every key however it ends, and stops its mob watch even if a second
+  cancel lands in the letting go. A cancel, or the lease being lost, goes on up to the caller.
+- **Its time** is three times the walking planned, its links' waits, its waits for mobs and its
+  planning, plus 20 s. It is given again from each replan and each detour taken, for the route
+  left then, since a dropped link or a stall can leave a much longer one. Over it all is a
+  ceiling no replan renews, `WALK_CEILING_FACTOR` (3) times the first plan's time, about nine
+  times the walk first planned, counted from the start with the planning in and only the waits
+  for mobs left out (`WALK_MOB_WAIT` caps those), so a server resetting a wizard off its route
+  over and over cannot keep a walk going for good. The walk ends at whichever comes first, and
+  the detail says which.
 
 Results, all with no battle unless said:
 

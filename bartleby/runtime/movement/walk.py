@@ -9,11 +9,12 @@
   :data:`~bartleby.runtime.timing.WALK_TICK`, a waypoint passed within :data:`ARRIVE_TURN` or once
   past it along its leg, the goal reached within :data:`ARRIVE_GOAL`.
 * **Planning never runs on the event loop.** A long route takes about 5 s to plan in the Outback
-  and 1 to 1.5 s in Triton Avenue, so every plan and replan runs in a worker thread, with forward
-  let go meanwhile.
+  and 1 to 1.5 s in Triton Avenue, so every plan, replan and detour runs in a worker thread, with
+  forward and backward let go meanwhile.
 * **Resets are re-walked.** The position is read back every tick, so a wizard the server put back
   on the stretch it walked walks it again. A jump that leaves it off the leg (a link it did not
-  plan to take) is replanned from where it landed.
+  plan to take) is replanned from where it landed, once it is known to be no fight and no other
+  zone, which a jump also looks like.
 * **Stalls** on something the map doesn't know: back off :data:`BACK_OFF`, close the floor just
   ahead, and replan, up to :data:`MAX_RECOVERIES` times; the next stall ends the walk
   :attr:`WalkEnd.BLOCKED`.
@@ -31,9 +32,11 @@
 * **A held event loop** lets go of its keys by :class:`~bartleby.runtime.input.ClientInput`'s
   watchdog; the walk finds forward no longer held and holds it again, aimed afresh.
 
-It ends on the goal, no route, being blocked, a fight, a zone change or running out of time,
-with a :class:`WalkResult` saying which, and lets go of every key however it ends. A cancel, or
-the lease being lost, goes on up to the caller.
+It ends on the goal, no route, being blocked, a fight, a zone change or running out of time
+(the time given again at each replan and detour, for the route left, and never past
+:data:`~bartleby.runtime.timing.WALK_CEILING_FACTOR` times the first plan's), with a
+:class:`WalkResult` saying which, and lets go of every key however it ends. A cancel, or the lease
+being lost, goes on up to the caller.
 """
 
 from __future__ import annotations
@@ -48,12 +51,14 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 
 from bartleby.runtime.arbiter import Lease
+from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.movement.geometry import Point, facing, flat_distance, heading_to, wrap
-from bartleby.runtime.movement.route import WIZARD_SPEED, Route, ZonePlanner
+from bartleby.runtime.movement.route import WIZARD_SPEED, Leg, Route, ZonePlanner
 from bartleby.runtime.movement.zone_links import Link
 from bartleby.runtime.timing import (
     WALK_BACK_OFF_LONGEST,
+    WALK_CEILING_FACTOR,
     WALK_DETOUR_EVERY,
     WALK_LANDED_FOR,
     WALK_LANDING_WAIT,
@@ -431,10 +436,16 @@ class RouteWalker:
         except _Ended as ended:
             result.end, result.detail = ended.end, ended.detail
         finally:
-            await lease.input.release_all()
-            if watch is not None:
-                await watch.stop()
-            result.seconds = time.monotonic() - started
+            # Each in a finally of its own: a second cancel (a preempt, then Stop all) landing in
+            # the release would otherwise leave the watch reading mobs for good.
+            try:
+                await lease.input.release_all()
+            finally:
+                try:
+                    if watch is not None:
+                        await watch.stop()
+                finally:
+                    result.seconds = time.monotonic() - started
         try:
             result.position, _ = await self._read()
         except Exception:  # noqa: BLE001 - a closed client: where it stopped is not known
@@ -454,13 +465,27 @@ class RouteWalker:
         finally:
             result.planning += time.monotonic() - began
 
-    async def _first_leg(self, result: WalkResult, route: Route, here: Point) -> tuple[list[Point], Link | None]:
+    async def _warm_up(self) -> None:
+        """Make the walk's first lookups while its first route is planned, not standing after it.
+        In a fresh process the first ``in_battle`` runs wizwalker's scan for the duel manager (about
+        0.5 s) and the first key held reads the account's bindings (about 70 ms); each is kept for
+        the process's life. A failure is left to the walk's own call to meet."""
+        try:
+            await self.client.in_battle()  # for the lookup only: the game lets no fight start a walk
+        except Exception:  # noqa: BLE001 - the walk's own state poll raises it, as it would have
+            logger.debug("%s: the first fight check failed", self.label, exc_info=True)
+        try:
+            await game_keys.key_map(self.client)
+        except Exception:  # noqa: BLE001 - the first key held raises it, as it would have
+            logger.debug("%s: the first read of the key bindings failed", self.label, exc_info=True)
+
+    async def _legs(self, result: WalkResult, route: Route, here: Point) -> list[Leg]:
+        """*route*'s legs, the first starting from *here*."""
         legs = await asyncio.to_thread(self.planner.legs, route)
         result.routes.append([p for leg in legs for p in leg.waypoints])
-        first = legs[0]
-        waypoints = list(first.waypoints)
-        waypoints[0] = (here[0], here[1], waypoints[0][2])
-        return waypoints, first.link
+        first = list(legs[0].waypoints)
+        first[0] = (here[0], here[1], first[0][2])
+        return [Leg(first, legs[0].link), *legs[1:]]
 
     async def _walk(self, lease: Lease, result: WalkResult, watch: MobWatch | None, started: float) -> None:  # noqa: C901, PLR0912, PLR0915 - the probe's one loop, kept whole
         keys = lease.input
@@ -469,19 +494,12 @@ class RouteWalker:
         jump_speed = max(JUMP_SPEED, 2.0 * expected)
 
         here = result.start
-        route = await self._plan(result, here, goal)
+        route, _ = await asyncio.gather(self._plan(result, here, goal), self._warm_up())
         if route is None:
             raise _Ended(WalkEnd.NO_ROUTE, "nowhere on the floor joins the two")
-        legs = await asyncio.to_thread(self.planner.legs, route)
-        result.routes.append([p for leg in legs for p in leg.waypoints])
-        walked = sum(flat_distance(a, b) for leg in legs for a, b in zip(leg.waypoints, leg.waypoints[1:]))
-        budget = (
-            walked / expected * 3
-            + WALK_TIME_ALLOWANCE
-            + sum(WALK_LINK_WAIT + leg.link.seconds for leg in legs if leg.link)
-        )
-        waypoints, link = list(legs[0].waypoints), legs[0].link
-        waypoints[0] = (here[0], here[1], waypoints[0][2])
+        legs = await self._legs(result, route, here)
+        # The leg being walked, its link, and the legs after it, which a replan after the link plans afresh.
+        waypoints, link, later = legs[0].waypoints, legs[0].link, legs[1:]
         target = 1
 
         history: list[tuple[float, float, float]] = []  # (t, x, y) since forward was last held
@@ -491,9 +509,26 @@ class RouteWalker:
         mode, mode_since = "go", 0.0
         last_detour = -math.inf
         speeds: list[float] = []
+        budget = deadline = 0.0
 
         def clock() -> float:
             return time.monotonic() - started
+
+        def held_up(now: float) -> float:
+            """Seconds stood or backed off for mobs, the one under way included."""
+            return result.waited + (now - mode_since if mode != "go" else 0.0)
+
+        def give_time(planned: Sequence[Leg]) -> None:
+            """Give the walk *planned*'s time from now, and beyond it whatever it waits for mobs
+            and for the planner from now on: a route replanned may be much longer than the first."""
+            nonlocal budget, deadline
+            now = clock()
+            budget = _time_budget(planned, expected)
+            deadline = now + budget - held_up(now) - result.planning
+
+        give_time(legs)
+        # What no replan or detour renews: a multiple of the first plan's time, from the start.
+        ceiling = WALK_CEILING_FACTOR * budget
 
         async def stand() -> None:
             nonlocal forward_since
@@ -501,19 +536,30 @@ class RouteWalker:
             await keys.release(GameAction.MOVE_BACKWARD)
             forward_since = math.inf
 
+        async def check_state(now: float) -> None:
+            """End the walk if a fight has started or the zone has changed."""
+            nonlocal last_poll
+            last_poll = now
+            if await self.client.in_battle():
+                raise _Ended(WalkEnd.FIGHT)
+            if await self.client.zone_name() != result.zone:
+                raise _Ended(WalkEnd.ZONE_CHANGED)
+
         async def replan(at: Point, why: str) -> None:
             """Plan again from *at*, standing meanwhile."""
-            nonlocal waypoints, link, target, last, last_t
+            nonlocal waypoints, link, later, target, last, last_t
             await stand()
             again = await self._plan(result, at, goal)
             if again is None:
                 raise _Ended(WalkEnd.NO_ROUTE, f"no route on from ({at[0]:.0f}, {at[1]:.0f}) {why}")
             result.replans += 1
             position, _ = await self._read()
-            waypoints, link = await self._first_leg(result, again, position)
+            planned = await self._legs(result, again, position)
+            waypoints, link, later = planned[0].waypoints, planned[0].link, planned[1:]
             target = 1
             history.clear()
             last, last_t = position, clock()
+            give_time(planned)
 
         try:
             while True:
@@ -531,6 +577,9 @@ class RouteWalker:
                         logger.info("%s: %s moved it on the way in, %.0f units", self.label, link.name, step)
                         await replan(here, f"where {link.name} landed")
                         continue
+                    # A zone's exit and a fight's start move a wizard too, and this zone's planner
+                    # knows nothing of where either puts it: ask before planning on from there.
+                    await check_state(now)
                     if _off_leg(waypoints, here) > REWALK:
                         logger.info(
                             "%s: moved %.0f units off its route, to (%.0f, %.0f): replanning", self.label, step, x, y
@@ -545,15 +594,15 @@ class RouteWalker:
                 history.append((now, x, y))
 
                 if now - last_poll >= WALK_STATE_POLL:
-                    last_poll = now
-                    if await self.client.in_battle():
-                        raise _Ended(WalkEnd.FIGHT)
-                    if await self.client.zone_name() != result.zone:
-                        raise _Ended(WalkEnd.ZONE_CHANGED)
-                held_up = result.waited + (now - mode_since if mode != "go" else 0.0)
-                if now > budget + held_up + result.planning:
+                    await check_state(now)
+                if now - held_up(now) > ceiling:  # planning counts: a replan loop is bounded too
+                    raise _Ended(
+                        WalkEnd.TIMED_OUT,
+                        f"past its ceiling of {ceiling:.0f} s, {WALK_CEILING_FACTOR:g} times its first plan's",
+                    )
+                if now > deadline + held_up(now) + result.planning:
                     raise _Ended(WalkEnd.TIMED_OUT, f"{budget:.0f} s planned for")
-                if held_up > WALK_MOB_WAIT:
+                if held_up(now) > WALK_MOB_WAIT:
                     raise _Ended(WalkEnd.BLOCKED, f"held up by mobs for over {WALK_MOB_WAIT:.0f} s")
 
                 target = _passed(waypoints, target, here)
@@ -587,15 +636,26 @@ class RouteWalker:
                     )
                     enough = RESUME_SLACK if mode != "go" else 0.0
                     if go_room < enough and now - last_detour >= WALK_DETOUR_EVERY:
-                        last_detour = now
-                        detour = await self._detour(result, keys, waypoints, target, mobs, watch, speed, enough)
+                        await stand()
+                        sought = now
+                        detour = await self._detour(result, waypoints, target, mobs, watch, speed, enough)
+                        # It stood while it planned, for as long as that took: the clock, the last
+                        # read and the stall window go on from now, the next detour is sought a
+                        # while after this one ended, and the planning, which result.planning has,
+                        # is not counted as a wait for mobs as well.
+                        now = last_detour = clock()
+                        if mode != "go":
+                            mode_since += now - sought
+                        here, yaw = await self._read()
+                        x, y, z = here
+                        last, last_t = here, now
+                        history[:] = [(now, x, y)]
                         if detour is not None:
                             waypoints, go_room = detour
                             target = 1
-                            here, yaw = await self._read()
-                            want = heading_to(here, waypoints[target])
-                            error = wrap(want - yaw)
-                            x, y, z = here
+                            give_time([Leg(waypoints, link), *later])
+                        want = heading_to(here, waypoints[target])
+                        error = wrap(want - yaw)
                     if go_room < enough:
                         t_mob = watch.clock()
                         fx, fy = facing(want)
@@ -685,10 +745,10 @@ class RouteWalker:
         finally:
             await keys.release(GameAction.MOVE_BACKWARD)
 
-    async def _detour(self, result, keys, waypoints, target, mobs, watch, speed, enough):
+    async def _detour(self, result, waypoints, target, mobs, watch, speed, enough):
         """A way around *mobs* to a point a short way along the route, and the room it leaves,
-        or None. The rest of the route follows it unchanged."""
-        await keys.release(GameAction.MOVE_FORWARD)
+        or None. The rest of the route follows it unchanged. Sought standing: the walk lets go of
+        forward and backward first, so a wizard backing off is not still backing meanwhile."""
         discs = mob_discs(mobs, watch.clock())
         here, _ = await self._read()
         k = rejoin(waypoints, target, here, discs)
@@ -792,6 +852,16 @@ def _off_leg(route: Sequence[Point], here: Point) -> float:
 
 
 def _next_ahead(route: Sequence[Point], here: Point) -> int:
-    """After a reset onto the leg: the waypoint ending the stretch nearest *here*."""
-    best = min(range(1, len(route)), key=lambda k: _segment_distance(here, route[k - 1], route[k])[0])
-    return best
+    """After a reset onto the leg: the waypoint ending the stretch nearest *here*. A leg of one
+    waypoint has no stretch, and is walked once at it."""
+    if len(route) < 2:
+        return 1
+    return min(range(1, len(route)), key=lambda k: _segment_distance(here, route[k - 1], route[k])[0])
+
+
+def _time_budget(legs: Sequence[Leg], speed: float) -> float:
+    """Seconds a walk is given for *legs* at *speed* units a second: three times their walking,
+    each link's wait and ride, and :data:`~bartleby.runtime.timing.WALK_TIME_ALLOWANCE`."""
+    walked = sum(flat_distance(a, b) for leg in legs for a, b in zip(leg.waypoints, leg.waypoints[1:]))
+    links = sum(WALK_LINK_WAIT + leg.link.seconds for leg in legs if leg.link)
+    return walked / speed * 3 + WALK_TIME_ALLOWANCE + links
