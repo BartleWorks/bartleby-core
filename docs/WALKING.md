@@ -506,6 +506,12 @@ walks on it, on a planner built from the wad.
   - **A listed gate is taken as closed whatever its state** (`ObjectStateBehavior`): no door was
     seen to open, so whether a door's collision follows its state is not known, and by the
     user's choice (2026-11-25) the walker assumes that a gate there blocks.
+  - **Walked in game** (2026-11-25, r815378, `probe_walk_input.py`, the two wizards of the
+    session), to the Shopping District's Colossus exit: the wizard past Colossus Boulevard,
+    its blocker unlisted, walked through where the blocker stands into the exit, with and
+    without `--no-mobs`; the other, its blocker listed, ended `NO_ROUTE` naming it in 0.7 s,
+    no key pressed. A listed `WC_RateMyStitch_Pedestal_Tome` off the route was closed with no
+    replan.
 - **Mobs**, when the walk is told to watch them (`watch_mobs`): a `MobWatch` reads every listed
   mob's position five times a second and estimates its velocity, listed afresh on each pass.
   Each tick the walk projects itself 2.5 s along its route and every mob along its velocity, and
@@ -571,8 +577,10 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
 (#322); `docs/EPICS.md` there has the stage-to-issue table.
 
 1. **Several clients walking together** (Stage 4, BartleBot's `walk_clients`), each on its own
-   route from where it stands, and the walker's first run in game: `probe_walk_input.py` on core's
-   walker has not been run on a live client yet.
+   route from where it stands. A walk whose goal is in an exit can end `ARRIVED` before the
+   server moves the wizard: in the Shopping District the Colossus exit's teleport fired just
+   after each walk had ended arrived, 9 to 26 units from its goal, so `ZONE_CHANGED` is not the
+   only success for such a goal.
 2. **Saving the zone maps' copies ahead of need** (Stage 4): when a product calls
    `ZoneMaps.warm`, so a walk's first load in a zone is never the 2 to 16 s build.
 3. **Whether a door's collision follows its state.** The walker reads the gates its client
