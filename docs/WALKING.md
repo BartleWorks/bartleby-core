@@ -292,7 +292,52 @@ checked.
   that route and the distance between them. That is about the gate's depth plus the clearance
   on each side: a gate 120 deep comes out at 220, to within a cell. It is the length a hop
   past the gate would need (BartleBot's `HOP_MAX`).
-- **The walker closes a gate it stalls at** (*Walking a route*, below).
+- **A goal on a closed gate's floor has no route**: `route()` returns None rather than snap the
+  goal to the floor left beside the gate, which would end a walk short of it as if arrived (the
+  Shopping District's Colossus blocker covers half of the exit behind it), and `no_route` names
+  the gate.
+- `open(gate)` undoes `close` for a gate the client shows gone after all: it gives back only the
+  floor closing it took, and re-walls every other closed gate and every `block`, which may share
+  it.
+- `crosses(gate, path)` says whether a line of waypoints steps on a gate's floor: the walker's
+  question of a gate it learns of mid-walk, when it has the waypoints left and not a `Route`.
+- **The walker closes the gates its client lists, and a gate it stalls at** (*Walking a
+  route*, below).
+
+**What the client lists** was read in game on 2026-11-25 (r815378), with BartleBot's
+`tools/probe_gates.py`, on two wizards, one past Colossus Boulevard and one not. Nothing was
+written but wizwalker's hooks.
+
+- **A gate a quest removed is missing from the entity list, and one that is there is listed
+  and blocks.** Shopping District, `BigGenericBlocker_CollossusGate`: for the wizard who had not
+  opened Colossus it was listed, 0 units from where `gamedata.bin` places it, under the same
+  template id, with `CollisionBehaviorClient`, `RenderBehavior`, `ObjectStateBehavior` and
+  `SelectBehavior`, and pushed into it stopped that wizard 40 units short of its footprint every
+  time. For the wizard past it, it was in no pass of 24, from 2,722 units to 1,629, and that
+  wizard walked through where it stands. Unicorn Way's 89 Rattlebones debris gates, which a
+  quest removes, were in no pass for a wizard past that quest, as near as 68 units, and none was
+  on the street.
+- **An event's objects are not listed while it is off**: the Shopping District's Halloween
+  apple tub and Unicorn Way's 22 pumpkins, as near as 146 units (`m_spawnRequirements` names
+  the event). Many gates are these: most of Unicorn Way's 116, and the Commons' 46.
+- **A live object is a map gate by its template id and its location**: every one listed stood
+  0 units from its placed `m_location`, and its template's `m_objectName` is the gate's
+  `template`. The live zone tag is an id, not the name the map keeps.
+- **Placed objects are listed out to about 4,400 units, and those exempt from AOI anywhere in
+  the zone.** Unicorn Way's four fairy cages and Archmastery pedestal went in and out of the
+  list as the wizard walked across the zone, listed out to 3,877 to 4,388 units and dropped from
+  4,555 to 5,142. Triton Avenue's `WC_Teleporter_Hub`, exempt, the decorative center of the
+  zone's own teleporter network, was listed in all 61 passes, out to 17,445 units. Entities of
+  other kinds were listed past 10,000.
+- **States read**: an object's `ObjectStateBehavior` holds `m_stateList` (a list of `uint32`
+  at 136), one per category of its template's state set, each the `string_id` or `djb2` of a
+  state name in `Root.wad`'s `StateData/*.xml`. The Colossus blocker's read
+  `Idle;Alive;NotInteracting;Stationary`, Triton Avenue's mill lever `NotInteracting;Off`, and
+  Unicorn Way's fairy cages `FairyEscaped`, with `Interacting` turning to `NotInteracting` as the
+  wizard walked off. **Whether a listed object's collision follows its state is not known**: no
+  door was seen to open.
+- **The read is cheap**: every entity's template id and location took a median 3 ms, 6 at
+  worst, for 66 to 97 entities; wizsprinter's `get_mobs()` took a median 7 ms in Triton Avenue.
 
 ### Routes
 
@@ -401,7 +446,7 @@ the install has them, gates' templates and solid files included.
 
 ## Walking a route
 
-Core's `movement/walk.py`: `RouteWalker(client, planner, avoid=…, mobs=…).walk(lease, goal)`
+Core's `movement/walk.py`: `RouteWalker(client, planner, avoid=…, watch_mobs=…).walk(lease, goal)`
 walks one wizard to a point in its zone, from wherever it stands, through the lease's input and
 nothing else. BartleBot's `probe_walk_input.py --to <arrival point, placed object or x,y[,z]>`
 walks on it, on a planner built from the wad.
@@ -437,10 +482,38 @@ walks on it, on a planner built from the wad.
   (`GATE_REACH`) closes the nearest such gate on the walk's own planner, instead of the floor
   ahead, and replans: around it, or the walk ends `NO_ROUTE` with its `NoRoute` on
   `WalkResult.no_route`, naming the gate and the crossing past it. `WalkResult.gates_closed` lists
-  each gate a stall closed. A stall near a gate for another reason (a mob, say) closes the gate
-  all the same; Stage 3.2's live read is what tells the two apart.
-- **Mobs**, when the walk is given `client_mobs(client)`: a `MobWatch` reads every listed
-  mob's position five times a second and estimates its velocity, listing them afresh every 2 s.
+  each gate a stall closed. **A gate the client shows gone is left out**: a stall near it is
+  something else (a mob, a solid the map lacks), so the floor ahead is closed and the gate stays
+  open. Only a client whose list could not be read leaves a stall to decide alone.
+- **Gates the client lists** (`GateRead`), whether or not mobs are watched. One pass over the
+  entity list (`ClientRead`) reads every entity's template name and location and picks out the
+  mobs as wizsprinter's `get_mobs` does (`NPCBehavior`'s flag at 288): before the first plan,
+  and every 2 s after (`WALK_MOB_REFRESH`), by the `MobWatch` when mobs are watched and by a
+  refresher of the walk's own when not. On each pass:
+  - **A listed gate is there** and is closed: an entity of the gate's template, by name, within
+    25 units of where the map places it (`GATE_MATCH`; every one read in game stood 0 off). When
+    it is on the way left (`crosses`), the walk replans around it, or ends `NO_ROUTE` naming it,
+    before it is reached, with no stall. `WalkResult.gates_seen` lists each.
+  - **A gate not listed within 3,500 units is gone** (`GATE_LISTED_RANGE`, under the least
+    distance an object was seen listed at, 3,877, so out of view is never taken for gone). A gate
+    a pass closed opens again (`open`) once two passes in a row show it gone
+    (`GATE_GONE_PASSES`: one pass that skipped its entity would otherwise flap it), and the walk
+    replans; `WalkResult.gates_opened` lists each. A gate a stall closed never reopens.
+  - **A gate beyond range and not listed is not known**, and stays as it is: open, unless a
+    stall or an earlier pass closed it. An object exempt from AOI is listed anywhere in the zone,
+    so a listed one far off is closed like any other; whether it is exempt is never needed,
+    since gone matters only near the wizard, at a stall or for a reopen, well inside the range.
+  - **A listed gate is taken as closed whatever its state** (`ObjectStateBehavior`): no door was
+    seen to open, so whether a door's collision follows its state is not known, and by the
+    user's choice (2026-11-25) the walker assumes that a gate there blocks.
+  - **Walked in game** (2026-11-25, r815378, `probe_walk_input.py`, the two wizards of the
+    session), to the Shopping District's Colossus exit: the wizard past Colossus Boulevard,
+    its blocker unlisted, walked through where the blocker stands into the exit, with and
+    without `--no-mobs`; the other, its blocker listed, ended `NO_ROUTE` naming it in 0.7 s,
+    no key pressed. A listed `WC_RateMyStitch_Pedestal_Tome` off the route was closed with no
+    replan.
+- **Mobs**, when the walk is told to watch them (`watch_mobs`): a `MobWatch` reads every listed
+  mob's position five times a second and estimates its velocity, listed afresh on each pass.
   Each tick the walk projects itself 2.5 s along its route and every mob along its velocity, and
   wants each mob's trigger radius plus 120, plus 40 for every second looked ahead. **A mob walks
   at about 40 to 180 units a second and a wizard at 600 to 840**, so next to a wizard a mob is
@@ -504,16 +577,17 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
 (#322); `docs/EPICS.md` there has the stage-to-issue table.
 
 1. **Several clients walking together** (Stage 4, BartleBot's `walk_clients`), each on its own
-   route from where it stands, and the walker's first run in game: `probe_walk_input.py` on core's
-   walker has not been run on a live client yet.
+   route from where it stands. A walk whose goal is in an exit can end `ARRIVED` before the
+   server moves the wizard: in the Shopping District the Colossus exit's teleport fired just
+   after each walk had ended arrived, 9 to 26 units from its goal, so `ZONE_CHANGED` is not the
+   only success for such a goal.
 2. **Saving the zone maps' copies ahead of need** (Stage 4): when a product calls
    `ZoneMaps.warm`, so a walk's first load in a zone is never the 2 to 16 s build.
-3. **Gates read from the client** (Stage 3.2). Today a gate is found closed only by stalling at
-   it. After a read-only session in game, which settles whether a blocker a quest removed is
-   missing from the client's entity list, whether a door's open or closed state reads and its
-   collision follows it, and how far away the client lists placed objects (637 of the solid ones
-   are flagged `m_exemptFromAOI`), the walker reads the gates near its route on `MobWatch`'s pass
-   and closes those that are there before it reaches them.
+3. **Whether a door's collision follows its state.** The walker reads the gates its client
+   lists (*Walking a route*) and takes every listed one as closed. If a door stays listed once
+   open (a dungeon door after its room's fight, say), a walk ends `NO_ROUTE` at a door it could
+   walk through, and its state (`ObjectStateBehavior`) would be the way to tell. No door was
+   seen to open in the session, and the read has not walked a live client yet.
 4. **Walk the link kinds not yet tried**: a rope (Novus's Stone of Heaven), a Lemuria tower
    lift, a Krokotopia stone pair, an X / X_B pair. How near an object a press must be is
    assumed (150; every Mirage ladder took a press from where its leg ended); whether facing it

@@ -393,11 +393,61 @@ def test_a_closed_gate_that_separates_two_floors_is_named_with_its_crossing():
     assert why.crossing.before[0] < 1500 < why.crossing.after[0]
 
 
+def test_a_goal_on_a_closed_gates_floor_has_no_route_and_the_gate_is_named():
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    planner.close(planner.gates[0])
+
+    # Not snapped to the floor beside the gate, short of it as if arrived.
+    assert planner.route((300, 500), (1500, 500)) is None
+    assert planner.no_route((300, 500), (1500, 500)).gate == "Door"
+    assert planner.route((300, 500), (1300, 500)) is not None  # short of the gate: a route
+    assert planner.route((300, 500), (2700, 500)) is not None  # beyond it, by the other way
+
+
 def test_no_route_names_no_gate_when_none_is_closed_or_opening_one_would_not_help():
     planner = _planner(mesh(floor(0, 0, 1000, 1000, 0), floor(3000, 0, 4000, 1000, 0)), gates=[_gate(x=2000)])
     assert planner.no_route((500, 500), (3500, 500)).gate is None
     planner.close(planner.gates[0])
     assert planner.no_route((500, 500), (3500, 500)).gate is None
+
+
+def test_a_gate_opened_again_gives_back_the_floor_its_closing_took():
+    planner = _walled((400, 600), gates=[_gate()])
+    before = planner.passable.copy()
+    taken = planner.close(planner.gates[0])
+
+    assert planner.open(planner.gates[0]) == taken
+    assert planner.closed == []
+    assert (planner.passable == before).all()
+    assert planner.route((300, 500), (2700, 500)) is not None
+    assert planner.open(planner.gates[0]) == 0  # open already
+
+
+def test_opening_a_gate_leaves_closed_what_another_closed_gate_or_a_block_still_takes():
+    one, other = _gate("One", 400, 600), _gate("Other", 400, 600, x=1580)  # overlapping
+    planner = _walled((400, 600), gates=[one, other])
+    planner.close(one)
+    planner.close(other)
+    planner.block(1420, 500, 0, 30)  # on One's floor alone, closed already, so it takes nothing new
+    shared = (0, *planner.grid.index(1540, 500))
+    blocked = (0, *planner.grid.index(1420, 500))
+
+    planner.open(one)
+
+    assert planner.closed == [other]
+    assert not planner.passable[shared]
+    assert not planner.passable[blocked]
+    assert planner.route((300, 500), (2700, 500)) is None
+
+
+def test_a_path_of_waypoints_crosses_a_gate_when_it_steps_on_its_floor_at_its_height():
+    planner = _walled((400, 600), (750, 1000), gates=[_gate()])
+    gate = planner.gates[0]
+
+    assert planner.crosses(gate, [(300, 500, 0), (2700, 500, 0)])
+    assert not planner.crosses(gate, [(300, 500, 0), (1300, 500, 0)])  # stops short of it
+    assert not planner.crosses(gate, [(300, 850, 0), (2700, 850, 0)])  # through the other gap
+    assert not planner.crosses(gate, [(300, 500, 900), (2700, 500, 900)])  # a storey above
 
 
 def test_gates_near_a_point_are_the_open_ones_within_reach_nearest_first():

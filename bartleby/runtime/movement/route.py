@@ -10,8 +10,9 @@ does not take, since stepping in moves the wizard. Moved from BartleBot's
 *Planning a route*, has what each number was measured against.
 
 A zone's gates (``gates.py``) are open until a planner is told one is closed
-(:meth:`ZonePlanner.close`); a closed one is walled for every route after, and when one is what
-keeps a route from its goal, :meth:`ZonePlanner.no_route` names it.
+(:meth:`ZonePlanner.close`); a closed one is walled for every route after, until the client shows
+it gone (:meth:`ZonePlanner.open`), and when one is what keeps a route from its goal,
+:meth:`ZonePlanner.no_route` names it.
 
 Planning needs no client and opens no file: :class:`ZoneFiles` is what a tool reads out of the
 zone's wad.
@@ -286,6 +287,9 @@ class ZonePlanner:
     exits: list[Volume] = field(default_factory=list)
     gates: list[Gate] = field(default_factory=list)  # a link object's, marked wall, is in the grid's walls
     closed: list[Gate] = field(default_factory=list)  # the gates this planner was told are closed
+    blocks: list[tuple[float, float, float, float]] = field(default_factory=list)  # block's (x, y, z, radius)
+    # The floor spots each closed gate took when it was closed, for open to give back.
+    _took: dict[Gate, np.ndarray] = field(default_factory=dict, repr=False)
     # Each gate's floor (gate_floor), shared by every copy of a planner, since the grid is.
     _gate_floors: dict[tuple, tuple[int, int, np.ndarray]] = field(default_factory=dict, repr=False)
     _exit_floors: dict[int, np.ndarray] = field(default_factory=dict, init=False, repr=False)
@@ -325,10 +329,14 @@ class ZonePlanner:
         It steps onto a volume link's floor only to take that link, since stepping in moves the
         wizard, unless the start or the goal is in it. Where that leaves no route (a volume
         across the only way, whose landing is off the floor), it plans once more as if the
-        volumes were floor, and the walker deals with whatever moves it."""
+        volumes were floor, and the walker deals with whatever moves it.
+
+        A goal on a closed gate's floor has no route: snapped to the nearest floor left, it
+        would end short of the gate as if arrived, when the gate is what is in the way
+        (:meth:`no_route` names it)."""
         floor = self.floor_for(start, goal)
         s, g = self.node(*start, passable=floor), self.node(*goal, passable=floor)
-        if s is None or g is None:
+        if s is None or g is None or self._goal_behind_gate(floor, goal, g):
             return None
         cost = self.cost if avoid else np.ones_like(self.cost)
         portals = self.portals(floor)
@@ -462,6 +470,24 @@ class ZonePlanner:
         taken = spots & self.passable[layer, rows, cols]
         self.passable[layer, rows, cols] &= ~spots
         self.closed.append(gate)
+        self._took[gate] = taken
+        return int(taken.sum())
+
+    def open(self, gate: Gate) -> int:
+        """Undo :meth:`close`: the client shows *gate* gone after all. Gives back only the floor
+        closing it took, and none that another closed gate or a :meth:`block` still takes.
+        Returns how many floor spots it opened; 0 for a gate that is not closed."""
+        taken = self._took.pop(gate, None)
+        if taken is None:
+            return 0
+        self.closed[:] = [g for g in self.closed if g is not gate]
+        layer, rows, cols, _ = self._gate_spots(gate)
+        self.passable[layer, rows, cols] |= taken
+        for other in self.closed:
+            o_layer, o_rows, o_cols, o_spots = self._gate_spots(other)
+            self.passable[o_layer, o_rows, o_cols] &= ~o_spots
+        for x, y, z, radius in self.blocks:
+            self._block(x, y, z, radius)
         return int(taken.sum())
 
     def gates_on(self, route: Route) -> list[Gate]:
@@ -475,6 +501,27 @@ class ZonePlanner:
             if first is not None:
                 found.append((first, k, gate))
         return [gate for _, _, gate in sorted(found, key=lambda t: (t[0], t[1]))]
+
+    def crosses(self, gate: Gate, path: Sequence[Sequence[float]]) -> bool:
+        """Whether walking *path*, points joined by straight lines, steps on *gate*'s floor at
+        about the path's height: a walker's question of a gate it learns of mid-walk, which has
+        the waypoints left to walk, not a :class:`Route`."""
+        j, i, spots = self.gate_floor(gate)
+        _, rows, cols = spots.shape
+        step = self.grid.cell / 2
+        for a, b in zip(path, path[1:], strict=False):
+            n = max(1, math.ceil(math.dist(a[:2], b[:2]) / step))
+            for k in range(n + 1):
+                t = k / n
+                x, y, z = (a[q] + (b[q] - a[q]) * t for q in range(3))
+                row, col = self.grid.index(x, y)
+                if not (j <= row < j + rows and i <= col < i + cols):
+                    continue
+                layers = np.flatnonzero(spots[:, row - j, col - i])
+                with np.errstate(invalid="ignore"):
+                    if (np.abs(self.grid.levels[layers, row, col] - z) <= LEVEL_GAP / 2).any():
+                        return True
+        return False
 
     def gates_near(self, x: float, y: float, z: float, reach: float) -> list[Gate]:
         """The open gates within *reach* of (x, y) at about height z, nearest first."""
@@ -514,6 +561,22 @@ class ZonePlanner:
             return NoRoute(self.zone, start3, goal3, gate.name, Crossing(before, after, math.dist(before, after)))
         return NoRoute(self.zone, start3, goal3)
 
+    def _goal_behind_gate(self, floor: np.ndarray, goal: Sequence[float], snapped: Node) -> bool:
+        """Whether a closed gate is what moved *goal* off its own floor: with every closed gate's
+        floor given back, the goal snaps elsewhere, onto one of theirs."""
+        if not self.closed:
+            return False
+        given_back = floor.copy()
+        for gate in self.closed:
+            layer, rows, cols, spots = self._gate_spots(gate)
+            given_back[layer, rows, cols] |= spots
+        own = self.node(*goal, passable=given_back)
+        if own is None or own == snapped:
+            return False
+        return any(
+            _first_on(np.asarray([own], dtype=np.intp), self.gate_floor(gate)) is not None for gate in self.closed
+        )
+
     def _with_height(self, point: Sequence[float]) -> XYZ:
         """*point* with a height: its own, or the floor's where it snaps to."""
         if len(point) >= 3:
@@ -524,6 +587,10 @@ class ZonePlanner:
     def block(self, x: float, y: float, z: float, radius: float) -> int:
         """Mark the floor within *radius* of (x, y), at about height z, impassable: something a
         walk ran into that the collision file does not have. Returns how many spots it closed."""
+        self.blocks.append((x, y, z, radius))
+        return self._block(x, y, z, radius)
+
+    def _block(self, x: float, y: float, z: float, radius: float) -> int:
         grid = self.grid
         px, py = grid.all_centers()
         near = np.hypot(px - x, py - y) <= radius

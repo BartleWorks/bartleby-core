@@ -361,7 +361,9 @@ class ZoneMaps:
                     self._planners[zone] = kept
                     while len(self._planners) > KEPT:
                         self._planners.popitem(last=False)
-        return dataclasses.replace(kept, passable=kept.passable.copy(), links=list(kept.links), closed=[])
+        return dataclasses.replace(
+            kept, passable=kept.passable.copy(), links=list(kept.links), closed=[], blocks=[], _took={}
+        )
 
     async def load(self, zone: str) -> ZonePlanner:
         """:meth:`planner`, off the event loop."""

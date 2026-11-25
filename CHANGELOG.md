@@ -8,6 +8,32 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+The walker reads its zone's gates from the client (Stage 3.2 of BartleBot #322).
+
+### Breaking
+
+- **`walk.client_mobs` is gone**, and `RouteWalker`'s `mobs=` is now `watch_mobs: bool`: the
+  walker reads its client's entity list itself (`ClientRead`, whose `mobs` is the old
+  `MobRead`), for its mobs and its gates on one pass. A product that passed
+  `mobs=client_mobs(client)` passes `watch_mobs=True`.
+
+### Added
+
+- **`RouteWalker` closes the gates its client lists** before reaching them (`GateRead`),
+  whether or not it watches mobs: read before the first plan and every `WALK_MOB_REFRESH` after.
+  A listed gate on the way left is planned around, or the walk ends `NO_ROUTE` naming it, with
+  no stall. One not listed within `GATE_LISTED_RANGE` (3,500) is gone: a stall near it closes
+  the floor ahead instead, and a gate a pass closed opens again after `GATE_GONE_PASSES` (2)
+  passes show it gone. `WalkResult.gates_seen` and `gates_opened` list them. No map rebuild.
+- **A goal on a closed gate's floor has no route**: `ZonePlanner.route` returns None, and
+  `no_route` names the gate, where it used to snap the goal to the floor beside the gate.
+- `ZonePlanner.open(gate)`, the inverse of `close`, and `crosses(gate, path)`, whether a line of
+  waypoints steps on a gate's floor. `ZonePlanner.blocks` records each `block`.
+- `testing.sim_client.SimEntity`, and `SimClient.entities`, its entity list (None for one that
+  cannot be read).
+
 ## 0.12.1
 
 Gates in the zone maps (Stage 3.1 of BartleBot #322), wizwalker's pin for live r815378, and a
