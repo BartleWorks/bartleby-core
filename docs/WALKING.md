@@ -294,6 +294,41 @@ checked.
   past the gate would need (BartleBot's `HOP_MAX`).
 - **The walker closes a gate it stalls at** (*Walking a route*, below).
 
+**What the client lists** was read in game on 2026-11-25 (r815378), with BartleBot's
+`tools/probe_gates.py`, on two wizards, one past Colossus Boulevard and one not. Nothing was
+written but wizwalker's hooks.
+
+- **A gate a quest removed is missing from the entity list, and one that is there is listed
+  and blocks.** Shopping District, `BigGenericBlocker_CollossusGate`: for the wizard who had not
+  opened Colossus it was listed, 0 units from where `gamedata.bin` places it, under the same
+  template id, with `CollisionBehaviorClient`, `RenderBehavior`, `ObjectStateBehavior` and
+  `SelectBehavior`, and pushed into it stopped that wizard 40 units short of its footprint every
+  time. For the wizard past it, it was in no pass of 24, from 2,722 units to 1,629, and that
+  wizard walked through where it stands. Unicorn Way's 89 Rattlebones debris gates, which a
+  quest removes, were in no pass for a wizard past that quest, as near as 68 units, and none was
+  on the street.
+- **An event's objects are not listed while it is off**: the Shopping District's Halloween
+  apple tub and Unicorn Way's 22 pumpkins, as near as 146 units (`m_spawnRequirements` names
+  the event). Many gates are these: most of Unicorn Way's 116, and the Commons' 46.
+- **A live object is a map gate by its template id and its location**: every one listed stood
+  0 units from its placed `m_location`, and its template's `m_objectName` is the gate's
+  `template`. The live zone tag is an id, not the name the map keeps.
+- **Placed objects are listed out to about 4,400 units, and those exempt from AOI anywhere in
+  the zone.** Unicorn Way's four fairy cages and Archmastery pedestal went in and out of the
+  list as the wizard walked across the zone, listed out to 3,877 to 4,388 units and dropped from
+  4,555 to 5,142. Triton Avenue's `WC_Teleporter_Hub`, exempt, the decorative center of the
+  zone's own teleporter network, was listed in all 61 passes, out to 17,445 units. Entities of
+  other kinds were listed past 10,000.
+- **States read**: an object's `ObjectStateBehavior` holds `m_stateList` (a list of `uint32`
+  at 136), one per category of its template's state set, each the `string_id` or `djb2` of a
+  state name in `Root.wad`'s `StateData/*.xml`. The Colossus blocker's read
+  `Idle;Alive;NotInteracting;Stationary`, Triton Avenue's mill lever `NotInteracting;Off`, and
+  Unicorn Way's fairy cages `FairyEscaped`, with `Interacting` turning to `NotInteracting` as the
+  wizard walked off. **Whether a listed object's collision follows its state is not known**: no
+  door was seen to open.
+- **The read is cheap**: every entity's template id and location took a median 3 ms, 6 at
+  worst, for 66 to 97 entities; wizsprinter's `get_mobs()` took a median 7 ms in Triton Avenue.
+
 ### Routes
 
 `route.py`. A* over the cells (8 neighbors, no cutting a wall's corner), with each link an extra edge from
@@ -509,11 +544,11 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
 2. **Saving the zone maps' copies ahead of need** (Stage 4): when a product calls
    `ZoneMaps.warm`, so a walk's first load in a zone is never the 2 to 16 s build.
 3. **Gates read from the client** (Stage 3.2). Today a gate is found closed only by stalling at
-   it. After a read-only session in game, which settles whether a blocker a quest removed is
-   missing from the client's entity list, whether a door's open or closed state reads and its
-   collision follows it, and how far away the client lists placed objects (637 of the solid ones
-   are flagged `m_exemptFromAOI`), the walker reads the gates near its route on `MobWatch`'s pass
-   and closes those that are there before it reaches them.
+   it. The read-only session in game is done (*Gates*, *What the client lists*): a gate the
+   client lists is there, and one it does not list within about 4,400 units, or anywhere for one
+   exempt from AOI, is gone. What is left is the walker reading the gates near its route on its
+   pass over the entity list and closing those that are there before it reaches them, and
+   whether a door's collision follows its state, which no door was seen to show.
 4. **Walk the link kinds not yet tried**: a rope (Novus's Stone of Heaven), a Lemuria tower
    lift, a Krokotopia stone pair, an X / X_B pair. How near an object a press must be is
    assumed (150; every Mirage ladder took a press from where its leg ended); whether facing it
