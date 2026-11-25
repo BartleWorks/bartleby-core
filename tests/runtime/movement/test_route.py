@@ -8,9 +8,9 @@ import numpy as np
 import pytest
 
 from bartleby.runtime.movement.patrols import HARD, Patrol
-from bartleby.runtime.movement.route import EXIT_MARGIN, ZoneFiles, ZonePlanner, build_planner
+from bartleby.runtime.movement.route import EXIT_MARGIN, ZoneFiles, ZonePlanner, build_planner, link_reach
 from bartleby.runtime.movement.zone_grid import MAX_RISE, STEP_TOL
-from bartleby.runtime.movement.zone_links import Volume
+from bartleby.runtime.movement.zone_links import LINK_REACH, Volume
 from tests.runtime.movement.test_zone_grid import two_storeys
 from tests.runtime.movement.zone_fixtures import box, floor, mesh
 
@@ -186,6 +186,55 @@ def test_a_route_with_a_link_comes_back_as_legs_each_ending_at_its_link():
     turns, jumps = planner.turns_and_jumps(route)
     [jump] = jumps
     assert planner.grid.world(*turns[jump])[0] < 1000 < 3000 < planner.grid.world(*turns[jump + 1])[0]
+
+
+def _hall_with_a_volume_link(width: float = 2000) -> ZonePlanner:
+    """A hall 4000 long with a volume link in its middle, landing on an island far off."""
+    volume = Volume("TeleportVol To Isle", (2000, width / 2, 0), radius=90)
+    return _planner(
+        mesh(floor(0, 0, 4000, width, 0), floor(6000, 0, 7000, 1000, 0)),
+        named={"Target To Isle": (6500, 500, 0)},
+        volumes=[volume],
+        teleports=frozenset({volume.name}),
+    )
+
+
+def _crosses(planner: ZonePlanner, route, center, radius) -> bool:
+    """Whether any straight stretch walked comes within *radius* of *center*."""
+    for leg in planner.legs(route):
+        for a, b in zip(leg.waypoints, leg.waypoints[1:]):
+            for t in np.linspace(0, 1, 100):
+                if math.dist((a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])), center) <= radius:
+                    return True
+    return False
+
+
+def test_a_route_walks_around_a_volume_link_it_does_not_take():
+    planner = _hall_with_a_volume_link()
+
+    route = planner.route((200, 1000), (3800, 1000))
+
+    assert [leg.link for leg in planner.legs(route)] == [None]
+    assert not _crosses(planner, route, (2000, 1000), LINK_REACH)
+    assert not _crosses(planner, route, (2000, 1000), link_reach(planner.links[0]) - planner.grid.cell)
+
+
+def test_a_route_starting_in_a_volume_link_walks_out_of_it():
+    planner = _hall_with_a_volume_link()
+
+    route = planner.route((2000, 1000), (3800, 1000))
+
+    assert route is not None
+    assert [leg.link for leg in planner.legs(route)] == [None]
+
+
+def test_a_volume_link_across_the_only_way_is_walked_through_rather_than_no_route():
+    planner = _hall_with_a_volume_link(width=150)
+
+    route = planner.route((200, 75), (3800, 75))
+
+    assert route is not None
+    assert [leg.link for leg in planner.legs(route)] == [None]
 
 
 def test_a_zones_volume_link_is_not_one_of_its_exits():
