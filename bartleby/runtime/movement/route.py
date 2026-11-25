@@ -213,7 +213,7 @@ class Leg:
 
 @dataclass(frozen=True)
 class Route:
-    """A planned route: its cells, and the floor it was planned on, which the zone's floor less
+    """A planned route: its cells, and the floor it was planned on: the zone's floor less
     the exits it keeps out of. Straightening a route uses the same floor, so a straight line
     never cuts through an exit the route went around."""
 
