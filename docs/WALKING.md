@@ -292,7 +292,13 @@ checked.
   that route and the distance between them. That is about the gate's depth plus the clearance
   on each side: a gate 120 deep comes out at 220, to within a cell. It is the length a hop
   past the gate would need (BartleBot's `HOP_MAX`).
-- **The walker closes a gate it stalls at** (*Walking a route*, below).
+- `open(gate)` undoes `close` for a gate the client shows gone after all: it gives back only the
+  floor closing it took, and re-walls every other closed gate and every `block`, which may share
+  it.
+- `crosses(gate, path)` says whether a line of waypoints steps on a gate's floor: the walker's
+  question of a gate it learns of mid-walk, when it has the waypoints left and not a `Route`.
+- **The walker closes the gates its client lists, and a gate it stalls at** (*Walking a
+  route*, below).
 
 **What the client lists** was read in game on 2026-11-25 (r815378), with BartleBot's
 `tools/probe_gates.py`, on two wizards, one past Colossus Boulevard and one not. Nothing was
@@ -436,7 +442,7 @@ the install has them, gates' templates and solid files included.
 
 ## Walking a route
 
-Core's `movement/walk.py`: `RouteWalker(client, planner, avoid=…, mobs=…).walk(lease, goal)`
+Core's `movement/walk.py`: `RouteWalker(client, planner, avoid=…, watch_mobs=…).walk(lease, goal)`
 walks one wizard to a point in its zone, from wherever it stands, through the lease's input and
 nothing else. BartleBot's `probe_walk_input.py --to <arrival point, placed object or x,y[,z]>`
 walks on it, on a planner built from the wad.
@@ -472,10 +478,32 @@ walks on it, on a planner built from the wad.
   (`GATE_REACH`) closes the nearest such gate on the walk's own planner, instead of the floor
   ahead, and replans: around it, or the walk ends `NO_ROUTE` with its `NoRoute` on
   `WalkResult.no_route`, naming the gate and the crossing past it. `WalkResult.gates_closed` lists
-  each gate a stall closed. A stall near a gate for another reason (a mob, say) closes the gate
-  all the same; Stage 3.2's live read is what tells the two apart.
-- **Mobs**, when the walk is given `client_mobs(client)`: a `MobWatch` reads every listed
-  mob's position five times a second and estimates its velocity, listing them afresh every 2 s.
+  each gate a stall closed. **A gate the client shows gone is left out**: a stall near it is
+  something else (a mob, a solid the map lacks), so the floor ahead is closed and the gate stays
+  open. Only a client whose list could not be read leaves a stall to decide alone.
+- **Gates the client lists** (`GateRead`), whether or not mobs are watched. One pass over the
+  entity list (`ClientRead`) reads every entity's template name and location and picks out the
+  mobs as wizsprinter's `get_mobs` does (`NPCBehavior`'s flag at 288): before the first plan,
+  and every 2 s after (`WALK_MOB_REFRESH`), by the `MobWatch` when mobs are watched and by a
+  refresher of the walk's own when not. On each pass:
+  - **A listed gate is there** and is closed: an entity of the gate's template, by name, within
+    25 units of where the map places it (`GATE_MATCH`; every one read in game stood 0 off). When
+    it is on the way left (`crosses`), the walk replans around it, or ends `NO_ROUTE` naming it,
+    before it is reached, with no stall. `WalkResult.gates_seen` lists each.
+  - **A gate not listed within 3,500 units is gone** (`GATE_LISTED_RANGE`, under the least
+    distance an object was seen listed at, 3,877, so out of view is never taken for gone). A gate
+    a pass closed opens again (`open`) once two passes in a row show it gone
+    (`GATE_GONE_PASSES`: one pass that skipped its entity would otherwise flap it), and the walk
+    replans; `WalkResult.gates_opened` lists each. A gate a stall closed never reopens.
+  - **A gate beyond range and not listed is not known**, and stays as it is: open, unless a
+    stall or an earlier pass closed it. An object exempt from AOI is listed anywhere in the zone,
+    so a listed one far off is closed like any other; whether it is exempt is never needed,
+    since gone matters only near the wizard, at a stall or for a reopen, well inside the range.
+  - **A listed gate is taken as closed whatever its state** (`ObjectStateBehavior`): no door was
+    seen to open, so whether a door's collision follows its state is not known, and by the
+    user's choice (2026-11-25) the walker assumes that a gate there blocks.
+- **Mobs**, when the walk is told to watch them (`watch_mobs`): a `MobWatch` reads every listed
+  mob's position five times a second and estimates its velocity, listed afresh on each pass.
   Each tick the walk projects itself 2.5 s along its route and every mob along its velocity, and
   wants each mob's trigger radius plus 120, plus 40 for every second looked ahead. **A mob walks
   at about 40 to 180 units a second and a wizard at 600 to 840**, so next to a wizard a mob is
@@ -543,12 +571,11 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
    walker has not been run on a live client yet.
 2. **Saving the zone maps' copies ahead of need** (Stage 4): when a product calls
    `ZoneMaps.warm`, so a walk's first load in a zone is never the 2 to 16 s build.
-3. **Gates read from the client** (Stage 3.2). Today a gate is found closed only by stalling at
-   it. The read-only session in game is done (*Gates*, *What the client lists*): a gate the
-   client lists is there, and one it does not list within about 4,400 units, or anywhere for one
-   exempt from AOI, is gone. What is left is the walker reading the gates near its route on its
-   pass over the entity list and closing those that are there before it reaches them, and
-   whether a door's collision follows its state, which no door was seen to show.
+3. **Whether a door's collision follows its state.** The walker reads the gates its client
+   lists (*Walking a route*) and takes every listed one as closed. If a door stays listed once
+   open (a dungeon door after its room's fight, say), a walk ends `NO_ROUTE` at a door it could
+   walk through, and its state (`ObjectStateBehavior`) would be the way to tell. No door was
+   seen to open in the session, and the read has not walked a live client yet.
 4. **Walk the link kinds not yet tried**: a rope (Novus's Stone of Heaven), a Lemuria tower
    lift, a Krokotopia stone pair, an X / X_B pair. How near an object a press must be is
    assumed (150; every Mirage ladder took a press from where its leg ended); whether facing it
