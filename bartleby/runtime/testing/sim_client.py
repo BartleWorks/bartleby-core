@@ -459,7 +459,9 @@ class SimClient:
     on_press: Callable[[GameAction | int], None] | None = None
     #: Where the game puts a wizard that walked from the first point toward the second: the
     #: second, unless a test says otherwise, as a wall, a teleport volume or a reset would.
-    on_step: Callable[[tuple[float, float, float], tuple[float, float, float]], tuple[float, float, float]] | None = None
+    on_step: Callable[[tuple[float, float, float], tuple[float, float, float]], tuple[float, float, float]] | None = (
+        None
+    )
 
     def __post_init__(self) -> None:
         self.body = _Body(self)
