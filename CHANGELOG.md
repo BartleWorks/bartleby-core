@@ -8,7 +8,7 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
-## Unreleased
+## 0.11.0
 
 Deck sets (BartleBuddy #31, Stage 9), followers that find the trail again once something
 moved them, and route planning (BartleBot #322, Stage 1.1). A minor release: a product that
