@@ -8,7 +8,7 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
-## Unreleased
+## 0.12.1
 
 Gates in the zone maps (Stage 3.1 of BartleBot #322), wizwalker's pin for live r815378, and a
 duel's id. Nothing breaks.
