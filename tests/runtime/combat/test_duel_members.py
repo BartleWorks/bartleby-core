@@ -1,4 +1,4 @@
-"""Who is in a client's duel, read from its participants."""
+"""Which duel a client is in, by the duel's id, and who is in it, read from its participants."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from bartleby.runtime.combat import duel_members as duel_members_module
-from bartleby.runtime.combat.duel_members import duel_members, own_id
+from bartleby.runtime.combat.duel_members import duel_id, duel_members, own_id
 
 OURS = 11
 
@@ -46,6 +46,19 @@ async def test_a_duel_that_never_lists_the_client_or_never_reads_has_no_members_
     assert await duel_members(_client([12], [12], [12])) is None
     assert await duel_members(_client(*[RuntimeError("unreadable")] * 3)) is None
     assert await duel_members(_client([OURS], own=RuntimeError("unreadable"))) is None
+
+
+def _in_duel(read) -> SimpleNamespace:
+    return SimpleNamespace(duel=SimpleNamespace(duel_id_full=AsyncMock(**read)))
+
+
+async def test_a_duels_id_is_the_games_own():
+    assert await duel_id(_in_duel({"return_value": 2460654246404902884})) == 2460654246404902884
+
+
+@pytest.mark.parametrize("read", [{"return_value": 0}, {"side_effect": RuntimeError("not in a duel")}])
+async def test_a_duel_id_of_zero_or_unreadable_says_none(read):
+    assert await duel_id(_in_duel(read)) is None
 
 
 async def test_a_wizards_own_id_is_none_when_it_cannot_be_read():

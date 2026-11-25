@@ -10,7 +10,8 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ## Unreleased
 
-Gates in the zone maps: Stage 3.1 of BartleBot #322. Nothing breaks.
+Gates in the zone maps (Stage 3.1 of BartleBot #322), wizwalker's pin for live r815378, and a
+duel's id. Nothing breaks.
 
 ### Added
 
@@ -34,6 +35,9 @@ Gates in the zone maps: Stage 3.1 of BartleBot #322. Nothing breaks.
   `bartleby/` to `teleport`, `tp_to`, `write_position` or `write_xyz`.
 - `tools/build_zone_maps.py --verify` sees a change to a template or solid file a zone's gates
   were read from (`index.json`'s `objects` hash).
+- **`combat.duel_members.duel_id(client)`**, the game's id for a client's duel (`Duel.m_duelID`),
+  or None. The same on every client in the duel, as a wizard's list of its members is not while
+  that wizard joins a duel already planning; BartleBuddy places its fighters by it.
 
 ### Changed
 
