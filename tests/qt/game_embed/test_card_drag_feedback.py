@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import re
 
+import pytest
 from PyQt6.QtCore import QEvent, QPoint, Qt
 from PyQt6.QtGui import QMouseEvent
 from PyQt6.QtTest import QTest
@@ -340,6 +341,9 @@ def test_a_lifted_card_follows_the_pointer_between_slots(qapp):
     assert host
 
 
+# A known flake (BartleWorks/bartleby-core#28): under -n auto load the drop is not handled yet
+# when is_dragging is checked, and the file passes alone. See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 def test_a_lifted_card_says_it_is_being_held_and_stops_saying_so(qapp):
     """The grabbed state is what picks the card out of the column it is travelling over."""
     host, column = _column(qapp)
