@@ -33,6 +33,20 @@ lease, and a follower walks through it. Once the writes begin they run out of an
 since the game can't be asked to stop: a higher owner or Stop all waits the length of an apply,
 and whoever embeds the window always hears how it ended.
 
+**A walk presses through its lease, and core never writes a position.** `movement/walk.py`'s
+`RouteWalker` takes the lease and sends every key and yaw through `lease.input`; it writes no
+`speed_multiplier` until the user's go-ahead, and no position ever, and
+`test_nothing_in_the_walker_writes_speed_or_a_position` reads the module for either. Its plans run
+in a worker thread, never on the loop, since one takes seconds in a big zone (`docs/WALKING.md`,
+*Walking a route*).
+
+**A held event loop lets go of every held key.** `ClientInput` beats on each repeat of a held
+key, and its watchdog thread sends key-up for all of them once the loop is
+`HELD_KEY_LOOP_LATE` behind, and forgets them, so a holder finds them no longer `held` and holds
+them again when it means to. A holder that keeps state on a key being held (a stall window
+started when forward went down) restarts it when `hold` says the key was not held. The watchdog
+only ever lets a key go.
+
 **Speed is never written above 2.0x in total** (the field holds a mount's bonus too), and
 there is one Speed toggle, `actions/helpers.py`'s `SpeedBoost`: BartleBot's authoring tools
 hold one too, on an arbiter of their own, since a run switches them off first.

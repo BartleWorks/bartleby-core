@@ -808,6 +808,20 @@ HELD_KEY_REPEAT = 0.05
 # Seconds between the repeated key-downs of a held key, as a key held on a keyboard repeats.
 # The game reads a key as held while they keep coming.
 
+HELD_KEY_LOOP_LATE = 0.2
+# Seconds the event loop may fall behind a held key's repeat before ClientInput's watchdog thread
+# lets go of every key held, since a wizard walks on with nothing steering for as long as the
+# loop is held: about 600 units a second on foot. In 21.8 hours of BartleBot and BartleBuddy run
+# traces (2026-11-25) the loop was held past 0.5 s 1.7 times an hour and 3.1 s at the longest,
+# so a held loop now walks a wizard some 120 to 190 units, not thousands.
+
+HELD_KEY_WATCH_INTERVAL = 0.05
+# Seconds between the watchdog's looks at every client holding a key.
+
+HELD_KEY_RELEASE_TIMEOUT = 0.25
+# Seconds the watchdog waits on a game window to take a key-up before going on to the next; a
+# window that is not answering gets it once it answers again.
+
 POSITION_READ_INTERVAL = 0.1
 # Seconds between a state reader's position reads: several a second, which is what a
 # follower walking the leader's trail needs.
@@ -846,6 +860,68 @@ FOLLOW_GATE_WAIT = 8.0
 
 FOLLOW_PORT_RETRY = 15.0
 # Seconds before a follower whose port failed tries the fallback again.
+
+# ---------------------------------------------------------------------------
+# Walking a route (bartleby.runtime.movement.walk), BartleBot's probe_walk_input.py's numbers
+# ---------------------------------------------------------------------------
+
+WALK_TICK = 0.05
+# Seconds between a walk's steering updates: its position read, its yaw re-aimed at the next
+# waypoint.
+
+WALK_SETTLE = 0.3
+# Seconds a walk lets the wizard come to rest before reading where it stopped.
+
+WALK_STATE_POLL = 0.5
+# Seconds between a walk's reads of the zone and of whether a fight has started.
+
+WALK_STALL_WINDOW = 1.5
+# Seconds of forward held with too little progress before a walk counts itself stalled.
+
+WALK_BACK_OFF_LONGEST = 1.0
+# Seconds at most a stalled walk holds the backward key; it backs off by distance, since on a
+# +40% mount half a second of the backward key covered 413 units.
+
+WALK_LINK_WAIT = 6.0
+# Seconds a walk waits at a link to be moved before dropping the link and replanning: a wrong
+# pairing and a quest gate look the same.
+
+WALK_PROMPT_WAIT = 2.0
+# Seconds a walk at a pressed link waits for the interact prompt before pressing anyway. The
+# game takes 0.2 to 0.4 s to show it, and a press before it does nothing (Mirage's Ladder 02).
+
+WALK_PRESS_EVERY = 2.0
+# Seconds between presses of a link that has not moved the wizard yet.
+
+WALK_LANDING_WAIT = 30.0
+# Seconds at most a walk waits for a pressed link to set the wizard down: a zipline is shown as
+# a ride before the server moves the wizard.
+
+WALK_LANDED_FOR = 1.0
+# Seconds of hardly moving after which a pressed link has set the wizard down.
+
+WALK_MOB_WAIT = 30.0
+# Seconds in all a walk waits or backs off for mobs before ending blocked: a loop of four ghosts
+# in Unicorn Way never cleared.
+
+WALK_MOB_REFRESH = 2.0
+# Seconds between re-reads of the list of mobs, which reads every entity's behaviors.
+
+WALK_MOB_POLL = 0.2
+# Seconds between reads of every listed mob's position.
+
+WALK_LOOK_AHEAD = 2.5
+# Seconds ahead a walk projects itself along its route, and every mob along its velocity.
+
+WALK_LOOK_STEP = 0.1
+# Seconds between the moments of that look ahead.
+
+WALK_DETOUR_EVERY = 1.0
+# Seconds at least between two detours sought around mobs.
+
+WALK_TIME_ALLOWANCE = 20.0
+# Seconds a walk is given beyond three times its planned walking time, its links' waits, its
+# waits for mobs and its planning, before it ends out of time.
 
 JOIN_ORDER_HOLD = 4.0
 # Seconds after a follower's turn to join the leader's fight came before the next one in the

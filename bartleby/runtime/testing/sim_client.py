@@ -169,6 +169,9 @@ class _Keys:
             self.sim.log("down", code)
 
     async def up(self, code: int) -> None:
+        self.up_now(code)
+
+    def up_now(self, code: int) -> None:
         self.sim.advance()
         if code in self.sim.held:
             self.sim.held.discard(code)
@@ -454,6 +457,11 @@ class SimClient:
     #: Called with the key's action whenever a key is pressed (not held): a test's hook to
     #: make the press do something, the way Interact takes a wizard through a door.
     on_press: Callable[[GameAction | int], None] | None = None
+    #: Where the game puts a wizard that walked from the first point toward the second: the
+    #: second, unless a test says otherwise, as a wall, a teleport volume or a reset would.
+    on_step: Callable[[tuple[float, float, float], tuple[float, float, float]], tuple[float, float, float]] | None = (
+        None
+    )
 
     def __post_init__(self) -> None:
         self.body = _Body(self)
@@ -493,7 +501,8 @@ class SimClient:
         step = forward * self.walk_speed * dt
         x, y, z = self.position
         # wizwalker's yaw: 0 faces -y, counterclockwise.
-        self.position = (x - math.sin(self.yaw) * step, y - math.cos(self.yaw) * step, z)
+        walked = (x - math.sin(self.yaw) * step, y - math.cos(self.yaw) * step, z)
+        self.position = walked if self.on_step is None else self.on_step(self.position, walked)
 
     def place(self, position: tuple[float, float, float], zone: str | None = None) -> None:
         """Move the wizard as the server would: a port, a door, a reset."""

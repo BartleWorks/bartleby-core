@@ -4,7 +4,8 @@ A* over the grid's cells (8 neighbors, no cutting a wall's corner), each link an
 the floor near where it is taken to its landing, costing seconds of walking. The route is then
 straightened to the points where a walker has to turn, never coming nearer a patrol than the
 route itself did, and comes back as legs, each but the last ending at a link. It keeps out of
-every exit of the zone but the one it is sent to. Moved from BartleBot's
+every exit of the zone but the one it is sent to, and never walks through a volume link it
+does not take, since stepping in moves the wizard. Moved from BartleBot's
 ``tools/probe_walk_route.py``, whose ``Planner`` this is; core's ``docs/WALKING.md``,
 *Planning a route*, has what each number was measured against.
 
@@ -17,7 +18,7 @@ from __future__ import annotations
 import dataclasses
 import heapq
 import math
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, Sequence, Set
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -61,11 +62,14 @@ def astar(
     goal: Node,
     max_rise: float = MAX_RISE,
     portals: Mapping[int, list[tuple[int, float]]] | None = None,
+    taken_only: Set[int] | None = None,
 ) -> list[Node] | None:
     """A cell-by-cell route, or None. *portals* maps a node's flat index to the nodes a link
     puts it on, and what taking it costs; a route through one has two non-adjacent nodes in a
     row. The distance heuristic does not know about links, so a route using one is found but
-    not always the shortest."""
+    not always the shortest. A node in *taken_only* (a volume link's floor, which moves
+    whoever steps in) is left only by a link, never walked on from, unless the route starts
+    there."""
     layers, ny, nx = grid.levels.shape
     plane = ny * nx
     ok = passable.ravel().tolist()
@@ -99,7 +103,8 @@ def astar(
         rest = cur % plane
         cj, ci = divmod(rest, nx)
         height = z[cur]
-        for dj, di, length in steps:
+        walks_on = not (taken_only and cur in taken_only and cur != s)
+        for dj, di, length in steps if walks_on else ():
             nj, ni = cj + dj, ci + di
             if not (0 <= nj < ny and 0 <= ni < nx):
                 continue
@@ -124,6 +129,19 @@ def astar(
                 nj, ni = divmod(nb % plane, nx)
                 heapq.heappush(heap, (ng + math.hypot(nj - gj, ni - gi) * c, ng, nb))
     return None
+
+
+def link_reach(link: Link) -> float:
+    """How near its source a link's floor reaches: as near as a wizard stands to take it, and
+    for a volume, which moves whoever steps in, :data:`EXIT_MARGIN` more, as an exit has, so
+    a route walking past keeps the wizard's body out of it."""
+    return link.reach + (EXIT_MARGIN if link.kind == "volume" else 0.0)
+
+
+def _flat(spots: np.ndarray) -> list[int]:
+    """The flat index astar uses of every True spot of a (layer, j, i) array."""
+    _, ny, nx = spots.shape
+    return [int(layer * ny * nx + j * nx + i) for layer, j, i in zip(*np.nonzero(spots))]
 
 
 def runs(path: Sequence[Node]) -> list[list[Node]]:
@@ -283,33 +301,66 @@ class ZonePlanner:
 
     def route(self, start: Sequence[float], goal: Sequence[float], avoid: bool = True) -> Route | None:
         """A cell-by-cell route between two points, each (x, y) or (x, y, z), or None. With
-        *avoid*, it pays the patrols' cost; without, it takes the shortest."""
+        *avoid*, it pays the patrols' cost; without, it takes the shortest.
+
+        It steps onto a volume link's floor only to take that link, since stepping in moves the
+        wizard, unless the start or the goal is in it. Where that leaves no route (a volume
+        across the only way, whose landing is off the floor), it plans once more as if the
+        volumes were floor, and the walker deals with whatever moves it."""
         floor = self.floor_for(start, goal)
         s, g = self.node(*start, passable=floor), self.node(*goal, passable=floor)
         if s is None or g is None:
             return None
         cost = self.cost if avoid else np.ones_like(self.cost)
-        nodes = astar(self.grid, floor, cost, s, g, self.max_rise, self.portals(floor))
-        return None if nodes is None else Route(nodes, floor)
+        portals = self.portals(floor)
+        volumes = self.volume_floor(floor, s, g)
+        taken_only = set(_flat(volumes))
+        nodes = astar(self.grid, floor, cost, s, g, self.max_rise, portals, taken_only)
+        if nodes is None and taken_only:
+            volumes = np.zeros_like(floor)
+            nodes = astar(self.grid, floor, cost, s, g, self.max_rise, portals)
+        if nodes is None:
+            return None
+        # Straightening must not cut across a volume the route did not step into either.
+        walked = floor & ~volumes
+        for node in nodes:
+            walked[node] = floor[node]
+        return Route(nodes, walked)
+
+    def _link_floor(self, link: Link, floor: np.ndarray) -> np.ndarray:
+        """The spots of *floor* within :func:`link_reach` of *link*'s source, at about its height."""
+        px, py = self.grid.all_centers()
+        near = (np.hypot(px - link.source[0], py - link.source[1]) <= link_reach(link))[None] & floor
+        with np.errstate(invalid="ignore"):
+            near &= np.abs(self.grid.levels - link.source[2]) <= LEVEL_GAP
+        return near
+
+    def volume_floor(self, floor: np.ndarray, *keep: Node) -> np.ndarray:
+        """The spots of *floor* in a volume link, where stepping in moves the wizard: every
+        volume's but those holding a node of *keep* (a route's start or goal)."""
+        out = np.zeros_like(floor)
+        for link in self.links:
+            if link.kind != "volume":
+                continue
+            spots = self._link_floor(link, floor)
+            if not any(spots[node] for node in keep):
+                out |= spots
+        return out
 
     def portals(self, passable: np.ndarray | None = None) -> dict[int, list[tuple[int, float]]]:
         """For astar: every passable spot within a link's reach of its source, at about its
         height, leads to the spot nearest where the link lands."""
         floor = self.passable if passable is None else passable
-        layers, ny, nx = floor.shape
+        _, ny, nx = floor.shape
         plane = ny * nx
-        px, py = self.grid.all_centers()
         out: dict[int, list[tuple[int, float]]] = {}
         for link in self.links:
             landing = self.node(*link.target, passable=floor)
             if landing is None:
                 continue
             to = landing[0] * plane + landing[1] * nx + landing[2]
-            near = (np.hypot(px - link.source[0], py - link.source[1]) <= link.reach)[None] & floor
-            with np.errstate(invalid="ignore"):
-                near &= np.abs(self.grid.levels - link.source[2]) <= LEVEL_GAP
-            for layer, j, i in zip(*np.nonzero(near)):
-                out.setdefault(int(layer * plane + j * nx + i), []).append((to, link.seconds * WIZARD_SPEED))
+            for spot in _flat(self._link_floor(link, floor)):
+                out.setdefault(spot, []).append((to, link.seconds * WIZARD_SPEED))
         return out
 
     def turns(self, route: Route) -> list[Node]:
@@ -339,7 +390,7 @@ class ZonePlanner:
                 lands_on = parts[k + 1][0]
                 ends_at = self.grid.world(*run[-1])
                 for candidate in self.links:
-                    near = math.dist(candidate.source[:2], ends_at[:2]) <= candidate.reach + self.grid.cell
+                    near = math.dist(candidate.source[:2], ends_at[:2]) <= link_reach(candidate) + self.grid.cell
                     if near and self.node(*candidate.target, passable=route.passable) == lands_on:
                         link = candidate
                         break
