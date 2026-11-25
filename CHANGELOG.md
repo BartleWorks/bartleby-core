@@ -8,6 +8,36 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Walking a route (BartleBot #322, Stage 2): core walks a planned route on a movement lease. Nothing
+breaks.
+
+### Added
+
+- **`movement.walk`**: `RouteWalker(client, planner, avoid=…, mobs=…).walk(lease, goal)` walks a
+  wizard to a point in its zone through the lease's input, from where it stands: the yaw written
+  each `WALK_TICK`, resets walked again, stalls backed off from three times, volume links stood in
+  and objects pressed once their prompt shows, live mobs (`client_mobs(client)`, watched by
+  `MobWatch`) detoured around before they are waited for. It ends in a `WalkResult`: `ARRIVED`,
+  `NO_ROUTE`, `BLOCKED`, `FIGHT`, `ZONE_CHANGED` or `TIMED_OUT`. Every plan runs in a worker
+  thread. It never writes `speed_multiplier` or a position. Its timing is `WALK_*` in `timing.py`
+  (`docs/WALKING.md`, *Walking a route*).
+- **A held event loop lets go of held keys**: `ClientInput`'s watchdog thread sends key-up for
+  every held key once the loop is `HELD_KEY_LOOP_LATE` (0.2 s) behind their repeat, and forgets
+  them, so a holder finds them no longer `held` and holds them again. This covers BartleBuddy's
+  followers too. `KeySender` gains `up_now`, a key-up from any thread; a sender without it has its
+  keys left to the loop as before.
+- `SimClient.on_step`: where the game puts a wizard that walked, for a test's wall, teleport
+  volume or reset.
+
+### Changed
+
+- **A route never walks through a volume link it does not take** (`ZonePlanner.route`), since
+  stepping in moves the wizard. A volume link's floor, its reach plus `EXIT_MARGIN`, is left only
+  by its link (`astar`'s `taken_only`); where that leaves no route, the plan is made as before.
+  `route.link_reach` and `ZonePlanner.volume_floor` are new.
+
 ## 0.11.1
 
 The shipped zone maps (BartleBot #322, Stage 1.2): every zone BartleBot walks has a map, so a run

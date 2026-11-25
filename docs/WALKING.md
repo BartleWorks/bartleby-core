@@ -12,18 +12,19 @@ ahead anyway, by choice, to take every long teleport out of the app: everything 
 the game's own links, or crosses one gate an author placed by a hop no longer than its limit.
 
 Route planning is core's, in `bartleby.runtime.movement` (Stage 1 of that epic), and so are
-the maps it plans on, one for every zone BartleBot walks, shipped with core. Walking a route is
-still a probe in BartleBot's `tools/` until Stage 2 brings it here, and nothing in `bartlebot/`
-walks yet. Each probe's docstring has its own OUTCOME section with the run-by-run
+the maps it plans on, one for every zone BartleBot walks, shipped with core, and the walker that
+follows a route on a live client (Stage 2). Nothing in `bartlebot/` walks yet; BartleBot's
+`probe_walk_input.py` walks on core's walker. Each probe's docstring has its own OUTCOME section with the run-by-run
 numbers.
 
 | where | what it does | needs a client |
 |---|---|---|
 | core's `movement/collision.py`, `zone_grid.py`, `patrols.py`, `zone_links.py`, `route.py` | plans a route in a zone from what its files hold | no |
 | core's `movement/zone_maps.py` | a zone's planner from its shipped map, saved on the user's machine once built | no |
+| core's `movement/walk.py` | walks a planned route on a movement lease, around mobs, through links | yes |
 | core's `tools/zone_files.py`, `tools/build_zone_maps.py` | reads a zone's wad into `ZoneFiles`; builds, verifies and compares the shipped maps | no |
 | BartleBot's `tools/probe_walk_route.py` | plans on a zone's wad with core's reader, draws the routes | no |
-| BartleBot's `tools/probe_walk_input.py` | walks a planned route on a live client, around mobs, through links | yes |
+| BartleBot's `tools/probe_walk_input.py` | plans on a zone's wad and walks it with core's walker, drawing the trail | yes |
 | BartleBot's `tools/probe_walk_zones.py` | checks every zone's arrival points can reach each other | no |
 | BartleBot's `tools/probe_mob_paths.py` | watches a zone's mobs and says whether they walk their paths | yes |
 
@@ -244,6 +245,16 @@ cuts 100 to 300 grid turns to 20 to 40. A route with links comes back as **legs*
 straightened alone and each but the last ending at the link's volume, or on the floor beside
 the object to press.
 
+**A route never walks through a volume link it does not take**, since stepping in moves the
+wizard. A volume link's floor, within its reach plus `EXIT_MARGIN` (150 units of its center),
+is left only by its link (astar's `taken_only`), unless the route starts there; one holding the
+start or the goal is open. Where that leaves no route, a volume across the only way whose landing
+leads nowhere useful, the plan is made once more as if the volumes were floor, and the walker
+replans after whatever moves it. The route's floor drops the volumes it did not step into, so
+straightening never cuts across one either. On the shipped maps, 14 pairs each in Triton Avenue
+(six volume links) and Unicorn Way planned the same routes through the same links as before,
+within 12 units (2026-11-25).
+
 **Checked against the probe it came from** (2026-11-24, on r814353): BartleBot's shelved
 `probe_walk_route.py` and core's planner, with exits left out, built the same grid, floor and
 costs and planned every route identically, cell for cell, with the same turns: Unicorn Way's
@@ -322,43 +333,67 @@ three routes as its OUTCOME has them: 75.5, 53.3 and 34.4 s straightened.
 
 ## Walking a route
 
-BartleBot's `probe_walk_input.py --to <arrival point, placed object or x,y[,z]>` walks from
-wherever the wizard stands, on core's plan. The epic's Stage 2 brings it into core as the walker.
+Core's `movement/walk.py`: `RouteWalker(client, planner, avoid=…, mobs=…).walk(lease, goal)`
+walks one wizard to a point in its zone, from wherever it stands, through the lease's input and
+nothing else. BartleBot's `probe_walk_input.py --to <arrival point, placed object or x,y[,z]>`
+walks on it, on a planner built from the wad.
 
 - **Keys are the account's own**, read from the client's memory (`KEY_BINDINGS.md`):
   MoveForward, MoveBackward, MoveLeft and MoveRight (A and D *turn* a wizard; these are not
-  strafes) and NPCInteract, each a `GameAction`. The probe predates that reader and still falls
-  back to `Bin/config.xml`'s `MoveForwardStart` and the rest, then W S A D and X.
+  strafes) and NPCInteract, each a `GameAction`, held and pressed through `ClientInput`.
 - **Steering writes the yaw.** wizwalker's yaw is 0 facing -y, growing counterclockwise
-  (`atan2(-dx, -dy)`). Hundreds of writes, none undone. `--turn-keys` steers with the keys
-  instead (A turns the yaw down at about 152 degrees a second), and tracks the route less closely.
+  (`atan2(-dx, -dy)`). Hundreds of writes, none undone. Before the walker, the probe could steer
+  with the turn keys (A turns the yaw down at about 152 degrees a second), which tracked the route
+  less closely; the walker writes the yaw only.
 - **Speed.** Walking is horizontal only: a stair's height is free. On foot it measured 600 on
   flat ground (wizwalker's constant says 580); a mount multiplies it, most by 1.4 and the
-  fastest by 1.55. The client's `speed_multiplier` (a percentage) is read to plan; once
-  walking, the measured speed takes over. On the +40% mount: 840 expected, 838 measured. No
-  probe writes it, and nothing will until the user's go-ahead (above).
-- **Following** a leg: hold forward, re-aim at the next waypoint each 50ms tick, pass a
+  fastest by 1.55. The walker reads `speed_multiplier` (a percentage) to give a walk its time,
+  and never writes it, nor a position; a guard test reads the module for either. On the +40%
+  mount: 840 expected, 838 measured.
+- **Planning never runs on the event loop.** A long route takes about 5 s to plan in the Outback,
+  1 to 1.5 s in Triton Avenue and 0.2 s in Olde Town (on the shipped maps, 2026-11-25), so every
+  plan and replan runs in a worker thread, with forward let go meanwhile.
+- **Following** a leg: hold forward, re-aim at the next waypoint each 50 ms tick, pass a
   waypoint within 80 units or once past it along its leg, stop within 50 of the goal.
-- **Stalls** (forward held 1.5s, under 60 units moved): back off 150 units with the backward
-  key, close the floor 80 units ahead within 110, replan from there; up to 3 times. A wizard
-  grazing a round trunk slides around it unaided; only one walking straight at an obstacle stalls.
-- **Mobs.** A watcher reads every listed mob's position five times a second and estimates its
-  velocity. Each tick the walk projects itself 2.5s along its route and every mob along its
-  velocity, and wants each mob's trigger radius plus 120, plus 40 for every second looked
-  ahead. **A mob walks at about 40 to 180 units a second and a wizard at 600 to 840**, so next
-  to a wizard a mob is nearly a standing obstacle: short of room, the walk first plans a
-  detour closing each mob out to that same room at three moments over the 2.5s, and only
-  without one waits or backs off, for 30s at most. Detours plan with the patrol cost even on
-  a shortest-path walk, so after one the rest of the leg follows the patrol-avoiding route.
+- **Resets and jumps.** A move faster than 1,600 units a second (or twice the speed expected)
+  between two reads is a jump. One that leaves the wizard within 150 of the leg it walks is the
+  server putting it back, and the stretch is walked again; one that leaves it off the leg, a link
+  it did not plan for, is replanned from where it landed.
+- **Stalls** (forward held 1.5 s, under 60 units moved): back off 150 units with the backward
+  key, close the floor 80 units ahead within 110, replan from there, three times; the fourth
+  stall ends the walk blocked. A wizard grazing a round trunk slides around it unaided; only one
+  walking straight at an obstacle stalls.
+- **Mobs**, when the walk is given `client_mobs(client)`: a `MobWatch` reads every listed
+  mob's position five times a second and estimates its velocity, listing them afresh every 2 s.
+  Each tick the walk projects itself 2.5 s along its route and every mob along its velocity, and
+  wants each mob's trigger radius plus 120, plus 40 for every second looked ahead. **A mob walks
+  at about 40 to 180 units a second and a wizard at 600 to 840**, so next to a wizard a mob is
+  nearly a standing obstacle: short of room, the walk first plans a detour closing each mob out
+  to that same room at three moments over the 2.5 s, and only without one waits or backs off,
+  for 30 s at most in all, then ends blocked. A detour plans only to a waypoint of the route at
+  least 1,500 units along it, beyond every mob near it and outside each, and the rest of the route
+  follows unchanged: a detour planned to the goal took seconds in a big zone, with the mobs
+  moving meanwhile. Detours plan with the patrol cost even on a shortest-path walk.
 - **Links.** At the end of a leg the walk stands in the volume, or faces the object and
   presses the account's interact key once the game shows its prompt (wizwalker's
-  `is_in_npc_range`, waited on up to 2s), again every 2s, until moved more than 300 units
-  (rising counts, for a ladder); after a press it waits for the wizard to be set down (under 20 units in 1s), then
-  replans from wherever it landed. A jump near the pending link's landing is that link, taken
-  early. Not moved within 6s, the link is dropped and the walk replans: a wrong pairing and a
-  quest gate look the same.
-- It stops on a battle, a zone change, the goal, or running out of time, and releases every
-  key however it stops.
+  `is_in_npc_range`, waited on up to 2 s), again every 2 s, until moved more than 300 units
+  (rising counts, for a ladder); after a press it waits for the wizard to be set down (under 20
+  units in 1 s), then replans from wherever it landed. A jump near the pending link's landing is
+  that link, taken early. Not moved within 6 s, the link is dropped and the walk replans: a wrong
+  pairing and a quest gate look the same.
+- **A held event loop** leaves forward held with nothing steering: in 21.8 hours of BartleBot and
+  BartleBuddy run traces (2026-11-25) the loop was held past 0.5 s 1.7 times an hour, past 1 s
+  0.5 times an hour, and 3.1 s at the longest, up to about 1,900 units on foot. So
+  `ClientInput`'s watchdog thread lets go of every held key once the loop is 0.2 s behind
+  (`HELD_KEY_LOOP_LATE`), and the walk, finding forward no longer held, holds it again, aimed
+  afresh: a held loop walks a wizard some 120 to 190 units. Settled with the user on 2026-11-25,
+  over a walk tick on a thread of its own, which would have had to cross the arbiter, the leases
+  and the key repeat, all on the loop.
+- **It ends** on the goal, no route, being blocked (stalls, or mobs), a fight, a zone change or
+  running out of time (three times the walking planned, its links' waits, its waits for mobs
+  and its planning, plus 20 s), with a `WalkResult` saying which and `describe()` naming the zone
+  and both points; and it lets go of every key however it ends. A cancel, or the lease being
+  lost, goes on up to the caller.
 
 Results, all with no battle unless said:
 
@@ -385,26 +420,24 @@ Results, all with no battle unless said:
 In rough order of what a bot needs first. Most is a stage of BartleBot's Walking Routes epic
 (#322); `docs/EPICS.md` there has the stage-to-issue table.
 
-1. **Walking a route in core** (Stage 2): `probe_walk_input.py`'s walk, on a movement lease, its
-   timing constants in `timing.py`. Several clients walking together belongs there too.
+1. **Several clients walking together** (Stage 4, BartleBot's `walk_clients`), each on its own
+   route from where it stands, and the walker's first run in game: `probe_walk_input.py` on core's
+   walker has not been run on a live client yet.
 2. **Saving the zone maps' copies ahead of need** (Stage 4): when a product calls
    `ZoneMaps.warm`, so a walk's first load in a zone is never the 2 to 16 s build.
 3. **Placed objects' collision** (Stage 3). Read each placed object's `CollisionBehavior` solid
    file into the grid, so a walk does not have to stall on a teleporter stone to find it.
-4. **A volume link a route does not take is not closed to it.** A route planned past one could
-   step in and be moved. The walk notices any jump and replans, but the planner could keep out
-   of it as it does an exit; for Stage 2.
-5. **Walk the link kinds not yet tried**: a rope (Novus's Stone of Heaven), a Lemuria tower
+4. **Walk the link kinds not yet tried**: a rope (Novus's Stone of Heaven), a Lemuria tower
    lift, a Krokotopia stone pair, an X / X_B pair. How near an object a press must be is
    assumed (150; every Mirage ladder took a press from where its leg ended); whether facing it
    matters is not known (the walk faces it anyway).
-6. **The 44 zones still apart**: their maps, starting with the worst. Levers and lifts that
+5. **The 44 zones still apart**: their maps, starting with the worst. Levers and lifts that
    change state (Big Ben) may need the quest's state, not a link.
-7. **A checked-in table of verified links** (Stage 8), as `zone_nav.json` keeps verified gates,
+6. **A checked-in table of verified links** (Stage 8), as `zone_nav.json` keeps verified gates,
    so a pairing once walked is not re-derived, and one that moved nobody is not tried again.
-8. **Zone exits as a route's end.** A walk's goal across zones is the zone map's route
+7. **Zone exits as a route's end.** A walk's goal across zones is the zone map's route
    (BartleBot's `docs/ZONE_NAVIGATION.md`), with each crossing an exit to walk into; today every
    crossing is reached by `client.teleport` (Stage 4).
-9. **Smaller:** whether any of the 250 non-walkable meshes are walls; a box volume's turn, and
+8. **Smaller:** whether any of the 250 non-walkable meshes are walls; a box volume's turn, and
    the name of its third side's property; whether a quest-gated link can be told from the
    client before stepping into it (a trigger's `ReqHasQuest` may say).
