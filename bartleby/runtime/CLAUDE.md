@@ -40,6 +40,14 @@ and whoever embeds the window always hears how it ended.
 in a worker thread, never on the loop, since one takes seconds in a big zone (`docs/WALKING.md`,
 *Walking a route*).
 
+**Core writes no position, anywhere.** No module under `bartleby/` calls `.teleport(`,
+`.tp_to(`, a body's or a helper's `write_position`, or `write_xyz`, and
+`tests/test_no_position_writes.py` fails on one. The planner never plans a hop: a gate it meets
+closed ends the walk naming the gate and the crossing past it (`docs/WALKING.md`, *Gates*), and
+the one hop the products keep is BartleBot's own node, measured from where the wizard stands
+(its epic #322, Stage 7). A port through the friends list or the group menu is the server's
+own move, and is not a write.
+
 **A held event loop lets go of every held key.** `ClientInput` beats on each repeat of a held
 key, and its watchdog thread sends key-up for all of them once the loop is
 `HELD_KEY_LOOP_LATE` behind, and forgets them, so a holder finds them no longer `held` and holds
