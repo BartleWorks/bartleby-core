@@ -1,0 +1,46 @@
+{
+ "format": 1,
+ "zone": "G14_HS/HS_Z04_HouseOfScales",
+ "named": {
+  "Backdoor": [
+   49.8466796875,
+   6251.48095703125,
+   567.2760009765625
+  ],
+  "Start": [
+   3996.447998046875,
+   -3696.131103515625,
+   618.7310180664062
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume Teleport",
+   "center": [
+    -19.302249908447266,
+    6903.458984375,
+    566.4896850585938
+   ],
+   "shape": "Sphere",
+   "radius": 399.6871032714844,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    4639.5341796875,
+    -3681.612060546875,
+    640.8458862304688
+   ],
+   "shape": "Sphere",
+   "radius": 399.0221862792969,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

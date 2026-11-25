@@ -1,0 +1,92 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_PET_Park",
+ "named": {
+  "BAL-C10CinStart": [
+   -2080.56494140625,
+   -2234.87109375,
+   -10.023300170898438
+  ],
+  "Start": [
+   -1663.074951171875,
+   658.709228515625,
+   -40.793880462646484
+  ],
+  "TargetOutsidePetshop": [
+   -3114.118896484375,
+   -170.2333984375,
+   1.640166997909546
+  ],
+  "TargetOutsideSnackshop": [
+   -156.11129760742188,
+   -199.76609802246094,
+   -0.74774169921875
+  ],
+  "FromHatchery": [
+   -1193.239990234375,
+   -2834.237060546875,
+   115.82869720458984
+  ],
+  "InsidePetPark": [
+   -1720.781005859375,
+   674.8154296875,
+   -40.793731689453125
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportToCommons",
+   "center": [
+    -1732.491943359375,
+    1335.5279541015625,
+    -49.317928314208984
+   ],
+   "shape": "Sphere",
+   "radius": 239.845703125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportToHatchery",
+   "center": [
+    -1119.35302734375,
+    -3193.840087890625,
+    115.83779907226562
+   ],
+   "shape": "Sphere",
+   "radius": 145.20950317382812,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportToPetshop",
+   "center": [
+    -3211.031005859375,
+    28.8349609375,
+    1.016510009765625
+   ],
+   "shape": "Sphere",
+   "radius": 112.714599609375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportToSnackshop",
+   "center": [
+    -53.698638916015625,
+    -17.676639556884766,
+    -0.7478026747703552
+   ],
+   "shape": "Sphere",
+   "radius": 91.12513732910156,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

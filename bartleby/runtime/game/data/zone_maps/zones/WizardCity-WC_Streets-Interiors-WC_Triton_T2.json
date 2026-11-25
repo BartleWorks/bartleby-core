@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_Triton_T2",
+ "named": {
+  "Start": [
+   7.6144490242004395,
+   -1026.616943359375,
+   0.006912696175277233
+  ],
+  "Target location (Street4 Tower2 Entrance)": [
+   18.283750534057617,
+   -1021.9860229492188,
+   0.007141112815588713
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Skeleton-Gold-WCBoss-L03",
+   "proximity": 800.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -46.11452865600586,
+     -90.17843627929688,
+     50.506839752197266
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "WC-TR-Banshee-Red-L12",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     227.81219482421875,
+     280.58880615234375,
+     50.006961822509766
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (2)",
+   "template": "WC-TR-Banshee-Red-L12",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -204.24400329589844,
+     383.83929443359375,
+     5.158690929412842
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "WC-TR-Banshee-Red-L12",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     553.8729248046875,
+     116.38809967041016,
+     30.935300827026367
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (Street4 Tower2 Exit)",
+   "center": [
+    12.910189628601074,
+    -1284.4649658203125,
+    0.6630858778953552
+   ],
+   "shape": "Sphere",
+   "radius": 156.80099487304688,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

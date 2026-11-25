@@ -1,0 +1,152 @@
+{
+ "format": 1,
+ "zone": "Empyrea/EM_Z03_OuterAthanor",
+ "named": {
+  "Target location IceStorm": [
+   775.22021484375,
+   -88.72763061523438,
+   78.11756134033203
+  ],
+  "Start": [
+   124.48200225830078,
+   -1075.1009521484375,
+   63.721920013427734
+  ],
+  "Teleport from EM_Z03_IceGreatHall": [
+   9672.4755859375,
+   -3436.550048828125,
+   -900.0181884765625
+  ],
+  "Teleport from EM_Z03_IceSupplyCave": [
+   5195.06884765625,
+   1744.3389892578125,
+   -999.9874267578125
+  ],
+  "Teleport from EM_Z03_MagicalArchive": [
+   8486.859375,
+   -4665.93408203125,
+   -899.9954223632812
+  ],
+  "Teleport from EM_Z03_RomeoHouse": [
+   8188.4931640625,
+   -2522.490966796875,
+   -900.0114135742188
+  ],
+  "Teleport from EM_Z03_IceAccessTunnel": [
+   7568.48291015625,
+   -8138.5380859375,
+   -2400.0
+  ],
+  "Teleport from EM_Z03_IceCuttingComplex": [
+   991.5999755859375,
+   -586.4249267578125,
+   -0.0009759720996953547
+  ],
+  "Teleport from EM_Z03_MeltingHouse": [
+   3886.697998046875,
+   -4687.61376953125,
+   -1450.0
+  ],
+  "Teleport from EM_Z03_Vault": [
+   13095.7998046875,
+   -12048.66015625,
+   -600.0007934570312
+  ],
+  "Teleport from EM_Z03_IceDwarfBunker": [
+   13529.01953125,
+   221.85299682617188,
+   900.9984741210938
+  ],
+  "Target location-FromFrozenBuilding": [
+   15563.0,
+   -4836.27978515625,
+   -399.0
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point",
+   "template": "EM_Elementals_BallIce_A_01",
+   "proximity": 350.0,
+   "max_spawns": 4,
+   "start_node_type": 1,
+   "points": [
+    [
+     3627.446044921875,
+     309.3931884765625,
+     0.9999979138374329
+    ],
+    [
+     2479.783935546875,
+     695.64501953125,
+     1.0001200437545776
+    ],
+    [
+     2230.9970703125,
+     -767.0872802734375,
+     1.0001200437545776
+    ],
+    [
+     3299.74609375,
+     -1018.1799926757812,
+     0.9999979138374329
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport to EM_Z03_IceGreatHall",
+   "center": [
+    9838.005859375,
+    -3275.718017578125,
+    -875.014404296875
+   ],
+   "shape": "",
+   "radius": 137.94520568847656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport to EM_Z03_RomeoHouse",
+   "center": [
+    7890.75,
+    -2280.219970703125,
+    -840.8209228515625
+   ],
+   "shape": "",
+   "radius": 186.73660278320312,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport to EM_Z03_IceDwarfBunker",
+   "center": [
+    13666.75,
+    370.6781005859375,
+    901.0006103515625
+   ],
+   "shape": "",
+   "radius": 125.50199890136719,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-TeleportToFrozenBuilding",
+   "center": [
+    15890.01953125,
+    -4633.1982421875,
+    -395.7973937988281
+   ],
+   "shape": "Sphere",
+   "radius": 215.61459350585938,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

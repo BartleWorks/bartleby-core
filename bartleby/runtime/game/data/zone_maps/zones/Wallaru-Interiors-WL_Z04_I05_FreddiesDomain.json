@@ -1,0 +1,70 @@
+{
+ "format": 1,
+ "zone": "Wallaru/Interiors/WL_Z04_I05_FreddiesDomain",
+ "named": {
+  "Start": [
+   -67.479248046875,
+   -1574.030029296875,
+   -12.298100471496582
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPoint_01",
+   "template": "WL_Toad_EvilClaw_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -344.6160888671875,
+     -3094.2529296875,
+     -12.300049781799316
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_02",
+   "template": "WL_Toad_EvilClaw_B_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -352.3537902832031,
+     -3486.717041015625,
+     -12.29638957977295
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_To_TheDreaming_01",
+   "center": [
+    89.69522857666016,
+    -838.825927734375,
+    -12.291020393371582
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator_Volume_Dream_Speak_01",
+   "center": [
+    -142.50759887695312,
+    -4751.1748046875,
+    -12.29638957977295
+   ],
+   "shape": "Sphere",
+   "radius": 130.48069763183594,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

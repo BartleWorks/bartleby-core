@@ -1,0 +1,79 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Krokosphinx/KT_EntranceHall",
+ "named": {
+  "Start": [
+   2843.720947265625,
+   -18.422670364379883,
+   0.0
+  ],
+  "Target (KT_Hub KT_SphinxHub Entrance)": [
+   -279.6181945800781,
+   8.22906494140625,
+   -0.00024414059589616954
+  ],
+  "Target (KT_Sphinx_Level02 KT_SphinxHub Exit)": [
+   4637.42578125,
+   -3646.08203125,
+   6.643036158493487e-06
+  ],
+  "Target (KT_Sphinx_Level03 KT_SphinxHub Exit)": [
+   6692.93115234375,
+   36.387229919433594,
+   0.003184329951182008
+  ],
+  "Target (KT_Sphinx_Level04 KT_SphinxHub Exit) (1)": [
+   8560.8408203125,
+   15.21792984008789,
+   849.9998168945312
+  ],
+  "Target (KT_Sphinx_Level05 KT_SphinxHub Exit)": [
+   4685.0458984375,
+   3385.361083984375,
+   0.0
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport (KT_SphinxHub KT_Sphinx_Level04 Entrance) (1)",
+   "center": [
+    7392.92822265625,
+    50.17618942260742,
+    9.279296875
+   ],
+   "shape": "Sphere",
+   "radius": 382.25390625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport (KT_SphinxHub KT_Hub Exit)",
+   "center": [
+    -715.7545776367188,
+    8.268379211425781,
+    0.0
+   ],
+   "shape": "Sphere",
+   "radius": 245.34120178222656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport (KT_SphinxHub KT_Sphinx_Level02 Entrance)",
+   "center": [
+    4642.69580078125,
+    -4085.56591796875,
+    0.0
+   ],
+   "shape": "Sphere",
+   "radius": 277.1776123046875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

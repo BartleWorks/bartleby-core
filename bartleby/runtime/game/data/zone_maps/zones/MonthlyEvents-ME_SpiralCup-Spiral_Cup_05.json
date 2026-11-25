@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "MonthlyEvents/ME_SpiralCup/Spiral_Cup_05",
+ "named": {
+  "Start": [
+   419.9464111328125,
+   1027.5550537109375,
+   3.950073003768921
+  ],
+  "Target_From_SP1": [
+   451.974609375,
+   1009.7880249023438,
+   3.950073003768921
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To_Hall",
+   "center": [
+    570.12890625,
+    1405.969970703125,
+    -25.001060485839844
+   ],
+   "shape": "Sphere",
+   "radius": 176.168701171875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

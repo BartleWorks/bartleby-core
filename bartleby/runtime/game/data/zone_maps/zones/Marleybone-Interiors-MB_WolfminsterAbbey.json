@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "Marleybone/Interiors/MB_WolfminsterAbbey",
+ "named": {
+  "FromMainHub": [
+   -0.7431488037109375,
+   -3377.52294921875,
+   -0.00019073490693699569
+  ],
+  "Start": [
+   1.6016459465026855,
+   -337.0906066894531,
+   59.99993896484375
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToMainHub",
+   "center": [
+    -3.4937520027160645,
+    -3724.7900390625,
+    11.407230377197266
+   ],
+   "shape": "",
+   "radius": 207.62510681152344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

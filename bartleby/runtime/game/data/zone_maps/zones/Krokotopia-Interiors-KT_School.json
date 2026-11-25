@@ -1,0 +1,19 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/Interiors/KT_School",
+ "named": {
+  "Target location (School Hub Entrance)": [
+   -292.6081848144531,
+   2.470410108566284,
+   1.9999910593032837
+  ],
+  "Start": [
+   -287.9934997558594,
+   -10.986900329589844,
+   0.7449368834495544
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": []
+}

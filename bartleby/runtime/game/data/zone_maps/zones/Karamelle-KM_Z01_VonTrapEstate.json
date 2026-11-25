@@ -1,0 +1,61 @@
+{
+ "format": 1,
+ "zone": "Karamelle/KM_Z01_VonTrapEstate",
+ "named": {
+  "Start": [
+   -1519.2919921875,
+   496.15728759765625,
+   1146.8060302734375
+  ],
+  "From_Lodge_Backdoor": [
+   6607.8310546875,
+   -3225.694091796875,
+   120.40290069580078
+  ],
+  "From_Lodge_FrontDoor": [
+   4573.5478515625,
+   -2072.868896484375,
+   120.89800262451172
+  ],
+  "From_KCity": [
+   -1519.2919921875,
+   496.15728759765625,
+   1146.8060302734375
+  ],
+  "From_RockCandyMountains": [
+   -112.4646987915039,
+   -6422.8369140625,
+   301.61669921875
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "AV_Teleport_to_vonTrapLodge",
+   "center": [
+    4792.7099609375,
+    -2232.77294921875,
+    167.7342987060547
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_to_RockCandyMountains",
+   "center": [
+    -116.55079650878906,
+    -7954.173828125,
+    301.61669921875
+   ],
+   "shape": "",
+   "radius": 311.0763854980469,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

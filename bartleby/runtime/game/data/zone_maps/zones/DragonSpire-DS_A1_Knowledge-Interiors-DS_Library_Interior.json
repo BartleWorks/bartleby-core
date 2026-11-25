@@ -1,0 +1,43 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A1_Knowledge/Interiors/DS_Library_Interior",
+ "named": {
+  "Start": [
+   0.8936691284179688,
+   2575.68603515625,
+   0.00018310549785383046
+  ],
+  "Target-FromLoreMaster": [
+   -2933.205078125,
+   483.0791015625,
+   0.00024414059589616954
+  ],
+  "From_Skeleton_Chamber": [
+   2841.758056640625,
+   -495.730712890625,
+   0.00024414059589616954
+  ],
+  "FromCorruptorsDen": [
+   -2832.837890625,
+   -504.860107421875,
+   0.0004882813082076609
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportToLibraryHub",
+   "center": [
+    16.303089141845703,
+    3451.386962890625,
+    0.00024414059589616954
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

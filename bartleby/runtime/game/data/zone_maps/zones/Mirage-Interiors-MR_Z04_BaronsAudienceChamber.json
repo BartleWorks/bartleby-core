@@ -1,0 +1,71 @@
+{
+ "format": 1,
+ "zone": "Mirage/Interiors/MR_Z04_BaronsAudienceChamber",
+ "named": {
+  "Start": [
+   -1.4611849784851074,
+   221.07659912109375,
+   5.048791885375977
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Boss",
+   "template": "MR_Cat_SorcererF_D_Boss_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     282.65179443359375,
+     -2349.535888671875,
+     -3.769036993617192e-06
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)",
+   "template": "MR_Cat_Warrior_E_03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -288.349609375,
+     -2580.214111328125,
+     2.5242350101470947
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point",
+   "template": "MR_Cat_WarriorF_E_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -390.3909912109375,
+     -2359.096923828125,
+     2.5242929458618164
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    1.450435996055603,
+    609.4307250976562,
+    5.048779010772705
+   ],
+   "shape": "",
+   "radius": 171.76010131835938,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

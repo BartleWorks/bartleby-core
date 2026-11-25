@@ -1,0 +1,115 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A3_Kings/DS_A3Z3_Volcano/DS_Volcano2",
+ "named": {
+  "Target-FromVolcano1": [
+   -1376.8580322265625,
+   6612.75390625,
+   4734.39599609375
+  ],
+  "Start": [
+   1983.384033203125,
+   2401.56103515625,
+   4734.2412109375
+  ],
+  "Target location ((Volcano2FromVolcano1)": [
+   -1461.5460205078125,
+   6382.0009765625,
+   4726.96484375
+  ],
+  "Target location (Volcano2FromCrown)": [
+   -1461.5460205078125,
+   10467.58984375,
+   4726.96484375
+  ],
+  "Target location (Volcano1FromHowlingFront)": [
+   2875.537109375,
+   9132.375,
+   4726.96484375
+  ],
+  "Target location (Volcano1FromHowlingBack)": [
+   3441.39599609375,
+   1340.5379638671875,
+   4726.96484375
+  ],
+  "Target location (Volcano1FromDragonsBack)": [
+   -5801.47021484375,
+   1901.9720458984375,
+   4726.96484375
+  ],
+  "Target location (Volcano1FromDragonsFront)": [
+   -6409.2158203125,
+   10147.7099609375,
+   4726.96484375
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (Volcano1ToDragonsBack)",
+   "center": [
+    -6564.8349609375,
+    1755.2220458984375,
+    4734.39501953125
+   ],
+   "shape": "Sphere",
+   "radius": 245.11880493164062,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Volcano1ToDragonsFront)",
+   "center": [
+    -7029.35595703125,
+    10138.400390625,
+    4734.39501953125
+   ],
+   "shape": "Sphere",
+   "radius": 240.83580017089844,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Volcano1ToHowlingFront)",
+   "center": [
+    3688.443115234375,
+    9287.7587890625,
+    4734.39501953125
+   ],
+   "shape": "Sphere",
+   "radius": 237.19529724121094,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Volcano1FromHowlingBack)",
+   "center": [
+    4291.18310546875,
+    1245.9300537109375,
+    4734.39501953125
+   ],
+   "shape": "Sphere",
+   "radius": 242.13009643554688,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (4)",
+   "center": [
+    -1403.0260009765625,
+    11756.990234375,
+    4734.22998046875
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

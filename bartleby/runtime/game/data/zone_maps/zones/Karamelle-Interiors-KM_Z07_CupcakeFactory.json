@@ -1,0 +1,197 @@
+{
+ "format": 1,
+ "zone": "Karamelle/Interiors/KM_Z07_CupcakeFactory",
+ "named": {
+  "Start": [
+   -19.918819427490234,
+   -3922.037109375,
+   2.0
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point",
+   "template": "KM_Cat_WarriorF_G_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -126.99690246582031,
+     -1426.365966796875,
+     4.000364780426025
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)",
+   "template": "KM_Cat_WarriorF_G_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     40.65618896484375,
+     -1428.5980224609375,
+     4.000243186950684
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)",
+   "template": "KM_Cat_WarriorF_G_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -420.9888000488281,
+     -720.180908203125,
+     2.000180959701538
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (3)",
+   "template": "KM_Cat_WarriorF_G_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     439.0715026855469,
+     -663.4038696289062,
+     2.000180959701538
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (4)",
+   "template": "KM_Cat_WarriorF_H_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -251.19749450683594,
+     1935.4189453125,
+     2.000422954559326
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (5)",
+   "template": "KM_Cat_WarriorF_H_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     148.1175994873047,
+     1925.2320556640625,
+     2.0
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (6)",
+   "template": "KM_Cat_WarriorF_H_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -453.4112854003906,
+     2001.155029296875,
+     2.000180959701538
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (7)",
+   "template": "KM_Cat_WarriorF_H_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     359.4833068847656,
+     2084.77490234375,
+     2.00006103515625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (8)",
+   "template": "KM_Cat_WarriorF_F_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -255.61669921875,
+     4643.51513671875,
+     2.0
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (9)",
+   "template": "KM_Cat_WarriorF_G_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     216.39390563964844,
+     4651.671875,
+     2.0
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (10)",
+   "template": "KM_Cat_WarriorF_H_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -98.15972900390625,
+     5258.90283203125,
+     2.000304937362671
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (11)",
+   "template": "KM_Cat_WarriorF_F_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     139.31590270996094,
+     5082.287109375,
+     2.000180959701538
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Start (1)",
+   "center": [
+    6.588134765625,
+    -4456.78076171875,
+    26.287660598754883
+   ],
+   "shape": "",
+   "radius": 264.3190002441406,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

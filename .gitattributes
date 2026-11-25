@@ -1,0 +1,3 @@
+# The zone maps are built byte for byte (docs/WALKING.md, The shipped zone maps): no line-ending
+# conversion, so a checkout holds the bytes the build writes and a rebuild changes nothing.
+bartleby/runtime/game/data/zone_maps/** -text

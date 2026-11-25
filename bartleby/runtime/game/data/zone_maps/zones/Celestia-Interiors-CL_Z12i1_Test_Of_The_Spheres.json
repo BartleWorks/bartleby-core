@@ -1,0 +1,48 @@
+{
+ "format": 1,
+ "zone": "Celestia/Interiors/CL_Z12i1_Test_Of_The_Spheres",
+ "named": {
+  "Start": [
+   9.59210205078125,
+   -1759.2490234375,
+   -0.00024414059589616954
+  ],
+  "FromMoonRoom": [
+   19.106449127197266,
+   1523.7430419921875,
+   -3.051758176297881e-05
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "CL-Star-Boss-R10",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     7.627627849578857,
+     114.439697265625,
+     0.0001199807011289522
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportToMoonRoomVolume",
+   "center": [
+    -11.930999755859375,
+    1846.958984375,
+    14.244930267333984
+   ],
+   "shape": "Sphere",
+   "radius": 147.61790466308594,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

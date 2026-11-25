@@ -1,0 +1,145 @@
+{
+ "format": 1,
+ "zone": "MooShu/MS_Plague/Interiors/MS_Plague2_PalaceInterior",
+ "named": {
+  "Start": [
+   56.81687927246094,
+   -1994.3399658203125,
+   -6.103516352595761e-05
+  ],
+  "FromPlague3": [
+   56.81687927246094,
+   -1994.3399658203125,
+   -6.103516352595761e-05
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPoint_Boss_Ideyoshi_01",
+   "template": "Pig-Plague-Lord-MSBoss-L46",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -260.87359619140625,
+     -48.921119689941406,
+     -97.288818359375
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_DiseasedWater_01",
+   "template": "Elemental-Water-Diseased-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     300.01568603515625,
+     -48.921138763427734,
+     -97.288818359375
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_DiseasedWater_POP_01",
+   "template": "Elemental-Water-Diseased-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -385.47369384765625,
+     360.03619384765625,
+     -147.67379760742188
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_DiseasedWater_POP_02",
+   "template": "Elemental-Water-Diseased-L37",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     378.2190856933594,
+     449.28961181640625,
+     -147.67349243164062
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Boss_PlagueOni_01",
+   "template": "Oni-Plague-MSBoss-L54",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -2.398930072784424,
+     126.72059631347656,
+     -97.288818359375
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_ImitsuDefouler_01",
+   "template": "Pig-Plague-Ninja-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -385.47369384765625,
+     360.03619384765625,
+     -147.67379760742188
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_ImitsuDefouler_02",
+   "template": "Pig-Plague-Ninja-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     378.2190856933594,
+     449.28961181640625,
+     -147.67349243164062
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportSource_Exit_01",
+   "center": [
+    633.7977905273438,
+    -3189.5859375,
+    0.7093139886856079
+   ],
+   "shape": "Sphere",
+   "radius": 585.151123046875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_Exit_02",
+   "center": [
+    -574.538818359375,
+    -3189.5859375,
+    0.7093139886856079
+   ],
+   "shape": "Sphere",
+   "radius": 627.7645263671875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

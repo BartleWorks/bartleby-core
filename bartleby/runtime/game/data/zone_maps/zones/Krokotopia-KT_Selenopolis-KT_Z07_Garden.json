@@ -1,0 +1,94 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Selenopolis/KT_Z07_Garden",
+ "named": {
+  "Start": [
+   -128.9127960205078,
+   868.5521850585938,
+   -549.2755737304688
+  ],
+  "Target location-FromVivarium": [
+   2759.212890625,
+   8486.634765625,
+   -549.2750854492188
+  ],
+  "Target location-FromMoontemple": [
+   -154.75439453125,
+   10907.0595703125,
+   -543.6232299804688
+  ],
+  "Target location-ShrineNewMoon": [
+   141.38150024414062,
+   14847.26953125,
+   -543.623779296875
+  ],
+  "Target location-FromGutter": [
+   -5153.25,
+   9025.15625,
+   -543.61962890625
+  ],
+  "Target location-PublicBoss": [
+   6777.666015625,
+   4532.27099609375,
+   -1738.4229736328125
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point",
+   "template": "KT_SE_Krokosphinx_Base_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     8179.39599609375,
+     4504.66796875,
+     -1687.9219970703125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport source-ToGutter",
+   "center": [
+    -5364.2568359375,
+    9050.1953125,
+    -543.62109375
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-TeleportToVivarium",
+   "center": [
+    3498.0380859375,
+    8479.84375,
+    -538.9451293945312
+   ],
+   "shape": "Sphere",
+   "radius": 235.877197265625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    -161.189697265625,
+    -2134.431884765625,
+    -543.6129760742188
+   ],
+   "shape": "Sphere",
+   "radius": 869.2000122070312,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

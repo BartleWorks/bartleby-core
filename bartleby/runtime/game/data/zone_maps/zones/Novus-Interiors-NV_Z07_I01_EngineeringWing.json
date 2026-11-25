@@ -1,0 +1,278 @@
+{
+ "format": 1,
+ "zone": "Novus/Interiors/NV_Z07_I01_EngineeringWing",
+ "named": {
+  "Start": [
+   22.751890182495117,
+   182.12350463867188,
+   -18.80401039123535
+  ],
+  "Room 02": [
+   8.162551879882812,
+   -5828.60400390625,
+   -5.667603015899658
+  ],
+  "Room 03": [
+   -15.341750144958496,
+   -12668.599609375,
+   -0.19323210418224335
+  ],
+  "Back to 01": [
+   28.24616050720215,
+   -3043.343994140625,
+   -18.805299758911133
+  ],
+  "Back to 02": [
+   -120.39679718017578,
+   -9234.359375,
+   -18.805299758911133
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawner_Boss",
+   "template": "WL_Dog_NavyOfficer_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     112.7261962890625,
+     -1389.3909912109375,
+     -0.19111120700836182
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Minion",
+   "template": "WL_Dog_NavyOfficer_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -197.13589477539062,
+     -1675.68896484375,
+     -18.804180145263672
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner Pop",
+   "template": "WL_Dog_NavyOfficer_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     584.333984375,
+     -1844.625,
+     -18.804309844970703
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner Pop (1)",
+   "template": "WL_Dog_NavyOfficer_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -90.34085845947266,
+     -2045.2939453125,
+     -18.8044490814209
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Pop",
+   "template": "WL_Penguin_Revolutionary_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     352.10540771484375,
+     -7617.509765625,
+     -9.55003833770752
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Pop (1)",
+   "template": "WL_Penguin_Revolutionary_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -469.0268859863281,
+     -7375.0732421875,
+     -18.80529022216797
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Minion (1)",
+   "template": "WL_Penguin_Revolutionary_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -113.92669677734375,
+     -7160.669921875,
+     -18.80529022216797
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Boss02",
+   "template": "WL_Penguin_Revolutionary_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     148.81410217285156,
+     -7180.7060546875,
+     -18.80529022216797
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Combat3_D_POP",
+   "template": "WL_Dog_NavyOfficer_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -603.86328125,
+     -14390.509765625,
+     -0.19337989389896393
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Combat3_C_POP",
+   "template": "WL_Dog_NavyOfficer_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -263.2587890625,
+     -14563.7099609375,
+     -0.1932733952999115
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Combat3_B",
+   "template": "WL_Dog_NavyOfficer_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     182.96890258789062,
+     -14442.2998046875,
+     -0.19338540732860565
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Combat3_Boss",
+   "template": "WL_Dog_NavyCaptain_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -82.27860260009766,
+     -14095.0498046875,
+     -0.19347700476646423
+    ]
+   ]
+  }
+ ],
+ "links": [
+  {
+   "name": "TeleportVol_To Room 02",
+   "kind": "volume",
+   "source": [
+    49.97330093383789,
+    -3459.552978515625,
+    -5.664488792419434
+   ],
+   "landing": "Room 02",
+   "target": [
+    8.162551879882812,
+    -5828.60400390625,
+    -5.667603015899658
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source (1)",
+   "kind": "volume",
+   "source": [
+    -12.242199897766113,
+    -12118.1103515625,
+    -0.38535699248313904
+   ],
+   "landing": "Back to 02",
+   "target": [
+    -120.39679718017578,
+    -9234.359375,
+    -18.805299758911133
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source",
+   "kind": "volume",
+   "source": [
+    -36.39588928222656,
+    -9684.4560546875,
+    -4.4893798828125
+   ],
+   "landing": "Room 03",
+   "target": [
+    -15.341750144958496,
+    -12668.599609375,
+    -0.19323210418224335
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport source (2)",
+   "kind": "volume",
+   "source": [
+    11.994270324707031,
+    -5420.6708984375,
+    -4.489136219024658
+   ],
+   "landing": "Back to 01",
+   "target": [
+    28.24616050720215,
+    -3043.343994140625,
+    -18.805299758911133
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "TeleportVol_Back to Doom Moon",
+   "center": [
+    13.274169921875,
+    811.22412109375,
+    -18.80405044555664
+   ],
+   "shape": "",
+   "radius": 333.8251953125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

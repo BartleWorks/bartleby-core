@@ -1,0 +1,41 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_SkelKey_FathomlessTomb1",
+ "named": {
+  "Start": [
+   -24.089109420776367,
+   2928.784912109375,
+   -423.1770935058594
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location-ExitLanding",
+   "center": [
+    -20.054349899291992,
+    858.67578125,
+    -212.04800415039062
+   ],
+   "shape": "Sphere",
+   "radius": 395.533203125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-CheckForKey",
+   "center": [
+    -23.15641975402832,
+    6271.19580078125,
+    -434.831298828125
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

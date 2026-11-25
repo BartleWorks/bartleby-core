@@ -1,0 +1,57 @@
+{
+ "format": 1,
+ "zone": "Avalon/Interiors/AV_Z02_JabberwockLair",
+ "named": {
+  "Start": [
+   -95.73184967041016,
+   -1817.9739990234375,
+   18.071659088134766
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Boss",
+   "template": "AV-Wyrm-Jabberwock-R11-01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -283.284912109375,
+     1667.7490234375,
+     18.07179069519043
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Minion",
+   "template": "AV-Elemental-Storm-R11-01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     285.5087890625,
+     1725.8079833984375,
+     18.07179069519043
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -32.92266082763672,
+    -3346.5869140625,
+    18.071659088134766
+   ],
+   "shape": "Sphere",
+   "radius": 506.61419677734375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

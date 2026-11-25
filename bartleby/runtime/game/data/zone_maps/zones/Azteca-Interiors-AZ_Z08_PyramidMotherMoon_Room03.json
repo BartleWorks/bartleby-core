@@ -1,0 +1,91 @@
+{
+ "format": 1,
+ "zone": "Azteca/Interiors/AZ_Z08_PyramidMotherMoon_Room03",
+ "named": {
+  "Target-FromLevel2": [
+   4268.73388671875,
+   3268.47705078125,
+   -1036.6490478515625
+  ],
+  "Start": [
+   4261.80322265625,
+   3262.5458984375,
+   -1036.6490478515625
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn-Mob",
+   "template": "AZ-Parrot-King-B",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -2058.905029296875,
+     -3147.804931640625,
+     -1749.0679931640625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Minion",
+   "template": "AZ-Caiman-Guard-C",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -2238.1240234375,
+     -2991.402099609375,
+     -1748.904052734375
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Pop",
+   "template": "AZ-Eel-Tempest-A",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -2213.423095703125,
+     -3431.52001953125,
+     -1748.5889892578125
+    ],
+    [
+     -2481.070068359375,
+     -3194.197021484375,
+     -1748.7779541015625
+    ],
+    [
+     -2882.283935546875,
+     -3073.631103515625,
+     -1748.322021484375
+    ],
+    [
+     -2170.55908203125,
+     -3851.85107421875,
+     -1748.3060302734375
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport-ToLevel2",
+   "center": [
+    4730.09912109375,
+    3740.1708984375,
+    -1027.238037109375
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

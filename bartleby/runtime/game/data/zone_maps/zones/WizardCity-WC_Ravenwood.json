@@ -1,0 +1,312 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Ravenwood",
+ "named": {
+  "Target location (Ravenwood Storm Tower Exit)": [
+   1700.1929931640625,
+   982.46630859375,
+   6.764561176300049
+  ],
+  "Target location (Ravenwood Ravenwood_Teleporter Exit)": [
+   -1.195801019668579,
+   1660.4219970703125,
+   60.9834098815918
+  ],
+  "Target location (Ravenwood StormSchool Exit)": [
+   2752.04296875,
+   818.4473876953125,
+   -6.205160752870142e-05
+  ],
+  "Target location (Ravenwood Tower1 Exit)": [
+   -1112.9139404296875,
+   -1031.7239990234375,
+   -2.3892209810583154e-06
+  ],
+  "Target location (Ravenwood MythSchool Exit)": [
+   -3281.591064453125,
+   3876.72509765625,
+   4.577637082547881e-05
+  ],
+  "Target location (Ravenwood IceSchool Exit)": [
+   3416.19091796875,
+   3605.73388671875,
+   -9.350915206596255e-06
+  ],
+  "Target location (Ravenwood IceTower Exit)": [
+   2613.070068359375,
+   2943.386962890625,
+   0.0068302578292787075
+  ],
+  "Target location (Ravenwood LifeTower Exit)": [
+   -1598.1009521484375,
+   1020.2949829101562,
+   0.0034170630387961864
+  ],
+  "Target location (Ravenwood Hub Exit)": [
+   -5.7010040283203125,
+   -1536.490966796875,
+   -47.4215087890625
+  ],
+  "Target location (Ravenwood LifeSchool Exit)": [
+   -2646.66796875,
+   797.2546997070312,
+   -0.0001413647987646982
+  ],
+  "Target location (Ravenwood FireTower Exit)": [
+   1645.64404296875,
+   4901.1611328125,
+   0.003151992103084922
+  ],
+  "Target location (Ravenwood FireSchool Exit)": [
+   1616.2139892578125,
+   5983.3427734375,
+   5.2308150770841166e-05
+  ],
+  "Target location (Ravenwood MythTower Exit)": [
+   -2532.93701171875,
+   3071.927978515625,
+   0.0029221230652183294
+  ],
+  "Target location (Ravenwood Tower2 Exit)": [
+   1178.5579833984375,
+   -1421.363037109375,
+   -2.0400080757099204e-05
+  ],
+  "Start": [
+   -5.6283278465271,
+   -1531.4510498046875,
+   -30.48012924194336
+  ],
+  "Target location": [
+   542.0374755859375,
+   6972.81787109375,
+   13.781780242919922
+  ],
+  "Loc_WC-COMMONS-MAIN-002-BALANCE": [
+   322.9819030761719,
+   -171.08099365234375,
+   -28.78594970703125
+  ],
+  "Loc_WC-COMMONS-MAIN-002-DEATH": [
+   641.8372802734375,
+   5968.7919921875,
+   -28.785959243774414
+  ],
+  "Target location-AtMerleStandin": [
+   -234.9615936279297,
+   662.9967041015625,
+   1.714050054550171
+  ],
+  "Target Cinematic Imp": [
+   -2002.27099609375,
+   -587.42431640625,
+   -9.953781127929688
+  ],
+  "Location for Cinematcs": [
+   -17.774410247802734,
+   217.98890686035156,
+   -30.47998046875
+  ],
+  "STRM-C05-CinematicTarget": [
+   -2085.35107421875,
+   5794.58984375,
+   -41.022640228271484
+  ],
+  "FromEasyGauntlet": [
+   1169.0799560546875,
+   7372.81396484375,
+   1.4598959684371948
+  ],
+  "FromMediumandHardGauntlet": [
+   1174.094970703125,
+   7383.56494140625,
+   -9.714288171380758e-05
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (to MythSchool)",
+   "center": [
+    -3581.613037109375,
+    3938.33203125,
+    39.0890998840332
+   ],
+   "shape": "Sphere",
+   "radius": 145.87570190429688,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (to IceSchool)",
+   "center": [
+    3605.0400390625,
+    3662.4150390625,
+    17.613550186157227
+   ],
+   "shape": "Sphere",
+   "radius": 142.25770568847656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (to Commons)",
+   "center": [
+    21.56053924560547,
+    -2170.2119140625,
+    -104.96499633789062
+   ],
+   "shape": "Sphere",
+   "radius": 283.589111328125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (to StormSchool)",
+   "center": [
+    2909.508056640625,
+    677.01708984375,
+    41.28519821166992
+   ],
+   "shape": "Sphere",
+   "radius": 157.99620056152344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (to FireSchool)",
+   "center": [
+    1762.27001953125,
+    6211.43896484375,
+    19.145980834960938
+   ],
+   "shape": "Sphere",
+   "radius": 164.89920043945312,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (Teleport to Storm Tower)",
+   "center": [
+    1662.7900390625,
+    1307.637939453125,
+    113.59429931640625
+   ],
+   "shape": "Sphere",
+   "radius": 180.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (Teleport to Myth Tower)",
+   "center": [
+    -2238.0458984375,
+    3266.952880859375,
+    86.72708892822266
+   ],
+   "shape": "Sphere",
+   "radius": 150.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (Teleport to Ice Tower)",
+   "center": [
+    2318.260986328125,
+    3125.660888671875,
+    115.86799621582031
+   ],
+   "shape": "Sphere",
+   "radius": 150.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (Teleport to Fire School)",
+   "center": [
+    1388.8179931640625,
+    4833.01904296875,
+    99.05164337158203
+   ],
+   "shape": "Sphere",
+   "radius": 150.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume",
+   "center": [
+    -2904.673095703125,
+    624.4512939453125,
+    -6.103516352595761e-05
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume 0",
+   "center": [
+    45.00210189819336,
+    2086.16796875,
+    74.0926513671875
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume Life Tower",
+   "center": [
+    -1572.927978515625,
+    1340.5589599609375,
+    159.95089721679688
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume Teleport Tower 1-Boys",
+   "center": [
+    1152.7939453125,
+    -1731.156982421875,
+    82.5042724609375
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume Teleport Tower 2-Girls",
+   "center": [
+    -1133.5240478515625,
+    -1759.1290283203125,
+    101.75450134277344
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

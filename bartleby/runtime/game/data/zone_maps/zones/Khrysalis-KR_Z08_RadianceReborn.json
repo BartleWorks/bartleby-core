@@ -1,0 +1,141 @@
+{
+ "format": 1,
+ "zone": "Khrysalis/KR_Z08_RadianceReborn",
+ "named": {
+  "Start": [
+   4.662744998931885,
+   -3746.35791015625,
+   128.22999572753906
+  ],
+  "Target location-FromPhoenix": [
+   4756.93408203125,
+   -5029.64697265625,
+   142.61520385742188
+  ],
+  "Target location-FromCrab": [
+   -4714.93896484375,
+   -4968.634765625,
+   142.61520385742188
+  ],
+  "Target location-FromStag": [
+   -4718.48681640625,
+   4936.2587890625,
+   142.61520385742188
+  ],
+  "Target location-FromSerpent": [
+   4681.73291015625,
+   4908.72412109375,
+   142.61520385742188
+  ],
+  "Target location-FromDreamRooms": [
+   8.673286437988281,
+   4466.48779296875,
+   125.69259643554688
+  ],
+  "From_LostLight": [
+   3.036468982696533,
+   -567.1942138671875,
+   104.62449645996094
+  ],
+  "Target location": [
+   2.867400884628296,
+   428.5788879394531,
+   102.5739974975586
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location-Crab",
+   "center": [
+    -4938.6708984375,
+    -5197.3818359375,
+    142.61520385742188
+   ],
+   "shape": "Sphere",
+   "radius": 169.5216064453125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location-Stag",
+   "center": [
+    -4930.39501953125,
+    5154.2548828125,
+    142.61520385742188
+   ],
+   "shape": "Sphere",
+   "radius": 174.84759521484375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location-Serpent",
+   "center": [
+    4931.0517578125,
+    5139.84716796875,
+    142.61520385742188
+   ],
+   "shape": "Sphere",
+   "radius": 164.06759643554688,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-Dreamroom1",
+   "center": [
+    -1227.906982421875,
+    5153.787109375,
+    233.29910278320312
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-Dreamroom2",
+   "center": [
+    2.4718780517578125,
+    5597.5498046875,
+    215.97779846191406
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-Dreamroom3",
+   "center": [
+    1204.8280029296875,
+    5176.330078125,
+    187.62600708007812
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-PhoenixTeleport",
+   "center": [
+    4937.38623046875,
+    -5210.0458984375,
+    142.05079650878906
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,87 @@
+{
+ "format": 1,
+ "zone": "Polaris/Interiors/PL_Z03I04_SunlessShrineEnt",
+ "named": {
+  "Start": [
+   -26.173919677734375,
+   -506.7101135253906,
+   -0.22076420485973358
+  ],
+  "Target location-FromForward": [
+   -11.442760467529297,
+   -3579.799072265625,
+   -0.2498778998851776
+  ],
+  "Target location-FromLeft": [
+   986.8181762695312,
+   -2698.4619140625,
+   -0.2461548000574112
+  ],
+  "Target location-FromRight": [
+   -985.2811889648438,
+   -2687.635986328125,
+   -0.24591059982776642
+  ],
+  "Target location-FromAuroracle": [
+   287.1174011230469,
+   -2380.33203125,
+   120.82140350341797
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume-Forward",
+   "center": [
+    -2.537537097930908,
+    -4013.02001953125,
+    -0.3145141899585724
+   ],
+   "shape": "",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-Left",
+   "center": [
+    1284.60595703125,
+    -2848.448974609375,
+    -0.220672607421875
+   ],
+   "shape": "",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-right",
+   "center": [
+    -1291.1650390625,
+    -2851.278076171875,
+    -0.220672607421875
+   ],
+   "shape": "",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location-Exit",
+   "center": [
+    -1.2960820198059082,
+    232.89599609375,
+    -0.2206421047449112
+   ],
+   "shape": "",
+   "radius": 209.02490234375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

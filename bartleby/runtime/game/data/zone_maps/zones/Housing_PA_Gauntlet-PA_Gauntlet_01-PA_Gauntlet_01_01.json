@@ -1,0 +1,77 @@
+{
+ "format": 1,
+ "zone": "Housing_PA_Gauntlet/PA_Gauntlet_01/PA_Gauntlet_01_01",
+ "named": {
+  "Start": [
+   -3.1762030124664307,
+   2285.1669921875,
+   3.950011968612671
+  ],
+  "From_02": [
+   -2.10555100440979,
+   1028.2889404296875,
+   3.950073003768921
+  ],
+  "From-End": [
+   -3.021636962890625,
+   -1178.1280517578125,
+   180.0167999267578
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume-ArenaDoor01",
+   "center": [
+    -1540.801025390625,
+    -5.77081298828125,
+    27.850950241088867
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-ArenaDoor03",
+   "center": [
+    1033.345947265625,
+    -1022.8690185546875,
+    82.5168228149414
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-ArenaDoor04",
+   "center": [
+    1466.68896484375,
+    -4.418185234069824,
+    20.9637508392334
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-ArenaDoor02",
+   "center": [
+    -1069.051025390625,
+    -1048.0469970703125,
+    82.5139389038086
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

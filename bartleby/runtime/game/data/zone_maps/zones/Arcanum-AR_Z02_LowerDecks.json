@@ -1,0 +1,61 @@
+{
+ "format": 1,
+ "zone": "Arcanum/AR_Z02_LowerDecks",
+ "named": {
+  "Start": [
+   -3931.2109375,
+   -1004.2470092773438,
+   -97.77734375
+  ],
+  "TargetLocation_From_WindgineRoom_01": [
+   0.9652125239372253,
+   -1728.3050537109375,
+   -1.4906619787216187
+  ],
+  "TargetLocation_From_PowerCore_01": [
+   -0.9830933213233948,
+   -215.20530700683594,
+   -1.4906619787216187
+  ],
+  "TargetLocation_From_Lumi_Hostage_Room_01": [
+   -2326.93896484375,
+   -955.8383178710938,
+   -105.16210174560547
+  ],
+  "TargetLocation_From_EnergyCorridor_01": [
+   -839.602783203125,
+   -571.5986938476562,
+   -156.23890686035156
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "ActivatorVolume-TeleportGate-Fake",
+   "center": [
+    -4675.84912109375,
+    -1014.135986328125,
+    -97.7773666381836
+   ],
+   "shape": "Sphere",
+   "radius": 86.61578369140625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "ActivatorVolume_TeleportToBrig",
+   "center": [
+    -2348.02587890625,
+    -617.3649291992188,
+    -105.16220092773438
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,210 @@
+{
+ "format": 1,
+ "zone": "Arcanum/Interiors/AR_Z01_CursedRepository",
+ "named": {
+  "Start": [
+   -4.048037052154541,
+   -89.65186309814453,
+   -2.600158929824829
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPoint_Mob_01_A",
+   "template": "DM_Mimic_ChestGold_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     258.9303894042969,
+     -1143.7039794921875,
+     -2.600158929824829
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_B",
+   "template": "DM_Mimic_ChestGold_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -229.51390075683594,
+     -1143.7039794921875,
+     -2.600158929824829
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_POP",
+   "template": "DM_Mimic_ChestGold_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     258.9302978515625,
+     -1636.2239990234375,
+     -2.600158929824829
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_POP2",
+   "template": "DM_Mimic_ChestGold_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -240.60299682617188,
+     -1636.2239990234375,
+     -2.600158929824829
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_02_A",
+   "template": "DM_Player_BranchMinion_A_03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     107.26799774169922,
+     -4816.17578125,
+     -2.5998599529266357
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_02_B",
+   "template": "DM_Player_BranchMinion_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -106.91539764404297,
+     -4816.17578125,
+     -2.5998599529266357
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_02_D",
+   "template": "DM_Player_BranchMinion_A_07",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -249.39480590820312,
+     -5312.412109375,
+     -2.5998599529266357
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_02_C",
+   "template": "DM_Player_BranchMinion_A_07",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     261.03448486328125,
+     -5312.412109375,
+     -2.5998599529266357
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_03_A",
+   "template": "DM_Gargoyle_Base_C_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     270.5430908203125,
+     -8500.6279296875,
+     -2.5997378826141357
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_03_B",
+   "template": "DM_Gargoyle_Guard_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -234.24310302734375,
+     -8491.744140625,
+     -2.5997378826141357
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_03_POP",
+   "template": "DM_Gargoyle_Guard_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     276.3721008300781,
+     -9003.0673828125,
+     -2.5998599529266357
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_03_POP2",
+   "template": "DM_Gargoyle_Guard_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -239.7696990966797,
+     -9001.4296875,
+     -2.599597930908203
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportSource_Exit_01",
+   "center": [
+    5.619277000427246,
+    254.88389587402344,
+    5.115814208984375
+   ],
+   "shape": "",
+   "radius": 139.12930297851562,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "ActivatorVolume_RepositoryExit_01",
+   "center": [
+    749.9495239257812,
+    -9666.23046875,
+    -2.599822998046875
+   ],
+   "shape": "Sphere",
+   "radius": 87.0605697631836,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

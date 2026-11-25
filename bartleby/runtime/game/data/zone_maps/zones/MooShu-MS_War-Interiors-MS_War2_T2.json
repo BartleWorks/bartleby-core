@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "MooShu/MS_War/Interiors/MS_War2_T2",
+ "named": {
+  "From War 2": [
+   0.0,
+   -1600.0,
+   -6.843818118795753e-05
+  ],
+  "Start": [
+   -35.62950897216797,
+   -1600.0,
+   -6.843818118795753e-05
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Troll-Yellow-MSBoss-L42",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -162.66920471191406,
+     1.3667199709743727e-05,
+     -93.99978637695312
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Troll-Green-L29",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     218.45899963378906,
+     131.77349853515625,
+     -49.49974060058594
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 2",
+   "template": "Troll-Green-L29",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -405.6690979003906,
+     487.9573059082031,
+     -99.88445281982422
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 3",
+   "template": "Troll-Green-L29",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     365.4767150878906,
+     487.9570007324219,
+     -99.88445281982422
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To War 2",
+   "center": [
+    -10.65075969696045,
+    -1883.041015625,
+    0.9279633164405823
+   ],
+   "shape": "Sphere",
+   "radius": 189.76480102539062,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

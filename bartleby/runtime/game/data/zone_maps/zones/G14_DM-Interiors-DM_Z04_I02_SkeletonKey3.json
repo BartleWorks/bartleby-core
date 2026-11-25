@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "zone": "G14_DM/Interiors/DM_Z04_I02_SkeletonKey3",
+ "named": {
+  "Start": [
+   1.3987849950790405,
+   -2020.863037109375,
+   401.6990966796875
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_BackToEncounter1Staircase",
+   "center": [
+    5.177906036376953,
+    -2582.43798828125,
+    401.7027893066406
+   ],
+   "shape": "",
+   "radius": 226.1575927734375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

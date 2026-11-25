@@ -1,0 +1,64 @@
+{
+ "format": 1,
+ "zone": "G14_DM/Interiors/DM_Z04_I01_Staircase",
+ "named": {
+  "Start": [
+   588.0178833007812,
+   54.51504898071289,
+   33.60723876953125
+  ],
+  "FromObservatory": [
+   -597.6876220703125,
+   -94.6248779296875,
+   1100.199951171875
+  ],
+  "FromSkeletonKey": [
+   -437.3432922363281,
+   -398.8262023925781,
+   400.0
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToArmory",
+   "center": [
+    419.9049987792969,
+    -361.3940124511719,
+    0.20001220703125
+   ],
+   "shape": "",
+   "radius": 295.2626037597656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_ToObservatory",
+   "center": [
+    -419.0187072753906,
+    -414.6581115722656,
+    1100.199951171875
+   ],
+   "shape": "",
+   "radius": 173.73060607910156,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "SkeletonKeyActivatorVolume",
+   "center": [
+    -720.6041870117188,
+    -292.6496887207031,
+    399.99951171875
+   ],
+   "shape": "Sphere",
+   "radius": 144.91079711914062,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

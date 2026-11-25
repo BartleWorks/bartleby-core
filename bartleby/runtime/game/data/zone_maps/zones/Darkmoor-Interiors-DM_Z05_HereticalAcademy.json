@@ -1,0 +1,173 @@
+{
+ "format": 1,
+ "zone": "Darkmoor/Interiors/DM_Z05_HereticalAcademy",
+ "named": {
+  "Start": [
+   -210.83009338378906,
+   -1841.737060546875,
+   248.57730102539062
+  ],
+  "Target_From_Scholomance": [
+   -243.79150390625,
+   -1838.9320068359375,
+   248.57679748535156
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn_EntranceExam",
+   "template": "DM_Dox_Base_B_01",
+   "proximity": 850.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -24.46063995361328,
+     513.5291748046875,
+     157.34939575195312
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_Cups_Mob",
+   "template": "DM_Khrulhu_Instructor_A_03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -468.4801025390625,
+     24703.08984375,
+     -449.0343017578125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_Swords_Mob",
+   "template": "DM_Khrulhu_Instructor_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -164.3527069091797,
+     24917.640625,
+     -449.03448486328125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_Wands_Mob",
+   "template": "DM_Khrulhu_Instructor_A_04",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     207.54550170898438,
+     24915.0390625,
+     -449.0343017578125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_Coins_Mob",
+   "template": "DM_Khrulhu_Instructor_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     498.8817138671875,
+     24696.16015625,
+     -449.0343017578125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_BalaurHead_1",
+   "template": "DM_Dragon_BalaurHead_A_01",
+   "proximity": 1000.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -502.0360107421875,
+     30215.5703125,
+     -616.406982421875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_BalaurHead_2",
+   "template": "DM_Dragon_BalaurHead_A_02",
+   "proximity": 1.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -201.31629943847656,
+     30432.83984375,
+     -616.4072875976562
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_BalaurHead_3",
+   "template": "DM_Dragon_BalaurHead_A_03",
+   "proximity": 1.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     171.48599243164062,
+     30431.509765625,
+     -616.406982421875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_BalaurHead_4",
+   "template": "DM_Dragon_BalaurHead_A_04",
+   "proximity": 1.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     468.5010986328125,
+     30214.0,
+     -616.406982421875
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_2_Scholomance",
+   "center": [
+    -216.13270568847656,
+    -2097.35107421875,
+    247.16969299316406
+   ],
+   "shape": "",
+   "radius": 138.39549255371094,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "AV_Teleport_Exit",
+   "center": [
+    2446.93310546875,
+    30302.5,
+    -593.3782958984375
+   ],
+   "shape": "Sphere",
+   "radius": 199.37379455566406,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

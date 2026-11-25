@@ -8,6 +8,33 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+The shipped zone maps (BartleBot #322, Stage 1.2): every zone BartleBot walks has a map, so a run
+plans a route with no wad and no type dump. It breaks nothing.
+
+### Added
+
+- **The shipped zone maps** (`docs/WALKING.md`, *The shipped zone maps*), under
+  `bartleby/runtime/game/data/zone_maps/`: 464 zones on 442 floors, 18.5 MB. Each zone's floor is
+  its `collision.bcd`'s triangles and footprints, shared by zones whose `collision.bcd` is the same
+  file; its patrols, arrival points, links and exits are a small JSON file of its own.
+- **`movement.zone_maps`**: `has(zone)` answers from the index alone; `await load(zone)` gives the
+  zone's `ZonePlanner` off the event loop, planning as one built from the wad does, cell for cell.
+  What a load builds (the grid, its passable floor, the patrols' clearance) is saved on the user's
+  machine, under `%LocalAppData%/Bartleby/cache/zone_maps/`, so each zone is built once a machine:
+  2 to 16 s the first time, 50 to 250 ms after. `ZoneMaps.warm(zones)` builds them ahead of need,
+  on a thread of the product's. A session keeps the 8 planners used last.
+- **`tools/build_zone_maps.py`** builds the maps from an install's wads, deterministically, for
+  the zones a product names (BartleBot's `zone_nav.json`, `bots/` and `subgraphs/`); `--verify`
+  checks them against an install and `--compare` plans on a map and on its wad and diffs.
+  `tools/zone_files.py` is the wad reader it uses, moved from BartleBot's probes, which now take it
+  from here. It reads a template in a world's own data wad (`|Darkmoor|WorldData|...`), which 13
+  zones' mobs and chests need, and works on katsuba 0.4 and 0.6 alike.
+- `movement.route`: `assemble`, `grid_of`, `floor_grid` and `links_and_exits`, the steps of
+  `build_planner`, so a planner from a map is put together as one from a wad is; and
+  `zone_grid.Grid.from_arrays`.
+
 ## 0.11.0
 
 Deck sets (BartleBuddy #31, Stage 9), followers that find the trail again once something

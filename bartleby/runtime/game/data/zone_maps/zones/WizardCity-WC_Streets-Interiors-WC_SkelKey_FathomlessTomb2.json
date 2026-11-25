@@ -1,0 +1,43 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_SkelKey_FathomlessTomb2",
+ "named": {
+  "Start": [
+   23.678890228271484,
+   1287.81201171875,
+   -434.75628662109375
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point DeepSpawn",
+   "template": "CC_GoldSkeletonKey_Lice_DeepSpawn_B",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     54.249149322509766,
+     4344.72119140625,
+     -423.5368957519531
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    11.27532958984375,
+    530.6370239257812,
+    -143.7823944091797
+   ],
+   "shape": "Sphere",
+   "radius": 720.1544189453125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

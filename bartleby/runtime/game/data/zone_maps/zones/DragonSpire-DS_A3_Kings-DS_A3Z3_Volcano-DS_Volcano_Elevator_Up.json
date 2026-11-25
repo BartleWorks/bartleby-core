@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A3_Kings/DS_A3Z3_Volcano/DS_Volcano_Elevator_Up",
+ "named": {
+  "Target location-VolcanoUP": [
+   -6.8927001953125,
+   12.42074966430664,
+   -15.220319747924805
+  ],
+  "Start": [
+   82.28175354003906,
+   12.420740127563477,
+   -15.220319747924805
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume (1)",
+   "center": [
+    18.88640022277832,
+    935.76123046875,
+    -15.201860427856445
+   ],
+   "shape": "Sphere",
+   "radius": 635.323486328125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

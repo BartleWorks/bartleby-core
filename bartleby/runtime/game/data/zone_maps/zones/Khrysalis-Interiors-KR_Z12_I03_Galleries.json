@@ -1,0 +1,112 @@
+{
+ "format": 1,
+ "zone": "Khrysalis/Interiors/KR_Z12_I03_Galleries",
+ "named": {
+  "Start": [
+   -2766.031005859375,
+   -1062.373046875,
+   635.1218872070312
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Kravenly",
+   "template": "KR_Lion_Warlord_A_BossfightSP",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3419.320068359375,
+     -19.9462890625,
+     685.6221923828125
+    ]
+   ]
+  },
+  {
+   "spawner": "Ghost Dog",
+   "template": "KR_Dog_Warlord_A_BossfightSP",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3241.94091796875,
+     145.7769012451172,
+     685.6221923828125
+    ]
+   ]
+  },
+  {
+   "spawner": "SantaMuerte",
+   "template": "KR_Flamingo_Warlord_A_BossfightSP",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -189.91380310058594,
+     3328.31201171875,
+     651.160888671875
+    ]
+   ]
+  },
+  {
+   "spawner": "Lorcan",
+   "template": "KR_Shdweave_Lord_BossfightSP",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     3085.114990234375,
+     -17.51041030883789,
+     685.6218872070312
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Ombra",
+   "template": "KR_Horse_Warlord_A_BossfightSP",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     3321.489013671875,
+     168.63720703125,
+     685.6221923828125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_BackToEntry",
+   "center": [
+    -2164.93408203125,
+    -1280.5489501953125,
+    641.87109375
+   ],
+   "shape": "Sphere",
+   "radius": 361.2958068847656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_BackToEntry2",
+   "center": [
+    2209.2919921875,
+    -1204.6209716796875,
+    621.2523193359375
+   ],
+   "shape": "Sphere",
+   "radius": 406.50469970703125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

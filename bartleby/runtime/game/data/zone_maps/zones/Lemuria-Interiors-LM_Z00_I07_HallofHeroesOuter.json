@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "Lemuria/Interiors/LM_Z00_I07_HallofHeroesOuter",
+ "named": {
+  "From_HOH_Inner": [
+   -1.6191070079803467,
+   -3253.426025390625,
+   543.1953735351562
+  ],
+  "Start": [
+   -2.4101219177246094,
+   2290.389892578125,
+   4.200041770935059
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    -2.4101219177246094,
+    2738.3310546875,
+    4.200041770935059
+   ],
+   "shape": "Sphere",
+   "radius": 140.07899475097656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

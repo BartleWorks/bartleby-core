@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "zone": "Celestia/CL_Z11_Temple_Of_The_Sun",
+ "named": {
+  "Start": [
+   9.097488403320312,
+   -8295.6630859375,
+   891.3231811523438
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location 0",
+   "center": [
+    -14.29619026184082,
+    -9026.5859375,
+    891.3231811523438
+   ],
+   "shape": "Sphere",
+   "radius": 214.6448974609375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

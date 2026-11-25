@@ -1,0 +1,38 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_OldeTown_AuctionHouse",
+ "named": {
+  "FromOldeTown": [
+   9.156014442443848,
+   -91.536376953125,
+   4.220120906829834
+  ],
+  "Home": [
+   12.970629692077637,
+   -82.09007263183594,
+   2.1794729232788086
+  ],
+  "Start": [
+   5.0821661949157715,
+   -77.50154113769531,
+   2.179434061050415
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToOldeTown",
+   "center": [
+    4.828612804412842,
+    -286.8363037109375,
+    35.34349822998047
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

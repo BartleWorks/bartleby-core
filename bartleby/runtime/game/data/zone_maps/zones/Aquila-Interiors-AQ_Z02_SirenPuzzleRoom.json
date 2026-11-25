@@ -1,0 +1,46 @@
+{
+ "format": 1,
+ "zone": "Aquila/Interiors/AQ_Z02_SirenPuzzleRoom",
+ "named": {
+  "Start": [
+   6.350615978240967,
+   -661.3250732421875,
+   96.31166076660156
+  ],
+  "Back Door": [
+   -1107.18505859375,
+   5470.01220703125,
+   190.14810180664062
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    10.817569732666016,
+    -1059.0860595703125,
+    94.87149047851562
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume Exit",
+   "center": [
+    -1347.7469482421875,
+    5528.97216796875,
+    190.158203125
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

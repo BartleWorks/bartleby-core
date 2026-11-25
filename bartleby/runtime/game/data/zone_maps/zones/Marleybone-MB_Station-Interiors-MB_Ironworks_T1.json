@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "Marleybone/MB_Station/Interiors/MB_Ironworks_T1",
+ "named": {
+  "FactorytoTower1": [
+   1.5454219579696655,
+   -1118.251953125,
+   -1.671344944043085e-05
+  ],
+  "Start": [
+   3.2343690395355225,
+   -1120.720947265625,
+   -1.594913010194432e-05
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Cat-Thug-Blue-MBBoss-L38",
+   "proximity": 200.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -185.61390686035156,
+     62.72930908203125,
+     50.00022888183594
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Cat-Hobo-PantsRed-L22",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     238.7115936279297,
+     98.19709014892578,
+     49.9995002746582
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "Cat-Hobo-PantsRed-L22",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -395.6940002441406,
+     -326.5242919921875,
+     0.11550000309944153
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1 (1)",
+   "template": "Cat-Hobo-PantsRed-L22",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     479.10430908203125,
+     -298.031494140625,
+     0.1153729036450386
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Tower1toFactory",
+   "center": [
+    -7.428102970123291,
+    -1318.0169677734375,
+    0.0
+   ],
+   "shape": "",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

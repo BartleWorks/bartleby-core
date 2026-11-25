@@ -1,0 +1,278 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Hub",
+ "named": {
+  "CinematicTarget": [
+   8092.3662109375,
+   1417.0880126953125,
+   -30.47365951538086
+  ],
+  "Target Cinematic": [
+   3338.570068359375,
+   -402.21661376953125,
+   -13.567279815673828
+  ],
+  "SeraphSummonLocation": [
+   4543.64306640625,
+   3134.52294921875,
+   353.0176086425781
+  ],
+  "Target Revamp01": [
+   4228.77197265625,
+   4732.37890625,
+   0.00012207029794808477
+  ],
+  "Target Revamp02": [
+   10184.7998046875,
+   913.6575927734375,
+   -5.149840944795869e-05
+  ],
+  "Target Revamp03": [
+   -4158.9580078125,
+   3736.943115234375,
+   256.0638122558594
+  ],
+  "Target Revamp04": [
+   -3980.1640625,
+   -2814.861083984375,
+   256.0638122558594
+  ],
+  "Home": [
+   -371.1885070800781,
+   -518.4771118164062,
+   -30.473350524902344
+  ],
+  "Start": [
+   -3.267008066177368,
+   50.24604034423828,
+   -30.47340965270996
+  ],
+  "TargetLocation_Fantastic_Fight_Fest": [
+   1507.9100341796875,
+   -54.7594108581543,
+   2.3515660762786865
+  ],
+  "Target location (Clubhouse to WC_Hub)": [
+   365.4236145019531,
+   314.03961181640625,
+   -30.47347068786621
+  ],
+  "Target location (Hub Nightside Exit)": [
+   2800.3369140625,
+   4725.80908203125,
+   10.466349601745605
+  ],
+  "Target location (WC_Headmistress_House WC_Hub Exit)": [
+   -488.7184143066406,
+   -2421.488037109375,
+   154.27499389648438
+  ],
+  "Target location (Castle Tour)": [
+   3486.35400390625,
+   -2000.1519775390625,
+   -30.479759216308594
+  ],
+  "Target location (WC_Hub Library)": [
+   9179.7646484375,
+   1950.8719482421875,
+   213.39939880371094
+  ],
+  "Target location (WC_Hub Shops)": [
+   1349.4339599609375,
+   -3125.509033203125,
+   -30.48012924194336
+  ],
+  "Target location (WC_Hub Street1 Exit)": [
+   6099.1279296875,
+   5063.8310546875,
+   -30.473180770874023
+  ],
+  "Target location (WC_Hub WC_Golem_Tower Exit)": [
+   -5927.1220703125,
+   2465.64111328125,
+   225.58590698242188
+  ],
+  "Target location (WC_Hub WC_Headmaster_Tower Exit)": [
+   -1540.718017578125,
+   185.00059509277344,
+   0.00016021729970816523
+  ],
+  "Target location 508": [
+   -327.62701416015625,
+   498.948486328125,
+   -30.47347068786621
+  ],
+  "Target location(WC_Hub Ravenwood)": [
+   -86.5773696899414,
+   1414.7139892578125,
+   -30.480140686035156
+  ],
+  "TargetFromPetPark": [
+   8131.44580078125,
+   -1881.0660400390625,
+   -30.479999542236328
+  ],
+  "Target location-FromCastleTourDorm": [
+   -5104.9619140625,
+   2115.468994140625,
+   229.0009002685547
+  ],
+  "Target_MonthlyEvent": [
+   -5151.72607421875,
+   318.42449951171875,
+   229.00100708007812
+  ],
+  "From_WC_Fishing_CE_01": [
+   3840.18798828125,
+   -1346.9139404296875,
+   0.625
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume (2)",
+   "center": [
+    -44.92462921142578,
+    1854.281982421875,
+    -30.48468017578125
+   ],
+   "shape": "Sphere",
+   "radius": 320.2333068847656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (3)",
+   "center": [
+    -6439.15185546875,
+    2689.6650390625,
+    225.56179809570312
+   ],
+   "shape": "Sphere",
+   "radius": 342.06201171875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (4)",
+   "center": [
+    1391.25,
+    -3649.947998046875,
+    -30.484149932861328
+   ],
+   "shape": "Sphere",
+   "radius": 296.1935119628906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (5)",
+   "center": [
+    9654.9658203125,
+    2182.2958984375,
+    195.591796875
+   ],
+   "shape": "Sphere",
+   "radius": 248.80369567871094,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Hub WC_Headmistress_House Entrance)",
+   "center": [
+    -952.7764892578125,
+    -2487.681884765625,
+    121.62069702148438
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportToPetParkVolume",
+   "center": [
+    8449.712890625,
+    -2230.342041015625,
+    19.515480041503906
+   ],
+   "shape": "Sphere",
+   "radius": 384.4386901855469,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Volume-TeleportToTower",
+   "center": [
+    -1568.9749755859375,
+    -81.28671264648438,
+    51.49367904663086
+   ],
+   "shape": "Sphere",
+   "radius": 134.2572021484375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume Castle Tours",
+   "center": [
+    3524.695068359375,
+    -2356.340087890625,
+    -0.00012207029794808477
+   ],
+   "shape": "Sphere",
+   "radius": 131.5334014892578,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-TeleportToCastleToursDorm",
+   "center": [
+    -4972.39990234375,
+    2442.3349609375,
+    332.8031921386719
+   ],
+   "shape": "Sphere",
+   "radius": 115.18730163574219,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume 0 (2)",
+   "center": [
+    2578.27392578125,
+    5078.9169921875,
+    -0.10570339858531952
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Conditional Teleporter Greyrose-001",
+   "center": [
+    6277.72802734375,
+    5486.873046875,
+    -30.473169326782227
+   ],
+   "shape": "Sphere",
+   "radius": 346.0487060546875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,41 @@
+{
+ "format": 1,
+ "zone": "Celestia/CL_Z12_Test_of_the_Spheres/StarRoom",
+ "named": {
+  "Start": [
+   -6.571636199951172,
+   -4466.81689453125,
+   1.6066420016613847e-07
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleporttoHub",
+   "center": [
+    -18.920209884643555,
+    -5381.33984375,
+    14.187430381774902
+   ],
+   "shape": "Sphere",
+   "radius": 451.12750244140625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "teleport to Moon Room",
+   "center": [
+    6.203136920928955,
+    3856.56298828125,
+    19.383909225463867
+   ],
+   "shape": "Sphere",
+   "radius": 160.2794952392578,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

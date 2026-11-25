@@ -1,0 +1,51 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A3_Kings/DS_A3Z3_Volcano/DS_Volcano_Cave3",
+ "named": {
+  "Start": [
+   -146.92599487304688,
+   -71.31165313720703,
+   -13.888079643249512
+  ],
+  "Target location (Cave3FromVolcano1Upper)": [
+   -150.30099487304688,
+   -71.1874008178711,
+   -22.545019149780273
+  ],
+  "Target location (Cave3FromVolcano1Lower)": [
+   -1340.9949951171875,
+   -10544.599609375,
+   -2413.9970703125
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (Cave3ToVolcano1Upper)",
+   "center": [
+    508.33441162109375,
+    -60.15415954589844,
+    -1.579071044921875
+   ],
+   "shape": "Sphere",
+   "radius": 265.4985046386719,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Cave3ToVolcano1Lower)",
+   "center": [
+    -728.8486938476562,
+    -10533.5595703125,
+    -2393.031005859375
+   ],
+   "shape": "Sphere",
+   "radius": 210.6428985595703,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

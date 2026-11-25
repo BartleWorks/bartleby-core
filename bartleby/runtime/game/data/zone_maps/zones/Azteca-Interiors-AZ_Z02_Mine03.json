@@ -1,0 +1,57 @@
+{
+ "format": 1,
+ "zone": "Azteca/Interiors/AZ_Z02_Mine03",
+ "named": {
+  "Start": [
+   -48.183319091796875,
+   -314.4179992675781,
+   100.19989776611328
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point (1)",
+   "template": "AZ-Tritops-Undead-A",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -154.764892578125,
+     -2649.73095703125,
+     50.700069427490234
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Boss",
+   "template": "AZ-Tritops-Undead-F",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     94.39053344726562,
+     -2401.7470703125,
+     0.20001539587974548
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    465.37969970703125,
+    759.8790283203125,
+    133.77349853515625
+   ],
+   "shape": "Sphere",
+   "radius": 502.5892028808594,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

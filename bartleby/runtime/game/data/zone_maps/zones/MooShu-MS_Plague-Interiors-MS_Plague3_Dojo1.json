@@ -1,0 +1,62 @@
+{
+ "format": 1,
+ "zone": "MooShu/MS_Plague/Interiors/MS_Plague3_Dojo1",
+ "named": {
+  "FromPlague3": [
+   2687.635009765625,
+   -1.109287977218628,
+   30.0
+  ],
+  "Start": [
+   2637.8759765625,
+   -1.1092859506607056,
+   30.0
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn NPC",
+   "template": "Samoorai-Ronin-2-L40",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -1.6517540643690154e-05,
+     -296.8843994140625,
+     -27.803749084472656
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn Enemy",
+   "template": "Pig-Plague-Warrior-MSBoss-L47",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     10.60509967803955,
+     307.6799011230469,
+     -3.717226982116699
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToPlague3",
+   "center": [
+    3026.010009765625,
+    -0.7018511891365051,
+    30.0
+   ],
+   "shape": "Sphere",
+   "radius": 234.77890014648438,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,104 @@
+{
+ "format": 1,
+ "zone": "MooShu/MS_Death/Interiors/MS_Death3_SpiritWorld",
+ "named": {
+  "Start": [
+   51.45930099487305,
+   14.268619537353516,
+   -0.00024414059589616954
+  ],
+  "FromDeath3": [
+   0.0,
+   0.0,
+   -0.0003662109957076609
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Pig-Death-Ninja-Ghost-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     150.0,
+     6000.0,
+     -0.00012207029794808477
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Pig-Death-Lord-MSBoss-L49",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -150.0,
+     6000.0,
+     0.0
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 2",
+   "template": "Oni-Death-MSBoss-L61",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -256.293701171875,
+     6394.65087890625,
+     -0.00012207029794808477
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "Pig-Death-Ninja-Ghost-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -372.08758544921875,
+     6423.3798828125,
+     0.11507009714841843
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1 (1)",
+   "template": "Pig-Death-Ninja-Ghost-L39",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     409.08758544921875,
+     6437.701171875,
+     0.1153142973780632
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToPlague3",
+   "center": [
+    0.6062889099121094,
+    -1331.7110595703125,
+    0.00012207029794808477
+   ],
+   "shape": "Sphere",
+   "radius": 1090.8499755859375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A3_Kings/Interiors/DS_MalistaireLair",
+ "named": {
+  "From-UpperVolcano": [
+   -142.28990173339844,
+   -536.8154296875,
+   0.015380860306322575
+  ],
+  "Start": [
+   -230.21080017089844,
+   -539.9854736328125,
+   0.01735691912472248
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Telepor-ToUpperVolcano",
+   "center": [
+    -132.24240112304688,
+    -1827.3260498046875,
+    0.0301513709127903
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

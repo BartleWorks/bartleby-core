@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "MooShu/MS_Death/Interiors/MS_Death2_T3",
+ "named": {
+  "FromDeath2": [
+   -8.9560546875,
+   -1473.531982421875,
+   -6.103516352595761e-05
+  ],
+  "Start": [
+   31.244060516357422,
+   -1473.531982421875,
+   -6.103516352595761e-05
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Treant-MSBoss-L54",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -198.95770263671875,
+     1.5253420315275434e-05,
+     -93.99978637695312
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Treant-L41",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     143.701904296875,
+     361.0387878417969,
+     -100.0
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 2",
+   "template": "Treant-L41",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -381.6993103027344,
+     404.4126892089844,
+     -99.88420867919922
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 3",
+   "template": "Treant-L41",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     388.2515869140625,
+     412.1123962402344,
+     -99.88445281982422
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location 0",
+   "center": [
+    -10.65075969696045,
+    -1883.041015625,
+    0.9279633164405823
+   ],
+   "shape": "Sphere",
+   "radius": 189.76480102539062,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,62 @@
+{
+ "format": 1,
+ "zone": "MooShu/MS_Plague/Interiors/MS_Plague3_T5",
+ "named": {
+  "FromPlague3": [
+   -8.9560546875,
+   -1473.531982421875,
+   -6.103516352595761e-05
+  ],
+  "Start": [
+   -8.873321533203125,
+   -1497.1109619140625,
+   0.0
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Horse-Merc-Tan-L38",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     412.8529052734375,
+     98.3521728515625,
+     -49.9993896484375
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Samoorai-Ronin-1-MSBoss-L43",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -175.88650512695312,
+     80.45458984375,
+     -49.499759674072266
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToPlague3",
+   "center": [
+    -10.65075969696045,
+    -1883.041015625,
+    0.9279633164405823
+   ],
+   "shape": "Sphere",
+   "radius": 189.76480102539062,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

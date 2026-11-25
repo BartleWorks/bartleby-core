@@ -1,0 +1,349 @@
+{
+ "format": 1,
+ "zone": "Wysteria/PA_Hub",
+ "named": {
+  "Target_TeleportToHampshireButtersfield": [
+   890.658203125,
+   4437.06103515625,
+   -14.78612995147705
+  ],
+  "Start": [
+   -33.14453125,
+   435.53759765625,
+   0.2141112983226776
+  ],
+  "FromLibrary": [
+   -863.8184204101562,
+   6633.2578125,
+   60.214111328125
+  ],
+  "FromTournementHall": [
+   3528.218017578125,
+   4768.0869140625,
+   0.2137451022863388
+  ],
+  "FromHeadmaster": [
+   2499.114013671875,
+   9931.197265625,
+   750.2144775390625
+  ],
+  "FromPegasusPlace": [
+   2871.780029296875,
+   12701.9404296875,
+   750.1685791015625
+  ],
+  "FromSchool_Earth": [
+   -1018.5499877929688,
+   13631.9296875,
+   -349.7781066894531
+  ],
+  "FromSchool_Chaos": [
+   -3674.990966796875,
+   11268.599609375,
+   -1264.822998046875
+  ],
+  "FromSchool_Equil": [
+   -6175.3671875,
+   8508.771484375,
+   -1749.781982421875
+  ],
+  "FromDormitory": [
+   -6135.47216796875,
+   9827.5888671875,
+   -1749.782958984375
+  ],
+  "FromSchool_Frost": [
+   -6921.662109375,
+   9993.4951171875,
+   -1749.7860107421875
+  ],
+  "FromSchool_Spirit": [
+   -7336.240234375,
+   7064.73388671875,
+   -1749.7860107421875
+  ],
+  "FromSchool_Water": [
+   -3660.114013671875,
+   6202.18212890625,
+   -608.005126953125
+  ],
+  "FromSchool_Ember": [
+   -3043.6708984375,
+   3932.910888671875,
+   -499.8301086425781
+  ],
+  "Home": [
+   178.21299743652344,
+   -673.211669921875,
+   15.20715045928955
+  ],
+  "FromTanglewood": [
+   -9888.671875,
+   7546.4521484375,
+   -1749.7860107421875
+  ],
+  "From_Shop_Clothier": [
+   -6558.07080078125,
+   5986.2568359375,
+   -1749.998046875
+  ],
+  "From_Shop_Wands": [
+   -6902.22412109375,
+   3759.632080078125,
+   -1750.0
+  ],
+  "From_Shop_Rings": [
+   -7247.4560546875,
+   5050.740234375,
+   -1750.0
+  ],
+  "From_Shop_Deck": [
+   -7372.16015625,
+   9355.4990234375,
+   -1749.7860107421875
+  ],
+  "From_shop_Pet": [
+   -6141.52294921875,
+   7238.30078125,
+   -1749.782958984375
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To_Library",
+   "center": [
+    -840.0219116210938,
+    6977.8720703125,
+    60.2139892578125
+   ],
+   "shape": "Sphere",
+   "radius": 228.16639709472656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_To_TournementHall",
+   "center": [
+    3920.844970703125,
+    4760.1650390625,
+    0.21362300217151642
+   ],
+   "shape": "Sphere",
+   "radius": 155.25360107421875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (2)",
+   "center": [
+    2728.93408203125,
+    9909.5390625,
+    750.2144775390625
+   ],
+   "shape": "Sphere",
+   "radius": 183.677001953125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (5)",
+   "center": [
+    -3683.74609375,
+    11601.58984375,
+    -1246.137939453125
+   ],
+   "shape": "Sphere",
+   "radius": 156.19000244140625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (6)",
+   "center": [
+    -6017.39794921875,
+    8505.484375,
+    -1749.782958984375
+   ],
+   "shape": "Sphere",
+   "radius": 123.80840301513672,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (7)",
+   "center": [
+    -5908.14208984375,
+    9824.6103515625,
+    -1722.1400146484375
+   ],
+   "shape": "Sphere",
+   "radius": 149.39520263671875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (8)",
+   "center": [
+    -7152.126953125,
+    9984.4638671875,
+    -1744.0660400390625
+   ],
+   "shape": "Sphere",
+   "radius": 169.4918975830078,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (9)",
+   "center": [
+    -7585.841796875,
+    7073.91796875,
+    -1749.7860107421875
+   ],
+   "shape": "Sphere",
+   "radius": 123.31829833984375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (10)",
+   "center": [
+    -4024.4208984375,
+    6252.40087890625,
+    -568.940673828125
+   ],
+   "shape": "Sphere",
+   "radius": 187.8549041748047,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (11)",
+   "center": [
+    -3059.9990234375,
+    3717.547119140625,
+    -489.2095031738281
+   ],
+   "shape": "Sphere",
+   "radius": 149.7220001220703,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Teleport-Z01_Pegasus",
+   "center": [
+    3328.243896484375,
+    13113.4296875,
+    800.6685791015625
+   ],
+   "shape": "Sphere",
+   "radius": 229.99119567871094,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Teleport-TangleWoodWay",
+   "center": [
+    -10137.4501953125,
+    7547.376953125,
+    -1722.0880126953125
+   ],
+   "shape": "Sphere",
+   "radius": 222.02499389648438,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Teleport-ToEarthSchool",
+   "center": [
+    -998.5308837890625,
+    13948.8798828125,
+    -349.7781982421875
+   ],
+   "shape": "Sphere",
+   "radius": 208.09320068359375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport to Shop Clothier",
+   "center": [
+    -6321.85888671875,
+    5975.97705078125,
+    -1712.8380126953125
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport to Shop Wand",
+   "center": [
+    -6900.375,
+    3554.1669921875,
+    -1749.9990234375
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport to Shop Rings",
+   "center": [
+    -7458.2978515625,
+    5051.5390625,
+    -1750.0
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleportto Deck",
+   "center": [
+    -7690.10107421875,
+    9382.44921875,
+    -1749.7860107421875
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -5855.171875,
+    7256.7841796875,
+    -1749.7840576171875
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

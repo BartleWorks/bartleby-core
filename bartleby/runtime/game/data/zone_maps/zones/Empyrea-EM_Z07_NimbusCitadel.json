@@ -1,0 +1,138 @@
+{
+ "format": 1,
+ "zone": "Empyrea/EM_Z07_NimbusCitadel",
+ "named": {
+  "Start": [
+   -6.883026123046875,
+   -2229.968994140625,
+   0.19560450315475464
+  ],
+  "Target location-FromAudenceChamber": [
+   -475.6665954589844,
+   2064.89111328125,
+   0.19557419419288635
+  ],
+  "Target location-FromControlRoom": [
+   1612.125,
+   1847.20703125,
+   1.0002009868621826
+  ],
+  "Target location-FromCourtyard": [
+   -1539.68701171875,
+   2211.2119140625,
+   0.9999405741691589
+  ],
+  "Target location-FromDock": [
+   2392.343017578125,
+   1703.72998046875,
+   0.19576309621334076
+  ],
+  "Target location-FromPrivateWing": [
+   418.9027099609375,
+   2071.012939453125,
+   0.19596970081329346
+  ],
+  "Target location-FromRearCourtyard": [
+   2956.0830078125,
+   1193.740966796875,
+   1.0007139444351196
+  ],
+  "Target location-FromStronghold": [
+   -2360.986083984375,
+   -1726.739990234375,
+   0.1956786960363388
+  ],
+  "Target location-FromTechnologistAcademy": [
+   -3094.782958984375,
+   1190.0179443359375,
+   0.0008544921875
+  ],
+  "Target_From_ATestLab": [
+   -3076.56298828125,
+   -1161.3800048828125,
+   0.0012817380484193563
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume-TeleportToHanger",
+   "center": [
+    -19.5306396484375,
+    -3342.93310546875,
+    0.0
+   ],
+   "shape": "Box",
+   "radius": 0.0,
+   "length": 2788.39501953125,
+   "width": 195.8470001220703,
+   "height": 400.0
+  },
+  {
+   "name": "Activator Volume-TeleportSecondDock",
+   "center": [
+    2601.778076171875,
+    2038.5560302734375,
+    1.0024110078811646
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-TeleportToCourtyard",
+   "center": [
+    -1686.1839599609375,
+    2517.239013671875,
+    7.693909168243408
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-TeleportToTechnologistAcademy",
+   "center": [
+    -3347.662109375,
+    1391.2750244140625,
+    -0.0441284216940403
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location-Stronghold",
+   "center": [
+    -2609.777099609375,
+    -2044.7120361328125,
+    -66.77809143066406
+   ],
+   "shape": "",
+   "radius": 176.29249572753906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "AV_Teleport_2_ATestLab",
+   "center": [
+    -3289.14501953125,
+    -1340.2569580078125,
+    0.00238037109375
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

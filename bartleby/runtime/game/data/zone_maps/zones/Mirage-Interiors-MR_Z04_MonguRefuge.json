@@ -1,0 +1,154 @@
+{
+ "format": 1,
+ "zone": "Mirage/Interiors/MR_Z04_MonguRefuge",
+ "named": {
+  "Start": [
+   -2329.8779296875,
+   8535.8720703125,
+   1.3658180236816406
+  ],
+  "Backdoor": [
+   -2957.638916015625,
+   5122.43701171875,
+   -16.7806396484375
+  ],
+  "Room02": [
+   -81.09124755859375,
+   11.630220413208008,
+   84.2723388671875
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Boss",
+   "template": "MR_Mongoose_Warrior_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -2584.469970703125,
+     6814.9482421875,
+     0.00013467459939420223
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Boss (1)",
+   "template": "MR_Mongoose_Warrior_B_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -595.5117797851562,
+     -1516.3509521484375,
+     0.00014856760390102863
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point",
+   "template": "MR_Mongoose_Warrior_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -305.2821960449219,
+     -1376.16796875,
+     0.00017068670422304422
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Boss (2)",
+   "template": "MR_Mongoose_Warrior_C_Boss_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -438.84869384765625,
+     -6911.7158203125,
+     -694.4580078125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Minion (2)",
+   "template": "MR_Mongoose_Warrior_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -808.2744140625,
+     -6838.751953125,
+     -694.4580078125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Minion (1)",
+   "template": "MR_Mongoose_Warrior_B_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -564.6693725585938,
+     -7242.2890625,
+     -694.4581298828125
+    ]
+   ]
+  }
+ ],
+ "links": [
+  {
+   "name": "TeleportVol_Teleport location (1)",
+   "kind": "volume",
+   "source": [
+    -3033.89404296875,
+    4691.09716796875,
+    -85.85054779052734
+   ],
+   "landing": "Room02",
+   "target": [
+    -81.09124755859375,
+    11.630220413208008,
+    84.2723388671875
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location (2)",
+   "kind": "volume",
+   "source": [
+    -83.294677734375,
+    527.3945922851562,
+    118.33570098876953
+   ],
+   "landing": "Backdoor",
+   "target": [
+    -2957.638916015625,
+    5122.43701171875,
+    -16.7806396484375
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -2373.326904296875,
+    9322.36328125,
+    173.85479736328125
+   ],
+   "shape": "",
+   "radius": 282.9377136230469,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

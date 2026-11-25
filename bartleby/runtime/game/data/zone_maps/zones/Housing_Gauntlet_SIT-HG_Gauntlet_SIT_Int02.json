@@ -1,0 +1,747 @@
+{
+ "format": 1,
+ "zone": "Housing_Gauntlet_SIT/HG_Gauntlet_SIT_Int02",
+ "named": {
+  "Start": [
+   5.36480188369751,
+   -3095.535888671875,
+   197.82879638671875
+  ],
+  "TargetLocation_TL_01": [
+   -4.236237049102783,
+   -3595.905029296875,
+   958.897705078125
+  ],
+  "TargetLocation_BL_01": [
+   39.83314895629883,
+   -4711.51904296875,
+   197.75160217285156
+  ],
+  "TargetLocation_TR_01": [
+   5838.68994140625,
+   -3596.64208984375,
+   958.982177734375
+  ],
+  "TargetLocation_BR_01": [
+   5884.77392578125,
+   -4714.89013671875,
+   197.8365936279297
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPoint_L5_50_01",
+   "template": "HG_Fossa_Base_C_L50",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4554.2138671875,
+     4062.47900390625,
+     -197.4846954345703
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_50_02",
+   "template": "HG_Fossa_Base_C_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4300.6669921875,
+     4066.62890625,
+     -197.4846954345703
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_50_03",
+   "template": "HG_Fossa_Base_C_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3927.569091796875,
+     4351.63623046875,
+     -247.98489379882812
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_50_04",
+   "template": "HG_Fossa_Base_C_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4975.76220703125,
+     4371.3681640625,
+     -247.9741973876953
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_100_01",
+   "template": "HG_Fossa_Base_C_L100",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4554.2138671875,
+     4062.47900390625,
+     -197.4846954345703
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_100_02",
+   "template": "HG_Fossa_Base_C_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4300.6669921875,
+     4066.62890625,
+     -197.4846954345703
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_100_03",
+   "template": "HG_Fossa_Base_C_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3927.569091796875,
+     4351.63623046875,
+     -247.98489379882812
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_100_04",
+   "template": "HG_Fossa_Base_C_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4975.76220703125,
+     4371.3681640625,
+     -247.9741973876953
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_150_01",
+   "template": "HG_Fossa_Base_C_L150",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4554.2138671875,
+     4062.47900390625,
+     -197.4846954345703
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_150_02",
+   "template": "HG_Fossa_Base_C_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4300.6669921875,
+     4066.62890625,
+     -197.4846954345703
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_150_03",
+   "template": "HG_Fossa_Base_C_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3927.569091796875,
+     4351.63623046875,
+     -247.98489379882812
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_150_04",
+   "template": "HG_Fossa_Base_C_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4975.76220703125,
+     4371.3681640625,
+     -247.9741973876953
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_180_01",
+   "template": "HG_Fossa_Base_C_L180",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4554.2138671875,
+     4062.47900390625,
+     -197.4846954345703
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_180_02",
+   "template": "HG_Fossa_Base_C_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4300.6669921875,
+     4066.62890625,
+     -197.4846954345703
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_180_03",
+   "template": "HG_Fossa_Base_C_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -3927.569091796875,
+     4351.63623046875,
+     -247.98489379882812
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_L5_180_04",
+   "template": "HG_Fossa_Base_C_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -4975.76220703125,
+     4371.3681640625,
+     -247.9741973876953
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_50_01",
+   "template": "HG_MonkeySpider_D_L50",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10121.6103515625,
+     3986.27587890625,
+     -247.97740173339844
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_50_02",
+   "template": "HG_MonkeySpider_D_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10365.91015625,
+     3993.9560546875,
+     -247.9774932861328
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_50_03",
+   "template": "HG_MonkeySpider_D_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     9999.3828125,
+     4391.83203125,
+     -247.977294921875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_50_04",
+   "template": "HG_MonkeySpider_D_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10522.6298828125,
+     4430.5791015625,
+     -247.97000122070312
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_100_01",
+   "template": "HG_MonkeySpider_D_L100",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10121.6103515625,
+     3986.27587890625,
+     -247.97740173339844
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_100_02",
+   "template": "HG_MonkeySpider_D_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10365.91015625,
+     3993.9560546875,
+     -247.9774932861328
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_100_03",
+   "template": "HG_MonkeySpider_D_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     9999.3828125,
+     4391.83203125,
+     -247.977294921875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_100_04",
+   "template": "HG_MonkeySpider_D_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10522.6298828125,
+     4430.5791015625,
+     -247.97000122070312
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_150_01",
+   "template": "HG_MonkeySpider_D_L150",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10121.6103515625,
+     3986.27587890625,
+     -247.97740173339844
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_150_02",
+   "template": "HG_MonkeySpider_D_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10365.91015625,
+     3993.9560546875,
+     -247.9774932861328
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_150_03",
+   "template": "HG_MonkeySpider_D_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     9999.3828125,
+     4391.83203125,
+     -247.977294921875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_150_04",
+   "template": "HG_MonkeySpider_D_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10522.6298828125,
+     4430.5791015625,
+     -247.97000122070312
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_180_01",
+   "template": "HG_MonkeySpider_D_L180",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10121.6103515625,
+     3986.27587890625,
+     -247.97740173339844
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_180_02",
+   "template": "HG_MonkeySpider_D_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10365.91015625,
+     3993.9560546875,
+     -247.9774932861328
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_180_03",
+   "template": "HG_MonkeySpider_D_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     9999.3828125,
+     4391.83203125,
+     -247.977294921875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_R5_180_04",
+   "template": "HG_MonkeySpider_D_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10522.6298828125,
+     4430.5791015625,
+     -247.97000122070312
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_50_01",
+   "template": "HG_Batacuda_Base_A_L50",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2703.906982421875,
+     7091.1181640625,
+     197.85569763183594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_50_02",
+   "template": "HG_Batacuda_Base_A_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     3130.68310546875,
+     7082.95703125,
+     248.35569763183594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_50_03",
+   "template": "HG_Batacuda_Base_A_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2794.02197265625,
+     7484.115234375,
+     197.85350036621094
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_50_04",
+   "template": "HG_Batacuda_Base_A_L50_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     3043.60693359375,
+     7492.44287109375,
+     197.84800720214844
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_100_01",
+   "template": "HG_Batacuda_Base_A_L100",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2703.906982421875,
+     7091.1181640625,
+     197.85569763183594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_100_02",
+   "template": "HG_Batacuda_Base_A_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     3130.68310546875,
+     7082.95703125,
+     248.35569763183594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_100_03",
+   "template": "HG_Batacuda_Base_A_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2794.02197265625,
+     7484.115234375,
+     197.85350036621094
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_100_04",
+   "template": "HG_Batacuda_Base_A_L100_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     3043.60693359375,
+     7492.44287109375,
+     197.84800720214844
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_150_01",
+   "template": "HG_Batacuda_Base_A_L150",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2703.906982421875,
+     7091.1181640625,
+     197.85569763183594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_150_02",
+   "template": "HG_Batacuda_Base_A_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     3130.68310546875,
+     7082.95703125,
+     248.35569763183594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_150_03",
+   "template": "HG_Batacuda_Base_A_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2794.02197265625,
+     7484.115234375,
+     197.85350036621094
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_150_04",
+   "template": "HG_Batacuda_Base_A_L150_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     3043.60693359375,
+     7492.44287109375,
+     197.84800720214844
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_180_01",
+   "template": "HG_Batacuda_Base_A_L180",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2703.906982421875,
+     7091.1181640625,
+     197.85569763183594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_180_02",
+   "template": "HG_Batacuda_Base_A_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     3130.68310546875,
+     7082.95703125,
+     248.35569763183594
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_180_03",
+   "template": "HG_Batacuda_Base_A_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2794.02197265625,
+     7484.115234375,
+     197.85350036621094
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_M5_180_04",
+   "template": "HG_Batacuda_Base_A_L180_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     3043.60693359375,
+     7492.44287109375,
+     197.84800720214844
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportSource_to_Room_03_01",
+   "center": [
+    -4403.02099609375,
+    6481.8837890625,
+    -208.3477020263672
+   ],
+   "shape": "Sphere",
+   "radius": 267.15631103515625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_to_Room_03_02",
+   "center": [
+    2930.285888671875,
+    9558.837890625,
+    237.45269775390625
+   ],
+   "shape": "Sphere",
+   "radius": 265.93798828125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportSource_to_Room_03_03",
+   "center": [
+    10276.919921875,
+    6439.06494140625,
+    -208.3404998779297
+   ],
+   "shape": "Sphere",
+   "radius": 267.15631103515625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

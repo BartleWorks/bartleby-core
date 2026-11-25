@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "zone": "Celestia/CL_Z12_Test_of_the_Spheres/SunRoom",
+ "named": {
+  "Start": [
+   -422.4494934082031,
+   -21.212989807128906,
+   5.3509188546740916e-06
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVolume",
+   "center": [
+    -0.6910688877105713,
+    -0.7505074143409729,
+    8.528972625732422
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

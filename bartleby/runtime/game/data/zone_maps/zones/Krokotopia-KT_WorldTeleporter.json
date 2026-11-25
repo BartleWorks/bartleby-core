@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_WorldTeleporter",
+ "named": {
+  "Target(KT_Hub KT_WorldTeleporter Entrance)": [
+   9.0643310546875,
+   -2597.64892578125,
+   627.468017578125
+  ],
+  "Start": [
+   6.354869842529297,
+   -852.3665161132812,
+   -2.465621946612373e-05
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport (KT_WorldTeleporter KT_Hub Exit)",
+   "center": [
+    1.4429069757461548,
+    -3138.799072265625,
+    656.3543090820312
+   ],
+   "shape": "Sphere",
+   "radius": 289.16900634765625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

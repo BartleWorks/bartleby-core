@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "zone": "MooShu/Interiors/MS_Teleport_Chamber",
+ "named": {
+  "Start": [
+   -0.98193359375,
+   -438.86669921875,
+   168.78419494628906
+  ],
+  "Target location (From Hub)": [
+   6.770453929901123,
+   -4821.919921875,
+   0.005737305153161287
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport to Hub",
+   "center": [
+    -3.7627389430999756,
+    -5266.60205078125,
+    0.006469727028161287
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

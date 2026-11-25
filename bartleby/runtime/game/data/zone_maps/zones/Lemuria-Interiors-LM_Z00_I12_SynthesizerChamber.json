@@ -1,0 +1,85 @@
+{
+ "format": 1,
+ "zone": "Lemuria/Interiors/LM_Z00_I12_SynthesizerChamber",
+ "named": {
+  "Start": [
+   -1.7643300294876099,
+   2440.659912109375,
+   7.507678985595703
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Boss01",
+   "template": "LM_Khrulhu_Scion_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     62.94681930541992,
+     297.0353088378906,
+     7.50767707824707
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Minion01",
+   "template": "LM_EyeBot_B_04",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -216.6905975341797,
+     -429.15020751953125,
+     2.000011920928955
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Pop1A",
+   "template": "LM_Drone_Eye_D_07",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     475.2757873535156,
+     -410.3266906738281,
+     2.000005006790161
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Pop01B",
+   "template": "LM_Malughast_Base_09",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -586.8875122070312,
+     -385.0450134277344,
+     2.000067949295044
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    2.8105831146240234,
+    3173.951904296875,
+    7.507659912109375
+   ],
+   "shape": "Sphere",
+   "radius": 454.1470947265625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

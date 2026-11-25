@@ -1,0 +1,43 @@
+{
+ "format": 1,
+ "zone": "Aquila/Interiors/AQ_Z01_TempleOfSisyphus",
+ "named": {
+  "Start": [
+   4.953612804412842,
+   -3576.72607421875,
+   189.5
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Boss",
+   "template": "AQ_Eagles_Sisyphus_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -15.548279762268066,
+     -244.76649475097656,
+     51.22692108154297
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    0.8567656874656677,
+    -3816.532958984375,
+    188.47329711914062
+   ],
+   "shape": "Sphere",
+   "radius": 134.05419921875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

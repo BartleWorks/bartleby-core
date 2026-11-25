@@ -1,0 +1,92 @@
+{
+ "format": 1,
+ "zone": "Krokotopia/KT_Pyramid/Interiors/KT_Hall_T1",
+ "named": {
+  "Target location (Pyramid01 Tower01 Entrance)": [
+   16.449710845947266,
+   -2662.784912109375,
+   0.0
+  ],
+  "Start": [
+   53.21329879760742,
+   -2691.083984375,
+   -9.87500925475615e-07
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "KrokPharaoh-FireHair-KTBoss-L03",
+   "proximity": 800.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -143.39370727539062,
+     -64.9867935180664,
+     -222.0229034423828
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "KrokPharaoh-FireBird-L02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     247.46009826660156,
+     -76.71190643310547,
+     -221.92869567871094
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (2)",
+   "template": "KrokPharaoh-FireBird-L02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     505.1697082519531,
+     149.1864013671875,
+     -221.9073944091797
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "KrokPharaoh-FireBird-L02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -355.722900390625,
+     143.7978057861328,
+     -221.90719604492188
+    ]
+   ]
+  }
+ ],
+ "links": [
+  {
+   "name": "TeleportVol_Teleport location (Pyramid01 Tower01 Exit)",
+   "kind": "volume",
+   "source": [
+    -22.774900436401367,
+    -3284.090087890625,
+    65.76717376708984
+   ],
+   "landing": "Target location (Pyramid01 Tower01 Entrance)",
+   "target": [
+    16.449710845947266,
+    -2662.784912109375,
+    0.0
+   ]
+  }
+ ],
+ "exits": []
+}

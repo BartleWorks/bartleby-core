@@ -1,0 +1,120 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A3_Kings/DS_A3Hub_Academy",
+ "named": {
+  "FromArena": [
+   -4.830763816833496,
+   266.82958984375,
+   0.0
+  ],
+  "From Amphitheatre": [
+   3763.199951171875,
+   2419.221923828125,
+   0.00024414059589616954
+  ],
+  "FromCrystalGrove": [
+   -1983.48095703125,
+   6480.14111328125,
+   599.9680786132812
+  ],
+  "FromDragonsRoost": [
+   -3108.6240234375,
+   10120.1201171875,
+   1998.844970703125
+  ],
+  "FromFireSchool": [
+   -3385.760009765625,
+   3076.785888671875,
+   122.53369903564453
+  ],
+  "FromCathedral": [
+   3108.544921875,
+   9452.548828125,
+   1998.843994140625
+  ],
+  "From_SkaranaxDoomscale": [
+   -3431.9541015625,
+   7918.876953125,
+   1998.844970703125
+  ],
+  "Start": [
+   -73.01799774169922,
+   266.82958984375,
+   0.0
+  ],
+  "Target WC-MYTH-C07-003": [
+   -36.190189361572266,
+   10197.080078125,
+   1968.998046875
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location 1",
+   "center": [
+    -3597.72509765625,
+    3080.760009765625,
+    130.00010681152344
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "KT-BAL-C11-001_Volume",
+   "center": [
+    -3844.385009765625,
+    7944.0751953125,
+    2036.6409912109375
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportCrystal Grove",
+   "center": [
+    -2734.31103515625,
+    6470.7822265625,
+    599.968017578125
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportToArena",
+   "center": [
+    -11.041359901428223,
+    -416.0444030761719,
+    0.0004882813082076609
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportAmphitheater",
+   "center": [
+    4291.31396484375,
+    2365.1669921875,
+    4.495790004730225
+   ],
+   "shape": "Sphere",
+   "radius": 412.4464111328125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

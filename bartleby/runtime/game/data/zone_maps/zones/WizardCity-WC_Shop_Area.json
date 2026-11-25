@@ -1,0 +1,336 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Shop_Area",
+ "named": {
+  "FrostGiantCinematicLoc": [
+   6091.033203125,
+   -1310.8330078125,
+   -66.63304138183594
+  ],
+  "Start": [
+   -95.5573501586914,
+   -800.2119750976562,
+   -30.46902084350586
+  ],
+  "Target location (Street2 WC_Shop Exit)": [
+   -5442.1318359375,
+   -3267.8291015625,
+   -30.470989227294922
+  ],
+  "Target location (Street6 WC_Shop Exit)": [
+   -2068.52294921875,
+   -4881.826171875,
+   -30.469039916992188
+  ],
+  "Target location (WC_Shop Hub)": [
+   -95.5573501586914,
+   -849.2841796875,
+   -30.46902084350586
+  ],
+  "Target location (WC_Shop Jewelry)": [
+   -2331.950927734375,
+   -3285.324951171875,
+   -29.450809478759766
+  ],
+  "Target location (WC_Shop NPCShop Amulets)": [
+   -3559.14306640625,
+   -1916.4539794921875,
+   0.011046229861676693
+  ],
+  "Target location (WC_Shop NPCShop Athames)": [
+   -1981.2239990234375,
+   -4496.14990234375,
+   0.010925129987299442
+  ],
+  "Target location (WC_Shop NPCShop Decks)": [
+   4623.208984375,
+   -3377.199951171875,
+   0.010982809588313103
+  ],
+  "Target location (WC_Shop NPCShop Hat)": [
+   1438.8759765625,
+   -3885.08203125,
+   -29.402280807495117
+  ],
+  "Target location (WC_Shop NPCShop Pets)": [
+   2926.99609375,
+   -4531.2880859375,
+   -27.836360931396484
+  ],
+  "Target location (WC_Shop NPCShop Rings)": [
+   2953.1298828125,
+   -2609.614013671875,
+   0.0110931396484375
+  ],
+  "Target location (WC_Shop NPCShop Robes)": [
+   -3374.4169921875,
+   -3616.658935546875,
+   -29.36362075805664
+  ],
+  "Target location (WC_Shop NPCShop Shoe)": [
+   3570.701904296875,
+   -4562.8779296875,
+   0.010975049808621407
+  ],
+  "Target location (WC_Shop NPCShop Wands)": [
+   -3167.2509765625,
+   -1522.532958984375,
+   -29.55681037902832
+  ],
+  "FromDyeShop": [
+   507.75311279296875,
+   -3180.550048828125,
+   -30.46894073486328
+  ],
+  "FromWCHousingShop": [
+   5555.23583984375,
+   -2369.241943359375,
+   -30.468929290771484
+  ],
+  "Target location (WC_Shop NPCShop Makeup)": [
+   1492.7979736328125,
+   -3472.367919921875,
+   -29.402280807495117
+  ],
+  "Target_From_PartyRoom": [
+   4818.73095703125,
+   -2501.965087890625,
+   -0.10394290089607239
+  ],
+  "Teleport_to_WC-Shop-NPC-Loyalty": [
+   -4079.56201171875,
+   -3188.625,
+   -29.36362075805664
+  ],
+  "Teleport_to_Maxwell_Sharp_WC-SD_01": [
+   -407.5364990234375,
+   -2714.70703125,
+   -29.363590240478516
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Conditional Teleporter-Greyrose009",
+   "center": [
+    -2036.614990234375,
+    -5655.376953125,
+    -30.46912956237793
+   ],
+   "shape": "Sphere",
+   "radius": 247.88999938964844,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Shop Area to Street2)",
+   "center": [
+    -6106.94580078125,
+    -3249.427001953125,
+    -30.477680206298828
+   ],
+   "shape": "Sphere",
+   "radius": 443.2532043457031,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop Hub)",
+   "center": [
+    -97.7442626953125,
+    -160.17230224609375,
+    14.451760292053223
+   ],
+   "shape": "Sphere",
+   "radius": 392.7231140136719,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop Jewelry)",
+   "center": [
+    -2299.47900390625,
+    -3070.222900390625,
+    0.4798583984375
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Amulets)",
+   "center": [
+    -3778.030029296875,
+    -1912.2989501953125,
+    13.958700180053711
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Athames)",
+   "center": [
+    -1729.3079833984375,
+    -4536.0,
+    13.958580017089844
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Decks)",
+   "center": [
+    4824.328125,
+    -3535.509033203125,
+    30.813100814819336
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Hat)",
+   "center": [
+    1351.18994140625,
+    -4056.966064453125,
+    12.704290390014648
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Pets)",
+   "center": [
+    2634.9970703125,
+    -4877.6689453125,
+    12.704290390014648
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Rings)",
+   "center": [
+    2911.10888671875,
+    -2410.672119140625,
+    0.010971070267260075
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Robes)",
+   "center": [
+    -3402.56005859375,
+    -3855.339111328125,
+    -0.9908447265625
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Shoe)",
+   "center": [
+    3695.18798828125,
+    -4785.498046875,
+    30.813100814819336
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Wands)",
+   "center": [
+    -2998.694091796875,
+    -1523.260009765625,
+    13.958760261535645
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Dye)",
+   "center": [
+    294.6512145996094,
+    -3326.527099609375,
+    0.0110931396484375
+   ],
+   "shape": "Sphere",
+   "radius": 97.52288818359375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Housing)",
+   "center": [
+    5757.380859375,
+    -2499.006103515625,
+    0.010971070267260075
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (WC_Shop NPCShop Makeup)",
+   "center": [
+    1529.60302734375,
+    -3272.3330078125,
+    -3.893239974975586
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "AV_Teleport_2_PartyRoom",
+   "center": [
+    4643.38623046875,
+    -2344.635009765625,
+    0.3345794975757599
+   ],
+   "shape": "Sphere",
+   "radius": 142.91290283203125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

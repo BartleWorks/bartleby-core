@@ -1,0 +1,46 @@
+{
+ "format": 1,
+ "zone": "Empyrea/Interiors/EM_Z09_SkeletonKey_Landing",
+ "named": {
+  "Start": [
+   -4184.69921875,
+   -6950.02783203125,
+   -0.009161539375782013
+  ],
+  "Target_From_SkeletonKey02": [
+   -3832.387939453125,
+   -6308.60888671875,
+   1.4137909412384033
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Volume_2_SkeletonKey02",
+   "center": [
+    -3343.35400390625,
+    -5898.22705078125,
+    -5.042535781860352
+   ],
+   "shape": "Sphere",
+   "radius": 319.590087890625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_2_Sewers",
+   "center": [
+    -4485.8017578125,
+    -7432.55419921875,
+    88.99508666992188
+   ],
+   "shape": "",
+   "radius": 287.3330993652344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,104 @@
+{
+ "format": 1,
+ "zone": "G14_SB/SB_Z04_PagodaRoom03",
+ "named": {
+  "Start": [
+   -10.106710433959961,
+   -2043.375,
+   133.93299865722656
+  ],
+  "Target location-FromSkeletonKeyRoom": [
+   29.069580078125,
+   1860.5860595703125,
+   133.8459014892578
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point-Boss",
+   "template": "G14-SB-SheepMonk_Boss",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -8.990951538085938,
+     -449.0492858886719,
+     0.0006082619074732065
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Minion",
+   "template": "G14-SB-SheepMonk_Body",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     100.46759796142578,
+     159.32589721679688,
+     0.00024205099907703698
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Pop",
+   "template": "G14-SB-SheepMonk_Body",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -372.7008056640625,
+     -270.9005126953125,
+     0.00024205099907703698
+    ],
+    [
+     449.5797119140625,
+     -320.8583068847656,
+     0.000364121311577037
+    ],
+    [
+     506.5082092285156,
+     109.87999725341797,
+     0.00024205099907703698
+    ],
+    [
+     -267.7795104980469,
+     358.5436096191406,
+     0.0004861915949732065
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location-ToLvl2",
+   "center": [
+    4.214354991912842,
+    -2652.910888671875,
+    133.9716033935547
+   ],
+   "shape": "Sphere",
+   "radius": 285.02880859375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location-ToSkeletonKeyRoom",
+   "center": [
+    3.046173095703125,
+    2413.39306640625,
+    182.30709838867188
+   ],
+   "shape": "Sphere",
+   "radius": 164.47349548339844,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

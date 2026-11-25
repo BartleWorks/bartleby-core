@@ -1,0 +1,154 @@
+{
+ "format": 1,
+ "zone": "Empyrea/Interiors/EM_Z01_RaiderTunnels",
+ "named": {
+  "Start": [
+   -17.16646957397461,
+   501.21258544921875,
+   -1.8895260095596313
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Boss",
+   "template": "EM_Kalamar_Raider_C_Boss_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1710.866943359375,
+     -3230.797119140625,
+     -1.8896260261535645
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Pop1",
+   "template": "EM_Kalamar_Raider_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2375.68310546875,
+     -3692.718994140625,
+     -1.889538049697876
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Pop2",
+   "template": "EM_Kalamar_Raider_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     2135.862060546875,
+     -4061.4619140625,
+     -1.889415979385376
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Minion",
+   "template": "EM_Kalamar_Raider_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1666.2359619140625,
+     -3592.533935546875,
+     48.6103515625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point",
+   "template": "EM_Kalamar_Raider_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     7276.87890625,
+     -4331.52392578125,
+     -0.009285463951528072
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Pop",
+   "template": "EM_Kalamar_Raider_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     7266.4140625,
+     -3752.885009765625,
+     -0.009449680335819721
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Minion (1)",
+   "template": "EM_Kalamar_Raider_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     6893.4541015625,
+     -4096.38818359375,
+     50.49060821533203
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Boss (1)",
+   "template": "EM_Kalamar_Raider_D_Boss_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     6463.98193359375,
+     -3997.843994140625,
+     -0.009241187013685703
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -43.37419128417969,
+    1063.4530029296875,
+    -1.604614019393921
+   ],
+   "shape": "Sphere",
+   "radius": 402.9442138671875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (1)",
+   "center": [
+    6308.84423828125,
+    -1207.2039794921875,
+    24.28955078125
+   ],
+   "shape": "",
+   "radius": 367.00439453125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

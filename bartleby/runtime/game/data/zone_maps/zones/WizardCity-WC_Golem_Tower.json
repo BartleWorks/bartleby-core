@@ -1,0 +1,94 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Golem_Tower",
+ "named": {
+  "FireCatStart": [
+   1350.1510009765625,
+   3884.56298828125,
+   29.70465087890625
+  ],
+  "FireCatTargetLocation": [
+   1827.822021484375,
+   3988.985107421875,
+   182.78480529785156
+  ],
+  "Target location (WC_Golem_1 WC_Golem_Tower Exit)": [
+   -518.1148071289062,
+   1207.10595703125,
+   36.78398132324219
+  ],
+  "Target location (WC_Golem_Tower Hub Entrance)": [
+   20.85388946533203,
+   -133.9647979736328,
+   32.632808685302734
+  ],
+  "Target location(Fire Cave Golem Tower Entrance)": [
+   1534.8389892578125,
+   3968.860107421875,
+   29.62030029296875
+  ],
+  "Start": [
+   108.75469970703125,
+   -133.9647979736328,
+   32.632808685302734
+  ],
+  "Target location-FromDrains": [
+   -3318.507080078125,
+   1813.633056640625,
+   30.09988021850586
+  ],
+  "MythCin": [
+   614.8668212890625,
+   4456.59619140625,
+   30.232980728149414
+  ],
+  "Target location - DragonMouthCave": [
+   1136.5369873046875,
+   3779.14599609375,
+   30.36840057373047
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (WC_Golem_Tower Hub Exit)",
+   "center": [
+    298.10540771484375,
+    -724.5164794921875,
+    40.412471771240234
+   ],
+   "shape": "Sphere",
+   "radius": 400.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Teleport to Fire Cave",
+   "center": [
+    2003.9820556640625,
+    4088.31103515625,
+    44.529541015625
+   ],
+   "shape": "Sphere",
+   "radius": 230.12350463867188,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location 7",
+   "center": [
+    -632.8931274414062,
+    1474.291015625,
+    50.0
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

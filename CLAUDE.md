@@ -180,7 +180,7 @@ repo.
 | `bartleby/runtime/CLAUDE.md` | the arbiter, timing, logging, pressing keys, cancellation, multi-client coordination, scanning a client's whole memory, zones, closing windows, modal dialogs, NPC dialogue, UI paths |
 | `tests/CLAUDE.md` | keeping a suite fast, CI-only failures, widget lifetime, one QApplication per worker |
 | `docs/ARCHITECTURE.md` | the tiers, what lives where, the three cuts, how a product takes core, how rules reach a session |
-| `docs/WALKING.md` | moving by walking: planning a route from a zone's files (the floor, patrols, in-zone links, exits), walking one on a live client, every measurement, and what is not done |
+| `docs/WALKING.md` | moving by walking: planning a route from a zone's files (the floor, patrols, in-zone links, exits), the shipped zone maps and the copies saved from them, walking one on a live client, every measurement, and what is not done |
 | `docs/WIZARD101.md` | the game rules that shape design: characters, moving and what the server allows of it, battles, fleeing, level scaling, marks, Challenge Mode, sigils, banks, and combat as players fight it |
 | `docs/UI_TEXT.md` | writing anything a user reads: the three layers of a setting, voice, words, capitals, messages, and the rules of their own for setup's pages and the node help |
 | `docs/WINDOW_SIZING.md` | the (resolution, UI size) ladder, which XML file holds which, why an unfittable launch is refused, and resizing a running client (UI size, Deimos' forcer without its drag border, the window, the camera) |

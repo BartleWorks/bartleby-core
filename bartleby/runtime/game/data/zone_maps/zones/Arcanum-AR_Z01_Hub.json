@@ -1,0 +1,550 @@
+{
+ "format": 1,
+ "zone": "Arcanum/AR_Z01_Hub",
+ "named": {
+  "Start": [
+   -3.3151190280914307,
+   -6738.02978515625,
+   -2.005737066268921
+  ],
+  "AR_From_School_Ice": [
+   -1149.4339599609375,
+   -12747.169921875,
+   0.500303328037262
+  ],
+  "AR_From_School_Myth": [
+   1790.800048828125,
+   -11721.759765625,
+   0.5002683997154236
+  ],
+  "AR_From_School_Balance": [
+   2.423218011856079,
+   -13205.3095703125,
+   -1.943053960800171
+  ],
+  "AR_From_School_Fire": [
+   -1771.6939697265625,
+   -11816.76953125,
+   -1.9432369470596313
+  ],
+  "AR_From_School_Death": [
+   1154.781982421875,
+   -12787.2001953125,
+   0.500343382358551
+  ],
+  "AR_From_School_Life": [
+   1903.375,
+   -10489.580078125,
+   -1.9432450532913208
+  ],
+  "AR_From_School_Storm": [
+   -1901.1199951171875,
+   -10518.6904296875,
+   -1.9430190324783325
+  ],
+  "AR_From_School_Astarl": [
+   -1137.427978515625,
+   -9621.06640625,
+   0.5006086826324463
+  ],
+  "AR_From_School_Shadow": [
+   1131.425048828125,
+   -9515.1357421875,
+   -2.862412929534912
+  ],
+  "Target location Down-01": [
+   876.3572998046875,
+   1181.5560302734375,
+   0.6148682236671448
+  ],
+  "Target location Up-01": [
+   826.4251098632812,
+   1119.031982421875,
+   1156.9320068359375
+  ],
+  "Target location Down-02": [
+   -931.5877075195312,
+   1162.06396484375,
+   0.61456298828125
+  ],
+  "Target location Up-02": [
+   -911.0170288085938,
+   1072.739990234375,
+   1156.9320068359375
+  ],
+  "Target location_FinalPolarisScene": [
+   131.75579833984375,
+   -9369.7998046875,
+   -1.5709220170974731
+  ],
+  "AR_From_Apartment": [
+   -725.5535278320312,
+   -3266.173095703125,
+   6.927585124969482
+  ],
+  "AR_From_Crafting": [
+   7205.6318359375,
+   -999.6704711914062,
+   -106.77449798583984
+  ],
+  "From_SchismBookRoom": [
+   -4891.9248046875,
+   -1729.6419677734375,
+   -105.19380187988281
+  ],
+  "AR_From_DryDock": [
+   6030.23779296875,
+   -2206.0869140625,
+   -105.70649719238281
+  ],
+  "AR_From_ShadowTrickstersLair": [
+   3470.5830078125,
+   -1099.7550048828125,
+   -105.24220275878906
+  ],
+  "From_Infirmary": [
+   1256.5419921875,
+   -1002.68798828125,
+   -105.22470092773438
+  ],
+  "From Recovery Room": [
+   -1558.220947265625,
+   -1132.06298828125,
+   -105.24230194091797
+  ],
+  "Target location-From Musicology": [
+   710.1119995117188,
+   -3268.089111328125,
+   7.847412109375
+  ],
+  "From_OldOnesOffice": [
+   1616.45703125,
+   -6414.4541015625,
+   -1.570801019668579
+  ],
+  "TargetLocation_From_Elevator_01": [
+   -1754.489990234375,
+   -6419.5400390625,
+   -1.570801019668579
+  ],
+  "TargetLocation_From_Cursed_Repository_01": [
+   -3942.448974609375,
+   -965.9683227539062,
+   -105.17530059814453
+  ],
+  "TargetLocation_From_Life_Support": [
+   -2359.802001953125,
+   -1269.616943359375,
+   -105.22979736328125
+  ],
+  "Target location-FromMagicksHall": [
+   -24.26384925842285,
+   552.348876953125,
+   1156.9320068359375
+  ],
+  "Target location-FromArena02": [
+   3938.011962890625,
+   -985.857421875,
+   -105.16690063476562
+  ],
+  "From_ArbitersArena": [
+   6023.6689453125,
+   21.699220657348633,
+   -132.352294921875
+  ],
+  "CinematicLocation": [
+   5191.033203125,
+   -990.908203125,
+   -132.3520050048828
+  ],
+  "Target location_From_LiminalSpace_01": [
+   122.53510284423828,
+   1112.3489990234375,
+   -20.604799270629883
+  ],
+  "Target location": [
+   -95.72247314453125,
+   952.635986328125,
+   0.61480712890625
+  ]
+ },
+ "patrols": [],
+ "links": [
+  {
+   "name": "TeleportVol_Teleport location Down-02",
+   "kind": "volume",
+   "source": [
+    -1008.3179931640625,
+    1369.8089599609375,
+    5.80047607421875
+   ],
+   "landing": "Target location Up-02",
+   "target": [
+    -911.0170288085938,
+    1072.739990234375,
+    1156.9320068359375
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location Up-02",
+   "kind": "volume",
+   "source": [
+    -1006.3159790039062,
+    1364.6409912109375,
+    1162.720947265625
+   ],
+   "landing": "Target location Down-02",
+   "target": [
+    -931.5877075195312,
+    1162.06396484375,
+    0.61456298828125
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location Up-01",
+   "kind": "volume",
+   "source": [
+    988.719970703125,
+    1386.7860107421875,
+    1176.73095703125
+   ],
+   "landing": "Target location Down-01",
+   "target": [
+    876.3572998046875,
+    1181.5560302734375,
+    0.6148682236671448
+   ]
+  },
+  {
+   "name": "TeleportVol_Teleport location Down-01",
+   "kind": "volume",
+   "source": [
+    988.719970703125,
+    1386.7860107421875,
+    13.192689895629883
+   ],
+   "landing": "Target location Up-01",
+   "target": [
+    826.4251098632812,
+    1119.031982421875,
+    1156.9320068359375
+   ]
+  },
+  {
+   "name": "Activator Volume-TeleportToMagicksHall",
+   "kind": "volume",
+   "source": [
+    0.5511475205421448,
+    341.3406066894531,
+    1156.9320068359375
+   ],
+   "landing": "Target location Down-02",
+   "target": [
+    -931.5877075195312,
+    1162.06396484375,
+    0.61456298828125
+   ]
+  }
+ ],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_Storm",
+   "center": [
+    -2221.90087890625,
+    -10411.080078125,
+    26.320890426635742
+   ],
+   "shape": "",
+   "radius": 185.8238983154297,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_Life",
+   "center": [
+    2185.490966796875,
+    -10443.8203125,
+    -16.382429122924805
+   ],
+   "shape": "",
+   "radius": 176.10899353027344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_Death",
+   "center": [
+    1360.8079833984375,
+    -13038.2998046875,
+    11.730199813842773
+   ],
+   "shape": "Sphere",
+   "radius": 147.0727996826172,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_Astral",
+   "center": [
+    -1376.6510009765625,
+    -9275.1357421875,
+    19.367740631103516
+   ],
+   "shape": "",
+   "radius": 147.5343017578125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_Fire",
+   "center": [
+    -2170.77099609375,
+    -11892.330078125,
+    7.178305149078369
+   ],
+   "shape": "",
+   "radius": 176.1999053955078,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location Hall of Conjuration",
+   "center": [
+    2212.047119140625,
+    -11868.900390625,
+    -0.15785470604896545
+   ],
+   "shape": "",
+   "radius": 160.55259704589844,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_Ice",
+   "center": [
+    -1384.9539794921875,
+    -13062.150390625,
+    -0.5276718139648438
+   ],
+   "shape": "",
+   "radius": 147.1298065185547,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -18.250459671020508,
+    -13479.7802734375,
+    0.5001171231269836
+   ],
+   "shape": "",
+   "radius": 145.1929931640625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "AV_From_Apartment",
+   "center": [
+    -1048.4580078125,
+    -3286.677978515625,
+    6.927527904510498
+   ],
+   "shape": "Sphere",
+   "radius": 164.6072998046875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_AR_to_Crafting",
+   "center": [
+    7502.72021484375,
+    -993.434814453125,
+    -78.81395721435547
+   ],
+   "shape": "",
+   "radius": 127.43109893798828,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume SchismBookRoom",
+   "center": [
+    -4705.69384765625,
+    -1706.3709716796875,
+    -105.24220275878906
+   ],
+   "shape": "Sphere",
+   "radius": 93.99791717529297,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location Hall of Shadow",
+   "center": [
+    1423.3590087890625,
+    -9186.923828125,
+    7.84735107421875
+   ],
+   "shape": "",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_To_ShadowTraining",
+   "center": [
+    3143.759033203125,
+    -1415.27294921875,
+    -105.24230194091797
+   ],
+   "shape": "",
+   "radius": 137.29640197753906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "T0_Infirmary_Volume",
+   "center": [
+    1559.0889892578125,
+    -598.4951171875,
+    -105.24240112304688
+   ],
+   "shape": "Sphere",
+   "radius": 262.7300109863281,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "AV_Teleport_DryDock",
+   "center": [
+    6012.96923828125,
+    -2466.951904296875,
+    -105.85469818115234
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "AV Teleport to Recovery Room",
+   "center": [
+    -1555.718017578125,
+    -1440.4339599609375,
+    -105.24230194091797
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume -To Musicology",
+   "center": [
+    1038.52001953125,
+    -3260.553955078125,
+    12.709239959716797
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume -TeleportToMusicologyStudio",
+   "center": [
+    1496.8070068359375,
+    -1411.780029296875,
+    -48.754058837890625
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume OldOnesOffice",
+   "center": [
+    2218.02197265625,
+    -6412.15087890625,
+    -1.570739984512329
+   ],
+   "shape": "Sphere",
+   "radius": 468.8221130371094,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "ActivatorVolume-TeleportGate-Fake",
+   "center": [
+    -2382.341064453125,
+    -6448.52490234375,
+    54.08700942993164
+   ],
+   "shape": "Sphere",
+   "radius": 54.523101806640625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume ArbitersArena",
+   "center": [
+    6032.9580078125,
+    326.2406921386719,
+    -103.72989654541016
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume",
+   "center": [
+    3955.238037109375,
+    -601.236328125,
+    -105.24240112304688
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "ActivatorVolume_Trigger_Teleport_AR_Z01_LiminalSpace_02",
+   "center": [
+    -14.725259780883789,
+    1547.7449951171875,
+    -34.19816970825195
+   ],
+   "shape": "Sphere",
+   "radius": 753.5592041015625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

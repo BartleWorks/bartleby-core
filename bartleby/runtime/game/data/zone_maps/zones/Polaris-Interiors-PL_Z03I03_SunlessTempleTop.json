@@ -1,0 +1,86 @@
+{
+ "format": 1,
+ "zone": "Polaris/Interiors/PL_Z03I03_SunlessTempleTop",
+ "named": {
+  "Start": [
+   -14.468839645385742,
+   -92.60167694091797,
+   2.277100086212158
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point-Boss",
+   "template": "PL_WolfGryphon_Warrior_C",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     133.02859497070312,
+     -959.2764282226562,
+     2.27697491645813
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Minion",
+   "template": "PL_Griffin_A",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -243.2073974609375,
+     -1065.2889404296875,
+     54.069339752197266
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Pop",
+   "template": "PL_Griffin_A",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     403.3140869140625,
+     -1216.8199462890625,
+     2.2769711017608643
+    ],
+    [
+     -473.1611022949219,
+     -1272.488037109375,
+     2.2769711017608643
+    ],
+    [
+     -175.38119506835938,
+     -1706.427978515625,
+     2.277215003967285
+    ],
+    [
+     206.6450958251953,
+     -1700.43505859375,
+     2.2769711017608643
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    1.6600290536880493,
+    227.74180603027344,
+    2.276732921600342
+   ],
+   "shape": "",
+   "radius": 174.90980529785156,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,150 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A3_Kings/DS_A3Z2_Amphitheatre",
+ "named": {
+  "Target location (DS_Amphitheater from T5)": [
+   -11184.4697265625,
+   6001.13818359375,
+   180.00469970703125
+  ],
+  "Target location (DS_Amphitheater from T1)": [
+   2.9684300422668457,
+   -27185.890625,
+   180.0045928955078
+  ],
+  "Target location (DS_Amphitheater from T2)": [
+   7998.5859375,
+   -19187.91015625,
+   180.00469970703125
+  ],
+  "Target location (DS_Amphitheater from T4)": [
+   20001.439453125,
+   6810.64306640625,
+   180.0045928955078
+  ],
+  "Target location (DS_Amphitheater from T3)": [
+   27997.919921875,
+   29190.150390625,
+   180.0081024169922
+  ],
+  "FromAcademy": [
+   -13551.080078125,
+   -12066.599609375,
+   0.0034179689828306437
+  ],
+  "FromTower6": [
+   -3405.85791015625,
+   2022.0460205078125,
+   -347.5538024902344
+  ],
+  "FromTower7": [
+   -3269.969970703125,
+   4616.3759765625,
+   -847.3726806640625
+  ],
+  "FromTower8": [
+   3262.537109375,
+   4609.28515625,
+   -848.4033203125
+  ],
+  "FromOuterStones": [
+   52.65625,
+   318.62298583984375,
+   0.0028314590454101562
+  ],
+  "FromMainStoneA": [
+   8006.89013671875,
+   -17575.390625,
+   0.005073546897619963
+  ],
+  "FromMainStoneB": [
+   -8659.923828125,
+   -11172.7001953125,
+   41.01145935058594
+  ],
+  "FromMainStoneC": [
+   20821.75,
+   21106.109375,
+   40.0
+  ],
+  "Start": [
+   -13884.0498046875,
+   -12000.240234375,
+   0.0034179689828306437
+  ],
+  "Target-Spell-Fire-180": [
+   19101.640625,
+   22742.720703125,
+   -262.4642028808594
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport-ToAcademy",
+   "center": [
+    -14269.8798828125,
+    -11987.7001953125,
+    30.009700775146484
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location 0",
+   "center": [
+    -3602.01611328125,
+    1549.1710205078125,
+    -457.1962890625
+   ],
+   "shape": "Sphere",
+   "radius": 139.43780517578125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location 1",
+   "center": [
+    3554.248046875,
+    4176.01220703125,
+    -1087.196044921875
+   ],
+   "shape": "Sphere",
+   "radius": 140.8354949951172,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location 2",
+   "center": [
+    -3540.096923828125,
+    4187.18408203125,
+    -1087.196044921875
+   ],
+   "shape": "Sphere",
+   "radius": 137.1260986328125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-DM-SPELL-FIRE-180",
+   "center": [
+    18978.9296875,
+    23031.439453125,
+    -260.7648010253906
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

@@ -1,0 +1,71 @@
+{
+ "format": 1,
+ "zone": "Novus/Interiors/NV_Z07_I04_NovusSkies",
+ "named": {
+  "Start": [
+   -27.809410095214844,
+   -421.24200439453125,
+   0.4156252145767212
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point (1)",
+   "template": "WL_Ship_MO_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     231.7191925048828,
+     -1698.571044921875,
+     0.7231631278991699
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)",
+   "template": "WL_Ship_MB_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -456.9700012207031,
+     -2206.8701171875,
+     0.7231308221817017
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (3)",
+   "template": "WL_Ship_PL_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     107.39250183105469,
+     -2268.260009765625,
+     0.7231385707855225
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    4.8721771240234375,
+    79.5390396118164,
+    2.0001220703125
+   ],
+   "shape": "",
+   "radius": 308.59381103515625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

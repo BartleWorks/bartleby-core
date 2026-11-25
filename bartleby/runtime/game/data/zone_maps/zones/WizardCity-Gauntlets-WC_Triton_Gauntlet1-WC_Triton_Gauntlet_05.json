@@ -1,0 +1,46 @@
+{
+ "format": 1,
+ "zone": "WizardCity/Gauntlets/WC_Triton_Gauntlet1/WC_Triton_Gauntlet_05",
+ "named": {
+  "FromLevel6": [
+   -1110.7779541015625,
+   -1.2893760204315186,
+   -48.924320220947266
+  ],
+  "Start": [
+   1129.135986328125,
+   -6.479008197784424,
+   -48.924190521240234
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToLevel1",
+   "center": [
+    1553.5059814453125,
+    -8.71987533569336,
+    22.574859619140625
+   ],
+   "shape": "Sphere",
+   "radius": 165.74960327148438,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_To6FightTeleport",
+   "center": [
+    -1710.4859619140625,
+    14.267629623413086,
+    65.31273651123047
+   ],
+   "shape": "Sphere",
+   "radius": 217.997802734375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

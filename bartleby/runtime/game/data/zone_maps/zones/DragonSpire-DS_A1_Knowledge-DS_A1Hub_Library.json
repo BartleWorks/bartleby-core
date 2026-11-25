@@ -1,0 +1,151 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A1_Knowledge/DS_A1Hub_Library",
+ "named": {
+  "FromCathedral": [
+   -8.373940467834473,
+   192.32359313964844,
+   -20.512819290161133
+  ],
+  "FromLibrary": [
+   1882.5240478515625,
+   6268.296875,
+   400.1171875
+  ],
+  "FromGrandChasm": [
+   -3174.23388671875,
+   6427.26220703125,
+   620.82861328125
+  ],
+  "FromConquestPlaza": [
+   448.2590026855469,
+   10054.349609375,
+   791.1041870117188
+  ],
+  "FromTowerOfKnowledge": [
+   5525.22509765625,
+   7076.40087890625,
+   375.0000915527344
+  ],
+  "FromShop3": [
+   -587.2830810546875,
+   8044.27294921875,
+   399.9997863769531
+  ],
+  "FromShop1": [
+   3708.962890625,
+   4762.2021484375,
+   399.451904296875
+  ],
+  "FromShop2": [
+   3233.156982421875,
+   7788.89697265625,
+   400.04638671875
+  ],
+  "Start": [
+   -110.2135009765625,
+   211.42160034179688,
+   -20.477230072021484
+  ],
+  "Home": [
+   104.02909851074219,
+   204.264404296875,
+   -20.4879207611084
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportTowerOfKnowledge",
+   "center": [
+    6540.7529296875,
+    7114.7470703125,
+    406.4361877441406
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport-ToGrandChasm",
+   "center": [
+    -3719.60791015625,
+    6448.3388671875,
+    668.9700927734375
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportToConquestPlaz",
+   "center": [
+    448.0246887207031,
+    11526.400390625,
+    791.1055297851562
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_ToLibrary",
+   "center": [
+    1872.801025390625,
+    5683.06591796875,
+    533.4918212890625
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportToShop1",
+   "center": [
+    3706.77587890625,
+    4500.134765625,
+    494.1888122558594
+   ],
+   "shape": "Sphere",
+   "radius": 133.63400268554688,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportToShop2",
+   "center": [
+    3207.80810546875,
+    8125.68115234375,
+    440.7345886230469
+   ],
+   "shape": "Sphere",
+   "radius": 134.90260314941406,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_TeleportToShop3",
+   "center": [
+    -912.0614013671875,
+    8047.55712890625,
+    409.0069885253906
+   ],
+   "shape": "Sphere",
+   "radius": 133.45469665527344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

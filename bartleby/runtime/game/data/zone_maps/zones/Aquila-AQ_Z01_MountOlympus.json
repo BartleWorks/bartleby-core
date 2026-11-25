@@ -1,0 +1,218 @@
+{
+ "format": 1,
+ "zone": "Aquila/AQ_Z01_MountOlympus",
+ "named": {
+  "Target-FromArtemusRoom": [
+   -6344.09912109375,
+   8328.9736328125,
+   -9.828369140625
+  ],
+  "Target-FromApolloRoom": [
+   6341.0859375,
+   8332.1337890625,
+   -9.828369140625
+  ],
+  "Target-FromPitOfTheNoxii": [
+   -0.17038729786872864,
+   6247.47509765625,
+   -1671.383056640625
+  ],
+  "Target-FromHallOfTheWatchfulEye": [
+   23.530559539794922,
+   13130.740234375,
+   -1290.5880126953125
+  ],
+  "Target-FromHallOfBattle": [
+   -1.584686040878296,
+   14898.1396484375,
+   334.4335021972656
+  ],
+  "Start": [
+   5.677272796630859,
+   85.87026977539062,
+   -42.018428802490234
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPop",
+   "template": "AQ-Cyclops-Guard",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -470.2875061035156,
+     13846.6796875,
+     317.76348876953125
+    ],
+    [
+     -283.0421142578125,
+     14283.98046875,
+     317.7633056640625
+    ],
+    [
+     389.11199951171875,
+     14284.3701171875,
+     317.76348876953125
+    ],
+    [
+     513.177490234375,
+     13912.490234375,
+     317.76348876953125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnMinion",
+   "template": "AQ-Cyclops-Guard",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     308.3577880859375,
+     13480.8203125,
+     317.76348876953125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnBoss",
+   "template": "AQ-Eagle-Praetorian",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -178.46139526367188,
+     13473.900390625,
+     317.76348876953125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnDownBoss",
+   "template": "AQ-Elephant-Warrior",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     250.34739685058594,
+     8200.1376953125,
+     -1671.385986328125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnDownMinion",
+   "template": "AQ-Ophidian-Archer",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -238.03880310058594,
+     8194.43359375,
+     -1671.385986328125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnDownPop",
+   "template": "AQ-Minotaur-Warrior",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     31.578859329223633,
+     7903.2177734375,
+     -1671.385009765625
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "Volume-TeleportToNextRoom",
+   "center": [
+    64.21865844726562,
+    15837.6298828125,
+    364.33599853515625
+   ],
+   "shape": "Sphere",
+   "radius": 403.06719970703125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Volume-ExitInstance",
+   "center": [
+    5.677155017852783,
+    -1262.1910400390625,
+    -42.018428802490234
+   ],
+   "shape": "Sphere",
+   "radius": 334.2948913574219,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport-PitOfTheNoxii",
+   "center": [
+    11.018360137939453,
+    5640.98779296875,
+    -1585.197998046875
+   ],
+   "shape": "Sphere",
+   "radius": 257.6106872558594,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator-TeleportToHallOfTheWatchfulEye",
+   "center": [
+    2.858185052871704,
+    13710.3603515625,
+    -1249.5860595703125
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Volume-ToApolloRoom",
+   "center": [
+    6681.38916015625,
+    8306.2373046875,
+    -3.668459892272949
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator-ToArtemusRoom",
+   "center": [
+    -6687.39794921875,
+    8304.685546875,
+    -9.03323745727539
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

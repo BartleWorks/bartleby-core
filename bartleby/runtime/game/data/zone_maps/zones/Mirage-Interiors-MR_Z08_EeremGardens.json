@@ -1,0 +1,275 @@
+{
+ "format": 1,
+ "zone": "Mirage/Interiors/MR_Z08_EeremGardens",
+ "named": {
+  "Start": [
+   7879.09814453125,
+   4938.09912109375,
+   26.94655990600586
+  ],
+  "Target location-FromEeremSanctum": [
+   -331.2392883300781,
+   1899.916015625,
+   100.779296875
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point-Room1-Boss",
+   "template": "MR_Djinn_Sorceror_A_Boss_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     9106.576171875,
+     5213.44287109375,
+     0.7793440818786621
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)-Room1-Minion",
+   "template": "MR_Djinn_Common_A_03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     9134.7978515625,
+     4715.64892578125,
+     51.27920913696289
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)-Room1-Pop",
+   "template": "MR_Djinn_Common_A_03",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     9311.6357421875,
+     5389.7451171875,
+     0.779363214969635
+    ],
+    [
+     9358.44140625,
+     4499.0517578125,
+     0.7795690894126892
+    ],
+    [
+     9624.3154296875,
+     4771.5439453125,
+     0.7792295813560486
+    ],
+    [
+     9649.544921875,
+     5194.4677734375,
+     0.7792487144470215
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)-Room2-Minion",
+   "template": "MR_Djinn_Common_A_03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     9054.87890625,
+     -73.4097671508789,
+     51.27898025512695
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)-Room2-Pop",
+   "template": "MR_Djinn_Common_A_03",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     9747.1611328125,
+     -299.8009033203125,
+     0.7792205810546875
+    ],
+    [
+     8831.3046875,
+     -351.4056091308594,
+     0.7792205810546875
+    ],
+    [
+     9115.0908203125,
+     -595.3546752929688,
+     0.7792205810546875
+    ],
+    [
+     9490.6689453125,
+     -607.373779296875,
+     0.7789763808250427
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Room2-Boss",
+   "template": "MR_Djinn_Scrivener_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     9537.6484375,
+     -5.694784164428711,
+     51.27898025512695
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)-Room3-Minion",
+   "template": "MR_Djinn_Common_A_03",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4527.380859375,
+     200.5128936767578,
+     51.27898025512695
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)-Room3-Pop",
+   "template": "MR_Djinn_Common_A_03",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     4395.27294921875,
+     498.3539123535156,
+     0.7789744138717651
+    ],
+    [
+     4314.23876953125,
+     -486.2132873535156,
+     0.7792184948921204
+    ],
+    [
+     3977.701904296875,
+     -203.39590454101562,
+     0.7790964245796204
+    ],
+    [
+     3976.64501953125,
+     248.54840087890625,
+     0.7790964245796204
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Room3-Boss",
+   "template": "MR_Djinn_Wizard_A_Boss_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     4529.56201171875,
+     -273.7496032714844,
+     51.27898025512695
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)-Room4-Minion",
+   "template": "MR_Djinn_Common_A_03",
+   "proximity": 350.0,
+   "max_spawns": 0,
+   "start_node_type": 1,
+   "points": [
+    [
+     -323.951904296875,
+     197.08709716796875,
+     51.27885055541992
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)-Room4-Pop",
+   "template": "MR_Djinn_Common_A_03",
+   "proximity": 350.0,
+   "max_spawns": 0,
+   "start_node_type": 1,
+   "points": [
+    [
+     -437.9461975097656,
+     491.0736999511719,
+     0.7793406248092651
+    ],
+    [
+     -440.4429016113281,
+     -599.4730834960938,
+     0.7790964245796204
+    ],
+    [
+     -811.15478515625,
+     -306.93359375,
+     0.7790985107421875
+    ],
+    [
+     -823.6821899414062,
+     229.1103973388672,
+     0.7793406248092651
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point-Room4-Boss",
+   "template": "MR_Djinn_MageF_B_Boss_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -333.681884765625,
+     -273.6383972167969,
+     51.27872848510742
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume-TeleportEeremSanctum",
+   "center": [
+    -343.2659912109375,
+    2418.4619140625,
+    106.56890106201172
+   ],
+   "shape": "Sphere",
+   "radius": 204.17320251464844,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location-ToPalace",
+   "center": [
+    7125.35205078125,
+    4958.90576171875,
+    105.1073989868164
+   ],
+   "shape": "",
+   "radius": 205.3634033203125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

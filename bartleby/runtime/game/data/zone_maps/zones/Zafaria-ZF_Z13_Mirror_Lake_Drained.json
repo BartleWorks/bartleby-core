@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "zone": "Zafaria/ZF_Z13_Mirror_Lake_Drained",
+ "named": {
+  "Start": [
+   106.03250122070312,
+   -857.3320922851562,
+   -1468.2760009765625
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol",
+   "center": [
+    -3336.549072265625,
+    1233.863037109375,
+    -1564.916015625
+   ],
+   "shape": "Sphere",
+   "radius": 635.30517578125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

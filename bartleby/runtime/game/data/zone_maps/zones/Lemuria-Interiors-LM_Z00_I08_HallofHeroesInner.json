@@ -1,0 +1,146 @@
+{
+ "format": 1,
+ "zone": "Lemuria/Interiors/LM_Z00_I08_HallofHeroesInner",
+ "named": {
+  "Start": [
+   -2.6225130558013916,
+   2528.302001953125,
+   6.200047016143799
+  ],
+  "Player Location": [
+   -491.38360595703125,
+   1249.5909423828125,
+   6.200043201446533
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Duck Savage",
+   "template": "LM_Duck_HeroineF_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -313.7344970703125,
+     -86.2965087890625,
+     6.199927806854248
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Solomon Crane",
+   "template": "LM_Crane_Hero_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     832.5712280273438,
+     -54.119468688964844,
+     6.20036506652832
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Stallion Quartermane",
+   "template": "LM_Horse_Explorer_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -525.1599731445312,
+     -67.75330352783203,
+     6.199920177459717
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)",
+   "template": "LM_Dog_Hero_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     221.5601043701172,
+     -73.6297607421875,
+     6.1999640464782715
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)",
+   "template": "LM_Deer_HeroineF_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     416.80389404296875,
+     -76.7266616821289,
+     6.200366020202637
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (4)",
+   "template": "LM_Deer_Hero_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     623.0347290039062,
+     -85.88774108886719,
+     6.200236797332764
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (6)",
+   "template": "LM_Mander_Hero_B_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -128.90280151367188,
+     -81.712890625,
+     6.200192928314209
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point The Bantam",
+   "template": "LM_Chicken_Hero_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -729.906005859375,
+     -54.498329162597656,
+     6.200506210327148
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    -14.581339836120605,
+    2812.135009765625,
+    6.199951171875
+   ],
+   "shape": "Sphere",
+   "radius": 138.55560302734375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

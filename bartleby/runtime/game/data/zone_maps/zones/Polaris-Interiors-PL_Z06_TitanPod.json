@@ -1,0 +1,60 @@
+{
+ "format": 1,
+ "zone": "Polaris/Interiors/PL_Z06_TitanPod",
+ "named": {
+  "Start": [
+   -855.5623779296875,
+   -450.86968994140625,
+   157.8209991455078
+  ],
+  "PL-SnowglobeTeleport_TitanPod": [
+   -881.4016723632812,
+   -437.7160949707031,
+   157.8209991455078
+  ],
+  "Target location-Downstairs": [
+   -950.780029296875,
+   1870.614013671875,
+   -970.5720825195312
+  ],
+  "Target location-Upstairs": [
+   -1054.5159912109375,
+   1135.241943359375,
+   7.8212890625
+  ]
+ },
+ "patrols": [],
+ "links": [
+  {
+   "name": "PL-TitanPodTeleportDown",
+   "kind": "interact",
+   "source": [
+    -1000.5289916992188,
+    1415.907958984375,
+    7.8211669921875
+   ],
+   "landing": "Target location-Downstairs",
+   "target": [
+    -950.780029296875,
+    1870.614013671875,
+    -970.5720825195312
+   ]
+  },
+  {
+   "name": "PL-TitanPodTeleportUp",
+   "kind": "interact",
+   "source": [
+    -1024.47900390625,
+    1451.112060546875,
+    -970.5720825195312
+   ],
+   "landing": "Target location-Upstairs",
+   "target": [
+    -1054.5159912109375,
+    1135.241943359375,
+    7.8212890625
+   ]
+  }
+ ],
+ "exits": []
+}

@@ -1,0 +1,91 @@
+{
+ "format": 1,
+ "zone": "Aquila/Interiors/AQ_Z01_ArtemusRoom",
+ "named": {
+  "Start": [
+   -204.77890014648438,
+   -2002.3709716796875,
+   104.04019927978516
+  ],
+  "Target-ArtemusRoom": [
+   -180.6905975341797,
+   -2002.3709716796875,
+   104.04019927978516
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnBoss",
+   "template": "AQ-Centaur-Artemis",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -400.6708984375,
+     -87.03328704833984,
+     -37.57550048828125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnMinion",
+   "template": "AQ-Ophidian-Archer",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     60.347660064697266,
+     -85.29434204101562,
+     -37.57563018798828
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPop",
+   "template": "AQ-Ophidian-Archer",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -518.880126953125,
+     671.6077880859375,
+     -37.575748443603516
+    ],
+    [
+     -657.30322265625,
+     202.377197265625,
+     -37.57563018798828
+    ],
+    [
+     330.23779296875,
+     269.2732849121094,
+     -37.57550048828125
+    ],
+    [
+     213.66050720214844,
+     658.2451782226562,
+     -37.57563018798828
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport-ExitArtemusRoom",
+   "center": [
+    -194.5980987548828,
+    -2507.23095703125,
+    109.26499938964844
+   ],
+   "shape": "Sphere",
+   "radius": 156.79029846191406,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

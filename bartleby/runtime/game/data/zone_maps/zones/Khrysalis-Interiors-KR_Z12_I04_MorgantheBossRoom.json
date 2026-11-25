@@ -1,0 +1,85 @@
+{
+ "format": 1,
+ "zone": "Khrysalis/Interiors/KR_Z12_I04_MorgantheBossRoom",
+ "named": {
+  "Start": [
+   -0.23329420387744904,
+   -1505.22998046875,
+   -0.000254399492405355
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "MorgantheA",
+   "template": "KR_MorgantheBlue_A_Bossfight",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -466.34149169921875,
+     336.20318603515625,
+     0.01950073055922985
+    ]
+   ]
+  },
+  {
+   "spawner": "MorgantheB",
+   "template": "KR_MorgantheBnW_A_Bossfight",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -153.64059448242188,
+     553.5872192382812,
+     0.00619297893717885
+    ]
+   ]
+  },
+  {
+   "spawner": "MorgantheC",
+   "template": "KR_MorgantheGrey_A_Bossfight",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     201.38999938964844,
+     565.142822265625,
+     0.0064371200278401375
+    ]
+   ]
+  },
+  {
+   "spawner": "MorgantheD",
+   "template": "KR_MorganthePurple_A_Bossfight",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     499.3511047363281,
+     342.3966979980469,
+     0.0064371200278401375
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_BackToEntry",
+   "center": [
+    44.853981018066406,
+    -2020.6810302734375,
+    -3.051758176297881e-05
+   ],
+   "shape": "Sphere",
+   "radius": 423.326904296875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

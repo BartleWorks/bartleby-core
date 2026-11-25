@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "MooShu/MS_Death/Interiors/MS_Death3_T4",
+ "named": {
+  "FromDeath1": [
+   0.0,
+   -1500.0,
+   -6.103516352595761e-05
+  ],
+  "Start": [
+   3.1336669921875,
+   -1504.1080322265625,
+   0.0
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Pig-Death-Warrior-MSBoss-L48",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -150.0,
+     0.0,
+     -99.9998779296875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "Pig-Death-Caster-L40",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     150.0,
+     0.0,
+     -99.99976348876953
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "Pig-Death-Caster-L40",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -378.15618896484375,
+     399.9783020019531,
+     -99.88445281982422
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1 (1)",
+   "template": "Pig-Death-Caster-L40",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     394.6720886230469,
+     391.3064880371094,
+     -99.88445281982422
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location 0",
+   "center": [
+    -10.65075969696045,
+    -1883.041015625,
+    0.9279633164405823
+   ],
+   "shape": "Sphere",
+   "radius": 189.76480102539062,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

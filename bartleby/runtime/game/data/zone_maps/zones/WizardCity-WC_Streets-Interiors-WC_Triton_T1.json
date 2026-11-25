@@ -1,0 +1,90 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/Interiors/WC_Triton_T1",
+ "named": {
+  "Start": [
+   14.6106595993042,
+   -966.9028930664062,
+   0.006917933933436871
+  ],
+  "Target location (Street4 Tower1 Entrance)": [
+   11.545539855957031,
+   -996.5529174804688,
+   61.5446891784668
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point 0",
+   "template": "Scarecrow-WCBoss-L03",
+   "proximity": 800.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -59.716800689697266,
+     73.77294921875,
+     0.0069580078125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (1)",
+   "template": "WC-TR-Ghoul-Purple-L02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -336.2767028808594,
+     245.75779724121094,
+     1.7944339513778687
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 0 (2)",
+   "template": "WC-TR-Ghoul-Purple-L02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     488.8149108886719,
+     138.97109985351562,
+     4.830687999725342
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point 1",
+   "template": "WC-TR-Ghoul-Purple-L02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     165.40890502929688,
+     410.0140075683594,
+     38.678829193115234
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (Street4 Tower1 Exit)",
+   "center": [
+    2.9227359294891357,
+    -1234.383056640625,
+    27.62080955505371
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

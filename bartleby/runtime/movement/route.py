@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from bartleby.runtime.movement.collision import Solid, blocking_footprints, walkable_triangles
+from bartleby.runtime.movement.collision import Footprint, Solid, blocking_footprints, walkable_triangles
 from bartleby.runtime.movement.patrols import HARD, HARD_WEIGHT, SOFT, WEIGHT, Patrol, clearance, danger_cost
 from bartleby.runtime.movement.zone_grid import (
     CELL,
@@ -389,22 +389,70 @@ def build_planner(
     max_rise: float = MAX_RISE,
 ) -> ZonePlanner:
     """A zone's planner, from its files. The keywords are the probes' to vary; a run uses the defaults."""
-    grid = Grid(walkable_triangles(files.solids), cell)
-    grid.add_walls(blocking_footprints(files.solids))
+    grid = floor_grid(files.solids, cell)
     passable = grid.passable(radius, max_rise)
-    room = clearance(grid, files.patrols)
-    cost = danger_cost(room, hard, soft, weight, hard_weight)
-    links = zone_links(
+    links, exits = links_and_exits(files, grid, passable, pieces(grid, passable, max_rise))
+    return assemble(
         files.zone,
         grid,
-        passable,
-        pieces(grid, passable, max_rise),
-        files.volumes,
-        files.placed,
+        files.patrols,
         files.named,
-        files.nav,
+        links,
+        exits,
+        passable=passable,
+        hard=hard,
+        soft=soft,
+        weight=weight,
+        hard_weight=hard_weight,
+        max_rise=max_rise,
     )
-    exits = zone_exits(files.volumes, files.teleports, links)
+
+
+def links_and_exits(
+    files: ZoneFiles, grid: Grid, passable: np.ndarray, label: np.ndarray
+) -> tuple[list[Link], list[Volume]]:
+    """The zone's links, found on its floor, split into *label*'s :func:`pieces`, and its exits."""
+    links = zone_links(files.zone, grid, passable, label, files.volumes, files.placed, files.named, files.nav)
+    return links, zone_exits(files.volumes, files.teleports, links)
+
+
+def floor_grid(solids: Sequence[Solid], cell: float = CELL) -> Grid:
+    """The zone's floor from its ``collision.bcd``: rastered, and walled by its solids."""
+    return grid_of(walkable_triangles(list(solids)), blocking_footprints(list(solids)), cell)
+
+
+def grid_of(triangles: np.ndarray, footprints: Sequence[Footprint], cell: float = CELL) -> Grid:
+    """The floor triangles rastered and walled by the footprints: what a shipped zone map's
+    floor (``zone_maps``) is loaded into, so it is built as one from the wad is."""
+    grid = Grid(triangles, cell)
+    grid.add_walls(list(footprints))
+    return grid
+
+
+def assemble(
+    zone: str,
+    grid: Grid,
+    patrols: Sequence[Patrol],
+    named: Mapping[str, XYZ],
+    links: Sequence[Link],
+    exits: Sequence[Volume],
+    *,
+    passable: np.ndarray | None = None,
+    room: np.ndarray | None = None,
+    radius: float = CLEARANCE,
+    hard: float = HARD,
+    soft: float = SOFT,
+    weight: float = WEIGHT,
+    hard_weight: float = HARD_WEIGHT,
+    max_rise: float = MAX_RISE,
+) -> ZonePlanner:
+    """A planner from a grid already built and the links and exits already found: what
+    :func:`build_planner` ends with, and what a shipped zone map (``zone_maps``) is loaded into,
+    so both plan alike. *passable* is the grid's own, and *room* the patrols' :func:`clearance`
+    on it, when not given: ``zone_maps`` gives both from a copy saved on the user's machine."""
+    passable = grid.passable(radius, max_rise) if passable is None else passable
+    room = clearance(grid, patrols) if room is None else room
+    cost = danger_cost(room, hard, soft, weight, hard_weight)
     return ZonePlanner(
-        files.zone, grid, passable, room, cost, list(files.patrols), dict(files.named), soft, max_rise, links, exits
+        zone, grid, passable, room, cost, list(patrols), dict(named), soft, max_rise, list(links), list(exits)
     )

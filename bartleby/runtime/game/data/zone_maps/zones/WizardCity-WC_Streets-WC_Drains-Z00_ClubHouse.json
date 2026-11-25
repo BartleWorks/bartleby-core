@@ -1,0 +1,141 @@
+{
+ "format": 1,
+ "zone": "WizardCity/WC_Streets/WC_Drains/Z00_ClubHouse",
+ "named": {
+  "Start": [
+   -3.508760929107666,
+   -5999.7177734375,
+   539.5012817382812
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point",
+   "template": "CC_Trash_Monster_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     47.075439453125,
+     -3023.302001953125,
+     539.5015258789062
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (1)",
+   "template": "CC_Trash_Monster_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -179.5950927734375,
+     -3392.6630859375,
+     539.5009765625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (2)",
+   "template": "CC_Trash_Monster_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     431.4433898925781,
+     -3242.06689453125,
+     539.5009765625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (3)",
+   "template": "CC_Trash_Monster_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -467.243896484375,
+     -3255.385986328125,
+     539.5009765625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (4)",
+   "template": "CC_Trash_Monster_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -348.2507019042969,
+     106.81510162353516,
+     0.40004581212997437
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (5)",
+   "template": "CC_Trash_Monster_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     352.727294921875,
+     -37.030399322509766,
+     0.40002378821372986
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (6)",
+   "template": "CC_Trash_Monster_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -269.6075134277344,
+     -495.694091796875,
+     0.7997292876243591
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point (7)",
+   "template": "CC_Trash_Monster_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     444.8431091308594,
+     -507.2466125488281,
+     0.7997298836708069
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume-TeleportToBackyard",
+   "center": [
+    8.786520004272461,
+    1196.3489990234375,
+    0.40001219511032104
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

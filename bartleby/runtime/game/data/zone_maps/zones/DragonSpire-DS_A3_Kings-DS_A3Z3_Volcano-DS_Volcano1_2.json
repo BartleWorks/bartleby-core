@@ -1,0 +1,51 @@
+{
+ "format": 1,
+ "zone": "DragonSpire/DS_A3_Kings/DS_A3Z3_Volcano/DS_Volcano1_2",
+ "named": {
+  "FromDragonsRoost": [
+   46.819549560546875,
+   -349.8348083496094,
+   -274.8869934082031
+  ],
+  "Target location (Volcano1FromPathofScalesUpper)": [
+   3787.68310546875,
+   10888.5400390625,
+   -403.51519775390625
+  ],
+  "Start": [
+   3867.10205078125,
+   10888.5400390625,
+   -403.51519775390625
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToAcademy",
+   "center": [
+    146.4477996826172,
+    -1385.85595703125,
+    -277.2500915527344
+   ],
+   "shape": "Sphere",
+   "radius": 300.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location (Volcano1ToPathofScalesUpper)",
+   "center": [
+    3830.638916015625,
+    11547.009765625,
+    -403.5151062011719
+   ],
+   "shape": "Sphere",
+   "radius": 256.7732849121094,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}

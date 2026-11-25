@@ -1,0 +1,109 @@
+{
+ "format": 1,
+ "zone": "Azteca/Interiors/AZ_Z08_PyramidMotherMoon_Room01",
+ "named": {
+  "Target-EnterPyramid": [
+   -11.86011028289795,
+   -3031.31396484375,
+   6.052859783172607
+  ],
+  "Target-FromLevel2": [
+   2.3154990673065186,
+   -164.3188018798828,
+   6.053112030029297
+  ],
+  "Start": [
+   -83.1363296508789,
+   -3030.89501953125,
+   6.052859783172607
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn-Boss",
+   "template": "AZ-Raptor-Undead-C",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -170.7467041015625,
+     -2119.75,
+     40.463008880615234
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Minion",
+   "template": "AZ-Raptor-Undead-B",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     143.27389526367188,
+     -2064.617919921875,
+     40.367919921875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Pop",
+   "template": "AZ-Raptor-Undead-B",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -589.5111083984375,
+     -1894.467041015625,
+     40.547969818115234
+    ],
+    [
+     612.3994750976562,
+     -1905.133056640625,
+     40.380130767822266
+    ],
+    [
+     501.31298828125,
+     -1166.761962890625,
+     40.1680908203125
+    ],
+    [
+     -520.4155883789062,
+     -1174.3199462890625,
+     40.4464111328125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport-ExitPyramid",
+   "center": [
+    -9.95279598236084,
+    -3958.534912109375,
+    108.84380340576172
+   ],
+   "shape": "Sphere",
+   "radius": 327.0098876953125,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport-ToLevel2",
+   "center": [
+    4.598970890045166,
+    479.06988525390625,
+    -101.25700378417969
+   ],
+   "shape": "Sphere",
+   "radius": 250.36630249023438,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ]
+}
