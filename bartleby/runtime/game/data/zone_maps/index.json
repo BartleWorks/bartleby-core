@@ -235,6 +235,12 @@
    "wad": "481adb2ae0c432216b3fa74a5e354e52ac6b1598dc35e2b2bdee85f3da60d3be",
    "zone": "zones/Avalon-AV_Z11_CrystalCaves.json"
   },
+  "Avalon/AV_Z13_KeepOfGanelon": {
+   "floor": "floors/f5d7851dcb028fab.npz",
+   "objects": "12ca71849ce7de660cd4f28abe80188a5dd6561c14d30282911cfd3c9f312d3a",
+   "wad": "d8aa71bf5b6d0c95a86e1a0998ed7023f81fe18e5632bb481f03b9730f7cef04",
+   "zone": "zones/Avalon-AV_Z13_KeepOfGanelon.json"
+  },
   "Avalon/Interiors/AV_MaestroEvent/AV_Z00_LandingZone": {
    "floor": "floors/4932790a68861ee8.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -384,6 +390,12 @@
    "objects": "d5feee6ce35887aa4d16c07d2effe705a764ac668e973b9ab59e1075a2593339",
    "wad": "3e50c7056ebd835057cae763a804d881fc25efa167407bc0f6ed3d228681f7f1",
    "zone": "zones/Azteca-AZ_Z11_TwinGiants.json"
+  },
+  "Azteca/AZ_Z12_Xibalba": {
+   "floor": "floors/9475efaa22c6a5fd.npz",
+   "objects": "bd3a9887dfb0e3884c17b83defaa5023838f7252e4570587223e7cf976d061e7",
+   "wad": "c0da58cd1aa9a1cfdf30897815a72047f2d6dea8fd24a8edacb908df640e386a",
+   "zone": "zones/Azteca-AZ_Z12_Xibalba.json"
   },
   "Azteca/Interiors/AZ_Z02_Mine03": {
    "floor": "floors/ba4ffcc16c5a4514.npz",
@@ -865,6 +877,12 @@
    "wad": "593eee1fc560358c267f4548685232a5312d54104bda71124eb0bc8a657ed756",
    "zone": "zones/Empyrea-Interiors-EM_Z09_SkeletonKey_Landing.json"
   },
+  "Empyrea/Interiors/EM_Z16_I04_StormTitan": {
+   "floor": "floors/bb46899dc2f4fbd8.npz",
+   "objects": "7322e136e239c1176835b29bee52b2e1b8a77cf054df044e8f0af556b86c22c4",
+   "wad": "d40aec8a119b5bdf70ba4dbc529d8889f337a49b5bf35d5fd92d732ea6c2cac9",
+   "zone": "zones/Empyrea-Interiors-EM_Z16_I04_StormTitan.json"
+  },
   "G14_DM/DM_Z01_CastleDarkmoor": {
    "floor": "floors/75b03df7811a117e.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1206,6 +1224,24 @@
    "objects": "c849ca6a716fb4a05bd07e02e14c6fa9ef8b87d665a3b3fc0e484728d25c925f",
    "wad": "255d18c5cd473aa917084df7b512d0c73f3ca20f6a06daf2e05c5a00cbd1e330",
    "zone": "zones/Housing_PA_Gauntlet-PA_Gauntlet_01-PA_Gauntlet_01_06.json"
+  },
+  "Karamelle/Interiors/KM_Z00_CavityDining": {
+   "floor": "floors/308af4ea4a1f45a3.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "b4819141d79857f6c8cfb0b5506e008878e60f2d9f0901008ef2831a24d75bb4",
+   "zone": "zones/Karamelle-Interiors-KM_Z00_CavityDining.json"
+  },
+  "Karamelle/Interiors/KM_Z00_NanasHQ": {
+   "floor": "floors/5b637edd7d08843a.npz",
+   "objects": "a00ca6d9b1e5b719b4122e3abdf5bc1097fa374cf3c15f7e93c6c517624f1a1a",
+   "wad": "1a8872d8e189ae1a2c945e808964c57e0a4df88de78629d7d7c294172656ad07",
+   "zone": "zones/Karamelle-Interiors-KM_Z00_NanasHQ.json"
+  },
+  "Karamelle/Interiors/KM_Z00_TheCavity": {
+   "floor": "floors/2e5e3bda13708d12.npz",
+   "objects": "0157fc2164d3764291bec0622ff2397234d8081d31e7bafa19eb5c33f8e66789",
+   "wad": "6b3630a02301322a473111dd433950508ef82d361dbee0f61025d9b62c177861",
+   "zone": "zones/Karamelle-Interiors-KM_Z00_TheCavity.json"
   },
   "Karamelle/Interiors/KM_Z07_CupcakeFactory": {
    "floor": "floors/bec026ec59ad8cff.npz",
@@ -1891,6 +1927,12 @@
    "wad": "2551ba2b373dcaf29ba4e9a9fbc7cb4683d2f8548b3d9cafe6469e4f5e956b10",
    "zone": "zones/Mirage-Interiors-MR_Z08_EeremGardens.json"
   },
+  "Mirage/Interiors/MR_Z10_NorthTimeDunes": {
+   "floor": "floors/bbb436879c6f7156.npz",
+   "objects": "5f2f6949aead4bd52f99a465504380e3e9e20041a20a8274a79f382f32db13cf",
+   "wad": "1c42954a01c9304aaf8b618658cedd3ede198897806dd1e50a9712fedd02ad8f",
+   "zone": "zones/Mirage-Interiors-MR_Z10_NorthTimeDunes.json"
+  },
   "Mirage/Interiors/MR_Z10_SandsofTime": {
    "floor": "floors/933ce60d8e5adac8.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -2191,6 +2233,12 @@
    "wad": "f9cd2fc8c505534981891ab330572150e61c1f1a136fa87168fb3bc7bfb76585",
    "zone": "zones/Novus-Interiors-NV_Z03_Safehouse.json"
   },
+  "Novus/Interiors/NV_Z06_ManticoresMadness": {
+   "floor": "floors/430577ed2cd4167b.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "40494f4eeb253bb4331f357d5f258ccbff3fb5fbff87279f1dde43285ee2644f",
+   "zone": "zones/Novus-Interiors-NV_Z06_ManticoresMadness.json"
+  },
   "Novus/Interiors/NV_Z06_NucleusDuelingSpace": {
    "floor": "floors/8b7b0444e696dcc9.npz",
    "objects": "eb224d9726a1a138bf4507ba6233ec034ed91d336f4b0d403eb9d062e53afcc6",
@@ -2292,6 +2340,12 @@
    "objects": "a983984281a670a8e8c281121cb297228fd555dd9bfe3f454bce073b114d31d3",
    "wad": "32e967d6d06f84bbb69cb7b38f00824524475c579254d1c37882f025dc8161c0",
    "zone": "zones/Polaris-Interiors-PL_Z06_TitanPod.json"
+  },
+  "Polaris/Interiors/PL_Z07_PL_Horizon_Hold": {
+   "floor": "floors/53ed0d1decef5a3c.npz",
+   "objects": "6a26e6de15e6773b81ec9483d9af619f1e6bfec986ab4b79d6aa202937dc39c7",
+   "wad": "b8bc96977ddc3a2f7b0e54c47015cbc70bf46fe923707e7c3ddd600a79c71f81",
+   "zone": "zones/Polaris-Interiors-PL_Z07_PL_Horizon_Hold.json"
   },
   "Polaris/Interiors/PL_Z07_SkyAnchorPeak": {
    "floor": "floors/0962c75f335bc604.npz",

@@ -162,6 +162,9 @@ def _grown_page(qapp) -> tuple[QScrollArea, GrowingTextEdit]:
 
 
 class TestCaretVisibility:
+    # A known flake (BartleWorks/bartleby-core#29): the page reads unscrolled under -n auto load,
+    # and passes alone. See tests/CLAUDE.md, "Known flakes are marked".
+    @pytest.mark.flaky(reruns=2)
     def test_growing_scrolls_an_enclosing_page_to_the_caret(self, qapp) -> None:
         """Growth is top-anchored, so the line being typed moves down and out."""
         area, _edit = _grown_page(qapp)

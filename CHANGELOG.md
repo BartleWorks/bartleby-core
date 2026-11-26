@@ -8,6 +8,23 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Nine more zone maps (Stage 6 of BartleBot #322). Nothing breaks.
+
+### Added
+
+- **The zones of every Scales of Knowledge** that no shipped bot farms: Keep of Ganelon, North
+  Sands of Time, the Cavity and the two zones on the way to it, Xibalba, Horizon Hold, Storm
+  Titan and Manticore's Madness. 473 zones in all.
+- **`tools/build_zone_maps.py --names`** also takes one file. `docs/WALKING.md`, *Which zones*,
+  has the command.
+
+### Fixed
+
+- **`zone_grid.Grid` on a zone with no floor** raises `ValueError` saying so, where it failed in
+  `_stack` with a `TypeError`. The Dragonspyre dragon's flight path is one.
+
 ## 0.14.0
 
 A walk into a fight, and the floor outside a zone's exits (Stage 5 of BartleBot #322). Nothing
