@@ -1,0 +1,29 @@
+{
+ "format": 2,
+ "zone": "Marleybone/MB_Station/MB_FlightToCourt",
+ "named": {
+  "Start": [
+   231.8531036376953,
+   154.73109436035156,
+   53.060970306396484
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "Activator Volume 0",
+   "center": [
+    -8.19049072265625,
+    167.95559692382812,
+    73.02631378173828
+   ],
+   "shape": "",
+   "radius": 800.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

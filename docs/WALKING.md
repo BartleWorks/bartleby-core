@@ -378,10 +378,16 @@ the type dump, and `has(zone)` says from the index alone, without opening a map,
 zone can be planned at all (BartleBot's Stage 4 checks a bot's zones with it).
 
 **Which zones:** every zone a product names, given to the build as arguments, since core reads
-no product's files: BartleBot's `zone_nav.json` (each world's zones) and every `zone` or `*_zone`
-param in its `bots/` and `subgraphs/`, as its `restricted_zones` reads them. On r814353 that is
-464 zones, every one with a wad and a map. BartleBot's
-`test_every_zone_on_the_map_has_a_walking_map_core_ships` fails on a `zone_nav.json` zone
+no product's files: BartleBot's `zone_nav.json` (each world's zones, and every `*_zone` a link
+names: a ride's cutscene zone), every `zone` or `*_zone` param in its `bots/` and `subgraphs/`, as
+its `restricted_zones` reads them, and every zone its Scales of Knowledge table names
+(`--names scales_of_knowledge.json`: a `--names` is a folder or one file). The table joined on
+2026-11-25 (BartleBot's Stage 6 of #322): a Scales stood in a mapped zone only when some shipped
+bot farmed its dungeon, so seven stations, six of them world defaults, had no map. On r815378
+that is 478 zones, 477 with a map. The one without is the Dragonspyre dragon's flight path
+(`DS_A3_FlightPath`), which has no floor at all (`Grid` raises "nothing to walk on"), and where
+nothing walks: a player found there finishes the ride by pressing X. BartleBot's
+`test_every_zone_on_the_map_has_a_walking_map_core_ships` fails on a zone either file names
 without one. A later product's zones (BartleBuddy's quests) join by a further `--names` or
 `--zone-nav`.
 
@@ -394,9 +400,9 @@ without one. A later product's zones (BartleBuddy's quests) join by a further `-
 | `index.json` | each zone's two files, the SHA-256 of the wad entries it was built from (`zone_files.MAP_ENTRIES`, not the models and textures), and `objects`, the SHA-256 of every template and solid file its gates were read from (`ZoneReader.gate_hashes`), so `--verify` sees a change to one |
 
 Only derived geometry, names and positions: no game file and nothing pickled (`np.load(...,
-allow_pickle=False)`); the arrays are plain floats and ints. 464 zones on 442 floors, so only
+allow_pickle=False)`); the arrays are plain floats and ints. 477 zones on 455 floors, so only
 22 zones share one; the same room placed at another spot does not share, and sharing those too
-would save under a tenth. 20.5 MB in all with the gates (18.5 before them, 2026-11-25), the largest floor 0.2 MB, and 3,152 gates, 78 of them a link object's wall.
+would save under a tenth. 20.7 MB in all with the gates (18.5 before them, 2026-11-25), the largest floor 0.2 MB, and 3,167 gates, 78 of them a link object's wall.
 
 **Deterministic:** the same zone writes the same bytes. Every zip entry is dated 1980 and written
 in name order (`np.savez_compressed` stamps the time, so the zip is built by hand), and every

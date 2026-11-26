@@ -1,0 +1,140 @@
+{
+ "format": 2,
+ "zone": "Karamelle/Interiors/KM_Z00_TheCavity",
+ "named": {
+  "Start": [
+   -1253.803955078125,
+   -4579.15478515625,
+   -802.2866821289062
+  ],
+  "Target location_Player": [
+   850.1724243164062,
+   -1012.7139892578125,
+   -14.314000129699707
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Boss",
+   "template": "KM_Nothing_Divine_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     316.93109130859375,
+     133.85389709472656,
+     0.006970914080739021
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Minion",
+   "template": "KM_Nothing_Player_B_01_Storm",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     -81.37744140625,
+     -278.69378662109375,
+     0.00011200010339962319
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Pop01",
+   "template": "KM_Nothing_Player_B_01_Fire",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     33.813758850097656,
+     -134.9492950439453,
+     4.830721855163574
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Pop02",
+   "template": "KM_Nothing_Player_B_01_Ice",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 0,
+   "points": [
+    [
+     176.63119506835938,
+     37.08626174926758,
+     -1.6616629636700964e-06
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location Glockenspiel",
+   "center": [
+    -1659.7359619140625,
+    -5249.341796875,
+    -870.2103881835938
+   ],
+   "shape": "",
+   "radius": 253.4813995361328,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KM_MonsterChest_Paradox",
+   "template": "KM_MonsterChest_Paradox",
+   "at": [
+    -966.7208862304688,
+    -425.1935119628906,
+    5.215525220592099e-07
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -7.725004832024382,
+     "zhi": 76.76500477098487,
+     "firm": true,
+     "hull": [
+      [
+       -1032.9760350777221,
+       -388.3587990327945
+      ],
+      [
+       -974.1605038751278,
+       -484.974560631804
+      ],
+      [
+       -904.9893927948715,
+       -442.86615539101143
+      ],
+      [
+       -904.9893896399998,
+       -442.8661497778024
+      ],
+      [
+       -963.804920842594,
+       -346.25038817879283
+      ],
+      [
+       -1032.9760319228503,
+       -388.3587934195854
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

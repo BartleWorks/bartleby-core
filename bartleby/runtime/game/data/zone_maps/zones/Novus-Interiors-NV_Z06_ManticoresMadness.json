@@ -1,0 +1,91 @@
+{
+ "format": 2,
+ "zone": "Novus/Interiors/NV_Z06_ManticoresMadness",
+ "named": {
+  "From_NucleusGallery": [
+   -27.9460391998291,
+   371.9977111816406,
+   2.00006103515625
+  ],
+  "Start": [
+   -27.9460391998291,
+   375.26629638671875,
+   2.00006103515625
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawner_Dog",
+   "template": "NV_Dog_DogOfWar_C_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -322.1507873535156,
+     -3241.882080078125,
+     1.1999859809875488
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Monquistan",
+   "template": "NV_Monkey_Monquistador_B_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     58.65652084350586,
+     -3207.25390625,
+     1.1999870538711548
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Penguin",
+   "template": "NV_Penguin_Revolutionary_E_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -159.9040985107422,
+     -3371.76806640625,
+     1.1999750137329102
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawner_Valencian",
+   "template": "NV_Unicorn_Guard_D_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     275.38848876953125,
+     -3306.6650390625,
+     1.1999859809875488
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To_NucleusGallery",
+   "center": [
+    -30.25218963623047,
+    730.8790283203125,
+    1.9999990463256836
+   ],
+   "shape": "",
+   "radius": 106.44490051269531,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}
