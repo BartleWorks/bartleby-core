@@ -8,6 +8,30 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Nothing breaks: no product's code needs to change, though a walk held up by mobs now ends
+differently.
+
+### Changed
+
+- **A walk held up by mobs steps down instead of ending blocked.** After `WALK_MOB_EASE` (8 s)
+  of waiting it keeps only `walk.NARROW_MARGIN` (40) beyond each trigger radius, and after
+  `WALK_MOB_WAIT` (30 s) it walks on past them unwatched, a fight met ending the walk `FIGHT` as
+  any does. Mobs leaving it room for `WALK_MOB_CLEAR` (5 s) start the steps over.
+  `WalkEnd.BLOCKED` now comes only from stalls. `WalkResult.eased` and `ran_through` count the
+  steps, and `walk.Margin` (`FULL`, `NARROW`) is the room asked of `room`, `tightest`,
+  `mob_discs` and `choose`. `docs/WALKING.md`, *Walking a route*, has the evidence (the Hive's 8
+  spiders on one loop).
+
+### Added
+
+- **A walk held up by mobs says which.** `RouteWalker`'s log names the mob leaving the least
+  room when it starts to wait, and again when another takes over, and says why no detour was
+  taken; a walk ending blocked by mobs names the last in its detail and in the new
+  `WalkResult.held_by`. `walk.tightest` is `walk.room` with that mob, and `Mob.mapped` says
+  whether its trigger radius is a patrol's. `docs/WALKING.md`, *Walking a route*, has the rest.
+
 ## 0.14.1
 
 Nine more zone maps (Stage 6 of BartleBot #322). Nothing breaks.

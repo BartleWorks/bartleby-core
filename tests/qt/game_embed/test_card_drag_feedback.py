@@ -448,6 +448,10 @@ def test_a_drag_held_at_the_foot_of_a_full_column_scrolls_it(qapp):
 # ---------------------------------------------------------------------------
 
 
+# A known flake (BartleWorks/bartleby-core#28, as the lifted card's above): under -n auto load the
+# placeholder is still there after _land (2026-11-26), and the test passes alone. See
+# tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 def test_a_dropped_card_flies_home_before_anything_else_happens(qapp):
     """The drop used to jitter, and this is the ordering that stops it.
 

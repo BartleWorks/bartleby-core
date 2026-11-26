@@ -526,11 +526,39 @@ walks on it, on a planner built from the wad.
   wants each mob's trigger radius plus 120, plus 40 for every second looked ahead. **A mob walks
   at about 40 to 180 units a second and a wizard at 600 to 840**, so next to a wizard a mob is
   nearly a standing obstacle: short of room, the walk first plans a detour closing each mob out
-  to that same room at three moments over the 2.5 s, and only without one waits or backs off,
-  for 30 s at most in all, then ends blocked. A detour plans only to a waypoint of the route at
-  least 1,500 units along it, beyond every mob near it and outside each, and the rest of the route
-  follows unchanged: a detour planned to the goal took seconds in a big zone, with the mobs
-  moving meanwhile. Detours plan with the patrol cost even on a shortest-path walk.
+  to that same room at three moments over the 2.5 s, and only without one waits or backs off.
+  A detour plans only to a waypoint of the route at least 1,500 units along it, beyond every mob
+  near it and outside each, and the rest of the route follows unchanged: a detour planned to the
+  goal took seconds in a big zone, with the mobs moving meanwhile. Detours plan with the patrol
+  cost even on a shortest-path walk.
+- **A spell of waits for mobs steps down** (settled with the user 2026-11-26), counting the
+  seconds stood or backed off since the mobs last left it room:
+  1. **The full room** above, for `WALK_MOB_EASE` (8 s).
+  2. **Then `NARROW_MARGIN` (40) beyond each trigger radius**, none more for the seconds ahead,
+     and no slack to go on with, for detours too.
+  3. **Then past `WALK_MOB_WAIT` (30 s), it walks on past them unwatched**, logged as a warning,
+     rather than ending blocked as it did before: waiting longer for a loop of mobs that never
+     clears gets nowhere, while a fight it meets ends the walk `FIGHT`, as any does, for the
+     caller's ambient combat.
+
+  Once the mobs leave it room at the full margin for `WALK_MOB_CLEAR` (5 s), it keeps the full
+  room again and the next spell starts over. `WalkResult.eased` and `ran_through` count the
+  steps taken, and `describe()` says when it walked on unwatched, naming the mob that last held
+  it up. **Why:** in the Hive, on 2026-11-26, all 8 spiders of one patrol loop (trigger 350, 117
+  to 203 units a second) held a walk up 30 s at its entrance, 2,200 to 3,000 units from it, each
+  in turn; the floor keeps the route 390 to 650 units from their path. A simulation on the zone's
+  map put a straight run, started at a random moment, clear of all 8 at 40 beyond the trigger
+  from 93% of moments, and at 120 from none (evenly spaced spiders) to 32% (randomly spaced). The
+  numbers are to be tuned in game: lag pulls some mobs from further than their trigger radius
+  (*Mobs*, above), so a pull is likelier at the narrow margin. Predicting each mob along its
+  patrol path, not its velocity, and timing the crossing, is the larger fix, left until this
+  proves not enough.
+- **The log says what held it up**: the wait names the mob leaving the least room (its name, its
+  trigger radius and whether that is a patrol's or `DEFAULT_TRIGGER`, where it stands from the
+  wizard, how fast it moves, how many seconds ahead the room is least, and how many mobs are
+  watched), again whenever another mob takes over, and why no detour was taken (no way around, a
+  way only by a link, or too little room on it, naming that mob), and each step of a spell above.
+  `WalkResult.held_by` keeps the last mob that held it up.
 - **A walk into a fight** (`walk(lease, goal, fight=True, spare=…)`, since 0.14.0) aims at the
   fight's mob, or at the duel circle of a fight already on. Watching every mob, it would wait
   forever for the one it means to meet, so the watch leaves out the mobs in *spare* (their
@@ -556,7 +584,7 @@ walks on it, on a planner built from the wad.
   afresh: a held loop walks a wizard some 120 to 190 units. Settled with the user on 2026-11-25,
   over a walk tick on a thread of its own, which would have had to cross the arbiter, the leases
   and the key repeat, all on the loop.
-- **It ends** on the goal, no route, being blocked (stalls, or mobs), a fight, a zone change or
+- **It ends** on the goal, no route, being blocked (by stalls; mobs no longer end it), a fight, a zone change or
   running out of time, with a `WalkResult` saying which and `describe()` naming the zone and both
   points; and it lets go of every key however it ends, and stops its mob watch even if a second
   cancel lands in the letting go. A cancel, or the lease being lost, goes on up to the caller.
@@ -565,7 +593,7 @@ walks on it, on a planner built from the wad.
   left then, since a dropped link or a stall can leave a much longer one. Over it all is a
   ceiling no replan renews, `WALK_CEILING_FACTOR` (3) times the first plan's time, about nine
   times the walk first planned, counted from the start with the planning in and only the waits
-  for mobs left out (`WALK_MOB_WAIT` caps those), so a server resetting a wizard off its route
+  for mobs left out (`WALK_MOB_WAIT` bounds each spell of those), so a server resetting a wizard off its route
   over and over cannot keep a walk going for good. The walk ends at whichever comes first, and
   the detail says which.
 

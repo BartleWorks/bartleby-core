@@ -900,9 +900,19 @@ WALK_LANDING_WAIT = 30.0
 WALK_LANDED_FOR = 1.0
 # Seconds of hardly moving after which a pressed link has set the wizard down.
 
+WALK_MOB_EASE = 8.0
+# Seconds a walk waits or backs off for mobs, since they last left it room, before it keeps only
+# walk.NARROW_MARGIN beyond each trigger radius: with the full margin, eight spiders on one loop
+# in the Hive never left a gap (2026-11-26).
+
 WALK_MOB_WAIT = 30.0
-# Seconds in all a walk waits or backs off for mobs before ending blocked: a loop of four ghosts
-# in Unicorn Way never cleared.
+# Seconds a walk waits or backs off for mobs, since they last left it room, before it walks on
+# past them unwatched until they do, a fight met being ambient combat's: a loop of four ghosts in
+# Unicorn Way never cleared, and before 2026-11-26 the walk ended blocked here.
+
+WALK_MOB_CLEAR = 5.0
+# Seconds the mobs must leave a walk room, at the full margin, for its waits to start over: the
+# full margin again, and WALK_MOB_EASE and WALK_MOB_WAIT counted afresh.
 
 WALK_MOB_REFRESH = 2.0
 # Seconds between re-reads of the list of mobs, which reads every entity's behaviors.
@@ -925,7 +935,7 @@ WALK_TIME_ALLOWANCE = 20.0
 
 WALK_CEILING_FACTOR = 3.0
 # Times its first plan's time a walk may take in all, from its start, its planning included and
-# only its waits for mobs left out (WALK_MOB_WAIT caps those). Each replan and detour gives a walk
+# only its waits for mobs left out (WALK_MOB_WAIT bounds each spell of those). Each replan and detour gives a walk
 # time afresh for the route left, so a server resetting it off its route over and over would
 # never run out; this ceiling no replan renews. The first plan's time is already three times its
 # walking, so the ceiling is about nine times the walk planned.
