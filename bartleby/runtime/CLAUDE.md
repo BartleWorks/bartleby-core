@@ -133,10 +133,18 @@ BartleBot's `docs/AMBIENT_COMBAT.md` has the rest of what the watcher does once 
 ## Multi-client coordination
 Use `poll_each_until_seen()` from `bartlebot/nodes/node_helpers.py` for operations that must complete across all clients (zone changes, prompts, loading screens).
 
-A node that teleports its clients to a point until a prompt shows uses `reach_prompt()` with
+A node that walks its clients to a point until a prompt shows uses `reach_prompt()` with
 a `PromptKind` (`INTERACT_PROMPT`, `DUNGEON_ENTRANCE_PROMPT`) rather than its own loop: it
 clears a stale prompt via `reset_xyz`, retries up to `MAX_RETRIES`, and logs the failure.
 It lived six times over until #104, and a fix to it had to be made six times.
+
+**Every move inside a zone walks** (BartleBot's Stage 4 of #322): every client of a step at
+once, each from where it stands, under a movement lease on the run's one arbiter, through
+BartleBot's `walking.walk_clients` on `movement.walk.RouteWalker` (`docs/WALKING.md`, *A bot
+run*). A walk that can't get there ends the step, logged with the zone and both points, and
+is never retried the same way nor replaced by a teleport. A walk that runs into a fight
+waits for ambient combat to preempt the node rather than failing it, since the node is the
+watcher's to rerun.
 
 The game sometimes drops one client's press of Interact, leaving it at the prompt while the
 rest load in, and a node that pressed once lost the whole team a relog to it (BartleBot's
@@ -156,7 +164,7 @@ at reset fails the node rather than being approached through.
 
 Some world objects only serve one player at a time — a second client interacting while the
 first is mid-interaction has its keypress silently swallowed. Use `take_turns()` for those:
-it parks every client at `reset_xyz`, then sends them to the object one at a time, handing
+it walks every client to `reset_xyz`, then sends them to the object one at a time, handing
 each to a `turn_fn` that owns the object until it returns. The release moment is what varies
 between nodes (a menu confirmed open, a zone list dismissed, a loading screen begun), which
 is why it is a callback rather than a fixed sequence.
@@ -233,17 +241,24 @@ number. Realm cannot be read without opening the spellbook, so never skip portin
 sharing the target's zone or coordinates. When the target is one of ours, use
 `gather_at_player`, which checks arrival against the target's own zone and position.
 
-### A teleport reaches the server late
+### Where the server thinks a player stands
 
-`client.teleport()` moves the client at once, and the server hears of it a moment later.
-`body.position()` reads the client's side, so it matches the target the instant the teleport
-returns and proves nothing about the server. An action the server places by where it thinks the
-player stands, with no prompt to confirm it, waits Safety Delay after any teleport before it is
-sent, whether or not this node did the teleporting. Mark is the one today: clicked half a second
-after a teleport, it sometimes landed where the player had stood before, and the recall missed by
-the length of the jump. `mark_location.mark_client` waits, and a recall that misses forgets the
+A walk is the server's own movement: each step is sent as the wizard takes it, so when a walk
+ends, the server has the wizard where `body.position()` says, give or take a step. A written
+position is not: `client.teleport()` moves the client at once and the server hears of it a
+moment later (or undoes it, past a short distance), so `body.position()` matches the target the
+instant the write returns and proves nothing about the server. Until Stage 7 of BartleBot's
+#322 some nodes still write one (Teleport to Coordinates, pickups, the Ride's boarding, potions,
+level scaling, the Skeleton Key unlocker). So an action the server places by where it thinks
+the player stands, with no prompt to confirm it, still waits Safety Delay before it is sent,
+whether or not this node moved the player. Mark is the one today: clicked half a second after a
+teleport, it sometimes landed where the player had stood before, and the recall missed by the
+length of the jump. `mark_location.mark_client` waits, and a recall that misses forgets the
 mark (`mark_location.forget`), since the run's record of it is the client's position too.
 Interactions need no wait: the prompt they wait for is the confirmation.
+
+A walk stops within `ARRIVE_GOAL` (50) of its goal, not on it, so a check of "is the client
+at the point" allows that margin.
 
 ## The client manager
 

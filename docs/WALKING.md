@@ -571,18 +571,46 @@ Results, all with no battle unless said:
 | Mirage's hub, down Ladder 01 and up Ladder 07 in one route | 4 and 3 off; 0 off the goal in 23.3s, one stall recovered (on a rock the grid let through) |
 | Mirage's hub, the same stretch with small rounds firm | no stall; the route kept 333 from the rock's center |
 
+## A bot run
+
+BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
+`bartlebot/nodes/walking.py`, `nodes/CLAUDE.md` *Moving a client*):
+
+- **Every client of a step at once**, each from where it stands, on a planner of its own from
+  `zone_maps.load`, under an `Owner.MOVEMENT` lease on the run's one `Arbiter`. The FSM is on no
+  arbiter yet (#301), so only the walks hold one.
+- **At the wizard's own speed.** Nothing writes `speed_multiplier` while the speed paths are off
+  (Stage 0), so the walk plans from the speed field as it reads.
+- **Avoid Mobs**, a bot option on by default, sets both `avoid` and `watch_mobs`. The gates are
+  read either way.
+- **A goal in an exit** has done its part standing in it or once the zone has changed:
+  `ARRIVED` and `ZONE_CHANGED` are both success there, since the server's move follows the walk
+  by a moment (item 1 below, as was).
+- **An interact point inside its own object** (a pedestal, a chest, a brazier), which the client
+  lists and the walk so closes, is walked to the gate's `Crossing.before` instead, the last open
+  floor in front of it, and only for the walk to a prompt. Six shipped interactions need it.
+- **A failed walk** is logged under the node with `describe()`, and fails the step there; a walk
+  that ends `FIGHT` waits for ambient combat to preempt the node instead.
+- **Ahead of need**: a thread builds and saves every zone's copy from startup, the open bot's
+  zones first, then those Sync in Zone's network crosses, then the rest. A build holds the
+  event loop at most about 33 ms (Triton Avenue, the largest map, 6.1 s to build). Each client's
+  first `in_battle` and key-binding read are made when it hooks, so the first walk's warm-up
+  (above) is a no-op.
+- **What the shipped bots ask for**: BartleBot's `tools/check_bot_routes.py` plans every walk
+  between authored points. Of 850 on 2026-11-25, 759 were clear, 46 crossed a gate with a way
+  around, 32 had a gate as the only way, 9 took over 60 s and 4 had no route (placed walkable
+  floor, item 8, most likely).
+
 ## What is not done
 
 In rough order of what a bot needs first. Most is a stage of BartleBot's Walking Routes epic
 (#322); `docs/EPICS.md` there has the stage-to-issue table.
 
-1. **Several clients walking together** (Stage 4, BartleBot's `walk_clients`), each on its own
-   route from where it stands. A walk whose goal is in an exit can end `ARRIVED` before the
-   server moves the wizard: in the Shopping District the Colossus exit's teleport fired just
-   after each walk had ended arrived, 9 to 26 units from its goal, so `ZONE_CHANGED` is not the
-   only success for such a goal.
-2. **Saving the zone maps' copies ahead of need** (Stage 4): when a product calls
-   `ZoneMaps.warm`, so a walk's first load in a zone is never the 2 to 16 s build.
+1. **Several clients walking together**: done in BartleBot's Stage 4 (*A bot run*). A walk
+   whose goal is in an exit can end `ARRIVED` before the server moves the wizard (the
+   Colossus exit fired 9 to 26 units after), which `walk_clients` counts as success.
+2. **Saving the zone maps' copies ahead of need**: done in Stage 4, by BartleBot's
+   `walking_maps.WARMER`.
 3. **Whether a door's collision follows its state.** The walker reads the gates its client
    lists (*Walking a route*) and takes every listed one as closed. If a door stays listed once
    open (a dungeon door after its room's fight, say), a walk ends `NO_ROUTE` at a door it could
@@ -597,8 +625,9 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
 6. **A checked-in table of verified links** (Stage 8), as `zone_nav.json` keeps verified gates,
    so a pairing once walked is not re-derived, and one that moved nobody is not tried again.
 7. **Zone exits as a route's end.** A walk's goal across zones is the zone map's route
-   (BartleBot's `docs/ZONE_NAVIGATION.md`), with each crossing an exit to walk into; today every
-   crossing is reached by `client.teleport` (Stage 4).
+   (BartleBot's `docs/ZONE_NAVIGATION.md`), with each crossing an exit to walk into. Since
+   Stage 4 a step walks into its exit from its Reset XYZ; the zone route itself is still the
+   steps' own.
 8. **Placed objects that add floor**: 63 objects name a walkable collision file
    (`m_walkableCollisionFilename`), most of them teleporter pads (Krokotopia's, Celestia's,
    Empyrea's, Triton's), and the maps do not read them (BartleBot's Stage 8).
