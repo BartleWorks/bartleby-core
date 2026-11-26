@@ -478,3 +478,91 @@ def test_a_link_objects_solid_is_a_wall_and_its_link_is_still_taken_from_the_flo
     assert planner.gates_near(500, 500, 0, 150) == []  # never closed: it is a wall
     assert any(link.name == "Stone_A" for link in planner.links)
     assert planner.route((200, 200), (3800, 800)) is not None
+
+
+# --- a walk into a fight -------------------------------------------------------------------
+
+
+def _two_patrols() -> ZonePlanner:
+    """The street, with a second ghost walking its far corner, at x 3500 from y 1500 to 2000."""
+    ghost = Patrol("Ghosts 01", "Ghost", 200, 1, np.array([(2000, 0, 0), (2000, 900, 0)], dtype=float))
+    other = Patrol("Ghosts 02", "Ghost", 200, 1, np.array([(3500, 1500, 0), (3500, 2000, 0)], dtype=float))
+    return _planner(mesh(floor(0, 0, 4000, 2000, 0)), patrols=[ghost, other])
+
+
+def _cost_at(planner: ZonePlanner, cost, x: float, y: float) -> float:
+    j, i = planner.grid.index(x, y)
+    return float(cost[j, i])
+
+
+def test_a_fight_spares_the_patrol_of_the_mob_it_meets_and_costs_every_other():
+    planner = _two_patrols()
+
+    cost = planner.fight_cost((2000, 450, 0))
+
+    assert _cost_at(planner, cost, 2000, 450) == 1.0
+    assert _cost_at(planner, cost, 3500, 1700) == _cost_at(planner, planner.cost, 3500, 1700) > 1.0
+
+
+def test_a_fight_nowhere_near_a_patrol_costs_what_any_walk_does():
+    planner = _two_patrols()
+
+    assert planner.fight_cost((200, 1900, 0)) is planner.cost
+
+
+def test_a_route_into_a_fight_walks_beside_its_mobs_patrol_where_any_other_walk_swings_wide():
+    planner = _two_patrols()
+    start, goal = (2300, 50), (2000, 850)  # up the ghost's own path, 300 units off it
+
+    fight = planner.route(start, goal, avoid=True, fight=True)
+    wary = planner.route(start, goal, avoid=True)
+
+    straight = math.dist(start, goal)
+    assert _length(planner, fight.nodes) < straight + 2 * planner.grid.cell
+    assert _length(planner, wary.nodes) > straight * 1.5
+
+
+def test_a_route_into_a_fight_still_keeps_off_another_patrol_in_its_way():
+    planner = _two_patrols()
+
+    route = planner.route((3800, 1000), (2000, 450), avoid=True, fight=True)
+
+    room = planner.clearance  # the other ghost is the nearer patrol all along its side of the street
+    assert min(room[j, i] for _, j, i in route.nodes if planner.grid.world(j=j, i=i, layer=0)[0] > 3000) >= HARD
+
+
+def test_without_avoiding_a_fight_takes_the_shortest_route_as_any_walk_does():
+    planner = _two_patrols()
+
+    route = planner.route((200, 450), (2000, 450), avoid=False, fight=True)
+
+    assert _length(planner, route.nodes) == pytest.approx(1800, abs=2 * planner.grid.cell)
+
+
+# --- a point outside the exits ---------------------------------------------------------------
+
+
+def test_a_point_no_exit_holds_is_its_own_spot_outside_the_exits():
+    planner = _hall_with_an_exit()
+
+    assert planner.outside_exits(3500, 1000, 0) == (3500, 1000, 0)
+
+
+def test_a_point_inside_an_exit_gives_the_nearest_floor_outside_its_no_go_area():
+    planner = _hall_with_an_exit()
+
+    spot = planner.outside_exits(2200, 1000, 0)
+
+    assert spot is not None
+    assert planner.exits_at(*spot) == []
+    assert math.dist(spot[:2], (2000, 1000)) == pytest.approx(300 + EXIT_MARGIN, abs=2 * planner.grid.cell)
+    assert spot[0] > 2000  # on the side the point was, not across the exit
+    route = planner.route((3800, 1000), spot)
+    assert _nearest_exit_distance(planner, route.nodes) > 300 + EXIT_MARGIN - planner.grid.cell
+
+
+def test_a_zone_with_no_floor_outside_its_exits_gives_none():
+    gate = Volume("TeleportVol_Gate", (500, 500, 0), radius=2000)
+    planner = _planner(mesh(floor(0, 0, 1000, 1000, 0)), volumes=[gate], teleports=frozenset({gate.name}))
+
+    assert planner.outside_exits(500, 500, 0) is None

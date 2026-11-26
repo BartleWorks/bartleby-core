@@ -230,7 +230,9 @@ its height, is closed to a route, unless the route starts in that exit (a wizard
 through it walks out) or ends in it (it is sent there). `ZonePlanner.floor_for` builds that
 floor, and a `Route` carries it, so straightening never cuts through an exit the route went
 around. A volume that is one of the zone's links is not closed: a route through it is planned
-to step in. Unicorn Way has nine exits; of the six routes in the probe's OUTCOME, one moved, by
+to step in. `ZonePlanner.outside_exits(x, y, z)` gives the point itself when no exit holds it,
+and otherwise the nearest floor no exit's area holds (since 0.14.0): a pickup whose spot is
+inside an exit walks there instead, so it stays in the zone. Unicorn Way has nine exits; of the six routes in the probe's OUTCOME, one moved, by
 2.8 cells, to go around one.
 
 ### Gates
@@ -523,6 +525,16 @@ walks on it, on a planner built from the wad.
   least 1,500 units along it, beyond every mob near it and outside each, and the rest of the route
   follows unchanged: a detour planned to the goal took seconds in a big zone, with the mobs
   moving meanwhile. Detours plan with the patrol cost even on a shortest-path walk.
+- **A walk into a fight** (`walk(lease, goal, fight=True, spare=…)`, since 0.14.0) aims at the
+  fight's mob, or at the duel circle of a fight already on. Watching every mob, it would wait
+  forever for the one it means to meet, so the watch leaves out the mobs in *spare* (their
+  global ids, wherever they stand) and every mob whose trigger radius comes within
+  `route.FIGHT_REACH` (120) of the goal. Its plan pays nothing for those mobs' patrols either
+  (`ZonePlanner.fight_cost`): every patrol whose trigger radius comes within that reach of the
+  goal is left out of the cost, and every other costs what it would. On a street with a ghost's
+  path 300 units beside the straight line, a fight walk up it is that line, where any other walk
+  swings out half as far again. The walk ends `FIGHT` once `in_battle` reads true, as any walk
+  does; the run to the circle after the trigger is the server's.
 - **Links.** At the end of a leg the walk stands in the volume, or faces the object and
   presses the account's interact key once the game shows its prompt (wizwalker's
   `is_in_npc_range`, waited on up to 2 s), again every 2 s, until moved more than 300 units
@@ -591,6 +603,9 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
   floor in front of it, and only for the walk to a prompt. Six shipped interactions need it.
 - **A failed walk** is logged under the node with `describe()`, and fails the step there; a walk
   that ends `FIGHT` waits for ambient combat to preempt the node instead.
+- **A walk into a fight** (Stage 5), the fight join, walks with `fight=True` and the mob's id as
+  *spare*; its `FIGHT` is the node's success. Wisps are walked to by the clients that need them,
+  and a pickup inside an exit by `outside_exits`.
 - **Ahead of need**: a thread builds and saves every zone's copy from startup, the open bot's
   zones first, then those Sync in Zone's network crosses, then the rest. A build holds the
   event loop at most about 33 ms (Triton Avenue, the largest map, 6.1 s to build). Each client's
