@@ -43,6 +43,9 @@ class Grid:
         self.nx = int((tris[:, :, 0].max() - self.x0) / cell) + 2
         self.ny = int((tris[:, :, 1].max() - self.y0) / cell) + 2
         hits = [hit for tri in tris if (hit := self._raster(tri)) is not None]
+        if not hits:
+            # A zone with nothing to stand on, such as a ride's cutscene in the air: no map.
+            raise ValueError("no floor covers a cell: the zone has nothing to walk on")
         self.levels = self._stack(*(np.concatenate(parts) for parts in zip(*hits)))
         self.walls = np.zeros(self.levels.shape, dtype=bool)
 

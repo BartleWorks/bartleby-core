@@ -1,6 +1,7 @@
 """The layered grid: every floor of a cell kept, clearance from walls and drops, pieces."""
 
 import numpy as np
+import pytest
 
 from bartleby.runtime.movement.collision import blocking_footprints, walkable_triangles
 from bartleby.runtime.movement.zone_grid import CELL, Grid, nearest_node, pieces
@@ -79,3 +80,11 @@ def test_a_point_snaps_to_the_floor_at_its_own_height():
 def test_nothing_passable_has_no_nearest_node():
     grid = Grid(walkable_triangles([mesh(floor(0, 0, 3 * CELL, 3 * CELL, 0))]))
     assert nearest_node(grid, np.zeros_like(grid.levels, dtype=bool), 0, 0) is None
+
+
+def test_a_zone_with_no_floor_covering_a_cell_says_so():
+    # The Dragonspyre dragon's flight path: nothing in it is ground a wizard stands on.
+    sliver = np.array([[[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]])
+
+    with pytest.raises(ValueError, match="nothing to walk on"):
+        Grid(sliver)
