@@ -48,6 +48,34 @@ def test_the_zones_are_the_zone_maps_and_every_zone_param_a_bot_or_subgraph_name
     }
 
 
+def test_a_ride_s_cutscene_zone_is_one_of_the_zones(tmp_path):
+    nav = tmp_path / "zone_nav.json"
+    ride = {
+        "kind": "ride",
+        "from": "DragonSpire/DS_Hub",
+        "to": "DragonSpire/DS_Landing",
+        "ride_zone": "DragonSpire/DS_Flight",
+    }
+    nav.write_text(
+        json.dumps({"worlds": {"DragonSpire": {"zones": {"DragonSpire/DS_Hub": {}}, "links": [ride]}}}),
+        encoding="utf-8",
+    )
+
+    assert build.zone_set(nav, []) == {"DragonSpire/DS_Flight": ["map"], "DragonSpire/DS_Hub": ["map"]}
+
+
+def test_a_names_file_adds_every_zone_it_names_under_its_own_name(tmp_path):
+    # BartleBot's Scales of Knowledge table: a station no bot names still gets its map.
+    table = tmp_path / "scales_of_knowledge.json"
+    station = {"entrance_zone": "Avalon/AV_Hub", "steps": [{"to_zone": "Avalon/AV_Keep"}], "zone": "Avalon/AV_Keep"}
+    table.write_text(json.dumps({"scales": [station]}), encoding="utf-8")
+
+    assert build.zone_set(None, [table]) == {
+        "Avalon/AV_Hub": ["scales_of_knowledge"],
+        "Avalon/AV_Keep": ["scales_of_knowledge"],
+    }
+
+
 # --- building ---------------------------------------------------------------------------------
 
 

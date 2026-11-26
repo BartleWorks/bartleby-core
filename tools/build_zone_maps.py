@@ -7,10 +7,12 @@ changes only what the update changed, and ``git status`` lists it.
 
 WHICH ZONES
     Core reads no product's files at run time, so the product says which zones to map: every
-    zone in ``--zone-nav`` (BartleBot's ``bartlebot/game/data/zone_nav.json``, each world's
-    ``zones``), and every zone a file under each ``--names`` folder names in a ``zone`` or
+    zone in ``--zone-nav`` (BartleBot's ``bartlebot/game/data/zone_nav.json``: each world's
+    ``zones``, and every ``*_zone`` a link names, such as a ride's cutscene zone), and every zone
+    each ``--names`` file, or each file under a ``--names`` folder, names in a ``zone`` or
     ``*_zone`` param, as BartleBot's ``restricted_zones`` reads them (its ``bots/`` and
-    ``subgraphs/``). A zone the install has no wad for is reported and left out.
+    ``subgraphs/``, and its Scales of Knowledge table, whose stations no bot need name). A zone
+    the install has no wad for is reported and left out.
 
 WHAT IT NEEDS
     The game's ``Data/GameData`` folder, with every zone's wad: a live install lacks the wads of
@@ -20,7 +22,8 @@ WHAT IT NEEDS
 USAGE
     uv run python tools/build_zone_maps.py --types ../BartleBot/bartlebot/game/data/r814353_WizardDev.json \\
         --zone-nav ../BartleBot/bartlebot/game/data/zone_nav.json \\
-        --names ../BartleBot/bots --names ../BartleBot/subgraphs
+        --names ../BartleBot/bots --names ../BartleBot/subgraphs \\
+        --names ../BartleBot/bartlebot/game/data/scales_of_knowledge.json
     ... --zone WizardCity/WC_Streets/WC_Unicorn        # rebuild only these, keep the rest
     ... --verify                                       # no write: every map against the install
     ... --compare WizardCity/WC_Streets/WC_Unicorn     # plan on the map and on the wad, and diff
@@ -81,19 +84,21 @@ def _zone_params(value) -> Iterable[str]:
             yield from _zone_params(inner)
 
 
-def zone_set(zone_nav: Path | None, folders: Sequence[Path]) -> dict[str, list[str]]:
-    """Every zone the product walks, and why: ``"map"`` for the zone map, a folder's name for a
-    file in it."""
+def zone_set(zone_nav: Path | None, names: Sequence[Path]) -> dict[str, list[str]]:
+    """Every zone the product walks, and why: ``"map"`` for the zone map, and for each of
+    *names* its own name: a folder's for every file under it, or a file's stem for that file."""
     zones: dict[str, set[str]] = {}
     if zone_nav is not None:
         nav = json.loads(zone_nav.read_text(encoding="utf-8"))
         for world in nav["worlds"].values():
-            for zone in world.get("zones", {}):
+            # A world's zones, and the zones its links pass through (a ride's cutscene zone).
+            for zone in [*world.get("zones", {}), *_zone_params(world.get("links", []))]:
                 zones.setdefault(zone, set()).add("map")
-    for folder in folders:
-        for path in sorted(folder.rglob("*.json")):
+    for source in names:
+        paths, why = ([source], source.stem) if source.is_file() else (sorted(source.rglob("*.json")), source.name)
+        for path in paths:
             for zone in _zone_params(json.loads(path.read_text(encoding="utf-8"))):
-                zones.setdefault(zone, set()).add(folder.name)
+                zones.setdefault(zone, set()).add(why)
     return {zone: sorted(why) for zone, why in sorted(zones.items())}
 
 
@@ -316,7 +321,13 @@ def main() -> int:
     ap.add_argument("--types", type=Path, required=True, help="the revision's r<rev>_WizardDev.json type list")
     ap.add_argument("--game-data", type=Path, default=GAME_DATA, help="the game's Data/GameData folder")
     ap.add_argument("--zone-nav", type=Path, help="a zone map whose worlds' zones to build (BartleBot's zone_nav.json)")
-    ap.add_argument("--names", type=Path, action="append", default=[], help="a folder of bots or subgraphs; repeatable")
+    ap.add_argument(
+        "--names",
+        type=Path,
+        action="append",
+        default=[],
+        help="a folder of bots or subgraphs, or one file naming zones; repeatable",
+    )
     ap.add_argument("--zone", action="append", default=[], help="only this zone; repeatable")
     ap.add_argument("--out", type=Path, default=zone_maps.MAPS_DIR)
     ap.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 1))
