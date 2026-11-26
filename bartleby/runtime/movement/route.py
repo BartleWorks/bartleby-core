@@ -768,7 +768,9 @@ def links_and_exits(
     files: ZoneFiles, grid: Grid, passable: np.ndarray, label: np.ndarray
 ) -> tuple[list[Link], list[Volume]]:
     """The zone's links, found on its floor, split into *label*'s :func:`pieces`, and its exits."""
-    links = zone_links(files.zone, grid, passable, label, files.volumes, files.placed, files.named, files.nav)
+    links = zone_links(
+        files.zone, grid, passable, label, files.volumes, files.placed, files.named, files.nav, files.teleports
+    )
     return links, zone_exits(files.volumes, files.teleports, links)
 
 

@@ -61,6 +61,21 @@
    ]
   },
   {
+   "name": "Activator Volume (2)",
+   "kind": "volume",
+   "source": [
+    942.2705078125,
+    -1953.383056640625,
+    0.015136719681322575
+   ],
+   "landing": "Target location To_Dinning",
+   "target": [
+    2222.159912109375,
+    -2977.51806640625,
+    0.01489257998764515
+   ]
+  },
+  {
    "name": "TeleportVol_Teleport location (1)",
    "kind": "volume",
    "source": [
@@ -89,6 +104,36 @@
     -2901.14111328125,
     0.01489257998764515
    ]
+  },
+  {
+   "name": "Activator Volume Office",
+   "kind": "volume",
+   "source": [
+    -18.22857093811035,
+    -2428.56298828125,
+    0.015136719681322575
+   ],
+   "landing": "Target location To_WaitingRoom",
+   "target": [
+    -1525.8719482421875,
+    -1996.72705078125,
+    0.014890439808368683
+   ]
+  },
+  {
+   "name": "Activator Volume",
+   "kind": "volume",
+   "source": [
+    -914.2562866210938,
+    -1971.9530029296875,
+    0.015136719681322575
+   ],
+   "landing": "Target location To_Office",
+   "target": [
+    19.06855010986328,
+    -2901.14111328125,
+    0.01489257998764515
+   ]
   }
  ],
  "exits": [
@@ -104,45 +149,6 @@
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
-  },
-  {
-   "name": "Activator Volume Office",
-   "center": [
-    -18.22857093811035,
-    -2428.56298828125,
-    0.015136719681322575
-   ],
-   "shape": "Box",
-   "radius": 0.0,
-   "length": 501.9814147949219,
-   "width": 371.5168151855469,
-   "height": 501.9814147949219
-  },
-  {
-   "name": "Activator Volume",
-   "center": [
-    -914.2562866210938,
-    -1971.9530029296875,
-    0.015136719681322575
-   ],
-   "shape": "Box",
-   "radius": 0.0,
-   "length": 228.1667938232422,
-   "width": 346.9045104980469,
-   "height": 400.0
-  },
-  {
-   "name": "Activator Volume (2)",
-   "center": [
-    942.2705078125,
-    -1953.383056640625,
-    0.015136719681322575
-   ],
-   "shape": "Box",
-   "radius": 0.0,
-   "length": 297.1523132324219,
-   "width": 322.35089111328125,
-   "height": 400.0
   },
   {
    "name": "Activator Volume Teleoprt to Cavity",

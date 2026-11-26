@@ -7,6 +7,7 @@ import pytest
 
 from bartleby.runtime.movement.collision import (
     CYLINDER,
+    LIP_RISE,
     MESH,
     NON_MOVEMENT,
     OBJECT,
@@ -21,7 +22,7 @@ from bartleby.runtime.movement.collision import (
     walkable_triangles,
 )
 from bartleby.runtime.movement.geometry import facing
-from bartleby.runtime.movement.zone_grid import Grid
+from bartleby.runtime.movement.zone_grid import Grid, nearest_node, pieces
 from tests.runtime.movement.zone_fixtures import box, collision_bytes, cylinder, floor, mesh, sphere
 
 
@@ -44,6 +45,27 @@ def test_floor_is_the_walkable_meshes_less_their_cliffs():
 
     assert len(tris) == 2
     assert np.all(tris[:, :, 2] == 0)
+
+
+def _walkway(lip_rise: float) -> bool:
+    """Whether a street and a walkway *lip_rise* above it, joined by a lip 8 units across (as
+    steep as Ironworks'), are one piece of floor. The lip spans the cell center at x 1020."""
+    street = floor(0, 0, 1016, 400, 0)
+    lip = floor(1016, 0, 1024, 400, 0, lip_rise)
+    walkway = floor(1024, 0, 2000, 400, lip_rise)
+    grid = Grid(walkable_triangles([mesh(street, lip, walkway)]))
+    ok = ~np.isnan(grid.levels)
+    label = pieces(grid, ok)
+    return label[nearest_node(grid, ok, 500, 200)] == label[nearest_node(grid, ok, 1500, 200)]
+
+
+def test_a_steep_lip_no_taller_than_a_step_is_floor_and_joins_the_floor_either_side():
+    assert _walkway(15)
+
+
+def test_a_steep_face_taller_than_a_step_stays_a_cliff():
+    assert len(walkable_triangles([mesh(floor(0, 0, 8, 400, 0, LIP_RISE + 10))])) == 0
+    assert not _walkway(LIP_RISE + 10)
 
 
 def test_a_cylinder_is_read_as_length_then_radius():

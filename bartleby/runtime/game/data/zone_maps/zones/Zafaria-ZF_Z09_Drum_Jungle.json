@@ -337,21 +337,6 @@
  ],
  "links": [
   {
-   "name": "Activator Volume ZF-Explorer-C02-001 - Goal 04",
-   "kind": "volume",
-   "source": [
-    -1293.3809814453125,
-    13764.5703125,
-    63.1904411315918
-   ],
-   "landing": "ZF_Z00_From_Hub",
-   "target": [
-    7581.083984375,
-    2312.787109375,
-    1211.303955078125
-   ]
-  },
-  {
    "name": "ZF_TeleportStoneAMain_DrumJungle instance",
    "kind": "interact",
    "source": [

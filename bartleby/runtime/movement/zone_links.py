@@ -264,8 +264,9 @@ PAD_REACH = 300.0  # an object this near a volume is the pad drawn at it
 SHORTCUT_MIN = 1000.0  # a press that moves the wizard less than this, up included, is no link worth routing through
 
 _LINK_VOLUME = re.compile(r"teleport|activator", re.IGNORECASE)
-# zone.nav pairs only a volume whose name says it moves the wizard: an activator is as often a
-# quest's trigger (Triton's "Activator Volume Kraken" spawns the boss on Kraken Isle).
+# zone.nav pairs a volume whose name says it moves the wizard, or one a teleporting trigger fires
+# on: an activator is as often a quest's trigger (Triton's "Activator Volume Kraken" spawns the
+# boss on Kraken Isle), so its name alone is not enough, but triggers.xml says which teleport.
 _MOVING_VOLUME = re.compile(r"teleport|(?<![a-z])to(?![a-z])", re.IGNORECASE)
 _FILLER = {"target", "location", "teleport", "teleportvol", "activator", "volume", "the", "trigger"}
 _DIRECTIONS = {"to", "from"}
@@ -525,6 +526,7 @@ def zone_links(
     placed: Sequence[PlacedObject],
     named: Mapping[str, XYZ],
     nav: ZoneNav | None,
+    teleports: frozenset[str] = frozenset(),
 ) -> list[Link]:
     """The zone's links: each volume that joins one piece of its floor to another, and each
     object pressed to move the wizard that joins pieces or is a shortcut worth its press.
@@ -532,11 +534,19 @@ def zone_links(
     A volume link must join two pieces of floor, which alone throws out the zone's exits, whose
     names match an arrival point on their own piece ("Street4 to Cavern"). A volume whose name
     pairs it with no landing on another piece (Lemuria's tower lifts, each named for the end it
-    stands at) takes its landing from zone.nav instead. An object standing at a volume is the
-    pad drawn there (Triton's Telepapads), not a link of its own. *label* is each passable
-    spot's piece, from :func:`~bartleby.runtime.movement.zone_grid.pieces`."""
+    stands at) takes its landing from zone.nav instead, if its name says it moves the wizard or
+    it is one of *teleports*, the volumes a teleporting trigger fires on
+    (:func:`teleport_volumes`): Crimson Fields' passage north is an "Activator Volume" that
+    carries the wizard 20,000 units. An object standing at a volume is the pad drawn there
+    (Triton's Telepapads), not a link of its own. *label* is each passable spot's piece, from
+    :func:`~bartleby.runtime.movement.zone_grid.pieces`."""
     by_name = link_candidates(volumes, named)
     every_volume = [(v.name, tuple(v.center)) for v in volumes if _LINK_VOLUME.search(v.name)]
+    moving = [
+        (v.name, tuple(v.center))
+        for v in volumes
+        if (_LINK_VOLUME.search(v.name) and _MOVING_VOLUME.search(v.name)) or v.name in teleports
+    ]
 
     def ends(link: Link):
         here, there = nearest_node(grid, passable, *link.source), nearest_node(grid, passable, *link.target)
@@ -557,11 +567,7 @@ def zone_links(
             joined.add(link.name)
     if nav is not None:
         points = {n: p for n, p in named.items() if "cinematic" not in n.lower()}
-        unpaired = [
-            (n, p)
-            for n, p in every_volume
-            if n not in joined and "cinematic" not in n.lower() and _MOVING_VOLUME.search(n)
-        ]
+        unpaired = [(n, p) for n, p in moving if n not in joined and "cinematic" not in n.lower()]
         for (name, at), (landing, target) in nav_links(nav, unpaired, points, crosses).items():
             link = Link(name, at, landing, target)
             found = ends(link)

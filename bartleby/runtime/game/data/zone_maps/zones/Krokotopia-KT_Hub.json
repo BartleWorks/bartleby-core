@@ -171,6 +171,21 @@
    ]
   },
   {
+   "name": "Activator Volume 0 (1)",
+   "kind": "volume",
+   "source": [
+    -4987.27392578125,
+    742.22412109375,
+    -153.21890258789062
+   ],
+   "landing": "Target location (KT_Tele_Pad KT_Shop_Hidden Entrance)",
+   "target": [
+    877.07861328125,
+    -3222.553955078125,
+    1620.0
+   ]
+  },
+  {
    "name": "TeleportVol_Teleport-FixForQH",
    "kind": "volume",
    "source": [
@@ -328,19 +343,6 @@
    ],
    "shape": "Sphere",
    "radius": 132.9611053466797,
-   "length": 0.0,
-   "width": 0.0,
-   "height": 0.0
-  },
-  {
-   "name": "Activator Volume 0 (1)",
-   "center": [
-    -4987.27392578125,
-    742.22412109375,
-    -153.21890258789062
-   ],
-   "shape": "Sphere",
-   "radius": 199.16009521484375,
    "length": 0.0,
    "width": 0.0,
    "height": 0.0
