@@ -274,6 +274,22 @@ _TRAVEL_PROMPT = re.compile(r"\b(teleport|ride|climb|descend|ascend|travel|exit)
 _TRAVEL_NAME = re.compile(r"teleport|rope|ladder|zip.?line|boat|elevator|lift|cart|dingh?y|portal", re.IGNORECASE)
 _STONE = re.compile(r"Teleporter([A-F])(?![a-z])")  # not TeleporterArch
 _STONE_BACK = re.compile(r"To(Main|Hub)|BackToHub", re.IGNORECASE)
+# Dragonspyre's stones name a letter and a role, in either order: the template
+# DS_TeleportStoneA_Main, the tag ArenaTeleportStoneMainA. Main stands at the hub, Secondary at
+# the far end. Not the hub's own DS_TeleportStoneMain, which has no letter and goes nowhere.
+_TELEPORT_STONE = re.compile(
+    r"TeleportStone_?(?:(?P<letter>[A-F])_?(?P<role>Main|Secondary)|(?P<role2>Main|Secondary)_?(?P<letter2>[A-F]))(?![A-Za-z])"
+)
+
+
+def _stone(obj: PlacedObject) -> tuple[str, bool] | None:
+    """A fast-travel stone's letter, and whether it is the one that goes back to the hub."""
+    if m := _STONE.search(obj.tag):
+        return m.group(1), bool(_STONE_BACK.search(obj.tag))
+    for name in (obj.template.name, obj.tag):
+        if m := _TELEPORT_STONE.search(name):
+            return m["letter"] or m["letter2"], (m["role"] or m["role2"]) == "Secondary"
+    return None
 
 
 def _words(text: str) -> set[str]:
@@ -435,11 +451,7 @@ def interact_candidates(
                     landing, target = nearest, points[nearest]
             found[obj.tag, obj.at] = Link(obj.tag, obj.at, landing, target, "ride")
 
-    stones = [
-        (obj.tag, obj.at, m.group(1), bool(_STONE_BACK.search(obj.tag)))
-        for obj in placed
-        if (m := _STONE.search(obj.tag))
-    ]
+    stones = [(obj.tag, obj.at, *kind) for obj in placed if (kind := _stone(obj))]
     hub = [at for _, at, _, back in stones if not back]
     if hub and points:
         center = tuple(sum(c) / len(hub) for c in zip(*hub))

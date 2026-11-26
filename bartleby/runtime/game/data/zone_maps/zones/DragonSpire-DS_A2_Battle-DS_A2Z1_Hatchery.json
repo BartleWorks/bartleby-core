@@ -74,7 +74,83 @@
   ]
  },
  "patrols": [],
- "links": [],
+ "links": [
+  {
+   "name": "HatchTeleportStoneMainA",
+   "kind": "interact",
+   "source": [
+    -4884.39794921875,
+    2582.862060546875,
+    202.83050537109375
+   ],
+   "landing": "FromMainStoneA",
+   "target": [
+    -27809.69921875,
+    -8332.203125,
+    40.0000114440918
+   ]
+  },
+  {
+   "name": "HatchTeleportStoneMainB",
+   "kind": "interact",
+   "source": [
+    -5497.34521484375,
+    2018.47802734375,
+    202.8303985595703
+   ],
+   "landing": "FromMainStoneB",
+   "target": [
+    771.2354736328125,
+    -20599.66015625,
+    39.994590759277344
+   ]
+  },
+  {
+   "name": "HatchTeleportStoneMainC",
+   "kind": "interact",
+   "source": [
+    -4495.6748046875,
+    1538.7650146484375,
+    202.8303985595703
+   ],
+   "landing": "FromMainStoneC",
+   "target": [
+    15898.7900390625,
+    -11917.740234375,
+    0.00012403279833961278
+   ]
+  },
+  {
+   "name": "HatchTeleportStoneSecondaryA",
+   "kind": "interact",
+   "source": [
+    -27795.0,
+    -8140.12109375,
+    40.0000114440918
+   ],
+   "landing": "FromOuterStones",
+   "target": [
+    -5177.4970703125,
+    1661.802001953125,
+    202.8303985595703
+   ]
+  },
+  {
+   "name": "HatchTeleportStoneSecondaryC",
+   "kind": "interact",
+   "source": [
+    15944.66015625,
+    -12108.5302734375,
+    -84.60346221923828
+   ],
+   "landing": "FromOuterStones",
+   "target": [
+    -5177.4970703125,
+    1661.802001953125,
+    202.8303985595703
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "TeleportVol_Teleport-ToNecropolis",
@@ -125,7 +201,7 @@
     2582.862060546875,
     202.83050537109375
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -173,7 +249,7 @@
     2018.47802734375,
     202.8303985595703
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -221,7 +297,7 @@
     1538.7650146484375,
     202.8303985595703
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -269,7 +345,7 @@
     -8140.12109375,
     40.0000114440918
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -365,7 +441,7 @@
     -12108.5302734375,
     -84.60346221923828
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

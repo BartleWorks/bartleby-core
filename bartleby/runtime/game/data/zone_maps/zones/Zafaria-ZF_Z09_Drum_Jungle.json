@@ -350,6 +350,36 @@
     2312.787109375,
     1211.303955078125
    ]
+  },
+  {
+   "name": "ZF_TeleportStoneAMain_DrumJungle instance",
+   "kind": "interact",
+   "source": [
+    7890.85205078125,
+    2944.7958984375,
+    1211.303955078125
+   ],
+   "landing": "Target_PincerGate",
+   "target": [
+    6801.66796875,
+    5774.01708984375,
+    128.45860290527344
+   ]
+  },
+  {
+   "name": "ZF_TeleportStoneASecondary_DrumJungle instance",
+   "kind": "interact",
+   "source": [
+    6935.56787109375,
+    5430.55322265625,
+    128.45860290527344
+   ],
+   "landing": "ZF_Z00_From_Hub",
+   "target": [
+    7581.083984375,
+    2312.787109375,
+    1211.303955078125
+   ]
   }
  ],
  "exits": [
@@ -424,7 +454,7 @@
     2944.7958984375,
     1211.303955078125
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -472,7 +502,7 @@
     5430.55322265625,
     128.45860290527344
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

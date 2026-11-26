@@ -641,7 +641,38 @@
    ]
   }
  ],
- "links": [],
+ "links": [
+  {
+   "name": "CL_TeleportStoneAMain instance",
+   "kind": "interact",
+   "source": [
+    1005.3629760742188,
+    2575.93505859375,
+    -449.8002014160156
+   ],
+   "landing": "FromSCtoC2",
+   "target": [
+    -19433.55078125,
+    14109.5400390625,
+    -589.9227294921875
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneASecondary instance",
+   "kind": "interact",
+   "source": [
+    -19554.55078125,
+    14288.419921875,
+    -589.922607421875
+   ],
+   "landing": "FromCardtoSC",
+   "target": [
+    631.1851196289062,
+    2432.0859375,
+    -449.79998779296875
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "TeleportVol_Teleport location To Hub",
@@ -755,7 +786,7 @@
     2575.93505859375,
     -449.8002014160156
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -795,7 +826,7 @@
     14288.419921875,
     -589.922607421875
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

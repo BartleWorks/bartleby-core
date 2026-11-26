@@ -1068,7 +1068,128 @@
    ]
   }
  ],
- "links": [],
+ "links": [
+  {
+   "name": "CL_TeleportStoneAMain_Zone05",
+   "kind": "interact",
+   "source": [
+    -3395.7900390625,
+    -1524.6710205078125,
+    3.8189050428627525e-06
+   ],
+   "landing": "CL_TeleportStoneAMain_Zone05",
+   "target": [
+    5613.666015625,
+    26484.720703125,
+    -135.24639892578125
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneASecondary_Zone05",
+   "kind": "interact",
+   "source": [
+    5684.75,
+    26780.359375,
+    -135.24639892578125
+   ],
+   "landing": "CL_TeleportStoneBSecondary_Zone05",
+   "target": [
+    -2995.322998046875,
+    -1841.987060546875,
+    0.00012463220627978444
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneBMain",
+   "kind": "interact",
+   "source": [
+    -2866.677978515625,
+    -1578.0379638671875,
+    0.0001232110953424126
+   ],
+   "landing": "CL_TeleportStoneBMain_Zone05",
+   "target": [
+    -15003.5400390625,
+    25894.75,
+    -429.1993103027344
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneBSecondary_Zone05 (1)",
+   "kind": "interact",
+   "source": [
+    -15062.0302734375,
+    25471.2890625,
+    -429.1993103027344
+   ],
+   "landing": "CL_TeleportStoneBSecondary_Zone05",
+   "target": [
+    -2995.322998046875,
+    -1841.987060546875,
+    0.00012463220627978444
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneCSecondary-Z05 instance",
+   "kind": "interact",
+   "source": [
+    -8590.7216796875,
+    10793.98046875,
+    148.14210510253906
+   ],
+   "landing": "CL_TeleportStoneBSecondary_Zone05",
+   "target": [
+    -2995.322998046875,
+    -1841.987060546875,
+    0.00012463220627978444
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneDSecondary-Z05 instance",
+   "kind": "interact",
+   "source": [
+    -23771.5,
+    13577.3095703125,
+    -197.9882049560547
+   ],
+   "landing": "CL_TeleportStoneBSecondary_Zone05",
+   "target": [
+    -2995.322998046875,
+    -1841.987060546875,
+    0.00012463220627978444
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneCMain-Z05 instance",
+   "kind": "interact",
+   "source": [
+    -3188.012939453125,
+    -1845.333984375,
+    0.800048828125
+   ],
+   "landing": "Target-CL_TeleportStoneCSecondary-Z05",
+   "target": [
+    -8544.109375,
+    11037.4501953125,
+    115.79940032958984
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneDMain-Z05 instance",
+   "kind": "interact",
+   "source": [
+    -3105.115966796875,
+    -1119.873046875,
+    0.7999268174171448
+   ],
+   "landing": "Target-CL_TeleportStoneDSecondary-Z05",
+   "target": [
+    -23600.6796875,
+    13701.650390625,
+    -198.02310180664062
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "TeleportVol_To Hub (1)",
@@ -1106,7 +1227,7 @@
     -1524.6710205078125,
     3.8189050428627525e-06
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1154,7 +1275,7 @@
     26780.359375,
     -135.24639892578125
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1225,7 +1346,7 @@
     -1578.0379638671875,
     0.0001232110953424126
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1273,7 +1394,7 @@
     25471.2890625,
     -429.1993103027344
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1321,7 +1442,7 @@
     10793.98046875,
     148.14210510253906
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1369,7 +1490,7 @@
     13577.3095703125,
     -197.9882049560547
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1417,7 +1538,7 @@
     -1845.333984375,
     0.800048828125
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1457,7 +1578,7 @@
     -1119.873046875,
     0.7999268174171448
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

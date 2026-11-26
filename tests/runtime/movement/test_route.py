@@ -2,6 +2,7 @@
 
 import ast
 import math
+import threading
 from pathlib import Path
 
 import numpy as np
@@ -10,7 +11,14 @@ import pytest
 from bartleby.runtime.movement.collision import Footprint
 from bartleby.runtime.movement.gates import Gate
 from bartleby.runtime.movement.patrols import HARD, Patrol
-from bartleby.runtime.movement.route import EXIT_MARGIN, ZoneFiles, ZonePlanner, build_planner, link_reach
+from bartleby.runtime.movement.route import (
+    EXIT_MARGIN,
+    PlanStopped,
+    ZoneFiles,
+    ZonePlanner,
+    build_planner,
+    link_reach,
+)
 from bartleby.runtime.movement.zone_grid import CELL, CLEARANCE, MAX_RISE, STEP_TOL
 from bartleby.runtime.movement.zone_links import LINK_REACH, InteractTemplate, Link, PlacedObject, Volume
 from tests.runtime.movement.test_zone_grid import two_storeys
@@ -409,6 +417,43 @@ def test_no_route_names_no_gate_when_none_is_closed_or_opening_one_would_not_hel
     assert planner.no_route((500, 500), (3500, 500)).gate is None
     planner.close(planner.gates[0])
     assert planner.no_route((500, 500), (3500, 500)).gate is None
+
+
+def test_no_route_plans_once_when_even_every_gate_open_gives_none(monkeypatch):
+    """Each gate tried is a plan of its own, seconds each in a big zone. Floor no gate joins
+    needs one plan, with them all open, to say no one gate would help."""
+    planner = _planner(
+        mesh(floor(0, 0, 1000, 1000, 0), floor(3000, 0, 4000, 1000, 0)),
+        gates=[_gate(x=300, name="A"), _gate(x=600, name="B"), _gate(x=3500, name="C")],
+    )
+    for gate in planner.gates:
+        planner.close(gate)
+    plans = []
+    route = ZonePlanner.route
+    monkeypatch.setattr(ZonePlanner, "route", lambda self, *a, **k: plans.append(1) or route(self, *a, **k))
+
+    assert planner.no_route((800, 500), (3800, 500)).gate is None
+    assert len(plans) == 1
+
+
+def test_no_route_still_names_the_one_gate_in_the_way_among_several_closed():
+    planner = _walled((400, 600), gates=[_gate(), _gate(x=600, y0=100.0, y1=200.0, name="Elsewhere")])
+    for gate in planner.gates:
+        planner.close(gate)
+
+    assert planner.no_route((300, 500), (2700, 500)).gate == "Door"
+
+
+def test_a_search_whose_stop_is_set_ends_with_plan_stopped():
+    planner = _walled((400, 600), gates=[_gate()])
+    planner.close(planner.gates[0])
+    stop = threading.Event()
+    stop.set()
+
+    with pytest.raises(PlanStopped):
+        planner.route((300, 500), (2700, 500), stop=stop)
+    with pytest.raises(PlanStopped):
+        planner.no_route((300, 500), (2700, 500), stop=stop)
 
 
 def test_a_gate_opened_again_gives_back_the_floor_its_closing_took():

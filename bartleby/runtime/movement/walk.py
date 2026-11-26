@@ -68,6 +68,7 @@ import asyncio
 import logging
 import math
 import statistics
+import threading
 import time
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
@@ -286,6 +287,20 @@ class Listing:
     at: Point
     objects: list[tuple[str, Point]]
     mobs: dict[int, tuple[object, str]]
+
+
+async def plan_in_thread[T](plan: Callable[..., T], *args) -> T:
+    """``plan(*args, stop=…)`` in a worker thread, as a route's plan runs: it takes seconds in a
+    big zone, and on the loop it would hold everything else. A thread cannot be cancelled, so a
+    cancel of the caller sets the plan's *stop* event as it goes, and the search ends at its next
+    look rather than holding a core for as long as it would have taken (two runs stopped mid-plan
+    in Dragonspyre's Arena left one searching past both)."""
+    stop = threading.Event()
+    try:
+        return await asyncio.to_thread(plan, *args, stop=stop)
+    except asyncio.CancelledError:
+        stop.set()
+        raise
 
 
 async def _is_mob(entity) -> bool:
@@ -761,7 +776,7 @@ class RouteWalker:
         fight = self._fight is not None and tuple(goal) == self._fight
         began = time.monotonic()
         try:
-            return await asyncio.to_thread(planner.route, start, goal, self.avoid, fight)
+            return await plan_in_thread(planner.route, start, goal, self.avoid, fight)
         finally:
             result.planning += time.monotonic() - began
 
@@ -771,7 +786,7 @@ class RouteWalker:
         began = time.monotonic()
         try:
             fight = self._fight is not None and tuple(goal) == self._fight
-            result.no_route = await asyncio.to_thread(self.planner.no_route, start, goal, self.avoid, fight)
+            result.no_route = await plan_in_thread(self.planner.no_route, start, goal, self.avoid, fight)
         finally:
             result.planning += time.monotonic() - began
         return result.no_route

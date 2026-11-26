@@ -1388,7 +1388,83 @@
    ]
   }
  ],
- "links": [],
+ "links": [
+  {
+   "name": "KnightTeleportStoneCMain",
+   "kind": "interact",
+   "source": [
+    -782.0750122070312,
+    10673.1796875,
+    -479.9996032714844
+   ],
+   "landing": "From Tower 2",
+   "target": [
+    -19751.91015625,
+    -11386.169921875,
+    -203.42919921875
+   ]
+  },
+  {
+   "name": "KnightTeleportStoneBMain",
+   "kind": "interact",
+   "source": [
+    414.0367126464844,
+    10673.23046875,
+    -479.99951171875
+   ],
+   "landing": "KnightFromMainB",
+   "target": [
+    17902.849609375,
+    -12616.98046875,
+    -239.99600219726562
+   ]
+  },
+  {
+   "name": "KnightTeleportStoneAMain",
+   "kind": "interact",
+   "source": [
+    388.0669860839844,
+    11794.08984375,
+    -479.99951171875
+   ],
+   "landing": "KnightFromMainA",
+   "target": [
+    23168.19921875,
+    14046.580078125,
+    -239.99549865722656
+   ]
+  },
+  {
+   "name": "MB_TeleportStoneDMain instance",
+   "kind": "interact",
+   "source": [
+    -875.198974609375,
+    11235.6904296875,
+    -479.99951171875
+   ],
+   "landing": "KnightFromMainD",
+   "target": [
+    547.1729125976562,
+    -6922.69677734375,
+    -239.99560546875
+   ]
+  },
+  {
+   "name": "MB_TeleportStoneDSecondary instance",
+   "kind": "interact",
+   "source": [
+    900.7133178710938,
+    -6743.1572265625,
+    -239.99459838867188
+   ],
+   "landing": "KnightsStoneMain",
+   "target": [
+    -110.39459991455078,
+    11613.33984375,
+    -479.9992980957031
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "TeleportVol_ToScotYardHub",
@@ -1439,7 +1515,7 @@
     10673.1796875,
     -479.9996032714844
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1487,7 +1563,7 @@
     10673.23046875,
     -479.99951171875
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1527,7 +1603,7 @@
     11794.08984375,
     -479.99951171875
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1719,7 +1795,7 @@
     11235.6904296875,
     -479.99951171875
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1767,7 +1843,7 @@
     -6743.1572265625,
     -239.99459838867188
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

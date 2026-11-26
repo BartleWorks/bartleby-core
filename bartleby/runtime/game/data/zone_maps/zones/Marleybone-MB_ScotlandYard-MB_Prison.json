@@ -1666,7 +1666,83 @@
    ]
   }
  ],
- "links": [],
+ "links": [
+  {
+   "name": "PrisonTeleportStoneAMain",
+   "kind": "interact",
+   "source": [
+    -4934.5380859375,
+    29941.740234375,
+    -230.0
+   ],
+   "landing": "PrisonFromMainA",
+   "target": [
+    6988.60498046875,
+    59345.21875,
+    0.005881334189325571
+   ]
+  },
+  {
+   "name": "PrisonTeleportStoneBMain",
+   "kind": "interact",
+   "source": [
+    -5196.1640625,
+    29403.7890625,
+    -230.0
+   ],
+   "landing": "PrisonFromMainB",
+   "target": [
+    -23106.599609375,
+    56735.0,
+    -228.91470336914062
+   ]
+  },
+  {
+   "name": "PrisonTeleportStoneCMain",
+   "kind": "interact",
+   "source": [
+    -4925.115234375,
+    28962.390625,
+    -230.0001983642578
+   ],
+   "landing": "PrisonFromMainC",
+   "target": [
+    -21820.5,
+    33927.1796875,
+    -239.99549865722656
+   ]
+  },
+  {
+   "name": "MB_TeleportStoneDSecondary instance",
+   "kind": "interact",
+   "source": [
+    -964.777099609375,
+    559.6409301757812,
+    0.0405273400247097
+   ],
+   "landing": "PrisonMainStone",
+   "target": [
+    -4093.74609375,
+    29410.16015625,
+    -230.00010681152344
+   ]
+  },
+  {
+   "name": "MB_TeleportStoneDMain instance",
+   "kind": "interact",
+   "source": [
+    -4283.93701171875,
+    30395.6796875,
+    -229.99989318847656
+   ],
+   "landing": "Target location Exit",
+   "target": [
+    -958.352783203125,
+    294.4836120605469,
+    0.0404052697122097
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "TeleportVol_ToScotYardHub",
@@ -1691,7 +1767,7 @@
     29941.740234375,
     -230.0
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1739,7 +1815,7 @@
     29403.7890625,
     -230.0
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1787,7 +1863,7 @@
     28962.390625,
     -230.0001983642578
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1979,7 +2055,7 @@
     559.6409301757812,
     0.0405273400247097
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -2027,7 +2103,7 @@
     30395.6796875,
     -229.99989318847656
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

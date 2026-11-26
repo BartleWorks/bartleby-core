@@ -151,6 +151,52 @@ def test_a_stone_lands_by_its_partner():
     assert links == {"WC_Triton_TeleporterA instance": "StreetA", "WC_Triton_TeleporterA_ToMain": "Hub"}
 
 
+def test_dragonspyres_stones_land_by_their_partners_by_letter_and_role():
+    """Dragonspyre's Arena, as its files have it: each Main stone at the hub lands beside its
+    Secondary, and each Secondary back at the hub. The names put the letter and the role in
+    either order, and the hub's own stone, with no letter, goes nowhere."""
+    hub_stone = InteractTemplate("DS_TeleportStoneMain", "")
+    placed = [
+        PlacedObject("ArenaTeleportStoneMain", (46, 4814, 0), hub_stone),
+        PlacedObject("ArenaTeleportStoneMainA", (283, 5063, 0), InteractTemplate("DS_TeleportStoneA_Main", "")),
+        PlacedObject("ArenaTeleportStoneMainB", (267, 4588, 0), InteractTemplate("DS_TeleportStoneB_Main", "")),
+        PlacedObject(
+            "DS_TeleportStoneC_Main instance", (-281, 4763, 0), InteractTemplate("DS_TeleportStoneC_Main", "")
+        ),
+        PlacedObject(
+            "ArenaTeleportStoneSecondaryA", (22085, 21963, 0), InteractTemplate("DS_TeleportStoneA_Secondary", "")
+        ),
+        PlacedObject(
+            "ArenaTeleportStoneSecondaryB", (20015, 44927, 30), InteractTemplate("DS_TeleportStoneB_Secondary", "")
+        ),
+        PlacedObject(
+            "DS_TeleportStoneC_Secondary instance",
+            (-15242, -19028, 30),
+            InteractTemplate("DS_TeleportStoneC_Secondary", ""),
+        ),
+    ]
+    named = {
+        "FromOuterStones": (47, 4361, 30),
+        "FromMainStoneA": (21798, 21970, 0),
+        "FromMainStoneB": (20039, 45177, 30),
+        "FromMainStoneC": (-15214, -19384, 30),
+        "FromNecropolis": (-11119, -20026, 81),
+        "FromAcademy": (20014, 51099, 0),
+        "DS-TeleporterArch02": (429, 6769, 30),
+    }
+
+    links = {link.name: link.landing for link in interact_candidates(ZONE, placed, named, None)}
+
+    assert links == {
+        "ArenaTeleportStoneMainA": "FromMainStoneA",
+        "ArenaTeleportStoneMainB": "FromMainStoneB",
+        "DS_TeleportStoneC_Main instance": "FromMainStoneC",
+        "ArenaTeleportStoneSecondaryA": "FromOuterStones",
+        "ArenaTeleportStoneSecondaryB": "FromOuterStones",
+        "DS_TeleportStoneC_Secondary instance": "FromOuterStones",
+    }
+
+
 def test_an_x_and_x_b_pair_each_land_by_the_other():
     placed = [
         PlacedObject("Tomb_Teleporter", (0, 0, 0), TELEPORT),

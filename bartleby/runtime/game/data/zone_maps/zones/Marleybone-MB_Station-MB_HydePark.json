@@ -802,7 +802,83 @@
    ]
   }
  ],
- "links": [],
+ "links": [
+  {
+   "name": "HydeParkTeleportStoneBMain",
+   "kind": "interact",
+   "source": [
+    -7842.72021484375,
+    17760.25,
+    -540.52880859375
+   ],
+   "landing": "HydeParkFromMainStoneB",
+   "target": [
+    -31031.119140625,
+    15460.9501953125,
+    -236.21820068359375
+   ]
+  },
+  {
+   "name": "HydeParkTeleportStoneCMain",
+   "kind": "interact",
+   "source": [
+    -7338.01806640625,
+    17222.599609375,
+    -540.52880859375
+   ],
+   "landing": "HydeParkFromMainStoneC",
+   "target": [
+    4640.19287109375,
+    10578.6396484375,
+    -239.9947052001953
+   ]
+  },
+  {
+   "name": "HydeParkTeleportStoneAMain",
+   "kind": "interact",
+   "source": [
+    -7338.2998046875,
+    17760.369140625,
+    -540.5291137695312
+   ],
+   "landing": "HydeParkFromMainStoneA",
+   "target": [
+    7996.7978515625,
+    29191.810546875,
+    -239.9936981201172
+   ]
+  },
+  {
+   "name": "MB_TeleportStoneDMain instance",
+   "kind": "interact",
+   "source": [
+    -7842.56396484375,
+    17222.16015625,
+    -540.52880859375
+   ],
+   "landing": "HydeParkFromMainStoneD",
+   "target": [
+    -712.1998291015625,
+    -2647.791015625,
+    0.0035353139974176884
+   ]
+  },
+  {
+   "name": "MB_TeleportStoneDSecondary instance",
+   "kind": "interact",
+   "source": [
+    -912.556396484375,
+    -2527.4609375,
+    0.0031738278921693563
+   ],
+   "landing": "HydeParkMainStone",
+   "target": [
+    -7654.89794921875,
+    17048.7890625,
+    -540.5288696289062
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "TeleportVol_ToAirportHub",
@@ -827,7 +903,7 @@
     17760.25,
     -540.52880859375
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -867,7 +943,7 @@
     17222.599609375,
     -540.52880859375
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -915,7 +991,7 @@
     17760.369140625,
     -540.5291137695312
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1107,7 +1183,7 @@
     17222.16015625,
     -540.52880859375
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1147,7 +1223,7 @@
     -2527.4609375,
     0.0031738278921693563
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

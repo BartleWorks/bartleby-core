@@ -140,7 +140,7 @@ together from what the files do keep, in this order (`zone_links.py`'s `zone_lin
 | a volume's name | the arrival point sharing the most words, "to"/"from" breaking a tie, no link where two fit as well | Triton's six volumes (four walked, 1 to 5 off) |
 | `zone.nav` | for a volume the name leaves on its own piece, if its name says it moves the wizard (teleport, to), the far end of the quest arrow's edge starting at it | Lemuria's tower lifts, each named for the end it stands at; Krokotopia's Forgotten Tombs |
 | a ride's template | a zipline's `InteractableBehavior` holds its two ends as LOCATION records; it lands on the arrival point nearest the second (800 to 920 past it) | all four Floating Mountains ziplines; two pressed, 3 off each |
-| a stone's partner | a `TeleporterX` stone lands at the arrival point nearest `TeleporterX_ToMain`, and that one at the arrival point nearest the hub's stones | Triton's four (pressed, 1 to 5 off); Colossus, Cyclops, Firecat, nine Krokotopia zones and Hametsu give names like "StreetB", "Target_Arena", "BackToHub", "HamPorter2" |
+| a stone's partner | a `TeleporterX` stone lands at the arrival point nearest `TeleporterX_ToMain`, and that one at the arrival point nearest the hub's stones; Dragonspyre names its own by letter and role in either order (`DS_TeleportStoneA_Main`, `ArenaTeleportStoneSecondaryA`), Main at the hub and Secondary at the far end | Triton's four (pressed, 1 to 5 off); Colossus, Cyclops, Firecat, nine Krokotopia zones and Hametsu give names like "StreetB", "Target_Arena", "BackToHub", "HamPorter2"; Dragonspyre's Arena, whose `FromMainStoneA` and `FromOuterStones` match (not yet pressed) |
 | an X / X_B pair | each at the arrival point nearest the other | Krokotopia's Forgotten Tombs teleporters |
 | `zone.nav` | for any other object whose prompt is a travel verb, the far end of the edge starting nearest it (within 700) | Mirage's caravan ladders (four climbed, 0 to 4 off; Ladder 04 has no edge), Tyrian Gorge's six ("Ladder 01 top", ...), Novus's ropes, Krokotopia's hub teleporter |
 
@@ -293,7 +293,16 @@ checked.
   route, that gate's name and a `Crossing`, the last floor before it and the first after it on
   that route and the distance between them. That is about the gate's depth plus the clearance
   on each side: a gate 120 deep comes out at 220, to within a cell. It is the length a hop
-  past the gate would need (BartleBot's `HOP_MAX`).
+  past the gate would need (BartleBot's `HOP_MAX`). Each gate it tries is a plan of its own,
+  and a plan with no route searches all the floor it can reach, seconds in a big zone; so it
+  plans once with every closed gate open first, and when even that finds nothing, it names no
+  gate without trying them one by one (Dragonspyre's Arena, eight stones listed closed: half a
+  minute became one plan).
+- **A plan can be stopped.** `astar`, `route()` and `no_route()` take a `stop` event, looked at
+  every `STOP_EVERY` nodes, and raise `PlanStopped` once it is set. The walker plans through
+  `walk.plan_in_thread`, which sets it when the walk is cancelled: a thread cannot be, and a
+  run stopped mid-plan once left its search holding the GIL, and the event loop with it, for
+  half a minute after.
 - **A goal on a closed gate's floor has no route**: `route()` returns None rather than snap the
   goal to the floor left beside the gate, which would end a walk short of it as if arrived (the
   Shopping District's Colossus blocker covers half of the exit behind it), and `no_route` names
@@ -687,7 +696,8 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
    walk through, and its state (`ObjectStateBehavior`) would be the way to tell. No door was
    seen to open in the session, and the read has not walked a live client yet.
 4. **Walk the link kinds not yet tried**: a rope (Novus's Stone of Heaven), a Lemuria tower
-   lift, a Krokotopia stone pair, an X / X_B pair. How near an object a press must be is
+   lift, a Krokotopia stone pair, an X / X_B pair, and the `TeleportStone` stones paired by name
+   in Dragonspyre, Celestia, Marleybone and Zafaria (*In-zone links*). How near an object a press must be is
    assumed (150; every Mirage ladder took a press from where its leg ended); whether facing it
    matters is not known (the walk faces it anyway).
 5. **The 44 zones still apart**: their maps, starting with the worst. Levers and lifts that
@@ -705,3 +715,15 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
    placed blockers carry the same tag and are; whether any of the 250 non-walkable meshes are walls; a box volume's turn, and
    the name of its third side's property; whether a quest-gated link can be told from the
    client before stepping into it (a trigger's `ReqHasQuest` may say).
+10. **Tilted boxes, left as they are on purpose** (decided 2026-11-26). The grid takes floor
+    only from walkable meshes, and walls a box by its corners' outline from its lowest point to
+    its highest (*The floor*). Both hold for a box that stands upright, and both fail for one
+    that is turned: a ramp made of a box is wall, not floor, and the floor under a leaning
+    slab's raised side is walled. Dragonspyre's Arena joins its two halves by exactly one of
+    each, walked by hand and recorded with BartleBot's `tools/probe_walk_track.py`. Treating
+    every up-facing box face as floor and walling each box by its own span joined them, but
+    made every crate and wall top floor: passable floor went from 550k cells to 900k and the
+    Arena's grid from two layers to four, mostly floor no walk should use, to fix geometry that
+    is rare. The Arena is joined by its stones instead. A zone split this way is found by
+    recording a walk across the split with that tool, whose analysis names the solid in the
+    way.

@@ -483,7 +483,53 @@
    ]
   }
  ],
- "links": [],
+ "links": [
+  {
+   "name": "ZF_TeleportStoneAMain instance",
+   "kind": "interact",
+   "source": [
+    19314.009765625,
+    1404.9949951171875,
+    7.742401123046875
+   ],
+   "landing": "Target location ZF_TeleportStoneASecondary",
+   "target": [
+    23701.0390625,
+    -5521.69580078125,
+    7.74298095703125
+   ]
+  },
+  {
+   "name": "ZF_TeleportStoneASecondary instance",
+   "kind": "interact",
+   "source": [
+    23995.69921875,
+    -5775.8232421875,
+    7.7432122230529785
+   ],
+   "landing": "Target location ZF_TeleportStoneAMain",
+   "target": [
+    19633.9296875,
+    1370.7950439453125,
+    7.742459774017334
+   ]
+  },
+  {
+   "name": "ZF_TeleportStoneBMain instance",
+   "kind": "interact",
+   "source": [
+    19267.7890625,
+    2185.5,
+    7.742434978485107
+   ],
+   "landing": "Target location ZF_TeleportStoneBSecondary",
+   "target": [
+    -2586.291015625,
+    580.9196166992188,
+    2.4056100845336914
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "AV_to_Redbands_Hut",
@@ -979,7 +1025,7 @@
     1404.9949951171875,
     7.742401123046875
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1027,7 +1073,7 @@
     -5775.8232421875,
     7.7432122230529785
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1075,7 +1121,7 @@
     2185.5,
     7.742434978485107
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
