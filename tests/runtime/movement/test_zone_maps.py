@@ -471,7 +471,10 @@ BUILT_BY = (
     route.grid_of,
     route.wall_gates,
 )
-BUILT_BY_SHA = "51fa4ac3d96628f1ea23e616930905654b3bc5c37a92126ae3f779671491112d"  # 2026-11-25: Grid raises on no floor; no copy differs, CACHE_VERSION kept
+# 2026-11-26: walkable_triangles keeps a step's lip. It runs when a map is built, not when a copy
+# is, so a copy of the same map is the same; a floor the rule changed has new bytes, and so a new
+# key. CACHE_VERSION kept.
+BUILT_BY_SHA = "e86f39e06303c5390d7bd52c97eb65158062fec6b71a3588055efa136fd6dabe"
 CHECKED_AT = 2
 
 
