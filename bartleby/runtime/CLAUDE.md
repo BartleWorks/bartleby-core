@@ -247,9 +247,9 @@ A walk is the server's own movement: each step is sent as the wizard takes it, s
 ends, the server has the wizard where `body.position()` says, give or take a step. A written
 position is not: `client.teleport()` moves the client at once and the server hears of it a
 moment later (or undoes it, past a short distance), so `body.position()` matches the target the
-instant the write returns and proves nothing about the server. Until Stage 7 of BartleBot's
-#322 one node still writes one (Teleport to Coordinates), as do its authoring tools; Stage 6
-walked the rest. So an action the server places by where it thinks
+instant the write returns and proves nothing about the server. Since Stage 7 of BartleBot's
+#322 its one write is `walking.hop`, Teleport to XYZ's few steps past a gate, which reads back
+only once a second has passed; everything else walks. So an action the server places by where it thinks
 the player stands, with no prompt to confirm it, still waits Safety Delay before it is sent,
 whether or not this node moved the player. Mark is the one today: clicked half a second after a
 teleport, it sometimes landed where the player had stood before, and the recall missed by the
