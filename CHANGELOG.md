@@ -8,6 +8,18 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Nothing breaks.
+
+### Fixed
+
+- **A walk waiting for mobs eases even when they leave it a little room.** Room at the full
+  margin short of the slack a waiting walk goes on with counted as the mobs having left it room,
+  so after `WALK_MOB_CLEAR` the spell of waits started over while the walk still stood: it
+  never came down to `walk.NARROW_MARGIN`, and could have waited for good. A waiting walk now
+  needs the room it would go on with for the spell to start over.
+
 ## 0.14.2
 
 Nothing breaks: no product's code needs to change, though a walk held up by mobs now ends
