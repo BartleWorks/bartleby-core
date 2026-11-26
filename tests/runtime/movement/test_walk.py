@@ -545,6 +545,60 @@ async def test_a_mob_with_no_way_around_is_waited_for_and_the_wait_ends_blocked(
     assert client.held == set()
 
 
+async def _fight_walk(client, planner, goal, **kw):
+    arbiter = Arbiter()
+    async with arbiter.acquire(client, Owner.MOVEMENT) as lease:
+        return await RouteWalker(client, planner, watch_mobs=True).walk(lease, goal, fight=True, **kw)
+
+
+def _fights_within(client, mob, reach=200.0):
+    """Start a fight once the wizard comes within *reach* of *mob*, as its trigger would."""
+    return asyncio.create_task(
+        _when(client, lambda p: math.dist(p[:2], mob[:2]) < reach, lambda: setattr(client, "battle", True))
+    )
+
+
+async def test_a_walk_into_a_fight_goes_up_to_its_mob_and_ends_in_the_fight():
+    mob = (3000.0, 1000.0, 0.0)
+    client = _mobs_at(_client(), mob)
+    fight = _fights_within(client, mob)
+
+    result = await _fight_walk(client, _hall(), mob)
+    await fight
+
+    assert result.end is WalkEnd.FIGHT
+    assert result.detours == 0 and result.waited == 0
+    assert client.held == set()
+
+
+async def test_a_walk_into_a_fight_still_goes_around_a_mob_that_is_not_in_it():
+    mob, other = (3000.0, 1000.0, 0.0), (1500.0, 1000.0, 0.0)
+    client = _mobs_at(_client(), mob, other)
+    fight = _fights_within(client, mob)
+
+    result = await _fight_walk(client, _hall(), mob)
+    await fight
+
+    assert result.end is WalkEnd.FIGHT
+    assert result.detours >= 1
+    assert min(math.dist(p[:2], other[:2]) for p in result.trail) > walk_module.DEFAULT_TRIGGER
+
+
+async def test_a_walk_into_a_fight_spares_the_mob_it_was_told_to_meet_wherever_it_stands(monkeypatch):
+    monkeypatch.setattr(walk_module, "WALK_MOB_WAIT", 0.6)  # the wary walk only has to be held up
+    goal = (2200.0, 1000.0, 0.0)
+    ghost = SimEntity("Ghost", (2600.0, 1000.0, 0.0), mob=True)  # beyond the goal's reach, but the fight's
+    client = _client()
+    client.entities = [ghost]
+
+    spared = await _fight_walk(client, _hall(), goal, spare=[ghost.gid])
+
+    assert spared.arrived and spared.detours == 0 and spared.waited == 0
+    client.place((200.0, 1000.0, 0.0))
+    wary = await _fight_walk(client, _hall(), goal)
+    assert wary.detours + wary.waited > 0
+
+
 async def test_a_detour_is_planned_standing_even_while_backing_off(monkeypatch):
     # Cadences, cut so a detour is sought while backing: in a corridor none is ever found.
     monkeypatch.setattr(walk_module, "WALK_DETOUR_EVERY", 0.1)

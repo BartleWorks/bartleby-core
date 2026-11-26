@@ -30,7 +30,17 @@ import numpy as np
 
 from bartleby.runtime.movement.collision import Footprint, Solid, blocking_footprints, walkable_triangles
 from bartleby.runtime.movement.gates import Crossing, Gate, NoRoute, mark_walls
-from bartleby.runtime.movement.patrols import HARD, HARD_WEIGHT, SOFT, WEIGHT, Patrol, clearance, danger_cost
+from bartleby.runtime.movement.patrols import (
+    HARD,
+    HARD_WEIGHT,
+    SOFT,
+    WEIGHT,
+    Patrol,
+    clearance,
+    danger_cost,
+    distance_to_segments,
+    segments,
+)
 from bartleby.runtime.movement.zone_grid import (
     CELL,
     CLEARANCE,
@@ -58,6 +68,11 @@ from bartleby.runtime.movement.zone_links import (
 WIZARD_SPEED = 600.0
 #: How much further than its own size an exit is kept clear of: the wizard's own body.
 EXIT_MARGIN = CLEARANCE
+#: A patrol whose trigger radius comes this near a fight's goal is that fight's: a walk into the
+#: fight pays nothing to pass it. A mob stands on its path, and a duel circle opens where a mob's
+#: trigger met the wizard who started it, so the mob walked to, or the ones in the circle, are
+#: well inside this (:meth:`ZonePlanner.fight_cost`).
+FIGHT_REACH = 120.0
 
 
 def astar(
@@ -293,6 +308,8 @@ class ZonePlanner:
     # Each gate's floor (gate_floor), shared by every copy of a planner, since the grid is.
     _gate_floors: dict[tuple, tuple[int, int, np.ndarray]] = field(default_factory=dict, repr=False)
     _exit_floors: dict[int, np.ndarray] = field(default_factory=dict, init=False, repr=False)
+    # The step costs of a walk into a fight, by the patrols it spares (fight_cost).
+    _fight_costs: dict[frozenset[int], np.ndarray] = field(default_factory=dict, init=False, repr=False)
 
     def node(self, x: float, y: float, z: float | None = None, passable: np.ndarray | None = None) -> Node | None:
         return nearest_node(self.grid, self.passable if passable is None else passable, x, y, z)
@@ -312,6 +329,42 @@ class ZonePlanner:
         spot = self.node(x, y, z)
         return [] if spot is None else [e for e in self.exits if self.exit_floor(e)[spot]]
 
+    def outside_exits(self, x: float, y: float, z: float | None = None) -> tuple[float, float, float] | None:
+        """The point itself when no exit's no-go area (:meth:`exit_floor`) holds the spot it snaps
+        to; else the floor nearest it that none holds, weighing height as :meth:`node` does; None
+        when the zone has no floor, or none outside its exits. A walk to a point inside an exit
+        would leave the zone, as a pickup inside a cave's mouth did (BartleBot #35): one that
+        must not walks here instead."""
+        spot = self.node(x, y, z)
+        if spot is None:
+            return None
+        if not any(self.exit_floor(e)[spot] for e in self.exits):
+            return (float(x), float(y), float(self.grid.levels[spot]) if z is None else float(z))
+        clear = self.passable.copy()
+        for exit in self.exits:
+            clear &= ~self.exit_floor(exit)
+        nearest = self.node(x, y, z, passable=clear)
+        return None if nearest is None else self.grid.world(*nearest)
+
+    def fight_cost(self, at: Sequence[float]) -> np.ndarray:
+        """What a step costs on a walk into a fight at *at*: the patrols' cost (:attr:`cost`),
+        less every patrol whose trigger radius comes within :data:`FIGHT_REACH` of *at*. The walk
+        means to meet that mob, so its patrol is no danger to it; every other patrol still costs
+        what it would. Built once for each set of patrols spared, off the event loop, as every
+        plan is."""
+        x, y = np.asarray([float(at[0])]), np.asarray([float(at[1])])
+        spared = frozenset(
+            k
+            for k, p in enumerate(self.patrols)
+            if float(distance_to_segments(x, y, segments(p, closed=True))[0]) - p.proximity <= FIGHT_REACH
+        )
+        if not spared:
+            return self.cost
+        if spared not in self._fight_costs:
+            kept = [p for k, p in enumerate(self.patrols) if k not in spared]
+            self._fight_costs[spared] = danger_cost(clearance(self.grid, kept), soft=self.soft)
+        return self._fight_costs[spared]
+
     def floor_for(self, start: Sequence[float], goal: Sequence[float]) -> np.ndarray:
         """The floor a route from *start* to *goal* may use: every exit closed but one the goal
         is in, which the route ends at, and one the start is in, which it walks out of."""
@@ -322,9 +375,12 @@ class ZonePlanner:
                 out &= ~self.exit_floor(exit)
         return out
 
-    def route(self, start: Sequence[float], goal: Sequence[float], avoid: bool = True) -> Route | None:
+    def route(
+        self, start: Sequence[float], goal: Sequence[float], avoid: bool = True, fight: bool = False
+    ) -> Route | None:
         """A cell-by-cell route between two points, each (x, y) or (x, y, z), or None. With
-        *avoid*, it pays the patrols' cost; without, it takes the shortest.
+        *avoid*, it pays the patrols' cost; without, it takes the shortest. With *fight* too, the
+        goal is a fight to join, and the patrols of the mobs in it cost nothing (:meth:`fight_cost`).
 
         It steps onto a volume link's floor only to take that link, since stepping in moves the
         wizard, unless the start or the goal is in it. Where that leaves no route (a volume
@@ -338,7 +394,7 @@ class ZonePlanner:
         s, g = self.node(*start, passable=floor), self.node(*goal, passable=floor)
         if s is None or g is None or self._goal_behind_gate(floor, goal, g):
             return None
-        cost = self.cost if avoid else np.ones_like(self.cost)
+        cost = (self.fight_cost(goal) if fight else self.cost) if avoid else np.ones_like(self.cost)
         portals = self.portals(floor)
         volumes = self.volume_floor(floor, s, g)
         taken_only = set(_flat(volumes))
@@ -534,7 +590,9 @@ class ZonePlanner:
                 near.append((d, k, gate))
         return [gate for _, _, gate in sorted(near, key=lambda t: (t[0], t[1]))]
 
-    def no_route(self, start: Sequence[float], goal: Sequence[float], avoid: bool = True) -> NoRoute:
+    def no_route(
+        self, start: Sequence[float], goal: Sequence[float], avoid: bool = True, fight: bool = False
+    ) -> NoRoute:
         """Why :meth:`route` found nothing: the zone and both points, and the closed gate in the
         way, with its :class:`Crossing`, when opening that one gate alone gives a route. The
         gates closed last are tried first."""
@@ -547,7 +605,7 @@ class ZonePlanner:
             for other in others:
                 o_layer, o_rows, o_cols, o_spots = self._gate_spots(other)
                 trial[o_layer, o_rows, o_cols] &= ~o_spots
-            found = dataclasses.replace(self, passable=trial, closed=others).route(start, goal, avoid)
+            found = dataclasses.replace(self, passable=trial, closed=others).route(start, goal, avoid, fight)
             if found is None:
                 continue
             nodes = np.asarray(found.nodes, dtype=np.intp).reshape(-1, 3)

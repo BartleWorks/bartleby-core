@@ -8,6 +8,24 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## 0.14.0
+
+A walk into a fight, and the floor outside a zone's exits (Stage 5 of BartleBot #322). Nothing
+a product calls today changes; the new arguments default to what it did.
+
+### Added
+
+- **`RouteWalker.walk(lease, goal, fight=True, spare=…)`**: a walk into a fight. Its watch leaves
+  out the mobs in *spare* (by global id) and any whose trigger radius comes within
+  `route.FIGHT_REACH` (120) of the goal, which it would otherwise wait on forever, and its plan
+  pays nothing for their patrols. Every other mob is watched and every other patrol costs as on
+  any walk. `walk.Mob` gains `key`, the mob's global id.
+- **`ZonePlanner.route(..., fight=True)`** and `no_route(..., fight=True)`, planning on
+  **`ZonePlanner.fight_cost(at)`**: the patrols' cost less every patrol whose trigger radius comes
+  within `FIGHT_REACH` of *at*.
+- **`ZonePlanner.outside_exits(x, y, z)`**: the point when no exit's no-go area holds it, else the
+  nearest floor that none holds, or None. A pickup inside an exit walks there (BartleBot #35).
+
 ## 0.13.0
 
 The walker reads its zone's gates from the client (Stage 3.2 of BartleBot #322).

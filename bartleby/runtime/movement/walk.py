@@ -36,6 +36,13 @@
   :data:`~bartleby.runtime.timing.WALK_LOOK_AHEAD` along its route and every mob along its
   velocity, and short of room, detours first, planning only to a point a short way along the
   route, then waits or backs off, :data:`~bartleby.runtime.timing.WALK_MOB_WAIT` at most in all.
+* **A walk into a fight** (``walk(..., fight=True)``) aims at the fight's mob or its duel circle.
+  Its plan pays nothing for the patrols of the mobs in that fight
+  (:meth:`~bartleby.runtime.movement.route.ZonePlanner.fight_cost`), and the live watch leaves
+  out the mobs it was told to meet (*spare*, by key) and any mob whose trigger radius comes within
+  :data:`~bartleby.runtime.movement.route.FIGHT_REACH` of the goal; it would wait for them
+  forever. Every other mob is avoided as on any walk. It ends :attr:`WalkEnd.FIGHT` once
+  ``in_battle`` reads true, which for this walk is what it was for.
 * **No speed, and no position.** It never writes ``speed_multiplier``, so a wizard walks at
   whatever its field holds, until the user's go-ahead for a faster walk; and it never writes a
   position, so it has no hop to hand over.
@@ -67,7 +74,7 @@ from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.movement.gates import Gate, NoRoute
 from bartleby.runtime.movement.geometry import Point, facing, flat_distance, heading_to, wrap
-from bartleby.runtime.movement.route import WIZARD_SPEED, Leg, Route, ZonePlanner
+from bartleby.runtime.movement.route import FIGHT_REACH, WIZARD_SPEED, Leg, Route, ZonePlanner
 from bartleby.runtime.movement.zone_links import Link
 from bartleby.runtime.timing import (
     WALK_BACK_OFF_LONGEST,
@@ -390,6 +397,7 @@ class Mob:
     t: float
     vx: float = 0.0
     vy: float = 0.0
+    key: int | None = None  # the entity's global id, as the client lists it
 
 
 class MobWatch:
@@ -430,7 +438,7 @@ class MobWatch:
     def _update(self, key: int, name: str, x: float, y: float, z: float, t: float) -> None:
         mob = self.mobs.get(key)
         if mob is None:
-            self.mobs[key] = Mob(name, self.triggers.get(name, DEFAULT_TRIGGER), x, y, z, t)
+            self.mobs[key] = Mob(name, self.triggers.get(name, DEFAULT_TRIGGER), x, y, z, t, key=key)
             return
         gap = t - mob.t
         if gap <= 0:
@@ -582,6 +590,8 @@ class RouteWalker:
         self.label = label or "a walk"
         self.on_tick = on_tick
         self._seen = 0  # the passes over the entity list acted on
+        self._fight: Point | None = None  # the goal of a walk into a fight, while one is walked
+        self._spare: frozenset[int] = frozenset()  # the mobs that walk means to meet, by key
 
     async def _read(self) -> tuple[Point, float]:
         pos = await self.client.body.position()
@@ -596,8 +606,21 @@ class RouteWalker:
         # A logged-out character's field is freed memory; nothing real is past 2.0x.
         return WIZARD_SPEED * (1 + field_value / 100) if 0 <= field_value <= 100 else WIZARD_SPEED
 
-    async def walk(self, lease: Lease, goal: Point) -> WalkResult:
-        """Walk to *goal* through *lease*'s input, from where the wizard stands."""
+    async def walk(self, lease: Lease, goal: Point, *, fight: bool = False, spare: Sequence[int] = ()) -> WalkResult:
+        """Walk to *goal* through *lease*'s input, from where the wizard stands.
+
+        *fight* makes it a walk into a fight at *goal*: the patrols of the mobs there cost its plan
+        nothing, and the watch leaves out the mobs in *spare* (their keys, the entities' global ids)
+        and any whose trigger radius comes within FIGHT_REACH of *goal*. It ends FIGHT once the
+        wizard is in battle, as any walk does."""
+        self._fight = tuple(goal) if fight else None
+        self._spare = frozenset(spare) if fight else frozenset()
+        try:
+            return await self._walk_to(lease, goal)
+        finally:
+            self._fight, self._spare = None, frozenset()
+
+    async def _walk_to(self, lease: Lease, goal: Point) -> WalkResult:
         started = time.monotonic()
         position, _ = await self._read()
         zone = await self.client.zone_name()
@@ -658,9 +681,10 @@ class RouteWalker:
     ) -> Route | None:
         """A route, planned in a worker thread: it takes seconds in a big zone."""
         planner = planner or self.planner
+        fight = self._fight is not None and tuple(goal) == self._fight
         began = time.monotonic()
         try:
-            return await asyncio.to_thread(planner.route, start, goal, self.avoid)
+            return await asyncio.to_thread(planner.route, start, goal, self.avoid, fight)
         finally:
             result.planning += time.monotonic() - began
 
@@ -669,7 +693,8 @@ class RouteWalker:
         again once for each gate closed."""
         began = time.monotonic()
         try:
-            result.no_route = await asyncio.to_thread(self.planner.no_route, start, goal, self.avoid)
+            fight = self._fight is not None and tuple(goal) == self._fight
+            result.no_route = await asyncio.to_thread(self.planner.no_route, start, goal, self.avoid, fight)
         finally:
             result.planning += time.monotonic() - began
         return result.no_route
@@ -854,7 +879,7 @@ class RouteWalker:
                 # Mobs: go on, detour, wait, or back off, by the room each leaves.
                 go_room = math.inf
                 choice = "go"
-                if watch is not None and (mobs := watch.near(here)):
+                if watch is not None and (mobs := self._watched(watch, here)):
                     speed = statistics.median(speeds[-20:]) if len(speeds) >= 10 else expected
                     go_room = room(
                         [along(waypoints, target, x, y, speed * tau) for tau in LOOK_AHEAD], mobs, watch.clock()
@@ -961,6 +986,17 @@ class RouteWalker:
         finally:
             if mode != "go":  # standing or backing off for mobs when it ended
                 result.waited += clock() - mode_since
+
+    def _watched(self, watch: MobWatch, here: Point) -> list[Mob]:
+        """The mobs near *here* that this walk keeps clear of: all of them, but on a walk into a
+        fight, the ones it means to meet."""
+        mobs = watch.near(here)
+        if self._fight is None:
+            return mobs
+        fx, fy = self._fight[0], self._fight[1]
+        return [
+            m for m in mobs if m.key not in self._spare and math.dist((m.x, m.y), (fx, fy)) - m.trigger > FIGHT_REACH
+        ]
 
     async def _back_off(self, keys) -> None:
         """Back off by distance, not time: the backward key walks near forward speed."""
