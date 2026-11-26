@@ -248,8 +248,8 @@ ends, the server has the wizard where `body.position()` says, give or take a ste
 position is not: `client.teleport()` moves the client at once and the server hears of it a
 moment later (or undoes it, past a short distance), so `body.position()` matches the target the
 instant the write returns and proves nothing about the server. Until Stage 7 of BartleBot's
-#322 some nodes still write one (Teleport to Coordinates, pickups, the Ride's boarding, potions,
-level scaling, the Skeleton Key unlocker). So an action the server places by where it thinks
+#322 one node still writes one (Teleport to Coordinates), as do its authoring tools; Stage 6
+walked the rest. So an action the server places by where it thinks
 the player stands, with no prompt to confirm it, still waits Safety Delay before it is sent,
 whether or not this node moved the player. Mark is the one today: clicked half a second after a
 teleport, it sometimes landed where the player had stood before, and the recall missed by the
