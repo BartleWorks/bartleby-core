@@ -79,7 +79,98 @@
   ]
  },
  "patrols": [],
- "links": [],
+ "links": [
+  {
+   "name": "AmphiTeleportStoneMainA",
+   "kind": "interact",
+   "source": [
+    254.98269653320312,
+    -554.2750244140625,
+    0.008526082150638103
+   ],
+   "landing": "FromMainStoneA",
+   "target": [
+    8006.89013671875,
+    -17575.390625,
+    0.005073546897619963
+   ]
+  },
+  {
+   "name": "AmphiTeleportStoneMainB",
+   "kind": "interact",
+   "source": [
+    311.67608642578125,
+    -31.962299346923828,
+    0.008789367973804474
+   ],
+   "landing": "FromMainStoneB",
+   "target": [
+    -8659.923828125,
+    -11172.7001953125,
+    41.01145935058594
+   ]
+  },
+  {
+   "name": "AmphiTeleportStoneMainC",
+   "kind": "interact",
+   "source": [
+    -324.3207092285156,
+    -285.8534851074219,
+    0.008409093134105206
+   ],
+   "landing": "FromMainStoneC",
+   "target": [
+    20821.75,
+    21106.109375,
+    40.0
+   ]
+  },
+  {
+   "name": "AmphiTeleportStoneSecondaryA",
+   "kind": "interact",
+   "source": [
+    8003.61279296875,
+    -17289.25,
+    30.01003074645996
+   ],
+   "landing": "FromOuterStones",
+   "target": [
+    52.65625,
+    318.62298583984375,
+    0.0028314590454101562
+   ]
+  },
+  {
+   "name": "AmphiTeleportStoneSecondaryB",
+   "kind": "interact",
+   "source": [
+    -8923.8916015625,
+    -11243.3203125,
+    39.994571685791016
+   ],
+   "landing": "FromOuterStones",
+   "target": [
+    52.65625,
+    318.62298583984375,
+    0.0028314590454101562
+   ]
+  },
+  {
+   "name": "AmphiTeleportStoneSecondaryC",
+   "kind": "interact",
+   "source": [
+    20664.080078125,
+    21393.91015625,
+    40.000038146972656
+   ],
+   "landing": "FromOuterStones",
+   "target": [
+    52.65625,
+    318.62298583984375,
+    0.0028314590454101562
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "TeleportVol_Teleport-ToAcademy",
@@ -156,7 +247,7 @@
     -554.2750244140625,
     0.008526082150638103
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -204,7 +295,7 @@
     -31.962299346923828,
     0.008789367973804474
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -252,7 +343,7 @@
     -285.8534851074219,
     0.008409093134105206
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -300,7 +391,7 @@
     -17289.25,
     30.01003074645996
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -348,7 +439,7 @@
     -11243.3203125,
     39.994571685791016
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -396,7 +487,7 @@
     21393.91015625,
     40.000038146972656
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

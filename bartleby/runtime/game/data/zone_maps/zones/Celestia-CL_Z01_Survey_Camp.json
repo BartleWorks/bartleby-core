@@ -827,7 +827,38 @@
    ]
   }
  ],
- "links": [],
+ "links": [
+  {
+   "name": "CL_TeleportStoneAMain_instance_Zone01",
+   "kind": "interact",
+   "source": [
+    2893.24609375,
+    -380.23370361328125,
+    -0.00011404699762351811
+   ],
+   "landing": "CL_TeleportStoneAMain_Zone01",
+   "target": [
+    28057.310546875,
+    -13483.4697265625,
+    -841.44287109375
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneASecondary_Zone01",
+   "kind": "interact",
+   "source": [
+    28146.990234375,
+    -13737.51953125,
+    -822.5631713867188
+   ],
+   "landing": "CL_TeleportStoneASatilite_Zone01",
+   "target": [
+    3089.51611328125,
+    -52.17430114746094,
+    -3.275437848060392e-05
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "Activator Volume to Zone 02",
@@ -865,7 +896,7 @@
     -380.23370361328125,
     -0.00011404699762351811
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -913,7 +944,7 @@
     -13737.51953125,
     -822.5631713867188
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

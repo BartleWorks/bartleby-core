@@ -23,6 +23,7 @@ from __future__ import annotations
 import dataclasses
 import heapq
 import math
+import threading
 from collections.abc import Mapping, Sequence, Set
 from dataclasses import dataclass, field
 
@@ -73,6 +74,17 @@ EXIT_MARGIN = CLEARANCE
 #: trigger met the wizard who started it, so the mob walked to, or the ones in the circle, are
 #: well inside this (:meth:`ZonePlanner.fight_cost`).
 FIGHT_REACH = 120.0
+#: How many nodes A* expands between looks at its stop event: about 10 ms of searching.
+STOP_EVERY = 4096
+
+
+class PlanStopped(Exception):
+    """A plan's *stop* event was set before it finished: whoever wanted the route has gone."""
+
+
+def _check(stop: threading.Event | None) -> None:
+    if stop is not None and stop.is_set():
+        raise PlanStopped
 
 
 def astar(
@@ -84,6 +96,7 @@ def astar(
     max_rise: float = MAX_RISE,
     portals: Mapping[int, list[tuple[int, float]]] | None = None,
     taken_only: Set[int] | None = None,
+    stop: threading.Event | None = None,
 ) -> tuple[list[Node], frozenset[int]] | None:
     """A cell-by-cell route, and each k whose step from node k to node k + 1 is a link, or None.
     *portals* maps a node's flat index to the nodes a link puts it on, and what taking it costs.
@@ -91,7 +104,11 @@ def astar(
     is taken, on another storey: a short ladder. The distance heuristic does not know about
     links, so a route using one is found but not always the shortest. A node in *taken_only* (a
     volume link's floor, which moves whoever steps in) is left only by a link, never walked on
-    from, unless the route starts there."""
+    from, unless the route starts there.
+
+    A search with no route expands every node it can reach, which takes seconds in a big zone,
+    and it runs in a worker thread, where a cancel cannot reach it. So it looks at *stop* every
+    :data:`STOP_EVERY` nodes, and raises :class:`PlanStopped` once it is set."""
     layers, ny, nx = grid.levels.shape
     plane = ny * nx
     ok = passable.ravel().tolist()
@@ -115,6 +132,8 @@ def astar(
         _, g_cost, cur = heapq.heappop(heap)
         if cur in done:
             continue
+        if len(done) % STOP_EVERY == 0:
+            _check(stop)
         if cur == g:
             path, linked = [], []
             while cur != -1:
@@ -376,7 +395,12 @@ class ZonePlanner:
         return out
 
     def route(
-        self, start: Sequence[float], goal: Sequence[float], avoid: bool = True, fight: bool = False
+        self,
+        start: Sequence[float],
+        goal: Sequence[float],
+        avoid: bool = True,
+        fight: bool = False,
+        stop: threading.Event | None = None,
     ) -> Route | None:
         """A cell-by-cell route between two points, each (x, y) or (x, y, z), or None. With
         *avoid*, it pays the patrols' cost; without, it takes the shortest. With *fight* too, the
@@ -389,19 +413,23 @@ class ZonePlanner:
 
         A goal on a closed gate's floor has no route: snapped to the nearest floor left, it
         would end short of the gate as if arrived, when the gate is what is in the way
-        (:meth:`no_route` names it)."""
+        (:meth:`no_route` names it).
+
+        *stop*, set from another thread, ends the search with :class:`PlanStopped`."""
         floor = self.floor_for(start, goal)
         s, g = self.node(*start, passable=floor), self.node(*goal, passable=floor)
         if s is None or g is None or self._goal_behind_gate(floor, goal, g):
             return None
+        _check(stop)
         cost = (self.fight_cost(goal) if fight else self.cost) if avoid else np.ones_like(self.cost)
         portals = self.portals(floor)
+        _check(stop)
         volumes = self.volume_floor(floor, s, g)
         taken_only = set(_flat(volumes))
-        found = astar(self.grid, floor, cost, s, g, self.max_rise, portals, taken_only)
+        found = astar(self.grid, floor, cost, s, g, self.max_rise, portals, taken_only, stop)
         if found is None and taken_only:
             volumes = np.zeros_like(floor)
-            found = astar(self.grid, floor, cost, s, g, self.max_rise, portals)
+            found = astar(self.grid, floor, cost, s, g, self.max_rise, portals, stop=stop)
         if found is None:
             return None
         nodes, jumps = found
@@ -591,13 +619,30 @@ class ZonePlanner:
         return [gate for _, _, gate in sorted(near, key=lambda t: (t[0], t[1]))]
 
     def no_route(
-        self, start: Sequence[float], goal: Sequence[float], avoid: bool = True, fight: bool = False
+        self,
+        start: Sequence[float],
+        goal: Sequence[float],
+        avoid: bool = True,
+        fight: bool = False,
+        stop: threading.Event | None = None,
     ) -> NoRoute:
         """Why :meth:`route` found nothing: the zone and both points, and the closed gate in the
         way, with its :class:`Crossing`, when opening that one gate alone gives a route. The
-        gates closed last are tried first."""
+        gates closed last are tried first.
+
+        Each gate tried is a plan of its own, and a plan with no route searches all the floor it
+        can reach: seconds each, in a big zone. So it first plans once with every closed gate
+        open, and when even that finds nothing, no one gate would, and it says so at once
+        (Dragonspyre's Arena: eight stones listed closed, and floor no gate joins). More floor
+        never takes a route away; what it can change is the spot a point snaps to, so this is
+        trusted only when both points snap where they did. *stop* is :meth:`route`'s."""
         start3, goal3 = self._with_height(start), self._with_height(goal)
+        if not self.closed:
+            return NoRoute(self.zone, start3, goal3)
+        if not self._any_gate_could_help(start, goal, avoid, fight, stop):
+            return NoRoute(self.zone, start3, goal3)
         for gate in reversed(self.closed):
+            _check(stop)
             others = [g for g in self.closed if g is not gate]
             trial = self.passable.copy()
             layer, rows, cols, spots = self._gate_spots(gate)
@@ -605,7 +650,7 @@ class ZonePlanner:
             for other in others:
                 o_layer, o_rows, o_cols, o_spots = self._gate_spots(other)
                 trial[o_layer, o_rows, o_cols] &= ~o_spots
-            found = dataclasses.replace(self, passable=trial, closed=others).route(start, goal, avoid, fight)
+            found = dataclasses.replace(self, passable=trial, closed=others).route(start, goal, avoid, fight, stop)
             if found is None:
                 continue
             nodes = np.asarray(found.nodes, dtype=np.intp).reshape(-1, 3)
@@ -618,6 +663,22 @@ class ZonePlanner:
             after = self.grid.world(*found.nodes[last + 1]) if last + 1 < len(found.nodes) else goal3
             return NoRoute(self.zone, start3, goal3, gate.name, Crossing(before, after, math.dist(before, after)))
         return NoRoute(self.zone, start3, goal3)
+
+    def _any_gate_could_help(
+        self, start: Sequence[float], goal: Sequence[float], avoid: bool, fight: bool, stop: threading.Event | None
+    ) -> bool:
+        """Whether opening closed gates might give a route: False only when every one open still
+        gives none, and both points snap to the spots they snap to with the gates closed."""
+        opened = self.passable.copy()
+        for gate in self.closed:
+            layer, rows, cols, spots = self._gate_spots(gate)
+            opened[layer, rows, cols] |= spots
+        every_open = dataclasses.replace(self, passable=opened, closed=[])
+        floor, open_floor = self.floor_for(start, goal), every_open.floor_for(start, goal)
+        for point in (start, goal):
+            if self.node(*point, passable=floor) != every_open.node(*point, passable=open_floor):
+                return True
+        return every_open.route(start, goal, avoid, fight, stop) is not None
 
     def _goal_behind_gate(self, floor: np.ndarray, goal: Sequence[float], snapped: Node) -> bool:
         """Whether a closed gate is what moved *goal* off its own floor: with every closed gate's

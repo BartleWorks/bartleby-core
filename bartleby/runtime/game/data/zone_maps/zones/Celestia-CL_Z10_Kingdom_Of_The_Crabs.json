@@ -1060,6 +1060,96 @@
     5411.208984375,
     -923.006103515625
    ]
+  },
+  {
+   "name": "CL_TeleportStoneAMain",
+   "kind": "interact",
+   "source": [
+    -5523.55078125,
+    7260.47900390625,
+    559.243896484375
+   ],
+   "landing": "CL_Crab_MainA",
+   "target": [
+    -6887.73876953125,
+    29379.5,
+    -93.41378784179688
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneASecondary",
+   "kind": "interact",
+   "source": [
+    -6669.31396484375,
+    29689.470703125,
+    -93.41383361816406
+   ],
+   "landing": "CL_Crab_MainAOrigin",
+   "target": [
+    -5290.94580078125,
+    7395.18017578125,
+    561.2440185546875
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneCMain instance",
+   "kind": "interact",
+   "source": [
+    -5892.15478515625,
+    7352.955078125,
+    560.0358276367188
+   ],
+   "landing": "CL_Crab_MainCDest",
+   "target": [
+    -10533.3095703125,
+    23435.75,
+    -493.4139099121094
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneDMain-Z10 instance",
+   "kind": "interact",
+   "source": [
+    -5576.6220703125,
+    6883.72119140625,
+    560.018310546875
+   ],
+   "landing": "CL_Crab_MainDDest",
+   "target": [
+    -27547.689453125,
+    331.2383117675781,
+    49.091548919677734
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneDSecondary-Z10 instance",
+   "kind": "interact",
+   "source": [
+    -27694.720703125,
+    158.85350036621094,
+    84.4293212890625
+   ],
+   "landing": "CL_Crab_MainAOrigin",
+   "target": [
+    -5290.94580078125,
+    7395.18017578125,
+    561.2440185546875
+   ]
+  },
+  {
+   "name": "CL_TeleportStoneCSecondary-Z10 instance",
+   "kind": "interact",
+   "source": [
+    -10729.98046875,
+    23152.740234375,
+    -493.4142150878906
+   ],
+   "landing": "CL_Crab_MainAOrigin",
+   "target": [
+    -5290.94580078125,
+    7395.18017578125,
+    561.2440185546875
+   ]
   }
  ],
  "exits": [
@@ -1125,7 +1215,7 @@
     7260.47900390625,
     559.243896484375
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1173,7 +1263,7 @@
     29689.470703125,
     -93.41383361816406
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1340,7 +1430,7 @@
     7352.955078125,
     560.0358276367188
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1388,7 +1478,7 @@
     6883.72119140625,
     560.018310546875
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1436,7 +1526,7 @@
     158.85350036621094,
     84.4293212890625
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1484,7 +1574,7 @@
     23152.740234375,
     -493.4142150878906
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

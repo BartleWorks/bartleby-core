@@ -1045,7 +1045,83 @@
    ]
   }
  ],
- "links": [],
+ "links": [
+  {
+   "name": "ChelseaTeleportStoneAMain",
+   "kind": "interact",
+   "source": [
+    405.7113952636719,
+    18284.419921875,
+    -479.87310791015625
+   ],
+   "landing": "ChelseaFromMainStoneA",
+   "target": [
+    38656.69921875,
+    14130.83984375,
+    -239.90550231933594
+   ]
+  },
+  {
+   "name": "ChelseaTeleportStoneBMain",
+   "kind": "interact",
+   "source": [
+    -801.4542236328125,
+    18304.66015625,
+    -479.8734130859375
+   ],
+   "landing": "ChelseaFromMainStoneB",
+   "target": [
+    26246.48046875,
+    36723.359375,
+    0.009949677623808384
+   ]
+  },
+  {
+   "name": "ChelseaTeleportStoneCMain",
+   "kind": "interact",
+   "source": [
+    415.672607421875,
+    19417.01953125,
+    -479.8731994628906
+   ],
+   "landing": "From Kenedy The Klaw",
+   "target": [
+    18292.419921875,
+    5007.39599609375,
+    -485.3388977050781
+   ]
+  },
+  {
+   "name": "MB_TeleportStoneDSecondary instance",
+   "kind": "interact",
+   "source": [
+    -14205.16015625,
+    4665.4580078125,
+    0.001953125
+   ],
+   "landing": "ChelseaMainStone",
+   "target": [
+    -44.91545104980469,
+    19256.7890625,
+    -479.8731994628906
+   ]
+  },
+  {
+   "name": "MB_TeleportStoneDMain instance",
+   "kind": "interact",
+   "source": [
+    -831.7913818359375,
+    18864.009765625,
+    -479.9992980957031
+   ],
+   "landing": "HydeParkFromMainStoneD",
+   "target": [
+    -14403.5498046875,
+    4391.86279296875,
+    0.0042724609375
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "TeleportVol_ToAirportHub",
@@ -1122,7 +1198,7 @@
     18284.419921875,
     -479.87310791015625
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1170,7 +1246,7 @@
     18304.66015625,
     -479.8734130859375
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1218,7 +1294,7 @@
     19417.01953125,
     -479.8731994628906
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1410,7 +1486,7 @@
     4665.4580078125,
     0.001953125
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1458,7 +1534,7 @@
     18864.009765625,
     -479.9992980957031
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [

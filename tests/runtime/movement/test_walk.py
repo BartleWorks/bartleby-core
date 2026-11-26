@@ -16,7 +16,7 @@ from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.input import ClientInput
 from bartleby.runtime.movement import walk as walk_module
-from bartleby.runtime.movement.route import ZoneFiles, ZonePlanner, build_planner
+from bartleby.runtime.movement.route import PlanStopped, ZoneFiles, ZonePlanner, build_planner
 from bartleby.runtime.movement.walk import ClientRead, GateRead, Listing, RouteWalker, WalkEnd, rejoin
 from bartleby.runtime.movement.zone_links import Link, Volume
 from bartleby.runtime.testing.sim_client import SimClient, SimEntity
@@ -85,6 +85,30 @@ async def test_a_walk_reaches_its_goal_within_50_units_pressing_only_through_its
     # Every first key-down and every yaw the client saw was one the lease's input was asked for.
     assert sent.count("yaw") == asked.asked.count("yaw") > 0
     assert len({r.detail for r in client.inputs if r.kind == "down"}) <= asked.asked.count("down")
+
+
+async def test_a_cancelled_walk_tells_its_plan_to_stop():
+    """A thread can't be cancelled: Stop mid-plan once left a search holding the GIL, and the
+    event loop with it, for half a minute past the run."""
+    started, stopped = threading.Event(), threading.Event()
+
+    def plan(stop):
+        started.set()
+        if stop.wait(5):
+            stopped.set()
+            raise PlanStopped
+
+    task = asyncio.create_task(walk_module.plan_in_thread(plan))
+    assert await asyncio.to_thread(started.wait, 5)
+    task.cancel()
+
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert await asyncio.to_thread(stopped.wait, 5)
+
+
+async def test_a_plan_that_is_not_cancelled_returns_what_it_planned():
+    assert await walk_module.plan_in_thread(lambda a, stop: (a, stop.is_set()), 7) == (7, False)
 
 
 async def test_a_goal_with_no_floor_between_is_no_route_and_presses_nothing():

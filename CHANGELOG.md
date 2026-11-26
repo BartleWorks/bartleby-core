@@ -8,6 +8,31 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Nothing breaks.
+
+### Added
+
+- **`walk.plan_in_thread(plan, *args)`** runs a plan in a worker thread and, when its caller is
+  cancelled, sets the plan's `stop` event, so the search ends instead of running on. `astar`,
+  `ZonePlanner.route` and `ZonePlanner.no_route` take `stop`, and raise `route.PlanStopped`
+  once it is set. A product that plans in a thread of its own should plan through it.
+
+### Fixed
+
+- **Stopping a run mid-plan stops the plan.** A cancelled walk left its search running in its
+  thread, holding the GIL, and with it the event loop, for as long as the search took: in
+  Dragonspyre's Arena, half a minute past each of two stopped runs.
+- **`no_route` plans once when no closed gate could help.** It planned once for every closed
+  gate, each searching all the floor it could reach, and eight listed stones made the Arena's
+  half a minute. It now plans with every closed gate open first, and stops there when even
+  that finds no route.
+- **Dragonspyre's fast-travel stones are links.** Their names (`DS_TeleportStoneA_Main`,
+  `ArenaTeleportStoneSecondaryA`) put a letter and a role where Triton's put `TeleporterA` and
+  `_ToMain`, so no rule saw them, and the Arena's floor, in pieces the stones join, had no
+  route from the Necropolis to the Academy. The shipped maps are rebuilt with them.
+
 ## 0.14.3
 
 Nothing breaks.

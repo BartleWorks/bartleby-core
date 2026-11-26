@@ -956,6 +956,51 @@
     153.87890625,
     -92.20189666748047
    ]
+  },
+  {
+   "name": "TowerTeleportStoneMainA",
+   "kind": "interact",
+   "source": [
+    2795.698974609375,
+    -1122.3800048828125,
+    -779.361328125
+   ],
+   "landing": "FromMainStoneA",
+   "target": [
+    29490.380859375,
+    27366.419921875,
+    0.0050650411285459995
+   ]
+  },
+  {
+   "name": "TowerTeleportStoneMainB",
+   "kind": "interact",
+   "source": [
+    2445.048095703125,
+    -670.6815795898438,
+    -779.3616943359375
+   ],
+   "landing": "FromMainStoneB",
+   "target": [
+    7368.01220703125,
+    18420.1796875,
+    30.010059356689453
+   ]
+  },
+  {
+   "name": "TowerTeleportStoneMainC",
+   "kind": "interact",
+   "source": [
+    2189.0,
+    -1200.93994140625,
+    -779.36181640625
+   ],
+   "landing": "FromMainStoneC",
+   "target": [
+    -18862.490234375,
+    -13649.0302734375,
+    29.994569778442383
+   ]
   }
  ],
  "exits": [
@@ -1047,7 +1092,7 @@
     -1122.3800048828125,
     -779.361328125
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1095,7 +1140,7 @@
     -670.6815795898438,
     -779.3616943359375
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -1135,7 +1180,7 @@
     -1200.93994140625,
     -779.36181640625
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
