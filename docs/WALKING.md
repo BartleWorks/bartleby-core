@@ -63,7 +63,13 @@ stretches to walk.
 `src/collision_math.py` (GPL-3, as core is).
 
 - **Floor** is every mesh with the WALKABLE flag (bit 1), rotated and placed by its matrix
-  (applied transposed, as Deimos does). Faces steeper than a normal z of 0.5 are cliff, not floor.
+  (applied transposed, as Deimos does). Faces steeper than a normal z of 0.5 are cliff, not floor,
+  **unless they rise no more than 20** (`LIP_RISE`, the step a walk takes, `STEP_TOL`): those
+  are a step's lip, and a wizard walks over them. Ironworks' raised walkway ends in lips 3 to 5
+  units across rising 12 to 18 (61 to 73 degrees); taken for cliffs, they left a hole a cell
+  wide between the street and the walkway, and a walk failed there in game (2026-11-26). Keeping
+  them joined four floors' pieces (Ironworks, Celestia's Science Center, Zafaria's Drum Jungle,
+  Marleybone's Roof) and filled small holes in 100 others.
 - **Walls** are the boxes, cylinders and spheres, unless flagged client-object, trigger,
   hitscan or fog. A solid blocks a cell only where its height range meets the floor there
   (Deimos' `_collider_blocks_foot`), which is what lets a ramp pass under a tall cylinder. A
@@ -138,7 +144,7 @@ together from what the files do keep, in this order (`zone_links.py`'s `zone_lin
 | source | gives | where it holds |
 |---|---|---|
 | a volume's name | the arrival point sharing the most words, "to"/"from" breaking a tie, no link where two fit as well | Triton's six volumes (four walked, 1 to 5 off) |
-| `zone.nav` | for a volume the name leaves on its own piece, if its name says it moves the wizard (teleport, to), the far end of the quest arrow's edge starting at it | Lemuria's tower lifts, each named for the end it stands at; Krokotopia's Forgotten Tombs |
+| `zone.nav` | for a volume the name leaves on its own piece, if its name says it moves the wizard (teleport, to) or a teleporting trigger fires on it (*Exits*), the far end of the quest arrow's edge starting at it | Lemuria's tower lifts, each named for the end it stands at; Krokotopia's Forgotten Tombs; Crimson Fields' passage north, an `Activator Volume` that carries the wizard 20,000 units to `FromBattlefieldAMain` and walks like a passage in game |
 | a ride's template | a zipline's `InteractableBehavior` holds its two ends as LOCATION records; it lands on the arrival point nearest the second (800 to 920 past it) | all four Floating Mountains ziplines; two pressed, 3 off each |
 | a stone's partner | a `TeleporterX` stone lands at the arrival point nearest `TeleporterX_ToMain`, and that one at the arrival point nearest the hub's stones; Dragonspyre names its own by letter and role in either order (`DS_TeleportStoneA_Main`, `ArenaTeleportStoneSecondaryA`), Main at the hub and Secondary at the far end | Triton's four (pressed, 1 to 5 off); Colossus, Cyclops, Firecat, nine Krokotopia zones and Hametsu give names like "StreetB", "Target_Arena", "BackToHub", "HamPorter2"; Dragonspyre's Arena, whose `FromMainStoneA` and `FromOuterStones` match (not yet pressed) |
 | an X / X_B pair | each at the arrival point nearest the other | Krokotopia's Forgotten Tombs teleporters |
@@ -211,7 +217,11 @@ exit is a volume that teleports a wizard and is not one of the zone's links
   properties in the client's copy, so where it goes is not known. A volume a teleporting trigger
   fires on when entered is a teleport volume. Names would not do: 52 of the 334 exits below have
   names no rule catches (`HauntedCaveZoneEntry`, `Volume-ToLibrary`, `Activator Volume (2)`,
-  whose trigger is "Teleport To Lady Blackhope's Tower").
+  whose trigger is "Teleport To Lady Blackhope's Tower"). The same read says which unpaired
+  volumes to try against `zone.nav` (*In-zone links*): a teleport volume whose quest-arrow edge
+  lands on another piece of the zone is a link, not an exit. Taking that rule from the trigger
+  rather than the name (2026-11-26) made links of nine volumes once taken for exits, in Crimson
+  Fields, Nana's HQ, Krokotopia's hub and the Temple of Storms.
 - **How big each is** comes from `volumes.xml` (`zone_links.parse_volumes`). After a volume's
   position come its shape and size records: `m_radius`, and for a box `m_length`, `m_width` and a
   third side, the hashes being the type dump's for properties of those names. A volume with no
@@ -411,7 +421,7 @@ without one. A later product's zones (BartleBuddy's quests) join by a further `-
 Only derived geometry, names and positions: no game file and nothing pickled (`np.load(...,
 allow_pickle=False)`); the arrays are plain floats and ints. 473 zones on 451 floors, so only
 22 zones share one; the same room placed at another spot does not share, and sharing those too
-would save under a tenth. 20.7 MB in all with the gates (18.5 before them, 2026-11-25), the largest floor 0.2 MB, and 3,167 gates, 78 of them a link object's wall.
+would save under a tenth. 20.8 MB in all with the gates (18.5 before them, 2026-11-25), the largest floor 0.2 MB, and 3,167 gates, 162 of them a link object's wall (2026-11-26).
 
 **Deterministic:** the same zone writes the same bytes. Every zip entry is dated 1980 and written
 in name order (`np.savez_compressed` stamps the time, so the zip is built by hand), and every
@@ -710,7 +720,8 @@ In rough order of what a bot needs first. Most is a stage of BartleBot's Walking
    steps' own.
 8. **Placed objects that add floor**: 63 objects name a walkable collision file
    (`m_walkableCollisionFilename`), most of them teleporter pads (Krokotopia's, Celestia's,
-   Empyrea's, Triton's), and the maps do not read them (BartleBot's Stage 8).
+   Empyrea's, Triton's), and the maps do not read them. Moved out of Stage 8 on 2026-11-26:
+   they stand in 30 zones, none on a shipped bot's walk.
 9. **Smaller:** whether `collision.bcd`'s own client-object solids are walls after all, since the
    placed blockers carry the same tag and are; whether any of the 250 non-walkable meshes are walls; a box volume's turn, and
    the name of its third side's property; whether a quest-gated link can be told from the

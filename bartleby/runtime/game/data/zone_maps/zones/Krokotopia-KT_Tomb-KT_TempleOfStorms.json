@@ -2099,6 +2099,66 @@
     -1473.9620361328125,
     -365.5461120605469
    ]
+  },
+  {
+   "name": "Activator Volume",
+   "kind": "volume",
+   "source": [
+    -1487.428955078125,
+    18136.599609375,
+    0.0
+   ],
+   "landing": "Target location 0",
+   "target": [
+    -1498.0660400390625,
+    21428.880859375,
+    -1000.0009765625
+   ]
+  },
+  {
+   "name": "Activator Volume 0 (7)",
+   "kind": "volume",
+   "source": [
+    -1502.68701171875,
+    20650.69921875,
+    -977.3944702148438
+   ],
+   "landing": "Teleport From Tests",
+   "target": [
+    -1511.9639892578125,
+    16696.7109375,
+    0.0004882813082076609
+   ]
+  },
+  {
+   "name": "Activator Volume 1 (1)",
+   "kind": "volume",
+   "source": [
+    -37017.58984375,
+    19103.94921875,
+    23.305280685424805
+   ],
+   "landing": "Teleport From Tests",
+   "target": [
+    -1511.9639892578125,
+    16696.7109375,
+    0.0004882813082076609
+   ]
+  },
+  {
+   "name": "Activator Volume 5",
+   "kind": "volume",
+   "source": [
+    -3574.18603515625,
+    17503.69921875,
+    -476.69439697265625
+   ],
+   "landing": "Target location (Test of Strength)",
+   "target": [
+    -37015.109375,
+    2898.322998046875,
+    22.596660614013672
+   ]
   }
  ],
  "exits": [
@@ -2111,58 +2171,6 @@
    ],
    "shape": "Sphere",
    "radius": 474.1607971191406,
-   "length": 0.0,
-   "width": 0.0,
-   "height": 0.0
-  },
-  {
-   "name": "Activator Volume 5",
-   "center": [
-    -3574.18603515625,
-    17503.69921875,
-    -476.69439697265625
-   ],
-   "shape": "Sphere",
-   "radius": 200.0,
-   "length": 0.0,
-   "width": 0.0,
-   "height": 0.0
-  },
-  {
-   "name": "Activator Volume 1 (1)",
-   "center": [
-    -37017.58984375,
-    19103.94921875,
-    23.305280685424805
-   ],
-   "shape": "Sphere",
-   "radius": 200.0,
-   "length": 0.0,
-   "width": 0.0,
-   "height": 0.0
-  },
-  {
-   "name": "Activator Volume 0 (7)",
-   "center": [
-    -1502.68701171875,
-    20650.69921875,
-    -977.3944702148438
-   ],
-   "shape": "Sphere",
-   "radius": 200.0,
-   "length": 0.0,
-   "width": 0.0,
-   "height": 0.0
-  },
-  {
-   "name": "Activator Volume",
-   "center": [
-    -1487.428955078125,
-    18136.599609375,
-    0.0
-   ],
-   "shape": "Sphere",
-   "radius": 251.7550048828125,
    "length": 0.0,
    "width": 0.0,
    "height": 0.0

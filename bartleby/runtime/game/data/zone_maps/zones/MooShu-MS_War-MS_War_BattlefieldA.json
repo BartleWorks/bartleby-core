@@ -961,22 +961,24 @@
     21300.58984375,
     213.9730987548828
    ]
-  }
- ],
- "exits": [
+  },
   {
    "name": "Activator Volume",
-   "center": [
+   "kind": "volume",
+   "source": [
     -6772.951171875,
     21718.630859375,
     212.12179565429688
    ],
-   "shape": "Sphere",
-   "radius": 200.0,
-   "length": 0.0,
-   "width": 0.0,
-   "height": 0.0
-  },
+   "landing": "FromBattlefieldAMain",
+   "target": [
+    -7125.041015625,
+    41781.87109375,
+    0.0
+   ]
+  }
+ ],
+ "exits": [
   {
    "name": "TeleportVol_Teleport location 1",
    "center": [

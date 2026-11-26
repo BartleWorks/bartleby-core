@@ -8,6 +8,21 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+### Fixed
+
+- **A step's lip is floor.** `collision.walkable_triangles` keeps a face too steep for floor
+  when it rises no more than `LIP_RISE` (20, the step a walk takes). Ironworks' raised walkway
+  ends in lips rising 12 to 18 that were read as cliffs, which left no route onto it. The maps
+  are rebuilt: four floors' pieces join (Ironworks, Celestia's Science Center, Zafaria's Drum
+  Jungle, Marleybone's Roof) and 100 others fill small holes.
+- **A teleporting volume is a link before it is an exit.** `zone_links.zone_links` takes
+  `teleports` (`route.links_and_exits` passes the zone's), and a volume a teleporting trigger
+  fires on, whose name pairs it with no landing, takes its landing from `zone.nav` as a volume
+  whose name says it moves the wizard does. Nine volumes once taken for exits are links now,
+  among them Crimson Fields' passage north to `FromBattlefieldAMain`.
+
 ## 0.14.4
 
 Nothing breaks.
