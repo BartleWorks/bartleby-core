@@ -3,7 +3,7 @@
 Moving a wizard by walking: how a route is planned from a zone's own files, how a live walk
 follows it, and every measurement taken so far.
 
-Every BartleBot node that moves a wizard writes its position to memory (34 writes across 18
+BartleBot's nodes used to move a wizard by writing its position to memory (34 writes across 18
 files: `client.teleport`, and one wizsprinter `tp_to`). From late October to mid-November 2026
 the server reset any long jump it could not have seen walked; since Ahmarra's live build
 (r813697) long jumps hold again (`WIZARD101.md`, *Moving, and what the server allows*, which
@@ -13,8 +13,8 @@ the game's own links, or crosses one gate an author placed by a hop no longer th
 
 Route planning is core's, in `bartleby.runtime.movement` (Stage 1 of that epic), and so are
 the maps it plans on, one for every zone BartleBot walks, shipped with core, and the walker that
-follows a route on a live client (Stage 2). Nothing in `bartlebot/` walks yet; BartleBot's
-`probe_walk_input.py` walks on core's walker. Each probe's docstring has its own OUTCOME section with the run-by-run
+follows a route on a live client (Stage 2). BartleBot's run walks on it since Stage 4 (*A bot
+run*), and every node since Stage 7; its `probe_walk_input.py` walks on it too. Each probe's docstring has its own OUTCOME section with the run-by-run
 numbers.
 
 | where | what it does | needs a client |
@@ -38,8 +38,8 @@ none (`FOLLOWERS_WRITE_SPEED`), both apps' Speed toggles are off (`SPEED_TOGGLE_
 no probe writes it. The 2.0x rule in `WIZARD101.md` stands for when the go-ahead comes.
 
 **A short hop holds**, such as a step past a gate that won't open, and has in play since late
-October. Nothing in core writes a position. The epic's Stage 7 gives BartleBot its one hop, an
-author's Teleport to XYZ, with a limit measured from where the wizard stands.
+October. Nothing in core writes a position. BartleBot's one hop is an author's Teleport to XYZ
+(Stage 7), at most `HOP_MAX` from where the wizard stands (*A bot run*).
 
 ## Planning a route from a zone's files
 
@@ -617,6 +617,24 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
   event loop at most about 33 ms (Triton Avenue, the largest map, 6.1 s to build). Each client's
   first `in_battle` and key-binding read are made when it hooks, so the first walk's warm-up
   (above) is a no-op.
+- **A hop past a closed gate** (Stage 7) is the one position BartleBot writes, and only where an
+  author placed a Teleport to XYZ: its `walking.hop`, after a walk to the node's start. It writes
+  nothing unless, right before the write and under the client's movement lease, the wizard stands
+  within `HOP_START_TOLERANCE` (50, the walk's `ARRIVE_GOAL`) of the start and at most `HOP_MAX`
+  from the end, in three dimensions, in the zone, not loading and not fighting. It writes once,
+  reads back after `HOP_SETTLE`, and a hop the server undid fails the node, never written again.
+  - **`HOP_MAX` is 350 units**, the user's call of 2026-11-26: a sixth of the 2,000 units Deimos's
+    wizwalker fork has sent in one jump since 2026-11-12 as unlikely to be undone, and enough for
+    every gate crossing the shipped bots need (the longest, 283, by `check_bot_routes.py` that
+    day). No session log held a teleport at a listed gate, and long jumps hold on live, so no log
+    could show a short radius: the number is a judgment, not a measurement, and nothing tested it
+    on an account the user plays. It is a constant with no setting or override, and raising it is
+    a decision logged on the epic's page. A node's own span is at most `HOP_MAX − HOP_START_TOLERANCE`
+    (300), so a node that validates never fails the hop's own check for where its walk stopped.
+  - **`HOP_SETTLE` is 1.0 s**: above the 0.3 to 0.5 s Deimos waits for the server's snapback, and
+    the 0.7 s after which a mount's rubber-banding threw a wizard back (`WIZARD101.md`). Right
+    after a write the position reads as the end whether or not the server keeps it. A chain of
+    hops so moves at most 350 units a second, under walking's 600.
 - **What the shipped bots ask for**: BartleBot's `tools/check_bot_routes.py` plans every walk
   between authored points. Of 850 on 2026-11-25, 759 were clear, 46 crossed a gate with a way
   around, 32 had a gate as the only way, 9 took over 60 s and 4 had no route (placed walkable
