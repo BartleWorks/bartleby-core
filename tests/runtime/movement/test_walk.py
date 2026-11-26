@@ -570,6 +570,36 @@ async def test_held_up_long_a_walk_keeps_only_the_narrow_margin_and_goes_on(monk
     )
 
 
+async def test_room_too_little_to_go_on_with_does_not_start_a_spell_of_waits_over(monkeypatch, caplog):
+    """A waiting walk goes on only with the full margin's slack to spare. Room short of that is no
+    room left it: counted as clear, it would start the spell over every WALK_MOB_CLEAR, and the
+    walk would never ease, waiting for good."""
+    monkeypatch.setattr(walk_module, "WALK_MOB_EASE", 0.5)
+    monkeypatch.setattr(walk_module, "WALK_MOB_WAIT", 30.0)
+    monkeypatch.setattr(walk_module, "WALK_MOB_CLEAR", 0.2)
+    client = _client(at=(200.0, 100.0, 0.0))
+    # In the corridor first, so the walk waits; then beside it, where the room ahead, some 30 at
+    # the full margin, is under its slack of 60 and well over the narrow margin.
+    spot = [(2000.0, 100.0, 0.0)]
+    client.entities = [SimEntity("Ghost", lambda: spot[0], mob=True)]
+    corridor = _planner(floor(0, 0, 4000, 200, 0))
+
+    async def move():
+        while not any(" -> wait " in m for m in caplog.messages):
+            await asyncio.sleep(0.02)
+        spot[0] = (2000.0, 585.0, 0.0)
+
+    with caplog.at_level("INFO", logger=walk_module.__name__):
+        moving = asyncio.create_task(move())
+        result = await asyncio.wait_for(_walk(client, corridor, (3800, 100, 0), watch_mobs=True), 10.0)
+        await moving
+
+    assert result.arrived
+    assert (result.eased, result.ran_through) == (1, 0)
+    said = [m for m in caplog.messages if "keeping only" in m or "keeping the full room again" in m]
+    assert "keeping only" in said[0], "it eased before anything started its waits over"
+
+
 async def test_once_the_mobs_leave_it_room_a_walks_waits_start_over_at_the_full_margin(monkeypatch, caplog):
     monkeypatch.setattr(walk_module, "WALK_MOB_EASE", 0.3)
     monkeypatch.setattr(walk_module, "WALK_MOB_WAIT", 30.0)  # never reached in this test's spells

@@ -542,7 +542,10 @@ walks on it, on a planner built from the wad.
      caller's ambient combat.
 
   Once the mobs leave it room at the full margin for `WALK_MOB_CLEAR` (5 s), it keeps the full
-  room again and the next spell starts over. `WalkResult.eased` and `ran_through` count the
+  room again and the next spell starts over. For a walk standing or backing off, that room is
+  what it would go on with, the 60 of slack included (since 0.14.3): room short of it, taken
+  for clear, started the spell over while the walk still stood, so it never eased, and since
+  waits for mobs are left out of a walk's time, it could have waited for good. `WalkResult.eased` and `ran_through` count the
   steps taken, and `describe()` says when it walked on unwatched, naming the mob that last held
   it up. **Why:** in the Hive, on 2026-11-26, all 8 spiders of one patrol loop (trigger 350, 117
   to 203 units a second) held a walk up 30 s at its entrance, 2,200 to 3,000 units from it, each

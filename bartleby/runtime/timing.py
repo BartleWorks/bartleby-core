@@ -911,8 +911,9 @@ WALK_MOB_WAIT = 30.0
 # Unicorn Way never cleared, and before 2026-11-26 the walk ended blocked here.
 
 WALK_MOB_CLEAR = 5.0
-# Seconds the mobs must leave a walk room, at the full margin, for its waits to start over: the
-# full margin again, and WALK_MOB_EASE and WALK_MOB_WAIT counted afresh.
+# Seconds the mobs must leave a walk room, at the full margin, and as much as a waiting walk goes
+# on with, for its waits to start over: the full margin again, and WALK_MOB_EASE and
+# WALK_MOB_WAIT counted afresh.
 
 WALK_MOB_REFRESH = 2.0
 # Seconds between re-reads of the list of mobs, which reads every entity's behaviors.

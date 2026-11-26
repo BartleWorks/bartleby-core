@@ -988,7 +988,9 @@ class RouteWalker:
                     ahead = [along(waypoints, target, x, y, speed * tau) for tau in LOOK_AHEAD]
                     full_room, holder, when = tightest(ahead, mobs, watch.clock())
                 # Room at the full margin for WALK_MOB_CLEAR ends a spell of waits: they start over.
-                if full_room < 0:
+                # Waiting, room is what it would go on with, the slack too: less, counted as clear,
+                # would start the spell over while it stood, and it would never ease.
+                if full_room < (FULL.slack if mode != "go" else 0.0):
                     clear_since = None
                 elif clear_since is None:
                     clear_since = now
