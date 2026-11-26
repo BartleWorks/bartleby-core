@@ -43,8 +43,13 @@ Z_EMBED_TOL = 75.0
 Z_BOX_TOL = 20.0
 ROUND_SHELL_MIN = 400.0
 
-# A triangle steeper than this is a cliff face, not floor.
+# A triangle steeper than this is a cliff face, not floor...
 MIN_FLOOR_NORMAL_Z = 0.5
+# ...unless it rises no more than this, as zone_grid's STEP_TOL lets a step rise: then it is a
+# step's lip, which a wizard walks over. Ironworks' raised walkway ends in lips 3 to 5 units
+# across rising 12 to 18 (61 to 73 degrees); left out, they left a hole a cell wide between the
+# street and the walkway, and the walk failed there in game.
+LIP_RISE = 20.0
 
 
 @dataclass
@@ -114,7 +119,8 @@ def _to_world(points: np.ndarray, solid: Solid) -> np.ndarray:
 
 
 def walkable_triangles(solids: list[Solid]) -> np.ndarray:
-    """Every floor triangle in world space, (N, 3, 3): the walkable meshes' faces, cliffs left out."""
+    """Every floor triangle in world space, (N, 3, 3): the walkable meshes' faces, cliffs left
+    out but not a step's lip (:data:`LIP_RISE`)."""
     chunks = []
     for s in solids:
         if s.proxy == MESH and s.category & WALKABLE and s.faces:
@@ -125,7 +131,8 @@ def walkable_triangles(solids: list[Solid]) -> np.ndarray:
     lengths = np.linalg.norm(normals, axis=1)
     keep = lengths > 1e-6
     tris, normals, lengths = tris[keep], normals[keep], lengths[keep]
-    return tris[np.abs(normals[:, 2]) / lengths >= MIN_FLOOR_NORMAL_Z]
+    rise = tris[:, :, 2].max(axis=1) - tris[:, :, 2].min(axis=1)
+    return tris[(np.abs(normals[:, 2]) / lengths >= MIN_FLOOR_NORMAL_Z) | (rise <= LIP_RISE)]
 
 
 @dataclass
