@@ -471,7 +471,7 @@ BUILT_BY = (
     route.grid_of,
     route.wall_gates,
 )
-BUILT_BY_SHA = "ffee896b5158c645ecd6948002e95f2aded2b48b372e50255d150df957264967"
+BUILT_BY_SHA = "51fa4ac3d96628f1ea23e616930905654b3bc5c37a92126ae3f779671491112d"  # 2026-11-25: Grid raises on no floor; no copy differs, CACHE_VERSION kept
 CHECKED_AT = 2
 
 
