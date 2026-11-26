@@ -35,7 +35,13 @@
 * **Mobs**, when it is told to watch them (:class:`ClientRead`'s ``mobs``): each tick it looks
   :data:`~bartleby.runtime.timing.WALK_LOOK_AHEAD` along its route and every mob along its
   velocity, and short of room, detours first, planning only to a point a short way along the
-  route, then waits or backs off, :data:`~bartleby.runtime.timing.WALK_MOB_WAIT` at most in all.
+  route, then waits or backs off. Held up for :data:`~bartleby.runtime.timing.WALK_MOB_EASE` it
+  keeps only :data:`NARROW_MARGIN` beyond each trigger radius, and for
+  :data:`~bartleby.runtime.timing.WALK_MOB_WAIT` it walks on past them unwatched, a fight it meets
+  ending the walk as any does; once they leave it room for
+  :data:`~bartleby.runtime.timing.WALK_MOB_CLEAR` it keeps the full room again, and its waits
+  start over. Its log names the mob that holds it up (:func:`held_by`), whenever another takes
+  over, and says why no detour was taken.
 * **A walk into a fight** (``walk(..., fight=True)``) aims at the fight's mob or its duel circle.
   Its plan pays nothing for the patrols of the mobs in that fight
   (:meth:`~bartleby.runtime.movement.route.ZonePlanner.fight_cost`), and the live watch leaves
@@ -85,6 +91,8 @@ from bartleby.runtime.timing import (
     WALK_LINK_WAIT,
     WALK_LOOK_AHEAD,
     WALK_LOOK_STEP,
+    WALK_MOB_CLEAR,
+    WALK_MOB_EASE,
     WALK_MOB_POLL,
     WALK_MOB_REFRESH,
     WALK_MOB_WAIT,
@@ -160,6 +168,11 @@ DEFAULT_TRIGGER = 275.0
 #: every second ahead a guess reaches.
 MARGIN = 120.0
 MARGIN_PER_SECOND = 40.0
+#: The room wanted beyond a trigger radius once held up for WALK_MOB_EASE, with none more for the
+#: seconds ahead: eight spiders on one Hive loop left a straight run clear from 93% of moments at
+#: 40, against none at 120 (a simulation on the zone's map, 2026-11-26). Lag pulls some mobs from
+#: further (*Mobs* in core's ``docs/WALKING.md``), so a pull is likelier here.
+NARROW_MARGIN = 40.0
 #: Once stopped for a mob, go on only with this much room to spare, so the walk does not flap.
 RESUME_SLACK = 60.0
 #: Backing off, as a fraction of forward speed (allowing for key latency).
@@ -203,7 +216,10 @@ class WalkResult:
     links_taken: int = 0
     links_dropped: int = 0
     waited: float = 0.0  # standing or backing off for mobs
-    least_room: float = math.inf  # beyond a trigger radius and margin
+    least_room: float = math.inf  # beyond a trigger radius and the margin kept then, while watching
+    held_by: str = ""  # the mob that last held it up, as held_by() gives it
+    eased: int = 0  # times a spell of waits for mobs came down to keeping only NARROW_MARGIN
+    ran_through: int = 0  # times one ended with the walk going on past them unwatched
     gates_closed: list[str] = field(default_factory=list)  # each gate a stall found there, in order
     gates_seen: list[str] = field(default_factory=list)  # each gate the client listed, closed, in order
     gates_opened: list[str] = field(default_factory=list)  # each the read closed and then saw gone
@@ -229,6 +245,9 @@ class WalkResult:
         )
         if self.detail:
             text += f", {self.detail}"
+        if self.ran_through:
+            last_by = f", last held by {self.held_by}" if self.held_by else ""
+            text += f"; walked on past mobs unwatched {_times(self.ran_through)}{last_by}"
         if self.gates_seen:
             text += f"; gates listed, so closed: {', '.join(self.gates_seen)}"
         if self.gates_opened:
@@ -398,6 +417,7 @@ class Mob:
     vx: float = 0.0
     vy: float = 0.0
     key: int | None = None  # the entity's global id, as the client lists it
+    mapped: bool = True  # whether its trigger radius is a patrol's in the zone's map, not DEFAULT_TRIGGER
 
 
 class MobWatch:
@@ -438,7 +458,9 @@ class MobWatch:
     def _update(self, key: int, name: str, x: float, y: float, z: float, t: float) -> None:
         mob = self.mobs.get(key)
         if mob is None:
-            self.mobs[key] = Mob(name, self.triggers.get(name, DEFAULT_TRIGGER), x, y, z, t, key=key)
+            trigger = self.triggers.get(name)
+            mapped = trigger is not None
+            self.mobs[key] = Mob(name, trigger if mapped else DEFAULT_TRIGGER, x, y, z, t, key=key, mapped=mapped)
             return
         gap = t - mob.t
         if gap <= 0:
@@ -471,33 +493,86 @@ def along(route: Sequence[Point], target: int, x: float, y: float, distance: flo
     return px, py
 
 
-def room(path: Sequence[tuple[float, float]], mobs: Sequence[Mob], now: float) -> float:
+@dataclass(frozen=True)
+class Margin:
+    """The room a walk wants beyond each mob's trigger radius: *fixed*, *per_second* more for every
+    second a guess looks ahead, and *slack* more to go on once stopped."""
+
+    fixed: float
+    per_second: float
+    slack: float
+
+
+#: The room a walk keeps from mobs, and what it keeps once held up for WALK_MOB_EASE.
+FULL = Margin(MARGIN, MARGIN_PER_SECOND, RESUME_SLACK)
+NARROW = Margin(NARROW_MARGIN, 0.0, 0.0)
+
+#: How much room a walk keeps from mobs, in the order a spell of waits goes through them: the
+#: FULL margin; the NARROW one once held up for WALK_MOB_EASE; and past WALK_MOB_WAIT none, the
+#: walk going on unwatched, since waiting longer for a loop of mobs that never clears gets
+#: nowhere, while a fight it meets is ambient combat's. Mobs leaving it room at the full margin
+#: for WALK_MOB_CLEAR start the spell over.
+FULL_ROOM, NARROW_ROOM, RUN_THROUGH = "full", "narrow", "through"
+_LEVELS = (FULL_ROOM, NARROW_ROOM, RUN_THROUGH)
+
+
+def room(path: Sequence[tuple[float, float]], mobs: Sequence[Mob], now: float, margin: Margin = FULL) -> float:
     """The least room between the wizard, at path[k] LOOK_AHEAD[k] seconds from now, and any mob
     carried along its velocity, beyond that mob's trigger radius and the margin."""
-    least = math.inf
+    return tightest(path, mobs, now, margin)[0]
+
+
+def tightest(
+    path: Sequence[tuple[float, float]], mobs: Sequence[Mob], now: float, margin: Margin = FULL
+) -> tuple[float, Mob | None, float]:
+    """:func:`room`, with the mob that leaves it and how many seconds ahead it does; no mob
+    when there are none."""
+    least, by, when = math.inf, None, 0.0
     for tau, (wx, wy) in zip(LOOK_AHEAD, path):
         for m in mobs:
             ahead = tau + (now - m.t)
             mx, my = m.x + m.vx * ahead, m.y + m.vy * ahead
-            least = min(least, math.dist((wx, wy), (mx, my)) - m.trigger - MARGIN - MARGIN_PER_SECOND * tau)
-    return least
+            left = math.dist((wx, wy), (mx, my)) - m.trigger - margin.fixed - margin.per_second * tau
+            if left < least:
+                least, by, when = left, m, tau
+    return least, by, when
 
 
-def mob_discs(mobs: Sequence[Mob], now: float) -> list[tuple[float, float, float]]:
+def held_by(mob: Mob, here: Point, when: float, watched: int) -> str:
+    """For a log: the mob that leaves a walk the least room, seen from *here*, and how many mobs
+    it watches. *when* is how many seconds ahead the room is least."""
+    off = math.dist((mob.x, mob.y), here[:2])
+    mapped = "" if mob.mapped else ", no patrol in the map"
+    return (
+        f"{mob.name} (trigger {mob.trigger:.0f}{mapped}) at ({mob.x:.0f}, {mob.y:.0f}), {off:.0f} units off,"
+        f" height {mob.z - here[2]:+.0f}, moving {math.hypot(mob.vx, mob.vy):.0f} units a second, least room"
+        f" {when:.1f} s ahead; {_mobs(watched)} watched"
+    )
+
+
+def _mobs(n: int) -> str:
+    return f"{n} mob" if n == 1 else f"{n} mobs"
+
+
+def _times(n: int) -> str:
+    return "once" if n == 1 else f"{n} times"
+
+
+def mob_discs(mobs: Sequence[Mob], now: float, margin: Margin = FULL) -> list[tuple[float, float, float]]:
     """(x, y, radius) to close around each mob: where it will be now, halfway through the look
     ahead and at its end, each as wide as :func:`room` asks for then, plus :data:`DETOUR_SLACK`."""
     discs = []
     for m in mobs:
         for tau in (0.0, WALK_LOOK_AHEAD / 2, WALK_LOOK_AHEAD):
             ahead = now - m.t + tau
-            radius = m.trigger + MARGIN + MARGIN_PER_SECOND * tau + DETOUR_SLACK
+            radius = m.trigger + margin.fixed + margin.per_second * tau + DETOUR_SLACK
             discs.append((m.x + m.vx * ahead, m.y + m.vy * ahead, radius))
     return discs
 
 
-def choose(go: float, wait: float, back: float, waiting: bool) -> str:
+def choose(go: float, wait: float, back: float, waiting: bool, margin: Margin = FULL) -> str:
     """Go on, wait, or back off, from the room each leaves (:func:`room`)."""
-    if go >= (RESUME_SLACK if waiting else 0.0):
+    if go >= (margin.slack if waiting else 0.0):
         return "go"
     return "wait" if wait >= back or wait >= 0 else "back"
 
@@ -592,6 +667,7 @@ class RouteWalker:
         self._seen = 0  # the passes over the entity list acted on
         self._fight: Point | None = None  # the goal of a walk into a fight, while one is walked
         self._spare: frozenset[int] = frozenset()  # the mobs that walk means to meet, by key
+        self._detour_failed: str | None = None  # the kind of reason no detour was taken, last logged
 
     async def _read(self) -> tuple[Point, float]:
         pos = await self.client.body.position()
@@ -615,6 +691,7 @@ class RouteWalker:
         wizard is in battle, as any walk does."""
         self._fight = tuple(goal) if fight else None
         self._spare = frozenset(spare) if fight else frozenset()
+        self._detour_failed = None
         try:
             return await self._walk_to(lease, goal)
         finally:
@@ -742,6 +819,10 @@ class RouteWalker:
         last, last_t = here, 0.0
         last_poll = -math.inf
         mode, mode_since = "go", 0.0
+        held_key: int | None = None  # the mob a wait was last logged as held by
+        # How much room it keeps from mobs (_LEVELS), from what held_up() was when this spell of
+        # waits began, and since when the mobs have left it room at the full margin, which ends it.
+        level, spell_from, clear_since = FULL_ROOM, 0.0, None
         last_detour = -math.inf
         speeds: list[float] = []
         budget = deadline = 0.0
@@ -840,8 +921,28 @@ class RouteWalker:
                     )
                 if now > deadline + held_up(now) + result.planning:
                     raise _Ended(WalkEnd.TIMED_OUT, f"{budget:.0f} s planned for")
-                if held_up(now) > WALK_MOB_WAIT:
-                    raise _Ended(WalkEnd.BLOCKED, f"held up by mobs for over {WALK_MOB_WAIT:.0f} s")
+                # Held up long by mobs: keep less room from them, and then walk on past them.
+                held = held_up(now) - spell_from
+                wanted = RUN_THROUGH if held > WALK_MOB_WAIT else NARROW_ROOM if held > WALK_MOB_EASE else FULL_ROOM
+                if _LEVELS.index(wanted) > _LEVELS.index(level):
+                    level = wanted
+                    if level == NARROW_ROOM:
+                        result.eased += 1
+                        logger.info(
+                            "%s: held up by mobs for %.1f s: keeping only %.0f beyond each trigger radius",
+                            self.label,
+                            held,
+                            NARROW_MARGIN,
+                        )
+                    else:
+                        result.ran_through += 1
+                        last_by = f", last held by {result.held_by}" if result.held_by else ""
+                        logger.warning(
+                            "%s: held up by mobs for %.1f s: walking on past them unwatched until they leave it room%s",
+                            self.label,
+                            held,
+                            last_by,
+                        )
 
                 # A new pass over the entity list: close the gates it lists, open those it shows gone,
                 # and replan when one closed is on the way left, or one opened.
@@ -879,16 +980,37 @@ class RouteWalker:
                 # Mobs: go on, detour, wait, or back off, by the room each leaves.
                 go_room = math.inf
                 choice = "go"
-                if watch is not None and (mobs := self._watched(watch, here)):
+                holder: Mob | None = None  # the mob that leaves the least room ahead
+                mobs = self._watched(watch, here) if watch is not None else []
+                full_room, when = math.inf, 0.0
+                if mobs:
                     speed = statistics.median(speeds[-20:]) if len(speeds) >= 10 else expected
-                    go_room = room(
-                        [along(waypoints, target, x, y, speed * tau) for tau in LOOK_AHEAD], mobs, watch.clock()
-                    )
-                    enough = RESUME_SLACK if mode != "go" else 0.0
+                    ahead = [along(waypoints, target, x, y, speed * tau) for tau in LOOK_AHEAD]
+                    full_room, holder, when = tightest(ahead, mobs, watch.clock())
+                # Room at the full margin for WALK_MOB_CLEAR ends a spell of waits: they start over.
+                if full_room < 0:
+                    clear_since = None
+                elif clear_since is None:
+                    clear_since = now
+                elif now - clear_since >= WALK_MOB_CLEAR:
+                    spell_from = held_up(now)
+                    if level != FULL_ROOM:
+                        logger.info(
+                            "%s: the mobs have left it room for %.1f s: keeping the full room again",
+                            self.label,
+                            now - clear_since,
+                        )
+                        level = FULL_ROOM
+                if mobs and level != RUN_THROUGH:
+                    margin = FULL if level == FULL_ROOM else NARROW
+                    go_room = full_room
+                    if margin is not FULL:
+                        go_room, holder, when = tightest(ahead, mobs, watch.clock(), margin)
+                    enough = margin.slack if mode != "go" else 0.0
                     if go_room < enough and now - last_detour >= WALK_DETOUR_EVERY:
                         await stand()
                         sought = now
-                        detour = await self._detour(result, waypoints, target, mobs, watch, speed, enough)
+                        detour = await self._detour(result, waypoints, target, mobs, watch, speed, enough, margin)
                         # It stood while it planned, for as long as that took: the clock, the last
                         # read and the stall window go on from now, the next detour is sought a
                         # while after this one ended, and the planning, which result.planning has,
@@ -912,19 +1034,37 @@ class RouteWalker:
                         back_speed = speed * BACK_SPEED_FACTOR
                         backing = [(x - fx * back_speed * tau, y - fy * back_speed * tau) for tau in LOOK_AHEAD]
                         standing = [(x, y)] * len(LOOK_AHEAD)
-                        choice = choose(go_room, room(standing, mobs, t_mob), room(backing, mobs, t_mob), mode != "go")
+                        stood = room(standing, mobs, t_mob, margin)
+                        choice = choose(go_room, stood, room(backing, mobs, t_mob, margin), mode != "go", margin)
                         if choice != "go":
-                            result.least_room = min(result.least_room, room(standing, mobs, t_mob))
+                            result.least_room = min(result.least_room, stood)
                     if choice == "go":
                         result.least_room = min(result.least_room, go_room)
+                elif mobs:
+                    go_room = full_room  # walking on unwatched: whatever the room, it goes
+                holding = ""
+                if choice != "go" and holder is not None:
+                    holding = result.held_by = held_by(holder, here, when, len(mobs))
                 if choice != mode:
                     if mode != "go":
                         result.waited += now - mode_since
                     if choice != "go" or mode != "go":
                         logger.info(
-                            "%s: %s -> %s at (%.0f, %.0f), room ahead %.0f", self.label, mode, choice, x, y, go_room
+                            "%s: %s -> %s at (%.0f, %.0f), room ahead %.0f%s",
+                            self.label,
+                            mode,
+                            choice,
+                            x,
+                            y,
+                            go_room,
+                            f", held by {holding}" if holding else "",
                         )
                     mode, mode_since = choice, now
+                    if mode == "go":
+                        self._detour_failed = None
+                elif holding and holder.key != held_key:
+                    logger.info("%s: still %s at (%.0f, %.0f), now held by %s", self.label, mode, x, y, holding)
+                held_key = holder.key if holding else None
 
                 if abs(error) > DEADBAND:
                     await keys.write_yaw(want)
@@ -1013,26 +1153,46 @@ class RouteWalker:
         finally:
             await keys.release(GameAction.MOVE_BACKWARD)
 
-    async def _detour(self, result, waypoints, target, mobs, watch, speed, enough):
-        """A way around *mobs* to a point a short way along the route, and the room it leaves,
-        or None. The rest of the route follows it unchanged. Sought standing: the walk lets go of
-        forward and backward first, so a wizard backing off is not still backing meanwhile."""
-        discs = mob_discs(mobs, watch.clock())
+    async def _detour(self, result, waypoints, target, mobs, watch, speed, enough, margin: Margin = FULL):
+        """A way around *mobs* to a point a short way along the route, and the room it leaves at
+        *margin*, or None. The rest of the route follows it unchanged. Sought standing: the walk
+        lets go of forward and backward first, so a wizard backing off is not still backing
+        meanwhile."""
+        discs = mob_discs(mobs, watch.clock(), margin)
         here, _ = await self._read()
         k = rejoin(waypoints, target, here, discs)
         around = self.planner.around(discs)
         route = await self._plan(result, here, waypoints[k], around)
+        to = waypoints[k]
         if route is None:
+            inside = sum(1 for m in mobs if math.dist((m.x, m.y), here[:2]) <= m.trigger + margin.fixed + DETOUR_SLACK)
+            standing = f"; it stands inside the room closed around {inside} of them" if inside else ""
+            self._no_detour(
+                "no route",
+                f"no way around {_mobs(len(mobs))} to ({to[0]:.0f}, {to[1]:.0f}), {flat_distance(here, to):.0f} units"
+                f" off{standing}",
+            )
             return None
         legs = await asyncio.to_thread(around.legs, route)
         if len(legs) != 1:
+            self._no_detour(
+                "link", f"the only way around {_mobs(len(mobs))} to ({to[0]:.0f}, {to[1]:.0f}) takes a link"
+            )
             return None  # a detour by a link is no detour
         new = list(legs[0].waypoints)
         new[0] = (here[0], here[1], new[0][2])
         new += list(waypoints[k + 1 :])
-        new_room = room([along(new, 1, here[0], here[1], speed * tau) for tau in LOOK_AHEAD], mobs, watch.clock())
+        new_room, holder, when = tightest(
+            [along(new, 1, here[0], here[1], speed * tau) for tau in LOOK_AHEAD], mobs, watch.clock(), margin
+        )
         if new_room < enough:
+            self._no_detour(
+                "room",
+                f"the way around leaves room {new_room:.0f}, under the {enough:.0f} wanted, held by"
+                f" {held_by(holder, here, when, len(mobs))}",
+            )
             return None
+        self._detour_failed = None
         result.detours += 1
         result.routes.append(new)
         logger.info(
@@ -1044,6 +1204,14 @@ class RouteWalker:
             new_room,
         )
         return new, new_room
+
+    def _no_detour(self, kind: str, why: str) -> None:
+        """Log why no detour was taken: at INFO when the reason is of another *kind* than the one
+        before it, since the walk last went on or took a detour, else at DEBUG, since a detour is
+        sought every :data:`~bartleby.runtime.timing.WALK_DETOUR_EVERY` while the walk waits."""
+        log = logger.info if kind != self._detour_failed else logger.debug
+        self._detour_failed = kind
+        log("%s: no detour: %s", self.label, why)
 
     async def _take(self, keys, link: Link, here: Point) -> bool:
         """Stand in a volume, or press an object's link, until moved; whether it moved the wizard."""

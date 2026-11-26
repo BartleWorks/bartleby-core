@@ -529,20 +529,156 @@ async def test_a_mob_in_the_way_is_detoured_around_before_it_is_waited_for():
     assert min(math.dist(p[:2], mob[:2]) for p in result.trail) > walk_module.DEFAULT_TRIGGER
 
 
-async def test_a_mob_with_no_way_around_is_waited_for_and_the_wait_ends_blocked(monkeypatch):
-    # A ceiling, cut since running out is the branch tested: the mob never leaves the corridor.
+async def test_a_mob_with_no_way_around_is_waited_for_and_then_walked_past_unwatched(monkeypatch, caplog):
+    # Cut, since running out is the branch tested: the mob never leaves the corridor, and stands
+    # in it, so no margin leaves room.
     monkeypatch.setattr(walk_module, "WALK_MOB_WAIT", 0.6)
     client = _client(at=(200.0, 100.0, 0.0))
     corridor = _planner(floor(0, 0, 4000, 200, 0))
 
     _mobs_at(client, (2000.0, 100.0, 0.0))
-    result = await _walk(client, corridor, (3800, 100, 0), watch_mobs=True)
+    with caplog.at_level("INFO", logger=walk_module.__name__):
+        result = await _walk(client, corridor, (3800, 100, 0), watch_mobs=True)
 
-    assert result.end is WalkEnd.BLOCKED
-    assert "mobs" in result.detail
+    assert result.arrived
+    assert result.ran_through == 1
     assert result.detours == 0
     assert result.waited > 0.5
     assert client.held == set()
+    [through] = [r for r in caplog.records if "walking on past them unwatched" in r.message]
+    assert through.levelname == "WARNING"
+    assert "walked on past mobs unwatched once, last held by Ghost" in result.describe()
+
+
+async def test_held_up_long_a_walk_keeps_only_the_narrow_margin_and_goes_on(monkeypatch, caplog):
+    """The Hive's case: the mob's trigger radius leaves the corridor 85 units, under the full
+    margin of 120 and over the narrow one of 40, so only waiting long enough lets it by."""
+    monkeypatch.setattr(walk_module, "WALK_MOB_EASE", 0.3)
+    client = _mobs_at(_client(at=(200.0, 100.0, 0.0)), (2000.0, 460.0, 0.0))
+    corridor = _planner(floor(0, 0, 4000, 200, 0))
+
+    with caplog.at_level("INFO", logger=walk_module.__name__):
+        result = await _walk(client, corridor, (3800, 100, 0), watch_mobs=True)
+
+    assert result.arrived
+    assert (result.eased, result.ran_through) == (1, 0)
+    assert 0.3 < result.waited < 2.0
+    reach = walk_module.DEFAULT_TRIGGER + walk_module.NARROW_MARGIN
+    assert min(math.dist(p[:2], (2000, 460)) for p in result.trail) > reach
+    assert any(
+        m.endswith(f"keeping only {walk_module.NARROW_MARGIN:.0f} beyond each trigger radius") for m in caplog.messages
+    )
+
+
+async def test_once_the_mobs_leave_it_room_a_walks_waits_start_over_at_the_full_margin(monkeypatch, caplog):
+    monkeypatch.setattr(walk_module, "WALK_MOB_EASE", 0.3)
+    monkeypatch.setattr(walk_module, "WALK_MOB_WAIT", 30.0)  # never reached in this test's spells
+    monkeypatch.setattr(walk_module, "WALK_MOB_CLEAR", 0.2)
+    client = _client(at=(200.0, 100.0, 0.0))
+    # In the corridor, then gone out of range, then back ahead of the wizard: a spell each side.
+    spot = [(1500.0, 460.0, 0.0)]
+    client.entities = [SimEntity("Ghost", lambda: spot[0], mob=True)]
+    corridor = _planner(floor(0, 0, 5000, 200, 0))
+
+    def said(text):
+        return sum(text in m for m in caplog.messages)
+
+    async def move():
+        while not said("keeping only"):
+            await asyncio.sleep(0.02)
+        spot[0] = (30000.0, 100.0, 0.0)  # out of the watch's range: room enough
+        while not said("keeping the full room again"):
+            await asyncio.sleep(0.02)
+        spot[0] = (client.position[0] + 2500.0, 460.0, 0.0)
+
+    with caplog.at_level("INFO", logger=walk_module.__name__):
+        moving = asyncio.create_task(move())
+        result = await _walk(client, corridor, (4800, 100, 0), watch_mobs=True)
+        await moving
+
+    assert result.arrived
+    assert result.eased == 2, "the second spell eased again from the full margin"
+    assert said("keeping the full room again") == 2, "once past each spot"
+
+
+async def test_a_walk_held_up_by_mobs_names_the_mob_that_held_it_up_and_why_no_detour_was_taken(monkeypatch, caplog):
+    monkeypatch.setattr(walk_module, "WALK_MOB_WAIT", 0.6)
+    monkeypatch.setattr(walk_module, "WALK_DETOUR_EVERY", 0.1)  # sought several times over the wait
+    client = _mobs_at(_client(at=(200.0, 100.0, 0.0)), (2000.0, 100.0, 0.0))
+    corridor = _planner(floor(0, 0, 4000, 200, 0))
+
+    with caplog.at_level("DEBUG", logger=walk_module.__name__):
+        result = await _walk(client, corridor, (3800, 100, 0), watch_mobs=True)
+
+    # The corridor's map has no patrols, so the ghost's trigger radius is the default, and says so.
+    named = f"Ghost (trigger {walk_module.DEFAULT_TRIGGER:.0f}, no patrol in the map) at (2000, 100)"
+    assert result.held_by.startswith(named)
+    assert result.describe().endswith(f"last held by {result.held_by}")
+    [waits] = [r.message for r in caplog.records if " -> wait " in r.message]
+    assert f"held by {named}" in waits and waits.endswith("1 mob watched")
+    no_detour = [r for r in caplog.records if "no detour: no way around 1 mob to (" in r.message]
+    assert [r.levelname for r in no_detour][:2] == ["INFO", "DEBUG"]  # said once, then only at DEBUG
+    assert sum(r.levelname == "INFO" for r in no_detour) == 1
+
+
+async def test_a_wait_says_so_when_another_mob_takes_over_holding_it_up(monkeypatch, caplog):
+    monkeypatch.setattr(walk_module, "WALK_MOB_WAIT", 1.5)
+    monkeypatch.setattr(walk_module, "WALK_MOB_REFRESH", 0.2)  # the list read again soon after the swap
+    client = _mobs_at(_client(at=(200.0, 100.0, 0.0)), (2000.0, 100.0, 0.0))
+    corridor = _planner(floor(0, 0, 4000, 200, 0))
+
+    async def swap():
+        while not any(" -> wait " in m for m in caplog.messages):
+            await asyncio.sleep(0.02)
+        client.entities = [SimEntity("Bat", (2000.0, 100.0, 0.0), mob=True)]
+
+    with caplog.at_level("INFO", logger=walk_module.__name__):
+        swapping = asyncio.create_task(swap())
+        result = await _walk(client, corridor, (3800, 100, 0), watch_mobs=True)
+        await swapping
+
+    assert result.ran_through == 1
+    assert [m for m in caplog.messages if "still wait at" in m and "now held by Bat (trigger" in m]
+    assert result.held_by.startswith("Bat ")
+
+
+def test_the_tightest_mob_is_the_one_leaving_the_least_room_and_when():
+    near = walk_module.Mob("Near", 200.0, 3000.0, 0.0, 0.0, t=0.0)  # never reached in the look ahead
+    far = walk_module.Mob("Far", 200.0, 5000.0, 0.0, 0.0, t=0.0)
+    path = [(600.0 * tau, 0.0) for tau in walk_module.LOOK_AHEAD]  # straight at both, 600 a second
+
+    least, mob, when = walk_module.tightest(path, [far, near], now=0.0)
+
+    assert mob is near
+    assert least == walk_module.room(path, [far, near], now=0.0)
+    # The room shrinks while the wizard closes on it, by its walk less the margin growing with time.
+    assert when == walk_module.LOOK_AHEAD[-1]
+    assert walk_module.tightest(path, [], now=0.0) == (math.inf, None, 0.0)
+
+
+def test_held_by_says_where_the_mob_is_from_the_wizard_and_how_fast_it_moves():
+    mob = walk_module.Mob("KR_Spider_Warrior_B", 350.0, 300.0, 400.0, 60.0, t=0.0, vx=30.0, vy=40.0)
+
+    text = walk_module.held_by(mob, (0.0, 0.0, 10.0), 1.3, watched=3)
+
+    assert text == (
+        "KR_Spider_Warrior_B (trigger 350) at (300, 400), 500 units off, height +50, moving 50 units a second,"
+        " least room 1.3 s ahead; 3 mobs watched"
+    )
+
+
+async def test_a_watched_mob_has_its_patrols_trigger_radius_or_the_default_and_knows_which():
+    async def read():
+        return [(1, "Spider", (0.0, 0.0, 0.0)), (2, "Boss", (0.0, 0.0, 0.0))]
+
+    watch = walk_module.MobWatch(read, {"Spider": 350.0})
+    watch.start()
+    while len(watch.mobs) < 2:
+        await asyncio.sleep(0.01)
+    await watch.stop()
+
+    assert (watch.mobs[1].trigger, watch.mobs[1].mapped) == (350.0, True)
+    assert (watch.mobs[2].trigger, watch.mobs[2].mapped) == (walk_module.DEFAULT_TRIGGER, False)
 
 
 async def _fight_walk(client, planner, goal, **kw):
