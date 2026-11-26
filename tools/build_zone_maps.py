@@ -7,12 +7,12 @@ changes only what the update changed, and ``git status`` lists it.
 
 WHICH ZONES
     Core reads no product's files at run time, so the product says which zones to map: every
-    zone in ``--zone-nav`` (BartleBot's ``bartlebot/game/data/zone_nav.json``: each world's
-    ``zones``, and every ``*_zone`` a link names, such as a ride's cutscene zone), and every zone
-    each ``--names`` file, or each file under a ``--names`` folder, names in a ``zone`` or
-    ``*_zone`` param, as BartleBot's ``restricted_zones`` reads them (its ``bots/`` and
-    ``subgraphs/``, and its Scales of Knowledge table, whose stations no bot need name). A zone
-    the install has no wad for is reported and left out.
+    zone in ``--zone-nav`` (BartleBot's ``bartlebot/game/data/zone_nav.json``, each world's
+    ``zones``, which leave out a ride's cutscene zone, where nothing walks), and every zone each
+    ``--names`` file, or each file under a ``--names`` folder, names in a ``zone`` or ``*_zone``
+    param, as BartleBot's ``restricted_zones`` reads them (its ``bots/`` and ``subgraphs/``, and
+    its Scales of Knowledge table, whose stations no bot need name). A zone the install has no
+    wad for is reported and left out.
 
 WHAT IT NEEDS
     The game's ``Data/GameData`` folder, with every zone's wad: a live install lacks the wads of
@@ -91,8 +91,7 @@ def zone_set(zone_nav: Path | None, names: Sequence[Path]) -> dict[str, list[str
     if zone_nav is not None:
         nav = json.loads(zone_nav.read_text(encoding="utf-8"))
         for world in nav["worlds"].values():
-            # A world's zones, and the zones its links pass through (a ride's cutscene zone).
-            for zone in [*world.get("zones", {}), *_zone_params(world.get("links", []))]:
+            for zone in world.get("zones", {}):
                 zones.setdefault(zone, set()).add("map")
     for source in names:
         paths, why = ([source], source.stem) if source.is_file() else (sorted(source.rglob("*.json")), source.name)

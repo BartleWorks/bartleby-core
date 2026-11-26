@@ -1879,30 +1879,6 @@
    "wad": "c35fb8cf8d02ff0ccacf6f90b553f1309830baec6500fc57029dc6ebb1cfaccc",
    "zone": "zones/Marleybone-MB_Station-MB_ChelseaCourt.json"
   },
-  "Marleybone/MB_Station/MB_FlightFromCourt": {
-   "floor": "floors/32b7b6442dcf0ed5.npz",
-   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-   "wad": "b9c72770b246b274ccdb5aa32143b178a057f1eceb7b5fe7b1a450c31e7e83f9",
-   "zone": "zones/Marleybone-MB_Station-MB_FlightFromCourt.json"
-  },
-  "Marleybone/MB_Station/MB_FlightFromHydePark": {
-   "floor": "floors/b5465aa34aafd70a.npz",
-   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-   "wad": "a74a7d2a7de6fcafd767b98e8b275c177384f2d58fb4d453145a554435375697",
-   "zone": "zones/Marleybone-MB_Station-MB_FlightFromHydePark.json"
-  },
-  "Marleybone/MB_Station/MB_FlightToCourt": {
-   "floor": "floors/900de98d3bee9e5e.npz",
-   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-   "wad": "fe29d9e1c02f0a4b7013e512c9bc17152a1d63fac39e0bdb3b5be89f74563267",
-   "zone": "zones/Marleybone-MB_Station-MB_FlightToCourt.json"
-  },
-  "Marleybone/MB_Station/MB_FlightToHydePark": {
-   "floor": "floors/5b1df931d64d226f.npz",
-   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-   "wad": "71c28928715718adcebf90dc54611bdc5acf1b1f3596defce116be272600dd79",
-   "zone": "zones/Marleybone-MB_Station-MB_FlightToHydePark.json"
-  },
   "Marleybone/MB_Station/MB_FlightToIronworks": {
    "floor": "floors/1d0e1e5f86525380.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
