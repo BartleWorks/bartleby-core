@@ -290,3 +290,39 @@ def test_a_link_costs_seconds_by_its_kind_and_is_taken_nearer_a_volume_than_an_o
     assert (volume.seconds, press.seconds, ride.seconds) == (4, 6, 20)
     assert volume.reach < press.reach
     assert math.isclose(ride.reach, press.reach)
+
+
+def test_a_teleporting_volume_its_name_does_not_pair_is_a_link_by_zone_nav_and_no_exit():
+    grid, passable, label = _islands()
+    passage = _volume("Activator Volume", (500, 500, 0))
+    nav = ZoneNav([(520, 500, 0), (3480, 500, 0)], [(0, 1), (1, 0)])
+    named = {"FromMain": (3500, 500, 0)}
+    teleports = frozenset({passage.name})
+
+    links = zone_links(ZONE, grid, passable, label, [passage], [], named, nav, teleports)
+
+    assert [(link.name, link.landing) for link in links] == [("Activator Volume", "FromMain")]
+    assert zone_exits([passage], teleports, links) == []
+
+
+def test_an_activator_no_trigger_teleports_from_is_no_link_by_zone_nav():
+    grid, passable, label = _islands()
+    nav = ZoneNav([(520, 500, 0), (3480, 500, 0)], [(0, 1), (1, 0)])
+    named = {"FromMain": (3500, 500, 0)}
+
+    assert zone_links(ZONE, grid, passable, label, [_volume("Activator Volume", (500, 500, 0))], [], named, nav) == []
+
+
+def test_a_teleporting_volume_whose_zone_nav_edge_lands_on_its_own_piece_stays_an_exit():
+    grid = Grid(walkable_triangles([mesh(floor(0, 0, 4000, 1000, 0))]))
+    passable = grid.passable()
+    exit_ = _volume("Activator Volume", (500, 500, 0))
+    nav = ZoneNav([(520, 500, 0), (3480, 500, 0)], [(0, 1), (1, 0)])
+    teleports = frozenset({exit_.name})
+
+    links = zone_links(
+        ZONE, grid, passable, pieces(grid, passable), [exit_], [], {"Far": (3500, 500, 0)}, nav, teleports
+    )
+
+    assert links == []
+    assert zone_exits([exit_], teleports, links) == [exit_]
