@@ -62,7 +62,7 @@ checkout, with BartleBot's beside it:
 
 ```bash
 B=../BartleBot
-ARGS="--types $B/bartlebot/game/data/r<rev>_WizardDev.json --zone-nav $B/bartlebot/game/data/zone_nav.json --names $B/bots --names $B/subgraphs"
+ARGS="--types $B/bartlebot/game/data/r<rev>_WizardDev.json --zone-nav $B/bartlebot/game/data/zone_nav.json --names $B/bots --names $B/subgraphs --names $B/bartlebot/game/data/scales_of_knowledge.json"
 uv run python tools/build_zone_maps.py $ARGS --verify     # which zones the update changed
 uv run python tools/build_zone_maps.py $ARGS              # rebuild every map, in about a minute
 git status bartleby/runtime/game/data/zone_maps           # the maps that changed

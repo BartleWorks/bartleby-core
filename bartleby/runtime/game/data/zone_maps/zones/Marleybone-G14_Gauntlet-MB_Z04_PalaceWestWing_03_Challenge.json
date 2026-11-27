@@ -1,0 +1,101 @@
+{
+ "format": 2,
+ "zone": "Marleybone/G14_Gauntlet/MB_Z04_PalaceWestWing_03_Challenge",
+ "named": {
+  "Start": [
+   1.8802490234375,
+   -1336.4940185546875,
+   0.20001220703125
+  ],
+  "From SKey01": [
+   -1095.9659423828125,
+   595.2576293945312,
+   0.1998901069164276
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -1.087967038154602,
+    -1680.342041015625,
+    19.51306915283203
+   ],
+   "shape": "",
+   "radius": 164.9468994140625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-SkeletonKey",
+   "center": [
+    -1400.2860107421875,
+    579.4420776367188,
+    41.27677917480469
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume-EncounterExit",
+   "center": [
+    443.0580139160156,
+    1521.876953125,
+    0.1999817043542862
+   ],
+   "shape": "Sphere",
+   "radius": 79.47178649902344,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MB_MonsterChest_TheWoman_Challenge",
+   "template": "MB_MonsterChest_TheWoman_Challenge",
+   "at": [
+    -0.5960692763328552,
+    1097.259033203125,
+    0.20001220703125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -7.524987792968744,
+     "zhi": 76.96501220703125,
+     "firm": true,
+     "hull": [
+      [
+       -47.791069276332856,
+       1053.719033203125
+      ],
+      [
+       65.31893072366714,
+       1053.719033203125
+      ],
+      [
+       65.31893072366714,
+       1134.699033203125
+      ],
+      [
+       -47.791069276332856,
+       1134.699033203125
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

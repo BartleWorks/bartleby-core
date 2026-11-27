@@ -1,0 +1,110 @@
+{
+ "format": 2,
+ "zone": "Aquila/Interiors/AQ_Z01_HallOfBattle_Hard",
+ "named": {
+  "HallOfBattleEntrance": [
+   -61.802730560302734,
+   -4505.09814453125,
+   200.0
+  ],
+  "Start": [
+   21.876949310302734,
+   -4502.1669921875,
+   200.00010681152344
+  ],
+  "ExitingHallOfBattle": [
+   1.2553709745407104,
+   4493.01806640625,
+   199.99989318847656
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn-Boss",
+   "template": "Adv_AQ-Immortal-Ares",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -234.05130004882812,
+     -252.5933074951172,
+     0.0
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Minion",
+   "template": "Adv_AQ-Ophidian-Archer",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     243.7989959716797,
+     -241.1490936279297,
+     0.00037765500019304454
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn-Pop",
+   "template": "Adv_AQ-Ophidian-Archer",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -429.2361145019531,
+     -26.739009857177734,
+     0.00024205099907703698
+    ],
+    [
+     439.3316955566406,
+     53.165279388427734,
+     0.00024205099907703698
+    ],
+    [
+     169.4053955078125,
+     542.34521484375,
+     0.00024205099907703698
+    ],
+    [
+     -146.86000061035156,
+     553.05419921875,
+     0.0004861915949732065
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "Volume-TeleportToThroneRoom",
+   "center": [
+    -10.089360237121582,
+    5083.1328125,
+    200.00010681152344
+   ],
+   "shape": "Sphere",
+   "radius": 200.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -12.065919876098633,
+    -5076.5029296875,
+    200.0
+   ],
+   "shape": "Sphere",
+   "radius": 178.4409942626953,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

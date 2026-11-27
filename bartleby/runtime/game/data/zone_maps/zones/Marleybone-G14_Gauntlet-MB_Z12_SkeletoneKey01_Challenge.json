@@ -1,0 +1,29 @@
+{
+ "format": 2,
+ "zone": "Marleybone/G14_Gauntlet/MB_Z12_SkeletoneKey01_Challenge",
+ "named": {
+  "Start": [
+   4.377429962158203,
+   1367.81298828125,
+   0.19993969798088074
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location (1)",
+   "center": [
+    11.79028034210205,
+    1721.5660400390625,
+    27.13132095336914
+   ],
+   "shape": "",
+   "radius": 140.31199645996094,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

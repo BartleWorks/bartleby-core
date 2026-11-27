@@ -1,0 +1,98 @@
+{
+ "format": 2,
+ "zone": "Marleybone/G14_Gauntlet/MB_Z08_Dirigible_Main_Challenge",
+ "named": {
+  "Start": [
+   -24.83222007751465,
+   -2989.33203125,
+   -300.00048828125
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Trash",
+   "template": "Adv_G14-BP-Cat_Thug",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     238.010498046875,
+     -138.2032012939453,
+     54.704010009765625
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To Cargo",
+   "center": [
+    -26.027339935302734,
+    -3516.3291015625,
+    -237.0780029296875
+   ],
+   "shape": "",
+   "radius": 293.631591796875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -30.69729995727539,
+    4803.10498046875,
+    -41.30746841430664
+   ],
+   "shape": "",
+   "radius": 14.735830307006836,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "MB_MonsterChest_DrJackall_Challenge",
+   "template": "MB_MonsterChest_DrJackall_Challenge",
+   "at": [
+    8.690117835998535,
+    665.8712768554688,
+    8.88006591796875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 1.1550659179687557,
+     "zhi": 85.64506591796875,
+     "firm": true,
+     "hull": [
+      [
+       -38.504882164001465,
+       622.3312768554688
+      ],
+      [
+       74.60511783599853,
+       622.3312768554688
+      ],
+      [
+       74.60511783599853,
+       703.3112768554688
+      ],
+      [
+       -38.504882164001465,
+       703.3112768554688
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

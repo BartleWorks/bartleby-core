@@ -79,6 +79,12 @@
    "wad": "03f4317dd30b853e4c2c839984dccd4527b3aa84f226f1cf71ea7a53fa333b43",
    "zone": "zones/Ahmarra-Interiors-AH_Z05I02_RuinedHermitage.json"
   },
+  "Ahmarra/Interiors/AH_Z05I02_RuinedHermitage_Hard": {
+   "floor": "floors/368905c98ff6c02c.npz",
+   "objects": "a7167ea8bf21e96bded2f419ce542913f1b41e5a68d7635de115450a1d00faa0",
+   "wad": "32b8cdc17fab3d185107e1db083b17e5c21e5ba822ad44c75f34269551692ee2",
+   "zone": "zones/Ahmarra-Interiors-AH_Z05I02_RuinedHermitage_Hard.json"
+  },
   "Aquila/AQ_Z00_Hub": {
    "floor": "floors/440d980d03242b46.npz",
    "objects": "b59f5c569f30ffd3be5107bdfcb2dfbd02bc9733e0048e4623a7586d16653b47",
@@ -90,6 +96,12 @@
    "objects": "2d5d6adcbac4e5c4817cd8b104e86b5697727b25ae3bf7f93d438d35e5a07485",
    "wad": "68c659f0396c3760cfdc661b6bf6c42b9f575d286bb9cced7cebe17429275dc6",
    "zone": "zones/Aquila-AQ_Z01_MountOlympus.json"
+  },
+  "Aquila/AQ_Z01_MountOlympus_Hard": {
+   "floor": "floors/23bb1f1afacccaca.npz",
+   "objects": "2d5d6adcbac4e5c4817cd8b104e86b5697727b25ae3bf7f93d438d35e5a07485",
+   "wad": "a131ca3abd6043c416c9e0bf752cd66844f6aa50df430b26ebd67c66865a42d1",
+   "zone": "zones/Aquila-AQ_Z01_MountOlympus_Hard.json"
   },
   "Aquila/AQ_Z02_Atlantea": {
    "floor": "floors/09b4e01d91234a55.npz",
@@ -103,11 +115,29 @@
    "wad": "f04f64a8491d0fcc227ca88fe3698e4cd054833123ac64ce4b16fbfeb95d3f42",
    "zone": "zones/Aquila-AQ_Z02_Atlantea02.json"
   },
+  "Aquila/AQ_Z02_Atlantea02_Hard": {
+   "floor": "floors/09b4e01d91234a55.npz",
+   "objects": "d633f95210b80472aa6ec15ec87059b1d4ea0561b5cf3114b19f56b26e222dfd",
+   "wad": "8161c26db8f08adf693a5fcfdaaf5e893f8e40ab8739b7bfbc9fb76f41db8690",
+   "zone": "zones/Aquila-AQ_Z02_Atlantea02_Hard.json"
+  },
+  "Aquila/AQ_Z02_Atlantea_Hard": {
+   "floor": "floors/09b4e01d91234a55.npz",
+   "objects": "29216625865b63d82ff2ef61f47c7d23de824481f897bbb868c61f9ca320818c",
+   "wad": "6f7de43041ad6aa26eb7bf5207969e36f90cb5a52d3873e6154f6f9f07bb3c8b",
+   "zone": "zones/Aquila-AQ_Z02_Atlantea_Hard.json"
+  },
   "Aquila/AQ_Z03_Tartarus": {
    "floor": "floors/76b0d71d2cefa2f8.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "wad": "4ea4e72e0ca716715d90cc0d926681e6fd8f7b2dea8aa8699132ec6175627f04",
    "zone": "zones/Aquila-AQ_Z03_Tartarus.json"
+  },
+  "Aquila/AQ_Z03_Tartarus_Hard": {
+   "floor": "floors/76b0d71d2cefa2f8.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "46b27efbe124e202841d8304d0e75b63d7a2d3643227b3a874930da87216a6fe",
+   "zone": "zones/Aquila-AQ_Z03_Tartarus_Hard.json"
   },
   "Aquila/Interiors/AQ_Z01_Apollo_Room": {
    "floor": "floors/6368c4fad9fcf3aa.npz",
@@ -115,11 +145,23 @@
    "wad": "477724fd037dafa70c3ee4427bd3b2210d2e1db1dba4a84ea0693632d232301d",
    "zone": "zones/Aquila-Interiors-AQ_Z01_Apollo_Room.json"
   },
+  "Aquila/Interiors/AQ_Z01_Apollo_Room_Hard": {
+   "floor": "floors/6368c4fad9fcf3aa.npz",
+   "objects": "eabd05ff851e9b6c12258e14a6786e58b76ac8eccc09e77c5446f39fe85518ea",
+   "wad": "04d1491cdb64a2379f88ad35ad31e70713557a7e86871dc3c9acaedc09ebece5",
+   "zone": "zones/Aquila-Interiors-AQ_Z01_Apollo_Room_Hard.json"
+  },
   "Aquila/Interiors/AQ_Z01_ArtemusRoom": {
    "floor": "floors/b244bd890c15858a.npz",
    "objects": "0ff2eb88cf125d5761980adeb720cc523f6c4ff14a63e7dfda51358cb9048de0",
    "wad": "98540d2bf58008cbceecb44597b11e1bc3fa408232731e5ae4330d5163a24674",
    "zone": "zones/Aquila-Interiors-AQ_Z01_ArtemusRoom.json"
+  },
+  "Aquila/Interiors/AQ_Z01_ArtemusRoom_Hard": {
+   "floor": "floors/b244bd890c15858a.npz",
+   "objects": "0ff2eb88cf125d5761980adeb720cc523f6c4ff14a63e7dfda51358cb9048de0",
+   "wad": "98f8bbbc2138db25d09b18540d51b8b7ca28c680b34c735bd5f01be25ae1c002",
+   "zone": "zones/Aquila-Interiors-AQ_Z01_ArtemusRoom_Hard.json"
   },
   "Aquila/Interiors/AQ_Z01_HallOfBattle": {
    "floor": "floors/0e64448dc0d9da8e.npz",
@@ -127,11 +169,23 @@
    "wad": "27e81d5785b32a0b3ffaf557e79353ce4863ec19852200058b736da286e6c4b7",
    "zone": "zones/Aquila-Interiors-AQ_Z01_HallOfBattle.json"
   },
+  "Aquila/Interiors/AQ_Z01_HallOfBattle_Hard": {
+   "floor": "floors/0e64448dc0d9da8e.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "ec91a3abbcb3d7a4cad4f1d0830bed4ae5ab45ed02972a3a2f9c4ac2381e7679",
+   "zone": "zones/Aquila-Interiors-AQ_Z01_HallOfBattle_Hard.json"
+  },
   "Aquila/Interiors/AQ_Z01_HallOfWatchfulEye": {
    "floor": "floors/5e1d84ce44852815.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "wad": "edd6dcfe58b28779a985cc68129a38746dd5fc3ae2e2a988f2400e5f9c20d704",
    "zone": "zones/Aquila-Interiors-AQ_Z01_HallOfWatchfulEye.json"
+  },
+  "Aquila/Interiors/AQ_Z01_HallOfWatchfulEye_Hard": {
+   "floor": "floors/5e1d84ce44852815.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "c84caf0ac32b0b651a8259a33e73aab7c4900fa77029e21e9f5dfc8300fce783",
+   "zone": "zones/Aquila-Interiors-AQ_Z01_HallOfWatchfulEye_Hard.json"
   },
   "Aquila/Interiors/AQ_Z01_HephaestusForge": {
    "floor": "floors/4e53d52de9be4a11.npz",
@@ -139,11 +193,23 @@
    "wad": "e321c24273d6376a06076cf18f5a2d9f90d9ff2921b25dcc8e7d60c4f342ac3b",
    "zone": "zones/Aquila-Interiors-AQ_Z01_HephaestusForge.json"
   },
+  "Aquila/Interiors/AQ_Z01_HephaestusForge_Hard": {
+   "floor": "floors/0bab70bced919950.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "e3804e5d0817e46bf9c297cdbc2850afb94a40591a40da91005a7a9aadd2e5ff",
+   "zone": "zones/Aquila-Interiors-AQ_Z01_HephaestusForge_Hard.json"
+  },
   "Aquila/Interiors/AQ_Z01_PitOfNoxii": {
    "floor": "floors/6a268f25131ac64b.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "wad": "901b7f57205cb4f6f4481385e71fa3ba9a80b5c85b8e3a9a92afa77fb8e10878",
    "zone": "zones/Aquila-Interiors-AQ_Z01_PitOfNoxii.json"
+  },
+  "Aquila/Interiors/AQ_Z01_PitOfNoxii_Hard": {
+   "floor": "floors/6a268f25131ac64b.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "913af052b79568b5dd29c3b5a79e0be7267afdb9b1fee54555c547c1c9b135ef",
+   "zone": "zones/Aquila-Interiors-AQ_Z01_PitOfNoxii_Hard.json"
   },
   "Aquila/Interiors/AQ_Z01_TempleOfSisyphus": {
    "floor": "floors/4046e40e957e8c79.npz",
@@ -151,11 +217,23 @@
    "wad": "a140f97dca2a418b11c3ff2d9faf595b0957b67f2b3ab328953757cd1b2a2599",
    "zone": "zones/Aquila-Interiors-AQ_Z01_TempleOfSisyphus.json"
   },
+  "Aquila/Interiors/AQ_Z01_TempleOfSisyphus_Hard": {
+   "floor": "floors/09ffc467ef77f5bb.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "e7e2700b9ed36de8e380cca0c7fce513fb43700801d0e245d19594000bef1d2b",
+   "zone": "zones/Aquila-Interiors-AQ_Z01_TempleOfSisyphus_Hard.json"
+  },
   "Aquila/Interiors/AQ_Z01_Throne_Room": {
    "floor": "floors/149dd3fa88645552.npz",
    "objects": "913b0804446fdb08735d3014e397ea2751bdfa6a0aa8e7090d73473b6cd07dda",
    "wad": "d8e49413a1f0a573072734f54a2b2dde35916a1d9c0b47644afe834748069b62",
    "zone": "zones/Aquila-Interiors-AQ_Z01_Throne_Room.json"
+  },
+  "Aquila/Interiors/AQ_Z01_Throne_Room_Hard": {
+   "floor": "floors/149dd3fa88645552.npz",
+   "objects": "1e0152e00f0047051a6de484c74ec6f3648128e2ad592258e315cf8e0a20d252",
+   "wad": "9a5340f2299fc2c708e8dbc08e99cee2b5a25e388e27fe8ff6cc97d24377c980",
+   "zone": "zones/Aquila-Interiors-AQ_Z01_Throne_Room_Hard.json"
   },
   "Aquila/Interiors/AQ_Z02_HallOfContriver": {
    "floor": "floors/6e3069ce376fe9e6.npz",
@@ -163,11 +241,23 @@
    "wad": "6d47f706bbae3f4efbeab54125e6a25ab59998e5d20914d5469fd547aa48ffd4",
    "zone": "zones/Aquila-Interiors-AQ_Z02_HallOfContriver.json"
   },
+  "Aquila/Interiors/AQ_Z02_HallOfContriver_Hard": {
+   "floor": "floors/6e3069ce376fe9e6.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "7999fd8917a3a878392a88a6c1f249711557c9f936d646ec347df035bbec0d0b",
+   "zone": "zones/Aquila-Interiors-AQ_Z02_HallOfContriver_Hard.json"
+  },
   "Aquila/Interiors/AQ_Z02_HouseOfFury": {
    "floor": "floors/317819e91d8ad018.npz",
    "objects": "5cb88730e1f598f51e0cd6b6eaac79b2c47e0c67592c2eb4a5367c8b11572f71",
    "wad": "6a8424978da19a8da9946d239fa78cf3229ce214ea40f5f2fe0f3bc57f4d5afc",
    "zone": "zones/Aquila-Interiors-AQ_Z02_HouseOfFury.json"
+  },
+  "Aquila/Interiors/AQ_Z02_HouseOfFury_Hard": {
+   "floor": "floors/317819e91d8ad018.npz",
+   "objects": "5cb88730e1f598f51e0cd6b6eaac79b2c47e0c67592c2eb4a5367c8b11572f71",
+   "wad": "475c8fd31eca7d3ecd13eeaa14bcc2283749f9b12f602d04fabceb49046ed62e",
+   "zone": "zones/Aquila-Interiors-AQ_Z02_HouseOfFury_Hard.json"
   },
   "Aquila/Interiors/AQ_Z02_HouseOfLostSaliors": {
    "floor": "floors/aaff91e643d304fd.npz",
@@ -175,11 +265,23 @@
    "wad": "89c7dfe0e3073ef3df41cc8f8c154c9cdca0119ef84348cd66d45eb8d6b2877b",
    "zone": "zones/Aquila-Interiors-AQ_Z02_HouseOfLostSaliors.json"
   },
+  "Aquila/Interiors/AQ_Z02_HouseOfLostSaliors_Hard": {
+   "floor": "floors/aaff91e643d304fd.npz",
+   "objects": "7761c98d8072e827e42c825ad90a530b47868cf32c508d0fa5494d26c59827bc",
+   "wad": "aad5d7387af3e39dfea37cc820062c858cb2e31dfdbef8b60e3bca2cf1034e85",
+   "zone": "zones/Aquila-Interiors-AQ_Z02_HouseOfLostSaliors_Hard.json"
+  },
   "Aquila/Interiors/AQ_Z02_PirateShip": {
    "floor": "floors/4e3e5d581e39ba32.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "wad": "c741ca8e5fcc9402d9c6cd7ebb37b5994a35a1e3667f234924c12a5d29e69603",
    "zone": "zones/Aquila-Interiors-AQ_Z02_PirateShip.json"
+  },
+  "Aquila/Interiors/AQ_Z02_PirateShip_Hard": {
+   "floor": "floors/4e3e5d581e39ba32.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "e8dc2c10a9a8215005998793738be70b35f1c2eac3771caa3a9ca1a21549d38f",
+   "zone": "zones/Aquila-Interiors-AQ_Z02_PirateShip_Hard.json"
   },
   "Aquila/Interiors/AQ_Z02_SirenPuzzleRoom": {
    "floor": "floors/11553082be3e8372.npz",
@@ -187,11 +289,23 @@
    "wad": "8a1fb8caf4b06ce73fce64faa2f045c6152d2ab76c2e801412d12229690dc138",
    "zone": "zones/Aquila-Interiors-AQ_Z02_SirenPuzzleRoom.json"
   },
+  "Aquila/Interiors/AQ_Z02_SirenPuzzleRoom_Hard": {
+   "floor": "floors/11553082be3e8372.npz",
+   "objects": "9ecf44efb21abc1ed3f51a6fa0846fce8fbae6925de911a7f009ddf632828620",
+   "wad": "7687073b18175c043ff7326749f525803fb6bccd1cf78e5f3dd49346345e77f4",
+   "zone": "zones/Aquila-Interiors-AQ_Z02_SirenPuzzleRoom_Hard.json"
+  },
   "Aquila/Interiors/AQ_Z02_ThroneRoom": {
    "floor": "floors/ac6d5bc020c971d3.npz",
    "objects": "c4caa72e4b26754f12713682ff4393f4e5ea8e8b34e9fcba61d43a3fcd9fa3bf",
    "wad": "fe996252b0c3ac277a862dbc7c7ff0a8a1139ca1ab8ec163d986d45a4d982684",
    "zone": "zones/Aquila-Interiors-AQ_Z02_ThroneRoom.json"
+  },
+  "Aquila/Interiors/AQ_Z02_ThroneRoom_Hard": {
+   "floor": "floors/ac6d5bc020c971d3.npz",
+   "objects": "20a2a4e50388781536b4c4757fc6d5bbe5e336c911576bcb2f211deb846fca63",
+   "wad": "c83c634e0956db59173f18ef3dab2f6198d539c7bde670270bbafe5b3fd41a8c",
+   "zone": "zones/Aquila-Interiors-AQ_Z02_ThroneRoom_Hard.json"
   },
   "Aquila/Interiors/AQ_Z03_CavOfNyx": {
    "floor": "floors/333c760c59e80306.npz",
@@ -199,11 +313,23 @@
    "wad": "fb939dc9a9e0ee4b14cb438e8f33376fb5abf4d07d20af79cc93deadc346e997",
    "zone": "zones/Aquila-Interiors-AQ_Z03_CavOfNyx.json"
   },
+  "Aquila/Interiors/AQ_Z03_CavOfNyx_Hard": {
+   "floor": "floors/f5e872c6816dab91.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "db80af4d2ba5ac7722f50d332abcbdd0abd769609555226cff973eb0d448f4b9",
+   "zone": "zones/Aquila-Interiors-AQ_Z03_CavOfNyx_Hard.json"
+  },
   "Aquila/Interiors/AQ_Z03_HallOfHades": {
    "floor": "floors/70b60a5143483bc8.npz",
    "objects": "ba05aac48523fc3d50113ad1eeb48470925138845f989c664b9fe6d001fd099f",
    "wad": "de87f84072b791a86c6688f9e0ad3f5814d3d0e721293d9890d12555a2ff0341",
    "zone": "zones/Aquila-Interiors-AQ_Z03_HallOfHades.json"
+  },
+  "Aquila/Interiors/AQ_Z03_HallOfHades_Hard": {
+   "floor": "floors/70b60a5143483bc8.npz",
+   "objects": "f31600e2f6d76fe2aef70a768ff5572a703b9fbf0dd138ea78ac5c739d4b8779",
+   "wad": "7a4f1780a0ca80bc40816a932fe69dc4ea71106448cd0b62d0e800af8e49a701",
+   "zone": "zones/Aquila-Interiors-AQ_Z03_HallOfHades_Hard.json"
   },
   "Aquila/Interiors/AQ_Z03_HouseOfFaun": {
    "floor": "floors/1049a964ae2ba929.npz",
@@ -211,11 +337,23 @@
    "wad": "b1cffac916f52d3846a99f5f061d5c21acd39c3fe65789eec22da6b62ff97438",
    "zone": "zones/Aquila-Interiors-AQ_Z03_HouseOfFaun.json"
   },
+  "Aquila/Interiors/AQ_Z03_HouseOfFaun_Hard": {
+   "floor": "floors/1049a964ae2ba929.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "91d9c3a8bed266a8f909fb2a92489c7fb418f8d21cff848b5dbb3c5c82016c81",
+   "zone": "zones/Aquila-Interiors-AQ_Z03_HouseOfFaun_Hard.json"
+  },
   "Aquila/Interiors/AQ_Z03_TempleOfLonging": {
    "floor": "floors/8acf3a24c4317316.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "wad": "0448c4875f656d7f5ae9ae3e854f457bc51bd10b28dc710a52c34e0d24fd68fd",
    "zone": "zones/Aquila-Interiors-AQ_Z03_TempleOfLonging.json"
+  },
+  "Aquila/Interiors/AQ_Z03_TempleOfLonging_Hard": {
+   "floor": "floors/8acf3a24c4317316.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "d1ac27e69fa16c06e1aaed9fe2667dd148a07c3209e22574b5b132a5a56fcfcc",
+   "zone": "zones/Aquila-Interiors-AQ_Z03_TempleOfLonging_Hard.json"
   },
   "Arcanum/AR_Z01_Hub": {
    "floor": "floors/00c42bf94db03898.npz",
@@ -649,6 +787,12 @@
    "wad": "6b5c2742bf728c85f801b8198005c64eadf5dc5bd89d595071feef64f6dfa804",
    "zone": "zones/Darkmoor-Interiors-DM_Z01I04_GargoyleWatchtower.json"
   },
+  "Darkmoor/Interiors/DM_Z01I04_GargoyleWatchtower_Hard": {
+   "floor": "floors/81de0b7572e064bc.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "a00fbbf5ec28b590288f86f5b0cb39b517b78515158622eb4620fee57a21c7cb",
+   "zone": "zones/Darkmoor-Interiors-DM_Z01I04_GargoyleWatchtower_Hard.json"
+  },
   "Darkmoor/Interiors/DM_Z01I11_ParliamentOfNightThroneRoom": {
    "floor": "floors/8db90ca1d26fdfa8.npz",
    "objects": "fc44526916eaad002cc2ddd2652530cc492c722008617fd44cbc42cb2cc46a44",
@@ -661,11 +805,23 @@
    "wad": "58ff3ca6627b4b319696c8df6ba057203d8699d0fac9869e2e8f66267e76025a",
    "zone": "zones/Darkmoor-Interiors-DM_Z01I13_SecretLab.json"
   },
+  "Darkmoor/Interiors/DM_Z01I13_SecretLab_Hard": {
+   "floor": "floors/a951b1004e5ed405.npz",
+   "objects": "7fefd6ab4c40c87c1c6dcc3ac878922a809cb52f5b75b58af330abceb0598a27",
+   "wad": "17fdff0805e1a0e983abca08559ad29074323f7d950cff6a03a55516fe6298ee",
+   "zone": "zones/Darkmoor-Interiors-DM_Z01I13_SecretLab_Hard.json"
+  },
   "Darkmoor/Interiors/DM_Z01I17_SandersonHouse": {
    "floor": "floors/1eb6f87e2726d21b.npz",
    "objects": "51165c0794fffc037f9b3801e5bb3b75f89896e35235d61d85291e19c32d40ae",
    "wad": "f7347ca684fab7b65828dc6deeb9d0d4fdcab160b95fa2b75db621ecd586484c",
    "zone": "zones/Darkmoor-Interiors-DM_Z01I17_SandersonHouse.json"
+  },
+  "Darkmoor/Interiors/DM_Z01I17_SandersonHouse_Hard": {
+   "floor": "floors/1eb6f87e2726d21b.npz",
+   "objects": "23a4701d432de21c6c908cae759ccd808c11288652c51660cc31f215a8228f56",
+   "wad": "aaa4a6419a7aca8dd5d41d8161faeef207a1b4ed78723dc63e9cac15e9c2527e",
+   "zone": "zones/Darkmoor-Interiors-DM_Z01I17_SandersonHouse_Hard.json"
   },
   "Darkmoor/Interiors/DM_Z04I08_BogOfVengeance": {
    "floor": "floors/f91fa51790333ff6.npz",
@@ -673,11 +829,23 @@
    "wad": "296cf5057579fed6b5ac71f9e62d5bd3464b6844b619f6029c5c3147470d3105",
    "zone": "zones/Darkmoor-Interiors-DM_Z04I08_BogOfVengeance.json"
   },
+  "Darkmoor/Interiors/DM_Z04I08_BogOfVengeanceAdv": {
+   "floor": "floors/60c20b79d3ff98c7.npz",
+   "objects": "df6f0a7274dd93f6f7a65ce3669f63b6f8c914cd4fe1e3fd70744baebf80e437",
+   "wad": "f7ee45cf1cec5ea3a0f1b0dc314fa38f39d20be446a243599fd3a103000d60c4",
+   "zone": "zones/Darkmoor-Interiors-DM_Z04I08_BogOfVengeanceAdv.json"
+  },
   "Darkmoor/Interiors/DM_Z05_HereticalAcademy": {
    "floor": "floors/8635cfb2c949546c.npz",
    "objects": "13ab56e986f60e7f387004c7606a9872473bb1123adffb941b1bf896ed7cdef9",
    "wad": "a9fb77d1056d27fea339021380d1a7ff6a187ab7646517d0ca46182699c39f4e",
    "zone": "zones/Darkmoor-Interiors-DM_Z05_HereticalAcademy.json"
+  },
+  "Darkmoor/Interiors/DM_Z05_HereticalAcademy_Adv": {
+   "floor": "floors/a1f0f9d31f8a08bc.npz",
+   "objects": "f8174045794038fde1f2c361f05812706c835cece3365c63fadb4815ac010af3",
+   "wad": "7fe1f6732a12df2fde7f91af98507a593f1061358df7ddb5a710c40fd72a9cf3",
+   "zone": "zones/Darkmoor-Interiors-DM_Z05_HereticalAcademy_Adv.json"
   },
   "DragonSpire/DS_A1_Knowledge/DS_A1Hub_Library": {
    "floor": "floors/29cef91138a5709f.npz",
@@ -954,6 +1122,12 @@
    "objects": "7322e136e239c1176835b29bee52b2e1b8a77cf054df044e8f0af556b86c22c4",
    "wad": "d40aec8a119b5bdf70ba4dbc529d8889f337a49b5bf35d5fd92d732ea6c2cac9",
    "zone": "zones/Empyrea-Interiors-EM_Z16_I04_StormTitan.json"
+  },
+  "Empyrea/Interiors/EM_Z16_I04_StormTitan_Hard": {
+   "floor": "floors/33d63ef848d2d089.npz",
+   "objects": "7322e136e239c1176835b29bee52b2e1b8a77cf054df044e8f0af556b86c22c4",
+   "wad": "c98c01794265bde57866b11ec75311dc99041513dddf1a9cd4873ae37a53333f",
+   "zone": "zones/Empyrea-Interiors-EM_Z16_I04_StormTitan_Hard.json"
   },
   "G14_DM/DM_Z01_CastleDarkmoor": {
    "floor": "floors/75b03df7811a117e.npz",
@@ -1315,6 +1489,12 @@
    "wad": "6b3630a02301322a473111dd433950508ef82d361dbee0f61025d9b62c177861",
    "zone": "zones/Karamelle-Interiors-KM_Z00_TheCavity.json"
   },
+  "Karamelle/Interiors/KM_Z00_TheCavity_Adv": {
+   "floor": "floors/2e5e3bda13708d12.npz",
+   "objects": "0157fc2164d3764291bec0622ff2397234d8081d31e7bafa19eb5c33f8e66789",
+   "wad": "c2e384b9c045efbd1c104bd45d5e874493a20876578913bc2987b5588080a1ab",
+   "zone": "zones/Karamelle-Interiors-KM_Z00_TheCavity_Adv.json"
+  },
   "Karamelle/Interiors/KM_Z07_CupcakeFactory": {
    "floor": "floors/bec026ec59ad8cff.npz",
    "objects": "ce67731e5badacf22ab06f84b990de8acbcee717fdf92bae0a66c04a118fc442",
@@ -1603,6 +1783,12 @@
    "wad": "ce5ea4a9e2f974b4a0e3ce64bfde8e06a6a9aab3aa0285cdb455d473aa50561f",
    "zone": "zones/Krokotopia-KT_Selenopolis-Interiors-KT_Z04_Pyramid.json"
   },
+  "Krokotopia/KT_Selenopolis/Interiors/KT_Z04_Pyramid_Adv": {
+   "floor": "floors/b2cb757cb437acbf.npz",
+   "objects": "9eba193d452b027d5e978b6f2d22ad57c1853a858130c67d20dc0eb77ff675dd",
+   "wad": "d176ac1ccb95d74f47340237c54b411d971e2b4025d1c7ae5e4570a0d0a84c07",
+   "zone": "zones/Krokotopia-KT_Selenopolis-Interiors-KT_Z04_Pyramid_Adv.json"
+  },
   "Krokotopia/KT_Selenopolis/Interiors/KT_Z05I08_Storage_A_Int": {
    "floor": "floors/83304af624d4dc16.npz",
    "objects": "3bd0ce9fd5323703721a7d0404ada2b1e5454671335d61bcdc7ae6eba8bd5b67",
@@ -1621,6 +1807,12 @@
    "wad": "4b1c22753a3ddb0bf9cb60d41c79736c81b5c5c20853804f5a39e4623bdbcd5e",
    "zone": "zones/Krokotopia-KT_Selenopolis-Interiors-KT_Z06I12_CryptOfRa_Int.json"
   },
+  "Krokotopia/KT_Selenopolis/Interiors/KT_Z06I12_CryptOfRa_Int_Hard": {
+   "floor": "floors/dad5d0efd52c38fd.npz",
+   "objects": "bb9f4d33c704bbcf2fde924feb0185cbb09b30ce7151bfc8438f33856242a4ee",
+   "wad": "8143ba263e72f6484fff15b5dcd968a4b26d3628c8bee4572412934a8ad0c82e",
+   "zone": "zones/Krokotopia-KT_Selenopolis-Interiors-KT_Z06I12_CryptOfRa_Int_Hard.json"
+  },
   "Krokotopia/KT_Selenopolis/Interiors/KT_Z07I01_Vivarium": {
    "floor": "floors/8205ac774356bf19.npz",
    "objects": "e74f2a9ab16fdba616c202943c7222a6bd26bfeb10106e2147efc585a9015d79",
@@ -1638,6 +1830,12 @@
    "objects": "4355c3d25fb90fbc632516b870f9208ef8b5190e9df09de992b3081f7ce5f50f",
    "wad": "41329b57e8b0d18e853a7a3005caa84260a2dd910b5fcc155f811e947524aeb3",
    "zone": "zones/Krokotopia-KT_Selenopolis-Interiors-KT_Z07I03_DarkAbode.json"
+  },
+  "Krokotopia/KT_Selenopolis/Interiors/KT_Z07I03_DarkAbode_Hard": {
+   "floor": "floors/d7c2ce51e03f4b27.npz",
+   "objects": "38effe915303670ba0124470d442c4d26b9b24857dc52af5d198bc578e84ed5a",
+   "wad": "138eac994696c8e3daf1f787f4bf115a90e98779620dac892ad2da2a4da4de77",
+   "zone": "zones/Krokotopia-KT_Selenopolis-Interiors-KT_Z07I03_DarkAbode_Hard.json"
   },
   "Krokotopia/KT_Selenopolis/KT_Z04_Selenopolis": {
    "floor": "floors/bf590a0789a27950.npz",
@@ -1711,6 +1909,12 @@
    "wad": "25ec4e73fadd094df4866e4debb5a205dd6fe2211c9a52a0c105aa659ac0f67d",
    "zone": "zones/Lemuria-Interiors-LM_Z00_I08_HallofHeroesInner.json"
   },
+  "Lemuria/Interiors/LM_Z00_I08_HallofHeroesInner_Hard": {
+   "floor": "floors/71ffd4d7f5e7c544.npz",
+   "objects": "322d892769910c79f18c9ff3d0f9b98d68a29f3b85f4a20f4be4b418f02bf74d",
+   "wad": "2c7fdbb84f4b9490d02f7858bcf469a04bcf678f6e9d6794b697cf1de6fd0993",
+   "zone": "zones/Lemuria-Interiors-LM_Z00_I08_HallofHeroesInner_Hard.json"
+  },
   "Lemuria/Interiors/LM_Z00_I09_OldOnesComplex": {
    "floor": "floors/941bcb39c1c9a74e.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1777,6 +1981,12 @@
    "wad": "3ab971ce084a7784af59c7c568354c1f40fbb51b3d337cdb110ddadd5940d03d",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_G14_ThroneRoomB.json"
   },
+  "Marleybone/G14_Gauntlet/MB_G14_ThroneRoomB_Challenge": {
+   "floor": "floors/c28f660b3c2537a1.npz",
+   "objects": "8d45d7b51af1d5c8236a316c05d3c5eac0cf9742c78a0254ab928d11158b3b91",
+   "wad": "63e7f1e48747a4518b1afdc936bbc0c38b7aca35881a858996bc97511a36c3a4",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_G14_ThroneRoomB_Challenge.json"
+  },
   "Marleybone/G14_Gauntlet/MB_Z01_BarkinghamCourtyard": {
    "floor": "floors/b95ae4fee6a29a70.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1789,11 +1999,23 @@
    "wad": "5998130e5fe6c723b6ef0b3790b712caeeaf0c0415728769a504a819775d1f3c",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z02_PalaceWestWing_01.json"
   },
+  "Marleybone/G14_Gauntlet/MB_Z02_PalaceWestWing_01_Challenge": {
+   "floor": "floors/274d6076cbadcb2f.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "a04e4bcdc1a89728d328824b5cea001efb90b040fd583ab79379bb0ac6302a59",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z02_PalaceWestWing_01_Challenge.json"
+  },
   "Marleybone/G14_Gauntlet/MB_Z03_PalaceWestWing_02": {
    "floor": "floors/89146d36880057cb.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "wad": "04e04f6dc59ff459302a58d1fb3d10f6a5ce1b329a70e0f9778eea6b44442ec0",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z03_PalaceWestWing_02.json"
+  },
+  "Marleybone/G14_Gauntlet/MB_Z03_PalaceWestWing_02_Challenge": {
+   "floor": "floors/89146d36880057cb.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "a00028f381453b3a4c88a6705d6676d4d1c43c430e49e90001f386a24dcb2b25",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z03_PalaceWestWing_02_Challenge.json"
   },
   "Marleybone/G14_Gauntlet/MB_Z04_PalaceWestWing_03": {
    "floor": "floors/3c937cc88d9906bc.npz",
@@ -1801,11 +2023,23 @@
    "wad": "f3ddf0616328f8e5bedd08e8182c07e800e2849ebedee891e0d1f8de2dec4c81",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z04_PalaceWestWing_03.json"
   },
+  "Marleybone/G14_Gauntlet/MB_Z04_PalaceWestWing_03_Challenge": {
+   "floor": "floors/3c937cc88d9906bc.npz",
+   "objects": "270a60a7ea4235523be4bdcf48ecbfcb7642a7679200d065ca28417d88352292",
+   "wad": "0ed99e2fce37181903ec647d0290efb5bc3c92000fe43d6c532588aadcb29e5f",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z04_PalaceWestWing_03_Challenge.json"
+  },
   "Marleybone/G14_Gauntlet/MB_Z05_ThroneRoom": {
    "floor": "floors/544d34bdba5ef68f.npz",
    "objects": "fe1e65cb3202349813d3dafd6c8f33aa3141fb8bb849b96f5b6a08dea777098f",
    "wad": "b3b85bbecba4cf4eefef316f29adb0773796d140f7d4c75238f4e384b7a6aed5",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z05_ThroneRoom.json"
+  },
+  "Marleybone/G14_Gauntlet/MB_Z05_ThroneRoom_Challenge": {
+   "floor": "floors/544d34bdba5ef68f.npz",
+   "objects": "60010d83817619e32434efb915c7422888627c93dc7eee68534c314ae850ae51",
+   "wad": "cecc28eba015ca58386c786f811f55782e471c084b7aff8e806afde64b41bcb1",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z05_ThroneRoom_Challenge.json"
   },
   "Marleybone/G14_Gauntlet/MB_Z06_Rooftop": {
    "floor": "floors/30435a8bfeb9ef33.npz",
@@ -1813,11 +2047,23 @@
    "wad": "8ad84d28c789b1d4c7b9767c9ed24f6fcfd1761e8e50213770401f48735f14f7",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z06_Rooftop.json"
   },
+  "Marleybone/G14_Gauntlet/MB_Z06_Rooftop_Challenge": {
+   "floor": "floors/30435a8bfeb9ef33.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "eecedec27f3459a0653a5c6fd0e196b0d53a92074b8794fe2a4e45a40293c1d7",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z06_Rooftop_Challenge.json"
+  },
   "Marleybone/G14_Gauntlet/MB_Z07_Dirigible_Cargo": {
    "floor": "floors/281a824ad64aa29e.npz",
    "objects": "7e6a146c1cfb94d5d0ce1021b728c48d79b61aba7dabff2968d00ff0ef92d95b",
    "wad": "98944d48628c3db111bfbb92fc22645e695165d0543fac9a8b5012caf0bb3baa",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z07_Dirigible_Cargo.json"
+  },
+  "Marleybone/G14_Gauntlet/MB_Z07_Dirigible_Cargo_Challenge": {
+   "floor": "floors/281a824ad64aa29e.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "be3f79a3ca2d2c9ca66ab68e1792abcae8ebd72373b674503a09ff5033bd444c",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z07_Dirigible_Cargo_Challenge.json"
   },
   "Marleybone/G14_Gauntlet/MB_Z08_Dirigible_Main": {
    "floor": "floors/bf85d61c775c5c15.npz",
@@ -1825,11 +2071,23 @@
    "wad": "801ad1cbefe12b712c21b582da45ad3c93b904dd16734b9726133835bf8fee3c",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z08_Dirigible_Main.json"
   },
+  "Marleybone/G14_Gauntlet/MB_Z08_Dirigible_Main_Challenge": {
+   "floor": "floors/bf85d61c775c5c15.npz",
+   "objects": "f7a505ff9eead6b36055111fb359700db2b1baebdc0dba2fca468711d25d160f",
+   "wad": "bc4c287f680546de0acd68c8162972fe1f46203e76826d408bd8044a6f8f423e",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z08_Dirigible_Main_Challenge.json"
+  },
   "Marleybone/G14_Gauntlet/MB_Z10_MainHall_01": {
    "floor": "floors/8fe0d02b59bb1065.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "wad": "7b8a068308c6dd357f79d9fdbcf9a547c230d5dfdcacde49aa8b4e73fd373049",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z10_MainHall_01.json"
+  },
+  "Marleybone/G14_Gauntlet/MB_Z10_MainHall_01_Challenge": {
+   "floor": "floors/8fe0d02b59bb1065.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "786172b953187143166f5b62f91b3727acbdf28d118def65408e61857f039851",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z10_MainHall_01_Challenge.json"
   },
   "Marleybone/G14_Gauntlet/MB_Z11_MainHall_02": {
    "floor": "floors/ca5ecf13cb8dbfc3.npz",
@@ -1837,17 +2095,35 @@
    "wad": "c46d7335f1192566a11980ec5a398ee8dd0f1106d7eb3971240fb3442911c58c",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z11_MainHall_02.json"
   },
+  "Marleybone/G14_Gauntlet/MB_Z11_MainHall_02_Challenge": {
+   "floor": "floors/ca5ecf13cb8dbfc3.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "6812cf8aeb65d2157f5b133c2701f04c9bf9054bcbc93dc7b02e9ee4ecb7a5aa",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z11_MainHall_02_Challenge.json"
+  },
   "Marleybone/G14_Gauntlet/MB_Z12_SkeletoneKey01": {
    "floor": "floors/cf87f11bf0ad0ded.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "wad": "63932bca8de0d3883c5d7a038197e63158ee253fab6d372e45e5dc6082ebc7d2",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z12_SkeletoneKey01.json"
   },
+  "Marleybone/G14_Gauntlet/MB_Z12_SkeletoneKey01_Challenge": {
+   "floor": "floors/cf87f11bf0ad0ded.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "be0a1609827b3410442904f0e10884a07084c736bd600ea59fcfd201cded6647",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z12_SkeletoneKey01_Challenge.json"
+  },
   "Marleybone/G14_Gauntlet/MB_Z13_Dirigible_Cargo_02": {
    "floor": "floors/38f203032d5fc00c.npz",
    "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
    "wad": "44b0bb07da97618a1fd2372e94ffbc9f3ab916fcc7ce969754929319696c0b4d",
    "zone": "zones/Marleybone-G14_Gauntlet-MB_Z13_Dirigible_Cargo_02.json"
+  },
+  "Marleybone/G14_Gauntlet/MB_Z13_Dirigible_Cargo_02_Challenge": {
+   "floor": "floors/38f203032d5fc00c.npz",
+   "objects": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "wad": "b5c7da7104b69528aae8e254492c632dfc4f2c3800b69cd6991171296d51cea0",
+   "zone": "zones/Marleybone-G14_Gauntlet-MB_Z13_Dirigible_Cargo_02_Challenge.json"
   },
   "Marleybone/Interiors/MB_ScotlandYard": {
    "floor": "floors/d844218a860d721e.npz",
@@ -2479,11 +2755,23 @@
    "wad": "bc196e073b234230a69bea77c7ea9e51baf8b95b7bdff2cb7406216277cb67bb",
    "zone": "zones/Wallaru-Interiors-WL_Z04_I05_FreddiesDomain.json"
   },
+  "Wallaru/Interiors/WL_Z04_I05_FreddiesDomain_Hard": {
+   "floor": "floors/e906b88b001b6761.npz",
+   "objects": "6f4e5d9ab229c57d1e3fd5d7dc725cf74eb55e9520663b523c4c01b99015132a",
+   "wad": "a774c4097f0a538f6a77171ec4c2958b26021b494184ceed58b61d03176b53d5",
+   "zone": "zones/Wallaru-Interiors-WL_Z04_I05_FreddiesDomain_Hard.json"
+  },
   "Wallaru/Interiors/WL_Z05_BanditCootCave": {
    "floor": "floors/c53b9c8afb97d195.npz",
    "objects": "f61a26f02fe0e4e22246908294f7c85b0133765df91891043aca3cb33f3f48ba",
    "wad": "cbb3dee8b255036e7c999c8743335d40ecd42fe144c59da57f0ba9f7608324e0",
    "zone": "zones/Wallaru-Interiors-WL_Z05_BanditCootCave.json"
+  },
+  "Wallaru/Interiors/WL_Z05_BanditCootCave_Hard": {
+   "floor": "floors/c53b9c8afb97d195.npz",
+   "objects": "ad906065593ea2ca9f7e65b5eb47610fbc08b1692ba506de88f6fa0fdfe64387",
+   "wad": "478755e6b245f0307aabf44bb6552f8249ecf9701f593bbf4484898ffd457b53",
+   "zone": "zones/Wallaru-Interiors-WL_Z05_BanditCootCave_Hard.json"
   },
   "Wallaru/Interiors/WL_Z08_I03_HotelRoom": {
    "floor": "floors/ea81699660f41db1.npz",

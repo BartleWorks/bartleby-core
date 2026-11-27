@@ -1,0 +1,113 @@
+{
+ "format": 2,
+ "zone": "Darkmoor/Interiors/DM_Z01I17_SandersonHouse_Hard",
+ "named": {
+  "Start": [
+   -27.64950942993164,
+   269.160400390625,
+   2.00006103515625
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPoint_Mob_01_A",
+   "template": "Adv_DM_Scholomari_WitchF_B_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -10.800909996032715,
+     1902.31494140625,
+     2.0001220703125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_B",
+   "template": "Adv_DM_Scholomari_WitchF_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -365.0,
+     1902.31494140625,
+     2.0001220703125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_C",
+   "template": "Adv_DM_Scholomari_WitchF_C_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     345.0,
+     1902.31494140625,
+     2.0001220703125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportSource_To_Graveholm_01",
+   "center": [
+    -6.580902099609375,
+    -10.862580299377441,
+    2.0
+   ],
+   "shape": "",
+   "radius": 156.11770629882812,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "Adv_DM_MonsterChest_SisterSanderson",
+   "template": "Adv_DM_MonsterChest_SisterSanderson",
+   "at": [
+    -3.2826099395751953,
+    2411.830078125,
+    1.0
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -6.724999999999994,
+     "zhi": 77.765,
+     "firm": true,
+     "hull": [
+      [
+       -50.477609939575196,
+       2368.290078125
+      ],
+      [
+       62.632390060424804,
+       2368.290078125
+      ],
+      [
+       62.632390060424804,
+       2449.2700781249996
+      ],
+      [
+       -50.477609939575196,
+       2449.2700781249996
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

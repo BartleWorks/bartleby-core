@@ -1,0 +1,144 @@
+{
+ "format": 2,
+ "zone": "Krokotopia/KT_Selenopolis/Interiors/KT_Z06I12_CryptOfRa_Int_Hard",
+ "named": {
+  "Start": [
+   -2188.2548828125,
+   -445.8236999511719,
+   0.09991516917943954
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn ManderBodyGuard",
+   "template": "Adv_KT_SE_Mander_Citizen_F_D_05",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -222.14549255371094,
+     -195.00779724121094,
+     -221.02780151367188
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn ExtraManders",
+   "template": "Adv_KT_SE_Mander_Citizen_F_D_05",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -98.29688262939453,
+     -922.3544921875,
+     -221.02780151367188
+    ],
+    [
+     -117.77639770507812,
+     -53.1904296875,
+     -221.02780151367188
+    ],
+    [
+     377.2119140625,
+     -472.88958740234375,
+     -221.02780151367188
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn Mother Sunn",
+   "template": "Adv_KT_SE_Mander_MummyF_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -136.44239807128906,
+     -483.0380859375,
+     -221.02780151367188
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport To TombOfForgotten",
+   "center": [
+    -3323.930908203125,
+    -496.7514953613281,
+    118.33180236816406
+   ],
+   "shape": "Sphere",
+   "radius": 323.551513671875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport To TombOfForgotten (1)",
+   "center": [
+    3278.3359375,
+    -496.75140380859375,
+    114.37960052490234
+   ],
+   "shape": "Sphere",
+   "radius": 267.7401123046875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "Adv_KT_SE_MonsterChest_MotherSunn instance",
+   "template": "Adv_KT_SE_MonsterChest_MotherSunn",
+   "at": [
+    1710.9439697265625,
+    -875.4501953125,
+    -221.02780151367188
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -228.7528054628794,
+     "zhi": -144.2627970106434,
+     "firm": true,
+     "hull": [
+      [
+       1666.994304335061,
+       -828.6364458013051
+      ],
+      [
+       1667.980084805222,
+       -941.7421500644616
+      ],
+      [
+       1667.9800884982465,
+       -941.7421537249542
+      ],
+      [
+       1748.9570130074005,
+       -941.0363938233216
+      ],
+      [
+       1747.9712325372395,
+       -827.9306895601651
+      ],
+      [
+       1747.9712288442151,
+       -827.9306858996725
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

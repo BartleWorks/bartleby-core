@@ -60,6 +60,27 @@ def test_a_names_file_adds_every_zone_it_names_under_its_own_name(tmp_path):
     }
 
 
+@pytest.mark.parametrize("suffix", ["_Challenge", "_Hard", "_Adv", "Adv"])
+def test_a_listed_zones_challenge_mode_copy_is_listed_when_the_install_has_its_wad(tmp_path, suffix):
+    for zone in ("Aquila/AQ_Keep", f"Aquila/AQ_Keep{suffix}", "Aquila/AQ_Hall"):
+        zone_files.zone_wad_path(zone, tmp_path).write_bytes(b"")
+
+    zones = build.with_challenge_copies({"Aquila/AQ_Keep": ["bots"], "Aquila/AQ_Hall": ["map"]}, tmp_path)
+
+    assert zones == {
+        "Aquila/AQ_Hall": ["map"],
+        "Aquila/AQ_Keep": ["bots"],
+        f"Aquila/AQ_Keep{suffix}": ["bots", "challenge"],
+    }
+
+
+def test_a_challenge_copy_a_bot_names_itself_keeps_its_own_reasons(tmp_path):
+    zone_files.zone_wad_path("Aquila/AQ_Keep_Hard", tmp_path).write_bytes(b"")
+    listed = {"Aquila/AQ_Keep": ["bots"], "Aquila/AQ_Keep_Hard": ["scales_of_knowledge"]}
+
+    assert build.with_challenge_copies(listed, tmp_path) == listed
+
+
 # --- building ---------------------------------------------------------------------------------
 
 

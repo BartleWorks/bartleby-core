@@ -1,0 +1,99 @@
+{
+ "format": 2,
+ "zone": "Aquila/Interiors/AQ_Z03_HallOfHades_Hard",
+ "named": {
+  "Start": [
+   -102.16480255126953,
+   -281.9303894042969,
+   0.0016479879850521684
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "PoseidonSpawner",
+   "template": "Adv_AQ-Immortal-Poseidon-B",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     244.68020629882812,
+     -3628.34912109375,
+     0.001467296970076859
+    ]
+   ]
+  },
+  {
+   "spawner": "ZeusSpawner",
+   "template": "Adv_AQ-Immortal-Zeus-B",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -471.6806945800781,
+     -3752.56494140625,
+     50.50128173828125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_ToTartarus",
+   "center": [
+    -45.40044021606445,
+    680.7098999023438,
+    0.002744491910561919
+   ],
+   "shape": "Sphere",
+   "radius": 364.0911865234375,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "Adv_AQ_MonsterChest_Hades instance",
+   "template": "Adv_AQ_MonsterChest_Hades",
+   "at": [
+    -60.109519958496094,
+    -4531.3369140625,
+    2.971190929412842
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -4.7538090705871525,
+     "zhi": 79.73619092941284,
+     "firm": true,
+     "hull": [
+      [
+       -126.02453414562538,
+       -4487.796935540336
+      ],
+      [
+       -126.02450775899212,
+       -4568.776935540332
+      ],
+      [
+       -12.914507758998106,
+       -4568.776898684416
+      ],
+      [
+       -12.914534145631372,
+       -4487.79689868442
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

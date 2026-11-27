@@ -8,6 +8,16 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Nothing breaks.
+
+### Fixed
+
+- **Walk maps for the 48 Challenge Mode copies** of mapped zones, which had none, so no walk
+  could be planned in a dungeon entered in Challenge Mode. `tools/build_zone_maps.py` now builds
+  and verifies every copy of a listed zone the install has a wad for.
+
 ## 0.15.2
 
 Nothing breaks.

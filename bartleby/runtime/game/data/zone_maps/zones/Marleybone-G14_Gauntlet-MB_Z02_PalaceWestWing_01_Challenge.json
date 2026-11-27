@@ -1,0 +1,47 @@
+{
+ "format": 2,
+ "zone": "Marleybone/G14_Gauntlet/MB_Z02_PalaceWestWing_01_Challenge",
+ "named": {
+  "Start": [
+   -2.794917106628418,
+   -1318.387939453125,
+   4.53277587890625
+  ],
+  "FromWW02": [
+   -14.5831298828125,
+   1318.239013671875,
+   0.20001220703125
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To MB Courtyard",
+   "center": [
+    -5.9044342041015625,
+    -1694.9320068359375,
+    8.266632080078125
+   ],
+   "shape": "",
+   "radius": 152.63319396972656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "To MBWW02",
+   "center": [
+    -18.66912078857422,
+    1704.208984375,
+    14.379929542541504
+   ],
+   "shape": "Sphere",
+   "radius": 221.03089904785156,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

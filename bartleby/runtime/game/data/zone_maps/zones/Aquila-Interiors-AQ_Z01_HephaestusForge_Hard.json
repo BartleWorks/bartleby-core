@@ -1,0 +1,34 @@
+{
+ "format": 2,
+ "zone": "Aquila/Interiors/AQ_Z01_HephaestusForge_Hard",
+ "named": {
+  "Target-HephaestusForgeEntrance": [
+   -8.85101318359375,
+   -1174.8089599609375,
+   6.103516352595761e-05
+  ],
+  "Start": [
+   36.485538482666016,
+   -1174.8089599609375,
+   6.103516352595761e-05
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport-ToHallOfTheWatchfulEye",
+   "center": [
+    -2.569762945175171,
+    -1524.85595703125,
+    1.3255000114440918
+   ],
+   "shape": "Sphere",
+   "radius": 164.87010192871094,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

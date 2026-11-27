@@ -1,0 +1,87 @@
+{
+ "format": 2,
+ "zone": "Aquila/Interiors/AQ_Z01_PitOfNoxii_Hard",
+ "named": {
+  "Start": [
+   -2.639518976211548,
+   -2039.654052734375,
+   241.03700256347656
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnBoss",
+   "template": "Adv_AQ-Bear-Gladiator",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -193.3029022216797,
+     -324.31658935546875,
+     0.0004997252835892141
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnMinion",
+   "template": "Adv_AQ-Skeletal-Warrior",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     232.66270446777344,
+     -283.5426025390625,
+     0.000133514404296875
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPop",
+   "template": "Adv_AQ-Skeletal-Warrior",
+   "proximity": 350.0,
+   "max_spawns": 2,
+   "start_node_type": 1,
+   "points": [
+    [
+     -449.0710144042969,
+     439.82659912109375,
+     0.00024205099907703698
+    ],
+    [
+     -515.9439697265625,
+     -129.64930725097656,
+     0.0001199807011289522
+    ],
+    [
+     537.3220825195312,
+     -74.36129760742188,
+     0.0001199807011289522
+    ],
+    [
+     382.898193359375,
+     518.9298095703125,
+     0.0001199807011289522
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport-ExitPitOfTheNoxii",
+   "center": [
+    6.873706817626953,
+    -2907.97900390625,
+    360.8688049316406
+   ],
+   "shape": "Sphere",
+   "radius": 244.81179809570312,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}
