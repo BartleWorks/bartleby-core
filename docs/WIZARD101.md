@@ -107,7 +107,30 @@ Stated 2026-09-27 for BartleBot #117; the full write-up is the design comment on
   which is how the fight runner's reports always did; BartleBuddy ran four of them as one team fight
   on 2026-11-22.
 - Wisps are shared, but simultaneous arrivals both get the reward. A wizard full on a
-  resource does not collect that wisp kind.
+  resource does not collect that wisp kind, and the wisp passes it by (stated again 2026-11-27,
+  and seen: full, a wizard let world wisps pass within 137-146 units).
+
+### How wisps move, and how near a wizard takes one
+
+Measured 2026-11-27 for BartleBot #343 with its `tools/probe_wisps.py`, in Ahmarra's Eastern Sea
+(`AH_Z05_EasternSea`, outdoors), except where it says stated.
+
+- **A wizard takes a wisp from about 400 units off**, not on reaching it. A still wizard below
+  full took three health wisps 401-418 off (2D, and the same in 3D), each at the sample before its
+  health rose. The wisp then flies to the wizard, rests about 45 off 0.9 s after the rise, and is
+  still in the entity list 1.3-1.8 s after it. So the ratio rising is the pickup, and a taken wisp
+  lingers in memory, which is why Collect Wisps never picks a visited wisp again.
+- **A health wisp gave 25% of max health** here, three of them filling a wizard from 42%, and
+  the third gave only the 8% short of full.
+- **World wisps go round a fixed loop.** All ten health wisps in sight shared one loop, at 88-89
+  units a second, each lapping in about 99 s (a circuit of about 8,700 units), bobbing about 30
+  units up and down. A wisp taken from the loop was replaced on it 11-22 s later. A walk planned
+  to where such a wisp was arrives where it no longer is: at a wizard's own speed, the wisp is a
+  third or more as fast.
+- **Group bonus wisps** (stated 2026-11-27, not measured): extra wisps spawn after a fight only
+  when the players are in a group, and not after every fight. They float near the center of the
+  duel circle, barely moving, along no set path, unlike world wisps. A dungeon can also have world
+  wisps of its own nearby.
 
 ## Fleeing, defeat and the hub
 
