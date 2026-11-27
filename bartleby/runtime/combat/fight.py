@@ -80,6 +80,11 @@ def slots_in_battle(in_battle_flags: list) -> list[int]:
     return [i for i, flag in enumerate(in_battle_flags) if flag is True]
 
 
+def _numbered_through(provider) -> int:
+    """The last round *provider*'s strategy has a numbered ``{N}`` line for; 0 with none."""
+    return max(provider.config.specific_rounds, default=0)
+
+
 async def _run_combat(client, combat_dsl: str, watch: FightWatch | None = None, *, number: int | None = None) -> None:
     """Run SprintyCombat for a single client using an inline DSL string.
 
@@ -88,6 +93,8 @@ async def _run_combat(client, combat_dsl: str, watch: FightWatch | None = None, 
     *number*, the client's 1-based player number, tags its lines in the turn trace.
     """
     provider = dsl._combat_provider(combat_dsl)
+    if watch is not None:
+        watch.note_combat(client, _numbered_through(provider))
     log_tag = f"[P{number}]" if number is not None else ""
     if watch is None:
         from wizwalker.extensions.wizsprinter import SprintyCombat  # noqa: PLC0415
@@ -125,6 +132,10 @@ class RoundReport(NamedTuple):
     """It holds a castable damage card. False while it is defeated."""
     dot_on_enemies: bool
     """Some enemy carries damage over time, or damage deferred to a later round."""
+    numbered_through: int = 0
+    """The last round its strategy has a numbered ``{N}`` line for; 0 with none."""
+    acted: bool = False
+    """It did something with a card on its last turn, or was played by hand then."""
 
 
 @dataclass
@@ -151,9 +162,18 @@ class FightWatch:
     every planning phase (:meth:`should_flee`). A fight is fled by every one of our players
     in it, never by one alone: a player out of damage is carried by the rest. It is fled
 
-    - once, for FLEE_AFTER_ROUNDS planning phases in a row, none of our players in it has held
-      a castable damage card and no enemy has carried damage over time; or
+    - once FLEE_AFTER_ROUNDS planning phases in a row count against it; or
     - at once, for every fight, after :meth:`flee_all`.
+
+    A planning phase counts against a fight only when all of these hold:
+
+    - its round is past every numbered ``{N}`` line among our players' strategies in it, since
+      a strategy that names a later round has more to do there (a hit on ``{12}``);
+    - none of our players in it holds a castable damage card;
+    - no enemy carries damage over time; and
+    - none of our players in it did anything with a card on its last turn: a cast (a fizzle
+      included), an enchant, a discard or a draw. A large deck can take many turns to reach a
+      hit. Cards run out, so a team that keeps casting passes in the end.
 
     Players are grouped into fights by what each one's duel lists: two of ours share a fight
     when both are participants of it. Neither zone nor duel circle can tell, since two realms
@@ -162,7 +182,8 @@ class FightWatch:
     :meth:`flee_all` can make its players flee.
 
     Every doubt counts against fleeing: a report that cannot be read, or that has not arrived
-    within FLEE_VOTE_TIMEOUT, is read as "can still deal damage" and breaks the run of rounds.
+    within FLEE_VOTE_TIMEOUT, is read as "can still deal damage" and breaks the run of rounds,
+    and a turn played by hand is read as one that did something.
     A player whose own report cannot be read abstains, which says so at once: staying silent
     left everyone else waiting out the timeout for it, 5 s of every round it happened in.
 
@@ -197,6 +218,8 @@ class FightWatch:
         self._flee_all_reason: str | None = None
         self._would: dict[frozenset[int], str] = {}  # fight -> why it would be fled
         self._cast_for: dict = {}  # client -> whether its last planning phase was cast for
+        self._numbered_through: dict = {}  # client -> its strategy's last numbered round
+        self._acted: dict = {}  # client -> whether its last turn did something with a card
         self.fled: set[int] = set()  # player numbers that carried out a flee
 
     async def identify(self) -> None:
@@ -211,6 +234,18 @@ class FightWatch:
             self.log("Fight watch: a player's id is unreadable; only the time limit can make them flee", logging.DEBUG)
             return
         self._gids = dict(zip(clients, gids))
+
+    def note_combat(self, client, numbered_through: int) -> None:
+        """*client*'s combat is starting, by a strategy numbered through that round."""
+        self._numbered_through[client] = numbered_through
+        self._acted.pop(client, None)  # a turn in an earlier fight says nothing of this one
+
+    def note_turn(self, client, acted: bool) -> None:
+        """Whether *client*'s turn this planning phase did something with a card.
+
+        True for one that cannot be told, such as one played by hand.
+        """
+        self._acted[client] = acted
 
     def flee_all(self, reason: str) -> None:
         """Make every player flee at its next planning phase."""
@@ -284,6 +319,10 @@ class FightWatch:
         if self._flee_all_reason is not None:
             what = f"{self._flee_all_reason} for {self._players(report.ours_here)}"
             return self._flee_unless_by_hand(report.ours_here, what, announce=False)
+        report = report._replace(
+            numbered_through=self._numbered_through.get(combat.client, 0),
+            acted=self._acted.get(combat.client, False),
+        )
         key = (report.round, report.ours_here)
         ballot = self._ballot(key)
         ballot.votes[gid] = report
@@ -328,17 +367,30 @@ class FightWatch:
             and not ballot.abstained
             and not any(vote.has_damage or vote.dot_on_enemies for vote in ballot.votes.values())
         )
-        if not hopeless:
+        what = f"{self._players(ballot.expected)}: no castable damage card and no damage over time on the enemies"
+        waiting = self._still_waiting(key[0], ballot) if hopeless else None
+        if not hopeless or waiting:
+            if waiting:
+                self.log(f"{what} (round {key[0]}, not counted: {waiting})", logging.DEBUG)
             self._streaks[fight] = 0
             self._would.pop(fight, None)
             return
         streak = self._streaks.get(fight, 0) + 1
         self._streaks[fight] = streak
-        what = f"{self._players(ballot.expected)}: no castable damage card and no damage over time on the enemies"
         if streak < FLEE_AFTER_ROUNDS:
             self.log(f"{what} (round {key[0]}, {streak} of {FLEE_AFTER_ROUNDS})", logging.DEBUG)
             return
-        self._flee_unless_by_hand(fight, f"{what} for {streak} rounds")
+        self._flee_unless_by_hand(fight, f"{what}, and no card used, for {streak} rounds")
+
+    def _still_waiting(self, round_num: int, ballot: _Ballot) -> str | None:
+        """Why a planning phase with no damage in it does not count yet, or None if it does."""
+        numbered_through = max((vote.numbered_through for vote in ballot.votes.values()), default=0)
+        if round_num <= numbered_through:
+            return f"the strategies have numbered lines through round {numbered_through}"
+        acted = frozenset(gid for gid, vote in ballot.votes.items() if vote.acted)
+        if acted:
+            return f"{self._players(acted)} used a card last turn"
+        return None
 
     def _flee_unless_by_hand(self, fight: frozenset[int], what: str, *, announce: bool = True) -> bool:
         """Flee *fight*, unless a player in it is played by hand: then it would be, and the player decides.
@@ -514,6 +566,7 @@ def _watched_combat_class():
                 if not self.watch.casts_for(self.client):
                     # Played by hand this round: the player casts, and the game waits for them.
                     run_trace.note(by_hand=True)
+                    self.watch.note_turn(self.client, True)  # what the player did cannot be told
                     return
                 # Outside SprintyCombat's own mouse_handler block: the flee's clicks take it themselves.
                 # The vote waits on the others, so it is made before the hold is taken.
@@ -525,6 +578,7 @@ def _watched_combat_class():
                 self.team_order = self.watch.team_order()
                 async with self.watch.hold_for(self.client):
                     await super().handle_round()
+                self.watch.note_turn(self.client, self.turn_acted)
 
         async def try_execute_config(self, move_config, willcasted: bool = False):
             self._tries += 1

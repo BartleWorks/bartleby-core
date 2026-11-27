@@ -84,7 +84,7 @@ async def test_an_unwinnable_fight_flees_every_one_of_our_players_in_it():
 
     assert decisions == [[False, False]] * (_ROUNDS - 1) + [[True, True]]
     assert log.warnings() == [
-        f"P1, P2: no castable damage card and no damage over time on the enemies for {_ROUNDS} rounds; fleeing"
+        f"P1, P2: no castable damage card and no damage over time on the enemies, and no card used, for {_ROUNDS} rounds; fleeing"
     ]
 
 
@@ -172,6 +172,111 @@ async def test_flee_all_needs_no_vote():
     with _reports({}) as report:
         assert await _round(watch, clients) == [True, True]
     report.assert_not_called()
+
+
+# --- A fight with nothing to hit with that is not lost yet ------------------------------
+
+
+async def _phases(watch: FightWatch, clients: list, rounds: int) -> list[bool]:
+    """Whether the team fled at each of *rounds* planning phases with no damage in them."""
+    fight = {await c.client_object.global_id_full() for c in clients}
+    with _reports({(gid, "*"): (fight, False, False) for gid in fight}):
+        return [any(await _round(watch, clients)) for _ in range(rounds)]
+
+
+async def test_no_round_counts_until_past_every_numbered_line():
+    """P2's hit is on {12}: nothing before round 13 counts, though everyone passes to get there."""
+    watch, (p1, p2), log = await _watch(11, 22)
+    watch.note_combat(p1, 3)
+    watch.note_combat(p2, 12)
+
+    fled = await _phases(watch, [p1, p2], 12 + _ROUNDS)
+
+    assert fled == [False] * (12 + _ROUNDS - 1) + [True]
+    assert (
+        "P1, P2: no castable damage card and no damage over time on the enemies"
+        " (round 12, not counted: the strategies have numbered lines through round 12)",
+        logging.DEBUG,
+    ) in log.lines
+
+
+async def test_the_numbered_lines_of_another_fight_hold_nothing_back():
+    watch, (p1, p2), _log = await _watch(11, 22)
+    watch.note_combat(p2, 12)
+    with _reports({(11, "*"): ({11}, False, False), (22, "*"): ({22}, False, False)}):
+        decisions = [await _round(watch, [p1, p2]) for _ in range(_ROUNDS)]
+
+    assert decisions[-1] == [True, False]
+
+
+async def test_a_card_used_by_any_player_restarts_the_count():
+    """A large deck can cast other things for many turns before it draws a hit."""
+    watch, (p1, p2), log = await _watch(11, 22)
+    fight = {11, 22}
+    with _reports({(11, "*"): (fight, False, False), (22, "*"): (fight, False, False)}):
+        for _ in range(_ROUNDS * 2):
+            watch.note_turn(p2, True)
+            assert await _round(watch, [p1, p2]) == [False, False]
+        watch.note_turn(p2, False)
+        decisions = [await _round(watch, [p1, p2]) for _ in range(_ROUNDS)]
+
+    assert decisions == [[False, False]] * (_ROUNDS - 1) + [[True, True]]
+    assert any("not counted: P2 used a card last turn" in message for message, _level in log.lines)
+
+
+async def test_a_new_combat_forgets_the_last_turn_of_the_one_before():
+    watch, (client,), _log = await _watch(11)
+    watch.note_turn(client, True)
+    watch.note_combat(client, 0)
+
+    assert await _phases(watch, [client], _ROUNDS) == [False] * (_ROUNDS - 1) + [True]
+
+
+@pytest.mark.parametrize(
+    "strategy, last",
+    [("pass", 0), ("\n".join(["{1} pass", "{12} pass", "{3} pass", "pass"]), 12)],
+    ids=["unnumbered", "numbered"],
+)
+async def test_a_players_combat_tells_the_watch_how_far_its_strategy_is_numbered(strategy, last):
+    from wizwalker.extensions.wizsprinter import SprintyCombat
+
+    client = FakeClient()
+    watch = FightWatch({client: 1}, _Log())
+    watch.note_combat = MagicMock()
+    with patch.object(SprintyCombat, "wait_for_combat", AsyncMock()):
+        await combat_runner._run_combat(client, strategy, watch, number=1)
+
+    watch.note_combat.assert_called_once_with(client, last)
+
+
+@pytest.mark.parametrize("acts", [False, True])
+async def test_the_watched_combat_tells_the_watch_what_its_turn_did(acts):
+    from wizwalker.extensions.wizsprinter import SprintyCombat
+
+    client = FakeClient()
+    watch = FightWatch({client: 1}, _Log())
+    watch.should_flee = AsyncMock(return_value=False)
+    watch.note_turn = MagicMock()
+    combat = combat_runner._watched_combat_class()(client, MagicMock(), watch)
+
+    async def play(self):
+        self.turn_acted = acts
+
+    with patch.object(SprintyCombat, "handle_round", play):
+        await combat.handle_round()
+
+    watch.note_turn.assert_called_once_with(client, acts)
+
+
+async def test_a_turn_played_by_hand_counts_as_one_that_used_a_card():
+    client = FakeClient()
+    watch = FightWatch({client: 1}, _Log(), casts=lambda _client: False)
+    watch.note_turn = MagicMock()
+    combat = combat_runner._watched_combat_class()(client, MagicMock(), watch)
+
+    await combat.handle_round()
+
+    watch.note_turn.assert_called_once_with(client, True)
 
 
 # ---------------------------------------------------------------------------
@@ -458,7 +563,7 @@ async def test_a_fight_with_a_player_played_by_hand_would_flee_and_waits_for_no_
     assert decisions == [False] * (_ROUNDS + 1)
     assert watch.would_flee == {1, 2}
     assert log.warnings() == [
-        f"P1: no castable damage card and no damage over time on the enemies for {_ROUNDS} rounds;"
+        f"P1: no castable damage card and no damage over time on the enemies, and no card used, for {_ROUNDS} rounds;"
         " P2 is played by hand, so the team would flee and the player decides"
     ]
 
@@ -574,7 +679,7 @@ async def test_the_player_number_tags_the_turn_trace(watched):
     async def wait_for_combat(self):
         tags.append(self.log_tag)
 
-    watch = SimpleNamespace() if watched else None
+    watch = SimpleNamespace(note_combat=lambda *_: None) if watched else None
     with patch.object(SprintyCombat, "wait_for_combat", wait_for_combat):
         await combat_runner._run_combat(FakeClient(), "pass", watch, number=2)
         await combat_runner._run_combat(FakeClient(), "pass", watch)

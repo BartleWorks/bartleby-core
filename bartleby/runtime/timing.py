@@ -711,7 +711,8 @@ COMBAT_TP_RETRY_INTERVAL = 5.0
 
 FLEE_AFTER_ROUNDS = 3
 # Planning phases in a row a fight must look unwinnable before our players flee it (#111):
-# none of them holds a castable damage card, and no damage over time is on the enemies. One
+# past their strategies' last numbered line, none of them holds a castable damage card, no
+# damage over time is on the enemies, and none used a card the turn before (FightWatch). One
 # round is not enough, because a card grayed out for want of pips reads the same as one that
 # can never be cast, and round one rarely has the pips for a big hit.
 
