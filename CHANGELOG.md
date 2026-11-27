@@ -10,6 +10,11 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ## Unreleased
 
+### Added
+
+- **Walk maps for Ahmarra's main zones**, the eleven beyond Bale Flotilla (BartleBot #339).
+  BartleBot's zone map declares them, and needs them to walk in them.
+
 ### Fixed
 
 - **A step's lip is floor.** `collision.walkable_triangles` keeps a face too steep for floor
