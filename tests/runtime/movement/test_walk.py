@@ -142,6 +142,124 @@ async def test_every_plan_runs_off_the_event_loop():
     assert threads and threading.main_thread() not in threads
 
 
+# --- a plan too long, and the plan kept ------------------------------------------------------
+
+
+def _counting(planner: ZonePlanner) -> list[tuple]:
+    """Every route *planner* plans from now on, by its start and goal."""
+    plans, route = [], planner.route
+
+    def noting(start, goal, *a, **k):
+        plans.append((tuple(start), tuple(goal)))
+        return route(start, goal, *a, **k)
+
+    planner.route = noting
+    return plans
+
+
+async def test_a_plan_over_longest_ends_the_walk_too_long_pressing_nothing_and_says_what_it_planned(caplog):
+    client = _client()  # 1,200 units a second, so the 2,400 to the goal plan at 2 s
+    caplog.set_level("INFO", logger=walk_module.__name__)
+
+    result = await _walk_lease(RouteWalker(client, _hall()), client, (2600, 1000, 0), longest=1.5)
+
+    assert result.end is WalkEnd.TOO_LONG
+    assert result.planned == pytest.approx(2.0, abs=0.05)
+    assert result.speed == pytest.approx(1200)
+    assert [r for r in client.inputs if r.kind in ("down", "yaw")] == []
+    assert client.held == set()
+    assert result.miss == pytest.approx(2400, abs=1)
+    assert "too long" in caplog.text and "WARNING" not in [r.levelname for r in caplog.records]
+
+
+async def test_a_plan_within_longest_is_walked_and_every_walk_says_what_it_planned():
+    client = _client()
+
+    within = await _walk_lease(RouteWalker(client, _hall()), client, (1400, 1000, 0), longest=1.5)
+    unasked = await _walk(client, _hall(), (200, 1000, 0))
+
+    assert within.arrived and unasked.arrived
+    assert within.planned == pytest.approx(1.0, abs=0.05)
+    assert unasked.planned == pytest.approx(1.0, abs=0.05)
+
+
+async def test_a_plan_is_costed_at_the_wizards_own_speed():
+    on_foot = _client()
+    on_foot.speed = 0
+    fastest_mount = _client()
+    fastest_mount.speed = 55
+
+    slow = await _walk_lease(RouteWalker(on_foot, _hall()), on_foot, (2600, 1000, 0), longest=0.1)
+    fast = await _walk_lease(RouteWalker(fastest_mount, _hall()), fastest_mount, (2600, 1000, 0), longest=0.1)
+
+    assert slow.planned == pytest.approx(4.0, abs=0.1) and slow.speed == pytest.approx(600)
+    assert fast.planned == pytest.approx(4.0 / 1.55, abs=0.1) and fast.speed == pytest.approx(930)
+
+
+async def test_the_walk_after_a_plan_too_long_takes_that_plan_and_plans_nothing():
+    client = _client()
+    planner = _hall()
+    walker = RouteWalker(client, planner)
+    plans = _counting(planner)
+
+    first = await _walk_lease(walker, client, (1400, 1000, 0), longest=0.5)
+    second = await _walk_lease(walker, client, (1400, 1000, 0))
+
+    assert first.end is WalkEnd.TOO_LONG and second.arrived
+    assert plans == [((200.0, 1000.0, 0.0), (1400.0, 1000.0, 0.0))]
+    assert second.planned == pytest.approx(first.planned)
+    assert second.routes == first.routes
+
+
+async def test_a_kept_plan_is_taken_once_and_only_by_a_walk_from_its_spot_to_its_goal_on_an_unchanged_planner():
+    client = _client()
+    planner = _hall()
+    walker = RouteWalker(client, planner)
+    plans = _counting(planner)
+
+    async def kept_then(goal, change=lambda: None):
+        await _walk_lease(walker, client, (1400, 1000, 0), longest=0.5)
+        change()
+        before = len(plans)
+        result = await _walk_lease(walker, client, goal, longest=0.5)
+        return len(plans) - before, result
+
+    assert (await kept_then((1400, 1000, 0)))[0] == 0  # kept: the plan is taken
+    assert (await kept_then((1400, 1000, 0)))[0] == 0  # and kept again, too long again
+    assert (await kept_then((1400, 1400, 0)))[0] == 1  # another goal
+    assert (await kept_then((1400, 1000, 0), lambda: planner.block(3500, 300, 0, 50)))[0] == 1  # changed
+
+    def moved():
+        client.position = (400.0, 1000.0, 0.0)
+
+    assert (await kept_then((1400, 1000, 0), moved))[0] == 1  # from another spot
+    client.position = (200.0, 1000.0, 0.0)
+    await _walk_lease(walker, client, (1400, 1000, 0), longest=0.5)
+    arrived = await _walk_lease(walker, client, (1400, 1000, 0))
+    client.position = (200.0, 1000.0, 0.0)
+    before = len(plans)
+    await _walk_lease(walker, client, (1400, 1000, 0), longest=0.5)
+    assert arrived.arrived and len(plans) - before == 1  # taken once, by the walk that arrived
+
+
+async def test_a_walk_that_ends_any_other_way_keeps_no_plan():
+    client = _client()
+    planner = _hall()
+    walker = RouteWalker(client, planner)
+    plans = _counting(planner)
+
+    await _walk_lease(walker, client, (1400, 1000, 0))
+    client.position = (200.0, 1000.0, 0.0)
+    await _walk_lease(walker, client, (1400, 1000, 0))
+
+    assert len(plans) == 2
+
+
+async def _walk_lease(walker: RouteWalker, client, goal, **kw):
+    async with Arbiter().acquire(client, Owner.MOVEMENT) as lease:
+        return await walker.walk(lease, goal, **kw)
+
+
 # --- resets and jumps --------------------------------------------------------------------------
 
 

@@ -81,7 +81,7 @@ from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.movement.gates import Gate, NoRoute
 from bartleby.runtime.movement.geometry import Point, facing, flat_distance, heading_to, wrap
-from bartleby.runtime.movement.route import FIGHT_REACH, WIZARD_SPEED, Leg, Route, ZonePlanner
+from bartleby.runtime.movement.route import FIGHT_REACH, WIZARD_SPEED, Leg, Route, ZonePlanner, walking_seconds
 from bartleby.runtime.movement.zone_links import Link
 from bartleby.runtime.timing import (
     WALK_BACK_OFF_LONGEST,
@@ -197,6 +197,7 @@ class WalkEnd(StrEnum):
     FIGHT = "a fight started"
     ZONE_CHANGED = "the zone changed"
     TIMED_OUT = "out of time"
+    TOO_LONG = "its plan was too long"  # longer than walk(longest=...), so not walked at all
 
 
 @dataclass
@@ -211,6 +212,10 @@ class WalkResult:
     detail: str = ""
     seconds: float = 0.0
     planning: float = 0.0  # of the seconds, those spent waiting on the planner
+    # The first plan's walking seconds (route.walking_seconds) at the wizard's own speed, in
+    # units a second, as the walk read it before planning: None when it planned nothing.
+    planned: float | None = None
+    speed: float | None = None
     replans: int = 0
     recoveries: int = 0
     detours: int = 0
@@ -649,6 +654,33 @@ class _Refresh:
                 self.errors += 1
 
 
+def _planner_state(planner: ZonePlanner) -> tuple:
+    """What a walk changes on its planner: the gates closed, the spots blocked, the links left."""
+    return tuple(planner.closed), tuple(planner.blocks), tuple(planner.links)
+
+
+@dataclass(frozen=True)
+class _Kept:
+    """The plan of a walk that ended TOO_LONG, for the next walk to take instead of planning:
+    where it was planned from and to, whether to a fight, and the planner as it stood."""
+
+    start: Point
+    goal: Point
+    fight: Point | None
+    legs: list[Leg]
+    state: tuple
+
+    def fits(self, planner: ZonePlanner, start: Point, goal: Point, fight: Point | None) -> bool:
+        """Whether a walk from *start* to *goal* may take it: from within ARRIVE_GOAL of where it
+        was planned, to the same goal and the same fight, on a planner nothing has changed since."""
+        return (
+            flat_distance(start, self.start) <= ARRIVE_GOAL
+            and tuple(goal) == self.goal
+            and fight == self.fight
+            and _planner_state(planner) == self.state
+        )
+
+
 class RouteWalker:
     """Walks one client to points in its zone, on the planner it is given.
 
@@ -683,6 +715,7 @@ class RouteWalker:
         self._fight: Point | None = None  # the goal of a walk into a fight, while one is walked
         self._spare: frozenset[int] = frozenset()  # the mobs that walk means to meet, by key
         self._detour_failed: str | None = None  # the kind of reason no detour was taken, last logged
+        self._kept: _Kept | None = None  # the plan of the last walk, when it ended TOO_LONG
 
     async def _read(self) -> tuple[Point, float]:
         pos = await self.client.body.position()
@@ -697,22 +730,36 @@ class RouteWalker:
         # A logged-out character's field is freed memory; nothing real is past 2.0x.
         return WIZARD_SPEED * (1 + field_value / 100) if 0 <= field_value <= 100 else WIZARD_SPEED
 
-    async def walk(self, lease: Lease, goal: Point, *, fight: bool = False, spare: Sequence[int] = ()) -> WalkResult:
+    async def walk(
+        self,
+        lease: Lease,
+        goal: Point,
+        *,
+        fight: bool = False,
+        spare: Sequence[int] = (),
+        longest: float | None = None,
+    ) -> WalkResult:
         """Walk to *goal* through *lease*'s input, from where the wizard stands.
 
         *fight* makes it a walk into a fight at *goal*: the patrols of the mobs there cost its plan
         nothing, and the watch leaves out the mobs in *spare* (their keys, the entities' global ids)
         and any whose trigger radius comes within FIGHT_REACH of *goal*. It ends FIGHT once the
-        wizard is in battle, as any walk does."""
+        wizard is in battle, as any walk does.
+
+        *longest*, in seconds, is the most the first plan may take to walk
+        (:attr:`WalkResult.planned`): a plan over it ends the walk :attr:`WalkEnd.TOO_LONG`
+        before any key is pressed. The walker keeps that plan, and the next walk it is asked for,
+        if it starts within ARRIVE_GOAL of the same spot and goes to the same goal, on a planner
+        no walk has changed since, takes it rather than planning again. Any other walk drops it."""
         self._fight = tuple(goal) if fight else None
         self._spare = frozenset(spare) if fight else frozenset()
         self._detour_failed = None
         try:
-            return await self._walk_to(lease, goal)
+            return await self._walk_to(lease, goal, longest)
         finally:
             self._fight, self._spare = None, frozenset()
 
-    async def _walk_to(self, lease: Lease, goal: Point) -> WalkResult:
+    async def _walk_to(self, lease: Lease, goal: Point, longest: float | None) -> WalkResult:
         started = time.monotonic()
         position, _ = await self._read()
         zone = await self.client.zone_name()
@@ -725,7 +772,7 @@ class RouteWalker:
             watch = _Refresh(self.entities)
         watch.start()
         try:
-            await self._walk(lease, result, watch if self.watch_mobs else None, started)
+            await self._walk(lease, result, watch if self.watch_mobs else None, started, longest)
         except _Ended as ended:
             result.end, result.detail = ended.end, ended.detail
         finally:
@@ -742,7 +789,8 @@ class RouteWalker:
             result.position, _ = await self._read()
         except Exception:  # noqa: BLE001 - a closed client: where it stopped is not known
             result.position = result.trail[-1] if result.trail else None
-        log = logger.info if result.arrived else logger.warning
+        # A plan too long is the caller's question answered, not a walk gone wrong.
+        log = logger.info if result.arrived or result.end is WalkEnd.TOO_LONG else logger.warning
         log("%s: %s", self.label, result.describe())
         return result
 
@@ -807,24 +855,37 @@ class RouteWalker:
 
     async def _legs(self, result: WalkResult, route: Route, here: Point) -> list[Leg]:
         """*route*'s legs, the first starting from *here*."""
-        legs = await asyncio.to_thread(self.planner.legs, route)
-        result.routes.append([p for leg in legs for p in leg.waypoints])
-        first = list(legs[0].waypoints)
-        first[0] = (here[0], here[1], first[0][2])
-        return [Leg(first, legs[0].link), *legs[1:]]
+        return _from_here(result, await asyncio.to_thread(self.planner.legs, route), here)
 
-    async def _walk(self, lease: Lease, result: WalkResult, watch: MobWatch | None, started: float) -> None:  # noqa: C901, PLR0912, PLR0915 - the probe's one loop, kept whole
+    async def _first_legs(self, result: WalkResult, here: Point) -> list[Leg]:
+        """The first plan's legs, as the planner gives them: the plan kept from the walk before,
+        when it fits this one, or else a fresh plan, made while the walk's first lookups are."""
+        kept, self._kept = self._kept, None
+        if kept is not None and kept.fits(self.planner, here, result.goal, self._fight):
+            logger.debug("%s: walking the plan kept from the walk before", self.label)
+            await self._warm_up()
+            return kept.legs
+        route, _ = await asyncio.gather(self._plan(result, here, result.goal), self._warm_up())
+        if route is None:
+            why = await self._why_not(result, here, result.goal)
+            raise _Ended(WalkEnd.NO_ROUTE, why.describe())
+        return await asyncio.to_thread(self.planner.legs, route)
+
+    async def _walk(  # noqa: C901, PLR0912, PLR0915 - the probe's one loop, kept whole
+        self, lease: Lease, result: WalkResult, watch: MobWatch | None, started: float, longest: float | None = None
+    ) -> None:
         keys = lease.input
         goal = result.goal
         expected = await self._expected_speed()
         jump_speed = max(JUMP_SPEED, 2.0 * expected)
 
         here = result.start
-        route, _ = await asyncio.gather(self._plan(result, here, goal), self._warm_up())
-        if route is None:
-            why = await self._why_not(result, here, goal)
-            raise _Ended(WalkEnd.NO_ROUTE, why.describe())
-        legs = await self._legs(result, route, here)
+        planned = await self._first_legs(result, here)
+        legs = _from_here(result, planned, here)
+        result.planned, result.speed = walking_seconds(legs, expected), expected
+        if longest is not None and result.planned > longest:
+            self._kept = _Kept(here, goal, self._fight, planned, _planner_state(self.planner))
+            raise _Ended(WalkEnd.TOO_LONG, f"it walks {result.planned:.1f} s, over the {longest:.1f} s asked")
         # The leg being walked, its link, and the legs after it, which a replan after the link plans afresh.
         waypoints, link, later = legs[0].waypoints, legs[0].link, legs[1:]
         target = 1
@@ -1310,6 +1371,14 @@ def _next_ahead(route: Sequence[Point], here: Point) -> int:
     if len(route) < 2:
         return 1
     return min(range(1, len(route)), key=lambda k: _segment_distance(here, route[k - 1], route[k])[0])
+
+
+def _from_here(result: WalkResult, legs: list[Leg], here: Point) -> list[Leg]:
+    """*legs* as walked from *here*, which starts the first, noted on *result*'s plans."""
+    result.routes.append([p for leg in legs for p in leg.waypoints])
+    first = list(legs[0].waypoints)
+    first[0] = (here[0], here[1], first[0][2])
+    return [Leg(first, legs[0].link), *legs[1:]]
 
 
 def _time_budget(legs: Sequence[Leg], speed: float) -> float:
