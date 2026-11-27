@@ -734,6 +734,14 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
 - **A walk into a fight** (Stage 5), the fight join, walks with `fight=True` and the mob's id as
   *spare*; its `FIGHT` is the node's success. Wisps are walked to by the clients that need them,
   and a pickup inside an exit by `outside_exits`.
+- **Collect Wisps costs its wisps before it walks** (Stage 2 of its #340): its
+  `walking.seconds_to` asks `ZonePlanner.seconds_to` for every wisp in sight, one search from
+  each walker at the walker's own speed (its speed field, as the walker reads it) and by Avoid
+  Mobs. Each round, the health walkers and the mana walkers each take the wisp of their kind
+  with the least total seconds, and both groups walk at once. A wisp some walker has no route
+  to is dropped and left out of later scans, so its search of every reachable cell is paid
+  once; a zone with no map is picked by straight line. Near the node's timeout, a group whose
+  planned walk runs past the time left goes only for a player below a fail threshold.
 - **Ahead of need**: a thread builds and saves every zone's copy from startup, the open bot's
   zones first, then those Sync in Zone's network crosses, then the rest. A build holds the
   event loop at most about 33 ms (Triton Avenue, the largest map, 6.1 s to build). Each client's
@@ -758,9 +766,10 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
     after a write the position reads as the end whether or not the server keeps it. A chain of
     hops so moves at most 350 units a second, under walking's 600.
 - **What the shipped bots ask for**: BartleBot's `tools/check_bot_routes.py` plans every walk
-  between authored points. Of 850 on 2026-11-25, 759 were clear, 46 crossed a gate with a way
-  around, 32 had a gate as the only way, 9 took over 60 s and 4 had no route (placed walkable
-  floor, item 8, most likely).
+  between authored points. Of 859 on 2026-11-27, on routes that keep their room from walls
+  (0.15.5), 777 were clear, 41 crossed a gate with a way around, 28 had a gate as the only way,
+  11 took over 60 s and 2 had no route (placed walkable floor, item 8, most likely). On
+  2026-11-25, before the room, 4 of 850 had none and 9 took over 60 s.
 
 ## What is not done
 
