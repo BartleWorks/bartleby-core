@@ -173,6 +173,11 @@ Stated 2026-10-04.
 
 Stated 2026-10-03 and corrected 2026-10-05.
 
+- **A wizard recalls only to its own mark** (stated 2026-11-27, for BartleBuddy's
+  auto-quester). Each wizard has one mark of its own, and nobody else can travel to it. A
+  teammate reaches it only by porting to the owner once the owner has recalled there. So a
+  team of four has eight places it can reach in one move, each wizard's position and each
+  wizard's mark, but only by way of their owners.
 - A mark survives recalls: recall as many times as you like while you have mana.
 - Marking has **no cooldown**, but it **costs mana**, so a drop in current mana shows a mark
   click landed. MarkButton is grayed when marking is impossible: no mana, in combat, or in a
@@ -236,6 +241,19 @@ Stated 2026-10-20 for BartleBot #279.
   a team standing behind a player at its edge can leave its last wizard outside.
 - Relogging from inside a dungeon puts players back **where they were before entering**:
   usually on the entrance sigil, but elsewhere if they teleported in.
+
+## Quest collectibles
+
+Stated 2026-11-27, for BartleBuddy's auto-quester.
+
+- **Quest collectibles are shared within a realm.** An item one wizard picks up is gone for
+  everyone in that realm until it respawns, so wizards on the same collect goal compete for
+  its spots.
+- **In a regular zone, wizards split by realm.** Each one collects in a different realm and
+  has every spot to itself, which is the fastest way for a team to finish a collect goal.
+- **In a dungeon the team cannot split**, since it shares one instance. Wizards take turns:
+  each takes the spots that are up, and a spot one wizard emptied waits for its respawn
+  before the next wizard takes it.
 
 ## Decks and the backpack
 
