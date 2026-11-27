@@ -354,11 +354,33 @@ Stated 2026-10-14 while reworking BartleBot's shipped default strategies (#212),
 - **Shields:** teams usually carry none (killing faster wins). When a deck holds them it is out
   of necessity, and they are cast before any buff, especially solo.
 
+### Enchants and fusions
+
+Stated by the user on 2026-11-27.
+
+- **A card takes one enchant.** Sharpened Blade fits a trained blade, Potent Trap a trained
+  trap; both have item and treasure versions.
+- **Aegis and Indemnity protect a buff from removal.** Aegis fits any trained blade or shield,
+  Indemnity any trained trap or weakness: the same rules as Sharpened Blade and Potent Trap,
+  over two more kinds of spell. Neither fits a spell that leaves those effects only as a
+  secondary effect, or an item card, and neither has an item or treasure version. A protected
+  buff is as strong as the plain one, so either beats casting the card bare.
+- **A fusion** combines two spells into a new one. In the UI it works as an enchant does,
+  cast onto the card, so a move can enchant and then fuse: wizsprinter's second bracket is
+  that second step, not a second enchant.
+
 ### Stacking
 
 - Two buffs with the same spell id don't stack, whoever cast them.
 - An enchant makes a different buff: two Stormblades, one with trained Sharpened Blade and one
   with the item-card Sharpened Blade, stack; two plain Stormblades don't.
+- **A protecting enchant doesn't** (stated by the user on 2026-11-27): an Aegis Stormblade
+  and a plain one don't stack, though the game lets both hang. Read live the same day, the
+  Aegis copy carries Aegis's template id as its enchantment, in hand and once hanging, and
+  reads `protected` in both, so a stacking check by ids alone gets it wrong. An Aegis copy
+  and a Sharpened one stack.
+- Of two copies that don't stack, a hit uses the one placed first, and the other stays for a
+  later hit.
 - A support should still cast a buff that won't stack rather than pass.
 - A support's hit can use up buffs meant for the hitter. That, not attacking as such, is the
   risk in letting supports attack.

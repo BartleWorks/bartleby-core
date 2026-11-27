@@ -189,6 +189,14 @@ def test_a_pipe_or_an_ampersand_starts_the_next_move():
     assert _spans("Tempest @ aoe & draw")[-1] == ("draw", K)
 
 
+def test_a_pipe_inside_an_enchant_separates_its_backups_and_keeps_the_bracket_open():
+    """``[sharp | "Aegis"]``: one enchant with a backup, not the next priority."""
+    assert ds.scan_line("any<blade>[sharp | ").stack == (Context.MOVE, Context.ENCHANT)
+    assert _spans('any<blade>[sharp | "Aegis"] @ self')[-1] == ("self", TG)
+    # Once the bracket closes, a pipe starts the next priority again.
+    assert _spans('any<blade>[sharp | "Aegis"] @ self | pass')[-1] == ("pass", K)
+
+
 def test_discard_is_a_keyword_and_its_spell_list_colors_like_any_other():
     assert _spans("discard @ spell(Tempest, any<aoe>)") == [
         ("discard", K),
@@ -275,6 +283,12 @@ def test_a_bang_offers_the_types_it_can_negate():
     assert ds.complete("any<trap & !ao").candidates == ("aoe",)
     # A name is typed freely; nothing is offered for one.
     assert ds.complete("any<trap & !fei").candidates == ()
+
+
+def test_a_pipe_inside_an_enchant_offers_what_the_bracket_does():
+    assert ds.complete("any<blade>[").candidates == ("any<",)
+    assert ds.complete("any<blade>[sharp | ").candidates == ("any<",)
+    assert validate_dsl('any<blade>[sharp | any<mod_damage> | "Aegis"] @ self') is None
 
 
 def test_a_typed_prefix_narrows_the_candidates_case_insensitively():
