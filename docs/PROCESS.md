@@ -4,11 +4,13 @@ Issues, the backlog board, and how work lands. The merge procedure itself is the
 
 
 Issues live in the GitHub repo; the backlog board is the **org-level** project
-**The World Tree Backlog** (`gh project … --owner BartleWorks`, number 1), linked to
+**BartleWorks Project** (`gh project … --owner BartleWorks`, number 1), linked to
 BartleBot, BartleBuddy and BartleBuilder.
 
 The board is org-level because **milestones are per-repo and cannot cross products**.
-Its `Product` field carries what a shared milestone would have.
+Its `Product` field carries what a shared milestone would have. Besides the Default View,
+which shows everything, it has one view per product (BartleBot, BartleBuddy, Core),
+filtered on `Product`, grouped by milestone and sorted by Priority.
 
 Three mechanisms, three questions. Do not make one do another's job:
 
@@ -41,16 +43,22 @@ no commit trail behind it.
 - **A type and one label, always, at creation**: an issue type (`Bug` / `Feature` /
   `Task` / `Epic`) and exactly one `area/*`. If two areas fit equally well, it is
   probably two issues.
-- **On the board, with its Product set, at creation.** Every new issue goes on The World
-  Tree Backlog with `Product` set to the repo it was filed in. The board is shared by
+- **On the board, with its Product set, at creation.** Every new issue goes on
+  BartleWorks Project with `Product` set to the repo it was filed in. The board is shared by
   three products, and an issue with no `Product` drops out of every per-product view.
-- **A milestone is a commitment.** Add `1.0.0` only if it blocks going public. No
-  milestone is the default and carries no stigma.
-- **Core's milestones are named for core's versions** (`0.2.0`), never a product's: core
-  is released on its own, and its milestone closes when the release's tag is pushed
+- **A milestone is a commitment.** Add `BartleBot 1.0.0` only if it blocks going public.
+  No milestone is the default and carries no stigma.
+- **A milestone's title starts with its product**: `BartleBot 0.5.0`, `BartleBuddy 0.1.0`,
+  `Core 0.16.0`. A board view groups milestones by title across repos, so a bare `0.5.0`
+  would merge two products' releases into one group, and it says nothing on an issue page.
+- **Core's milestones are named for core's versions** (`Core 0.2.0`), never a product's:
+  core is released on its own, and its milestone closes when the release's tag is pushed
   (`docs/UPSTREAM.md`, *Core's releases*).
 - **Priority and Size are set at triage, not at creation.** Filing is cheap;
-  estimating is not. Leave them empty and sweep them periodically.
+  estimating is not. Leave them empty and sweep them periodically. Both are org-level
+  issue fields, so they mean the same in every repo, and each option's description says
+  when it applies: **Urgent** and **High** block a release, **Medium** is worth doing but
+  unscheduled, and **Low** is under consideration and may never be done.
 - **Never put work items in a markdown checklist.** A checklist line cannot be
   labeled, scheduled, assigned, or closed. More than about three sub-tasks means
   the issue is an `Epic`: set that type, decompose it into real sub-issues and link them

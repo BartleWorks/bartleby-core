@@ -276,7 +276,7 @@ version and the changelog are how the other one finds out.
   product must fix to take it. A merge that changes what a product sees adds its line in
   the merge itself, under `## Unreleased` at the top, starting that heading if the last
   release left none.
-- **Core's milestones are named for its versions** (`0.2.0`), in BartleWorks/bartleby-core.
+- **Core's milestones are named for its versions** (`Core 0.2.0`), in BartleWorks/bartleby-core.
   An issue meant for the next release goes in its milestone, which closes when the tag is
   pushed.
 
