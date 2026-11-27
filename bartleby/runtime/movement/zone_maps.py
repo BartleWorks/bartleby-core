@@ -266,9 +266,10 @@ def index_text(zones: Mapping[str, Mapping[str, str]]) -> str:
 # --- the shipped maps, and their saved copies ------------------------------------------------
 
 #: What a saved copy was built by. Raise it whenever a change to the planner modules would build
-#: a different grid, floor or clearance from the same map: every saved copy is then rebuilt.
-#: ``test_cache_version_follows_the_planner`` fails on such a change until it is raised.
-CACHE_VERSION = 2
+#: a different grid, floor, clearance or room from walls from the same map: every saved copy is
+#: then rebuilt. ``test_cache_version_follows_the_planner`` fails on such a change until it is
+#: raised. 3: the room from walls (``Grid.wall_room``), for Stage 1.2 of BartleBot's #340.
+CACHE_VERSION = 3
 #: How many planners a session keeps in memory, most recently used last: a big street holds
 #: some 20 MB of arrays, and reading one back from its saved copy is quick.
 KEPT = 8
@@ -290,6 +291,7 @@ class _Built:
     grid: Grid
     passable: np.ndarray
     clearance: np.ndarray
+    wall_room: np.ndarray | None  # None in a copy saved before CACHE_VERSION 3, whose key no longer fits
 
     def to_bytes(self) -> bytes:
         return _npz_bytes(
@@ -300,6 +302,7 @@ class _Built:
                 "origin": np.array([self.grid.x0, self.grid.y0, self.grid.cell], dtype=np.float64),
                 "passable": self.passable,
                 "clearance": self.clearance,
+                "wall_room": self.wall_room,
             },
             level=1,
         )
@@ -309,7 +312,8 @@ class _Built:
         with np.load(io.BytesIO(data), allow_pickle=False) as arrays:
             x0, y0, cell = (float(v) for v in arrays["origin"])
             grid = Grid.from_arrays(arrays["levels"], arrays["walls"], x0, y0, cell)
-            return cls(str(arrays["key"][0]), grid, arrays["passable"], arrays["clearance"])
+            wall_room = arrays["wall_room"] if "wall_room" in arrays.files else None
+            return cls(str(arrays["key"][0]), grid, arrays["passable"], arrays["clearance"], wall_room)
 
 
 class ZoneMaps:
@@ -442,7 +446,7 @@ class ZoneMaps:
         grid = grid_of(*read_floor(floor))
         record = read_zone(own.decode("utf-8"))
         wall_gates(grid, record.gates)
-        built = _Built(key, grid, grid.passable(), clearance(grid, record.patrols))
+        built = _Built(key, grid, grid.passable(), clearance(grid, record.patrols), grid.wall_room())
         path = self._cache_path(zone)
         partial = path.with_name(f"{path.name}.{os.getpid()}-{threading.get_ident()}.partial")
         try:
@@ -468,6 +472,7 @@ class ZoneMaps:
             gates=record.gates,
             passable=built.passable,
             room=built.clearance,
+            wall_room=built.wall_room,
         )
 
 

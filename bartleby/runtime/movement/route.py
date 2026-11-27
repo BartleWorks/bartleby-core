@@ -48,6 +48,7 @@ from bartleby.runtime.movement.zone_grid import (
     CLEARANCE,
     LEVEL_GAP,
     MAX_RISE,
+    ROOM_STEPS,
     STEP_TOL,
     Grid,
     Node,
@@ -77,6 +78,13 @@ EXIT_MARGIN = CLEARANCE
 FIGHT_REACH = 120.0
 #: How many nodes A* expands between looks at its stop event: about 10 ms of searching.
 STOP_EVERY = 4096
+#: Extra cost per unit walked on floor with under ROOM_STEPS[1] of room from walls and drops
+#: (:meth:`~bartleby.runtime.movement.zone_grid.Grid.wall_room`), and a quarter of it on floor
+#: with under ROOM_STEPS[-1]: a route keeps the most room there is, and squeezes down to
+#: CLEARANCE only where the floor narrows, a doorway or a bridge, never refused there, only
+#: priced. 50 units of the tightest floor cost what 250 of roomy floor do, so a route goes up
+#: to that much further round to keep its room.
+WALL_WEIGHT = 4.0
 
 
 class PlanStopped(Exception):
@@ -100,7 +108,7 @@ def astar(
     stop: threading.Event | None = None,
 ) -> tuple[list[Node], frozenset[int]] | None:
     """A cell-by-cell route, and each k whose step from node k to node k + 1 is a link, or None.
-    *portals* maps a node's flat index to the nodes a link puts it on, and what taking it costs.
+    *cost* is what a unit walked costs, per cell (j, i) or per floor spot (layer, j, i). *portals* maps a node's flat index to the nodes a link puts it on, and what taking it costs.
     A link's step is recorded as one, since its landing may be the next cell across from where it
     is taken, on another storey: a short ladder. The distance heuristic does not know about
     links, so a route using one is found but not always the shortest. A node in *taken_only* (a
@@ -138,7 +146,7 @@ def _search(
     plane = ny * nx
     ok = passable.ravel().tolist()
     z = np.nan_to_num(grid.levels).ravel().tolist()
-    mult = cost.ravel().tolist()
+    mult = np.broadcast_to(cost, grid.levels.shape).ravel().tolist()
     s = start[0] * plane + start[1] * nx + start[2]
     remaining = {g[0] * plane + g[1] * nx + g[2] for g in goals}
     reached: set[int] = set()
@@ -180,7 +188,7 @@ def _search(
             for nb in range(nj * nx + ni, layers * plane, plane):
                 if nb in done or not ok[nb] or abs(z[nb] - height) > tol:
                     continue
-                ng = g_cost + length * (mult[rest] + mult[nj * nx + ni]) / 2
+                ng = g_cost + length * (mult[cur] + mult[nb]) / 2
                 if ng < best.get(nb, math.inf):
                     best[nb] = ng
                     came[nb] = cur
@@ -222,6 +230,16 @@ def _route(floor: np.ndarray, volumes: np.ndarray, nodes: list[Node], jumps: fro
     for node in nodes:
         walked[node] = floor[node]
     return Route(nodes, walked, jumps)
+
+
+def wall_cost(wall_room: np.ndarray) -> np.ndarray:
+    """The extra cost per unit walked on each floor spot of *wall_room* (:meth:`Grid.wall_room`):
+    nothing with ROOM_STEPS[-1] of room, a quarter of :data:`WALL_WEIGHT` with less, and all of
+    it under ROOM_STEPS[1]."""
+    extra = np.zeros(wall_room.shape)
+    extra[wall_room < ROOM_STEPS[-1]] = WALL_WEIGHT / 4
+    extra[wall_room < ROOM_STEPS[1]] = WALL_WEIGHT
+    return extra
 
 
 def walking_seconds(legs: Sequence[Leg], speed: float = WIZARD_SPEED) -> float:
@@ -288,6 +306,17 @@ def straight_ok(
     return abs(z - float(grid.levels[b])) <= tol
 
 
+def _line_cost(grid: Grid, walls: np.ndarray, a: Node, b: Node) -> float:
+    """What walking straight from a to b costs for its room from walls (:func:`smooth`'s
+    *walls*), sampled every half cell, as :func:`straight_ok` looks along it."""
+    n = int(max(abs(b[1] - a[1]), abs(b[2] - a[2])) * 2) + 1
+    js = np.rint(np.linspace(a[1], b[1], n)).astype(int)
+    is_ = np.rint(np.linspace(a[2], b[2], n)).astype(int)
+    along = walls[js, is_]
+    step = math.hypot(b[1] - a[1], b[2] - a[2]) * grid.cell / max(n - 1, 1)
+    return float((along.sum() - (along[0] + along[-1]) / 2) * step)
+
+
 def smooth(
     grid: Grid,
     passable: np.ndarray,
@@ -295,16 +324,29 @@ def smooth(
     path: Sequence[Node],
     soft: float = SOFT,
     max_rise: float = MAX_RISE,
+    walls: np.ndarray | None = None,
 ) -> list[Node]:
     """Cut a cell-by-cell path down to the points where a walker has to turn.
 
     From each kept point, the next is the furthest point along the path still reachable in a
     straight line. The line may not pass closer to a patrol than the path itself did between
     the two, so straightening never trades safety for distance; beyond *soft* it does not
-    matter, as the cost there is nil."""
+    matter, as the cost there is nil. With *walls*, what each cell's room from walls and drops
+    costs a unit walked (:func:`wall_cost` of its roomiest floor), nor may the line cost more
+    for its room than the stretch of path it replaces did, give or take a cell of the middle
+    step: a path that kept its room round a corner, or off a wall, is not straightened back
+    into it. (The least room along the stretch would not do: a path starting beside a wall
+    has the least there is, and its line could then hug the wall all the way.)"""
     if len(path) <= 2:
         return list(path)
     along = [float(room[j, i]) for _, j, i in path]
+    spent = [0.0]  # what the path's room from walls cost from its start to each node
+    if walls is not None:
+        for p, q in itertools.pairwise(path):
+            across = math.hypot(q[1] - p[1], q[2] - p[2]) * grid.cell
+            spent.append(spent[-1] + across * (float(walls[p[1:]]) + float(walls[q[1:]])) / 2)
+    slack = grid.cell * WALL_WEIGHT / 4
+
     out = [path[0]]
     a = 0
     while a < len(path) - 1:
@@ -312,8 +354,9 @@ def smooth(
         least = along[a]
         for k in range(a + 1, len(path)):
             least = min(least, along[k])
-            if k > a + 1 and not straight_ok(
-                grid, passable, room, path[a], path[k], min(least, soft) - grid.cell, max_rise
+            if k > a + 1 and (
+                not straight_ok(grid, passable, room, path[a], path[k], min(least, soft) - grid.cell, max_rise)
+                or (walls is not None and _line_cost(grid, walls, path[a], path[k]) > spent[k] - spent[a] + slack)
             ):
                 break
             b = k
@@ -376,6 +419,9 @@ class ZonePlanner:
     gates: list[Gate] = field(default_factory=list)  # a link object's, marked wall, is in the grid's walls
     closed: list[Gate] = field(default_factory=list)  # the gates this planner was told are closed
     blocks: list[tuple[float, float, float, float]] = field(default_factory=list)  # block's (x, y, z, radius)
+    # Per floor spot: its room from walls and drops (Grid.wall_room), which a route pays to keep
+    # (WALL_WEIGHT) and straightening never cuts into; None prices no room.
+    wall_room: np.ndarray | None = field(default=None, repr=False)
     # The floor spots each closed gate took when it was closed, for open to give back.
     _took: dict[Gate, np.ndarray] = field(default_factory=dict, repr=False)
     # Each gate's floor (gate_floor), shared by every copy of a planner, since the grid is.
@@ -383,6 +429,27 @@ class ZonePlanner:
     _exit_floors: dict[int, np.ndarray] = field(default_factory=dict, init=False, repr=False)
     # The step costs of a walk into a fight, by the patrols it spares (fight_cost).
     _fight_costs: dict[frozenset[int], np.ndarray] = field(default_factory=dict, init=False, repr=False)
+    _wall_cost: np.ndarray | None = field(default=None, init=False, repr=False)  # wall_cost(wall_room)
+    _wall_line: np.ndarray | None = field(default=None, init=False, repr=False)  # wall_line()
+
+    def step_cost(self, base: np.ndarray) -> np.ndarray:
+        """What a unit walked costs on each floor spot: *base*, per cell (the patrols' cost, or
+        none), and what the spot's room from walls costs (:func:`wall_cost`)."""
+        if self.wall_room is None:
+            return base
+        if self._wall_cost is None:
+            self._wall_cost = wall_cost(self.wall_room)
+        return base[None] + self._wall_cost
+
+    def wall_line(self) -> np.ndarray | None:
+        """What each cell's room from walls costs a straightened line (:func:`smooth`): the
+        :func:`wall_cost` of its roomiest floor, since a line is not told which storey it is on.
+        None when no room is priced."""
+        if self.wall_room is None:
+            return None
+        if self._wall_line is None:
+            self._wall_line = wall_cost(self.wall_room.max(axis=0))
+        return self._wall_line
 
     def node(self, x: float, y: float, z: float | None = None, passable: np.ndarray | None = None) -> Node | None:
         return nearest_node(self.grid, self.passable if passable is None else passable, x, y, z)
@@ -476,7 +543,7 @@ class ZonePlanner:
         if s is None or g is None or self._goal_behind_gate(floor, goal, g):
             return None
         _check(stop)
-        cost = (self.fight_cost(goal) if fight else self.cost) if avoid else np.ones_like(self.cost)
+        cost = self.step_cost((self.fight_cost(goal) if fight else self.cost) if avoid else np.ones_like(self.cost))
         portals = self.portals(floor)
         _check(stop)
         volumes = self.volume_floor(floor, s, g)
@@ -525,7 +592,7 @@ class ZonePlanner:
                 shared[k] = g
         if not shared:
             return out
-        cost = self.cost if avoid else np.ones_like(self.cost)
+        cost = self.step_cost(self.cost if avoid else np.ones_like(self.cost))
         portals = self.portals(floor)
         _check(stop)
         taken_only = set(_flat(volumes))
@@ -593,7 +660,7 @@ class ZonePlanner:
         for run in runs(route.nodes, route.jumps):
             if out:
                 jumps.add(len(out) - 1)
-            out += smooth(self.grid, route.passable, self.clearance, run, self.soft, self.max_rise)
+            out += smooth(self.grid, route.passable, self.clearance, run, self.soft, self.max_rise, self.wall_line())
         return out, jumps
 
     def legs(self, route: Route) -> list[Leg]:
@@ -602,7 +669,9 @@ class ZonePlanner:
         parts = runs(route.nodes, route.jumps)
         out = []
         for k, run in enumerate(parts):
-            straight = smooth(self.grid, route.passable, self.clearance, run, self.soft, self.max_rise)
+            straight = smooth(
+                self.grid, route.passable, self.clearance, run, self.soft, self.max_rise, self.wall_line()
+            )
             points = [self.grid.world(*n) for n in straight]
             link = None
             if k + 1 < len(parts):
@@ -853,6 +922,7 @@ def build_planner(
         exits,
         gates=gates,
         passable=passable,
+        radius=radius,
         hard=hard,
         soft=soft,
         weight=weight,
@@ -905,6 +975,7 @@ def assemble(
     gates: Sequence[Gate] = (),
     passable: np.ndarray | None = None,
     room: np.ndarray | None = None,
+    wall_room: np.ndarray | None = None,
     radius: float = CLEARANCE,
     hard: float = HARD,
     soft: float = SOFT,
@@ -915,8 +986,11 @@ def assemble(
     """A planner from a grid already built and the links and exits already found: what
     :func:`build_planner` ends with, and what a shipped zone map (``zone_maps``) is loaded into,
     so both plan alike. *passable* is the grid's own, and *room* the patrols' :func:`clearance`
-    on it, when not given: ``zone_maps`` gives both from a copy saved on the user's machine."""
+    on it, when not given, and *wall_room* the grid's :meth:`~Grid.wall_room` from *radius* up:
+    ``zone_maps`` gives all three from a copy saved on the user's machine."""
     passable = grid.passable(radius, max_rise) if passable is None else passable
+    if wall_room is None:
+        wall_room = grid.wall_room((radius, *ROOM_STEPS[1:]), max_rise)
     room = clearance(grid, patrols) if room is None else room
     cost = danger_cost(room, hard, soft, weight, hard_weight)
     return ZonePlanner(
@@ -932,6 +1006,7 @@ def assemble(
         list(links),
         list(exits),
         list(gates),
+        wall_room=wall_room,
     )
 
 

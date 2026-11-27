@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import math
 from collections import deque
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -21,6 +22,12 @@ from bartleby.runtime.movement.collision import Z_BAND_DOWN, Z_BAND_UP, Z_BOX_TO
 CELL = 40.0
 #: How far a wizard keeps from a wall or a drop: 49 measured against a tree.
 CLEARANCE = 50.0
+#: The radii a spot's room from walls and drops is measured in (:meth:`Grid.wall_room`), least
+#: first: CLEARANCE, the least a route may keep, and then the room a route keeps where there is
+#: room. On 40-unit cells, 120 has every cell within three of the spot's floor, about 100 units
+#: from the nearest wall or drop, which a walk cutting a corner by 25 or so still clears (the
+#: user's call of 2026-11-27, after walks were seen clipping corners).
+ROOM_STEPS = (CLEARANCE, 80.0, 120.0)
 #: How much a step may rise or drop per unit walked, on top of STEP_TOL.
 MAX_RISE = 1.0
 # Two surfaces this far apart at one cell are two floors (a house's storeys, a bridge over a street).
@@ -169,6 +176,14 @@ class Grid:
                         for other in range(len(self.levels)):
                             support |= near_ok[other] & (np.abs(near_z[other] - self.levels[layer]) <= tol)
                     out[layer] &= support
+        return out
+
+    def wall_room(self, steps: Sequence[float] = ROOM_STEPS, max_rise: float = MAX_RISE) -> np.ndarray:
+        """Each floor spot's room from walls and drops: the largest of *steps* it is
+        :meth:`passable` at, 0 where it is passable at none. Same shape as :meth:`passable`."""
+        out = np.zeros(self.levels.shape, dtype=np.float32)
+        for radius in sorted(steps):
+            out[self.passable(radius, max_rise)] = radius
         return out
 
     def index(self, x: float, y: float) -> tuple[int, int]:

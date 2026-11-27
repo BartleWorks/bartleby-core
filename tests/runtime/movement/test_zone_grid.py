@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from bartleby.runtime.movement.collision import blocking_footprints, walkable_triangles
-from bartleby.runtime.movement.zone_grid import CELL, Grid, nearest_node, pieces
+from bartleby.runtime.movement.zone_grid import CELL, CLEARANCE, ROOM_STEPS, Grid, nearest_node, pieces
 from tests.runtime.movement.zone_fixtures import box, floor, mesh
 
 
@@ -38,6 +38,23 @@ def test_floor_near_a_wall_or_a_drop_is_not_passable():
     assert passable[(0, *grid.index(1000, 1300))]
     assert not passable[(0, *grid.index(1990, 1000))]  # the edge of the floor
     assert passable[(0, *grid.index(1900, 1000))]
+
+
+def test_a_spots_room_from_walls_and_drops_is_the_widest_step_it_has_floor_all_round_within():
+    solids = [mesh(floor(0, 0, 2000, 2000, 0)), box((1000, 1000, 50), 200, 200, 100)]
+    grid = Grid(walkable_triangles(solids))
+    grid.add_walls(blocking_footprints(solids))
+
+    room = grid.wall_room()
+
+    assert room.shape == grid.levels.shape
+    np.testing.assert_array_equal(room >= CLEARANCE, grid.passable())
+    # Cell centers from the box's face at y 1100: inside it, then 40, 80, 120 and 160 off.
+    away = [float(room[(0, *grid.index(1000, y))]) for y in (1000, 1140, 1180, 1220, 1260)]
+    assert away == [0, 0, CLEARANCE, 80, 120]
+    assert float(room[(0, *grid.index(1980, 1500))]) == 0  # the floor's edge, a drop
+    assert float(room[(0, *grid.index(1940, 1500))]) == CLEARANCE
+    assert list(ROOM_STEPS) == sorted(ROOM_STEPS) and ROOM_STEPS[0] == CLEARANCE
 
 
 def test_the_edge_of_an_upper_floor_is_a_drop():
