@@ -1,6 +1,7 @@
 """Routes across one zone: by its stairs, around its patrols, out of its exits, through its links."""
 
 import ast
+import asyncio
 import math
 import threading
 from pathlib import Path
@@ -8,17 +9,22 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from bartleby.runtime.movement import route as route_module
 from bartleby.runtime.movement.collision import Footprint
 from bartleby.runtime.movement.gates import Gate
 from bartleby.runtime.movement.patrols import HARD, Patrol
 from bartleby.runtime.movement.route import (
     EXIT_MARGIN,
+    WIZARD_SPEED,
+    Leg,
     PlanStopped,
     ZoneFiles,
     ZonePlanner,
     build_planner,
     link_reach,
+    walking_seconds,
 )
+from bartleby.runtime.movement.walk import plan_in_thread
 from bartleby.runtime.movement.zone_grid import CELL, CLEARANCE, MAX_RISE, STEP_TOL
 from bartleby.runtime.movement.zone_links import LINK_REACH, InteractTemplate, Link, PlacedObject, Volume
 from tests.runtime.movement.test_zone_grid import two_storeys
@@ -611,3 +617,133 @@ def test_a_zone_with_no_floor_outside_its_exits_gives_none():
     planner = _planner(mesh(floor(0, 0, 1000, 1000, 0)), volumes=[gate], teleports=frozenset({gate.name}))
 
     assert planner.outside_exits(500, 500, 0) is None
+
+
+# --- seconds to several goals ----------------------------------------------------------------
+
+
+def _route_seconds(planner: ZonePlanner, start, goal, avoid=True, speed=WIZARD_SPEED) -> float | None:
+    route = planner.route(start, goal, avoid)
+    return None if route is None else walking_seconds(planner.legs(route), speed)
+
+
+def _round_the_wall() -> tuple[ZonePlanner, tuple, list[tuple]]:
+    """The hall cut in two at x 1500, open only at its north end, from just west of the wall at
+    its south end: the goal just east of the wall is the nearest by straight line, and the
+    farthest by the route round."""
+    planner = _walled((800, 1000))
+    return planner, (1300, 100), [(1700, 100), (300, 100), (1300, 900)]
+
+
+def test_seconds_to_agrees_with_each_goals_route_within_a_cell_where_a_wall_makes_the_nearest_the_farthest():
+    planner, start, goals = _round_the_wall()
+
+    seconds = planner.seconds_to(start, goals)
+
+    planned = [_route_seconds(planner, start, goal) for goal in goals]
+    for got, want in zip(seconds, planned, strict=True):
+        assert got == pytest.approx(want, abs=CELL / WIZARD_SPEED)
+    straight = [math.dist(start, goal) for goal in goals]
+    assert straight.index(min(straight)) == 0 == seconds.index(max(seconds))
+    assert seconds[0] * WIZARD_SPEED > 3 * straight[0]
+
+
+def test_seconds_to_is_at_the_speed_it_is_given():
+    planner, start, goals = _round_the_wall()
+
+    at_foot = planner.seconds_to(start, goals)
+    mounted = planner.seconds_to(start, goals, speed=1.55 * WIZARD_SPEED)
+
+    assert mounted == pytest.approx([s / 1.55 for s in at_foot])
+
+
+def test_seconds_to_pays_the_patrols_as_a_route_does_and_measures_the_way_it_takes_round_them():
+    planner = _street()
+
+    avoiding = planner.seconds_to(START, [GOAL], avoid=True)
+    shortest = planner.seconds_to(START, [GOAL], avoid=False)
+
+    assert avoiding[0] == pytest.approx(_route_seconds(planner, START, GOAL, avoid=True), abs=CELL / WIZARD_SPEED)
+    assert shortest[0] == pytest.approx(3600 / WIZARD_SPEED, abs=CELL / WIZARD_SPEED)
+    assert avoiding[0] > shortest[0]
+
+
+def test_seconds_to_crosses_a_link_as_its_route_does():
+    planner = _islands()
+
+    [seconds] = planner.seconds_to((100, 500), [(3900, 500)])
+
+    assert seconds == pytest.approx(_route_seconds(planner, (100, 500), (3900, 500)), abs=CELL / WIZARD_SPEED)
+
+
+def test_walking_seconds_are_each_stretchs_flat_length_at_the_speed_and_each_links_own_seconds():
+    [link] = _islands().links
+    legs = [Leg([(0, 0, 0), (600, 0, 500)], link), Leg([(3000, 0, 0), (3000, 1200, 0)])]
+
+    assert walking_seconds(legs, 600) == pytest.approx(1 + link.seconds + 2)
+    assert walking_seconds(legs, 1200) == pytest.approx(0.5 + link.seconds + 1)
+
+
+def test_seconds_to_a_goal_in_an_exit_or_a_volume_link_is_that_goals_own_route():
+    hall = _hall_with_an_exit()
+    isle = _hall_with_a_volume_link()
+
+    in_exit = hall.seconds_to((200, 1000), [(2000, 1000), (3800, 1000)])
+    in_volume = isle.seconds_to((200, 1000), [(2000, 1000), (3800, 1000)])
+
+    assert in_exit == pytest.approx([_route_seconds(hall, (200, 1000), g) for g in [(2000, 1000), (3800, 1000)]])
+    assert in_volume == pytest.approx([_route_seconds(isle, (200, 1000), g) for g in [(2000, 1000), (3800, 1000)]])
+
+
+def test_seconds_to_gives_none_for_a_goal_behind_a_closed_gate_and_costs_the_rest():
+    planner = _walled((400, 600), gates=[_gate()])
+    planner.close(planner.gates[0])
+
+    seconds = planner.seconds_to((300, 500), [(2700, 500), (1500, 500), (1000, 500)])
+
+    assert seconds[:2] == [None, None]  # beyond the gate, and on its own floor
+    assert seconds[2] == pytest.approx(700 / WIZARD_SPEED, abs=CELL / WIZARD_SPEED)
+
+
+def test_seconds_with_no_floor_to_stand_on_are_all_none():
+    planner = _walled((400, 600))
+    planner.passable[:] = False
+
+    assert planner.seconds_to((300, 500), [(300, 500), (2700, 500)]) == [None, None]
+
+
+def test_seconds_to_a_goal_where_it_starts_is_none_of_walking():
+    planner = _walled((400, 600))
+
+    assert planner.seconds_to((300, 500), [(300, 500)]) == [pytest.approx(0, abs=CELL / WIZARD_SPEED)]
+
+
+def test_seconds_to_stops_when_told_to():
+    planner, start, goals = _round_the_wall()
+    stop = threading.Event()
+    stop.set()
+
+    with pytest.raises(PlanStopped):
+        planner.seconds_to(start, goals, stop=stop)
+
+
+async def test_seconds_to_in_a_thread_stops_its_search_when_its_caller_is_cancelled(monkeypatch):
+    planner, start, goals = _round_the_wall()
+    began, stopped = threading.Event(), threading.Event()
+    search = route_module._search
+
+    def slow(*args, **kw):
+        began.set()
+        stop = args[8]
+        if stop.wait(5):
+            stopped.set()
+        return search(*args, **kw)
+
+    monkeypatch.setattr(route_module, "_search", slow)
+    task = asyncio.create_task(plan_in_thread(planner.seconds_to, start, goals))
+    assert await asyncio.to_thread(began.wait, 5)
+    task.cancel()
+
+    with pytest.raises(asyncio.CancelledError):
+        await task
+    assert await asyncio.to_thread(stopped.wait, 5)

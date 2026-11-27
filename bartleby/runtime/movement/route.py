@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import dataclasses
 import heapq
+import itertools
 import math
 import threading
 from collections.abc import Mapping, Sequence, Set
@@ -109,16 +110,41 @@ def astar(
     A search with no route expands every node it can reach, which takes seconds in a big zone,
     and it runs in a worker thread, where a cancel cannot reach it. So it looks at *stop* every
     :data:`STOP_EVERY` nodes, and raises :class:`PlanStopped` once it is set."""
+    came, by_link, reached = _search(grid, passable, cost, start, [goal], max_rise, portals, taken_only, stop, aim=True)
+    if not reached:
+        return None
+    _, ny, nx = grid.levels.shape
+    return _path(came, by_link, next(iter(reached)), ny * nx, nx)
+
+
+def _search(
+    grid: Grid,
+    passable: np.ndarray,
+    cost: np.ndarray,
+    start: Node,
+    goals: Sequence[Node],
+    max_rise: float,
+    portals: Mapping[int, list[tuple[int, float]]] | None,
+    taken_only: Set[int] | None,
+    stop: threading.Event | None,
+    aim: bool,
+) -> tuple[dict[int, int], dict[int, bool], set[int]]:
+    """The search :func:`astar` and :meth:`ZonePlanner.seconds_to` share, out from *start* until
+    every one of *goals* is settled or nothing is left to reach: the node each settled node was
+    best reached from, whether by a link's step, and the flat index of every goal settled. With
+    *aim*, it heads for the first goal by straight-line distance (A*); without, it spreads
+    evenly by cost (Dijkstra), so every goal it settles has its cheapest way there."""
     layers, ny, nx = grid.levels.shape
     plane = ny * nx
     ok = passable.ravel().tolist()
     z = np.nan_to_num(grid.levels).ravel().tolist()
     mult = cost.ravel().tolist()
     s = start[0] * plane + start[1] * nx + start[2]
-    g = goal[0] * plane + goal[1] * nx + goal[2]
-    _, gj, gi = goal
-    c = grid.cell
-    steps = [(dj, di, math.hypot(dj, di) * c) for dj in (-1, 0, 1) for di in (-1, 0, 1) if dj or di]
+    remaining = {g[0] * plane + g[1] * nx + g[2] for g in goals}
+    reached: set[int] = set()
+    _, gj, gi = goals[0]
+    c = grid.cell if aim else 0.0  # what a cell of straight line to the first goal adds to a node's priority
+    steps = [(dj, di, math.hypot(dj, di) * grid.cell) for dj in (-1, 0, 1) for di in (-1, 0, 1) if dj or di]
 
     def standing(j: int, i: int, height: float, tol: float) -> bool:
         return any(ok[n] and abs(z[n] - height) <= tol for n in range(j * nx + i, layers * plane, plane))
@@ -134,15 +160,11 @@ def astar(
             continue
         if len(done) % STOP_EVERY == 0:
             _check(stop)
-        if cur == g:
-            path, linked = [], []
-            while cur != -1:
-                layer, rest = divmod(cur, plane)
-                path.append((layer, *divmod(rest, nx)))
-                linked.append(by_link[cur])
-                cur = came[cur]
-            # Gathered goal first: the k-th node gathered is reached from node len - k - 2 of the route.
-            return path[::-1], frozenset(len(path) - k - 2 for k, step in enumerate(linked) if step)
+        if cur in remaining:
+            remaining.discard(cur)
+            reached.add(cur)
+            if not remaining:
+                break
         done.add(cur)
         rest = cur % plane
         cj, ci = divmod(rest, nx)
@@ -174,7 +196,39 @@ def astar(
                 by_link[nb] = True
                 nj, ni = divmod(nb % plane, nx)
                 heapq.heappush(heap, (ng + math.hypot(nj - gj, ni - gi) * c, ng, nb))
-    return None
+    return came, by_link, reached
+
+
+def _path(
+    came: Mapping[int, int], by_link: Mapping[int, bool], g: int, plane: int, nx: int
+) -> tuple[list[Node], frozenset[int]]:
+    """The route :func:`_search` found to the node at flat index *g*, start first, and each k
+    whose step from node k to node k + 1 is a link."""
+    path, linked = [], []
+    cur = g
+    while cur != -1:
+        layer, rest = divmod(cur, plane)
+        path.append((layer, *divmod(rest, nx)))
+        linked.append(by_link[cur])
+        cur = came[cur]
+    # Gathered goal first: the k-th node gathered is reached from node len - k - 2 of the route.
+    return path[::-1], frozenset(len(path) - k - 2 for k, step in enumerate(linked) if step)
+
+
+def _route(floor: np.ndarray, volumes: np.ndarray, nodes: list[Node], jumps: frozenset[int]) -> Route:
+    """A found path as a :class:`Route`, on *floor* less the *volumes* it stepped round:
+    straightening must not cut across a volume the route did not step into either."""
+    walked = floor & ~volumes
+    for node in nodes:
+        walked[node] = floor[node]
+    return Route(nodes, walked, jumps)
+
+
+def walking_seconds(legs: Sequence[Leg], speed: float = WIZARD_SPEED) -> float:
+    """Seconds walking *legs* takes at *speed* units a second: each stretch's flat length, and
+    each link's own seconds. No wait for a mob, a prompt or the planner is in it."""
+    walked = sum(math.hypot(b[0] - a[0], b[1] - a[1]) for leg in legs for a, b in itertools.pairwise(leg.waypoints))
+    return walked / speed + sum(leg.link.seconds for leg in legs if leg.link)
 
 
 def link_reach(link: Link) -> float:
@@ -384,10 +438,11 @@ class ZonePlanner:
             self._fight_costs[spared] = danger_cost(clearance(self.grid, kept), soft=self.soft)
         return self._fight_costs[spared]
 
-    def floor_for(self, start: Sequence[float], goal: Sequence[float]) -> np.ndarray:
-        """The floor a route from *start* to *goal* may use: every exit closed but one the goal
-        is in, which the route ends at, and one the start is in, which it walks out of."""
-        open_ = {id(e) for e in self.exits_at(*start)} | {id(e) for e in self.exits_at(*goal)}
+    def floor_for(self, start: Sequence[float], *goals: Sequence[float]) -> np.ndarray:
+        """The floor a route from *start* to a goal may use: every exit closed but one the goal
+        is in, which the route ends at, and one the start is in, which it walks out of. With no
+        goal, every exit but the start's is closed."""
+        open_ = {id(e) for point in (start, *goals) for e in self.exits_at(*point)}
         out = self.passable.copy()
         for exit in self.exits:
             if id(exit) not in open_:
@@ -432,12 +487,64 @@ class ZonePlanner:
             found = astar(self.grid, floor, cost, s, g, self.max_rise, portals, stop=stop)
         if found is None:
             return None
-        nodes, jumps = found
-        # Straightening must not cut across a volume the route did not step into either.
-        walked = floor & ~volumes
-        for node in nodes:
-            walked[node] = floor[node]
-        return Route(nodes, walked, jumps)
+        return _route(floor, volumes, *found)
+
+    def seconds_to(
+        self,
+        start: Sequence[float],
+        goals: Sequence[Sequence[float]],
+        avoid: bool = True,
+        speed: float = WIZARD_SPEED,
+        stop: threading.Event | None = None,
+    ) -> list[float | None]:
+        """Seconds walking from *start* to each of *goals* takes at *speed*, along the route
+        :meth:`route` would plan there (:func:`walking_seconds` of its legs), or None for a goal
+        it would find none to. One search serves every goal: out from *start* on the same floor
+        and costs, spreading by cost rather than heading for any one goal, and stopping once
+        every goal is settled. So a goal a wall puts a long way round costs what walking round
+        does, not its straight line; and one goal with no route makes the search reach every
+        cell it can, which takes seconds in a big zone, as a route with none does.
+
+        A goal in one of the zone's exits, or on a volume link's floor, opens that floor to the
+        route there and to no other, so it is planned on its own (:meth:`route`). *stop* is
+        :meth:`route`'s."""
+        out: list[float | None] = [None] * len(goals)
+        floor = self.floor_for(start)
+        s = self.node(*start, passable=floor)
+        if s is None:
+            return out
+        _check(stop)
+        volumes = self.volume_floor(floor, s)
+        shared: dict[int, Node] = {}
+        for k, goal in enumerate(goals):
+            g = self.node(*goal, passable=floor)
+            if self.exits_at(*goal) or (g is not None and volumes[g]):
+                found = self.route(start, goal, avoid, stop=stop)
+                out[k] = None if found is None else walking_seconds(self.legs(found), speed)
+            elif g is not None and not self._goal_behind_gate(floor, goal, g):
+                shared[k] = g
+        if not shared:
+            return out
+        cost = self.cost if avoid else np.ones_like(self.cost)
+        portals = self.portals(floor)
+        _check(stop)
+        taken_only = set(_flat(volumes))
+        _, ny, nx = floor.shape
+        for passes, (left, taken) in enumerate(((volumes, taken_only), (np.zeros_like(floor), None))):
+            if passes and not taken_only:
+                break  # route plans again with the volumes as floor only when it stepped round some
+            came, by_link, reached = _search(
+                self.grid, floor, cost, s, list(shared.values()), self.max_rise, portals, taken, stop, aim=False
+            )
+            for k, g in list(shared.items()):
+                flat = g[0] * ny * nx + g[1] * nx + g[2]
+                if flat in reached:
+                    route = _route(floor, left, *_path(came, by_link, flat, ny * nx, nx))
+                    out[k] = walking_seconds(self.legs(route), speed)
+                    del shared[k]
+            if not shared:
+                break
+        return out
 
     def _link_floor(self, link: Link, floor: np.ndarray) -> np.ndarray:
         """The spots of *floor* within :func:`link_reach` of *link*'s source, at about its height."""
