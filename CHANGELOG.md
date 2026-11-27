@@ -8,6 +8,23 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Nothing breaks.
+
+### Added
+
+- **Seconds to several goals.** `ZonePlanner.seconds_to(start, goals, avoid, speed)` costs every
+  goal's route with one search, giving each goal's walking seconds along the route `route`
+  would plan there, or None. `route.walking_seconds(legs, speed)` measures a route's legs, links
+  included. `floor_for` takes any number of goals. For BartleBot's epic #340 (core #38).
+- **A walk can stop before its first step.** `RouteWalker.walk(..., longest=…)` ends
+  `WalkEnd.TOO_LONG`, pressing nothing, when its first plan walks over *longest* seconds at the
+  wizard's own speed. Every walk reports that plan's seconds and speed (`WalkResult.planned`
+  and `speed`, both defaulted to None). The walker keeps a `TOO_LONG` walk's plan, and the next
+  walk from the same spot to the same goal, on an unchanged planner, takes it instead of
+  planning. A caller handling every `WalkEnd` meets the new member only by passing *longest*.
+
 ## 0.15.4
 
 Nothing breaks.

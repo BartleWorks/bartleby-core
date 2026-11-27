@@ -392,6 +392,20 @@ straightening never cuts across one either. On the shipped maps, 14 pairs each i
 (six volume links) and Unicorn Way planned the same routes through the same links as before,
 within 12 units (2026-11-25).
 
+**Seconds to several goals** (`ZonePlanner.seconds_to(start, goals, avoid, speed)`, since
+0.15.5, for BartleBot's #340): one search out from the start, on the floor and costs a route
+uses, that spreads by cost instead of heading for one goal (Dijkstra, where a route is A*),
+and stops once every goal is settled. Each goal gets the walking seconds of the route `route`
+would plan there, straightened and measured as legs (`walking_seconds`: each stretch's flat
+length at *speed*, which defaults to 600, and each link's own seconds), or None where it would
+find none: off the floor, behind a closed gate, or out of reach. So a goal a wall puts a long
+way round costs what walking round does, which straight-line distance never shows: it is how
+Collect Wisps picks a wisp. A goal in an exit, or on a volume link's floor, opens that floor to
+its own route only, so it is planned alone, with `route`. `astar` and `seconds_to` share the one
+search loop (`_search`), so they cannot drift apart; a straightened route's length agrees with
+`seconds_to`'s within a cell. Like a route with none, a goal that has no route makes the search
+reach every cell it can, which takes seconds in a big zone.
+
 **Checked against the probe it came from** (2026-11-24, on r814353): BartleBot's shelved
 `probe_walk_route.py` and core's planner, with exits left out, built the same grid, floor and
 costs and planned every route identically, cell for cell, with the same turns: Unicorn Way's
@@ -623,8 +637,22 @@ walks on it, on a planner built from the wad.
   afresh: a held loop walks a wizard some 120 to 190 units. Settled with the user on 2026-11-25,
   over a walk tick on a thread of its own, which would have had to cross the arbiter, the leases
   and the key repeat, all on the loop.
-- **It ends** on the goal, no route, being blocked (by stalls; mobs no longer end it), a fight, a zone change or
-  running out of time, with a `WalkResult` saying which and `describe()` naming the zone and both
+- **A plan too long** (`walk(..., longest=…)`, since 0.15.5, for BartleBot's #340): every walk
+  puts its first plan's walking seconds on `WalkResult.planned` (`route.walking_seconds` of its
+  legs, so no wait for a mob, a prompt or the planner), at the wizard's own speed, read from its
+  speed field before it plans, which goes on `WalkResult.speed`. The field holds the whole bonus:
+  a mount's, up to 1.55x, or the Speed hotkey's write, up to 2.0x. Given *longest*, in seconds, a
+  plan over it ends the walk `TOO_LONG` before any key is pressed, logged at INFO: a caller asking
+  whether to walk at all (a port to one of ours, in BartleBot) has its answer at the price of the
+  one plan the walk would make anyway.
+- **The plan kept.** A walk that ended `TOO_LONG` leaves its plan on the walker, and the next walk
+  takes it instead of planning, once, when it starts within `ARRIVE_GOAL` (50) of the same spot,
+  goes to the same goal and the same fight, and no walk has changed the planner's closed gates,
+  blocked spots or links since; the gates are read before it, as before any first plan, so a gate
+  listed meanwhile plans afresh. Any other walk drops it. Only a `TOO_LONG` keeps one: a walk that
+  ended `BLOCKED` or `TIMED_OUT` and is asked for again must not rerun the plan that failed.
+- **It ends** on the goal, no route, being blocked (by stalls; mobs no longer end it), a fight, a zone change,
+  running out of time or a plan too long, with a `WalkResult` saying which and `describe()` naming the zone and both
   points; and it lets go of every key however it ends, and stops its mob watch even if a second
   cancel lands in the letting go. A cancel, or the lease being lost, goes on up to the caller.
 - **Its time** is three times the walking planned, its links' waits, its waits for mobs and its

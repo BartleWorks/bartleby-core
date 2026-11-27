@@ -55,9 +55,13 @@
 * **A held event loop** lets go of its keys by :class:`~bartleby.runtime.input.ClientInput`'s
   watchdog; the walk finds forward no longer held and holds it again, aimed afresh.
 
-It ends on the goal, no route, being blocked, a fight, a zone change or running out of time
+* **A plan too long** (``walk(..., longest=…)``) ends the walk :attr:`WalkEnd.TOO_LONG` before a
+  key is pressed, with the plan's walking seconds on :attr:`WalkResult.planned`, as every walk
+  has them; the walker keeps that plan for the next walk from the same spot to the same goal.
+
+It ends on the goal, no route, being blocked, a fight, a zone change, running out of time
 (the time given again at each replan and detour, for the route left, and never past
-:data:`~bartleby.runtime.timing.WALK_CEILING_FACTOR` times the first plan's), with a
+:data:`~bartleby.runtime.timing.WALK_CEILING_FACTOR` times the first plan's) or a plan too long, with a
 :class:`WalkResult` saying which, and lets go of every key however it ends. A cancel, or the lease
 being lost, goes on up to the caller.
 """

@@ -72,10 +72,14 @@ lets the client claim has changed twice in 2026:
   leader cannot be reached, and otherwise lands on the leader's exact position, as a
   friends-list port does (all checked on r813697, 2026-11-17). Leadership cannot be handed on: the leader changes only when the leader
   leaves the group or logs off.
+- **A port within a zone has no loading screen and takes about 3 s** (the user, 2026-11-27),
+  which corrects the loading screen recorded on 2026-11-20. **Some zones refuse a port**, mostly
+  dungeons and solo zones. BartleBot's epic #340 (Stage 3) ports a mover to one of its own
+  players when that is quicker than the walk, learns a refusing zone at run time, and times
+  each port in the run trace, which is what will settle the 3 s.
 - **A port is no substitute for walking with the leader**, even with long teleports holding
-  (BartleBuddy's testing, 2026-11-20): a solo zone refuses a port to someone inside it, a port
-  over a short distance costs a loading screen that walking it doesn't, and a wizard ported
-  beside a fight was not seen to join it. So following the leader's trail by keys
+  (BartleBuddy's testing, 2026-11-20): a solo zone refuses a port to someone inside it, and a
+  wizard ported beside a fight was not seen to join it. So following the leader's trail by keys
   (`bartleby.runtime.movement.follow`), shelved on 2026-11-16, is back, porting only as its
   fallback.
 
