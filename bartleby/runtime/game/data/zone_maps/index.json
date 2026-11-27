@@ -73,6 +73,12 @@
    "wad": "14c964c1d234812f79bbb87f13e2437c102dc95c181a508370dad056e64e16fb",
    "zone": "zones/Ahmarra-AH_Z10_DarkWaterTrench.json"
   },
+  "Ahmarra/Interiors/AH_Z05I02_RuinedHermitage": {
+   "floor": "floors/67b2bd78aa95dfc4.npz",
+   "objects": "d3e6fb72161838fc46e3b2e1ac0e2f68f3116d53cbb980eb1a2371606171088a",
+   "wad": "03f4317dd30b853e4c2c839984dccd4527b3aa84f226f1cf71ea7a53fa333b43",
+   "zone": "zones/Ahmarra-Interiors-AH_Z05I02_RuinedHermitage.json"
+  },
   "Aquila/AQ_Z00_Hub": {
    "floor": "floors/440d980d03242b46.npz",
    "objects": "b59f5c569f30ffd3be5107bdfcb2dfbd02bc9733e0048e4623a7586d16653b47",
