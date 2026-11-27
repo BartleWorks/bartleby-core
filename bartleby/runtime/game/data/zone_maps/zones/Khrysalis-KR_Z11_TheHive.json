@@ -358,6 +358,36 @@
  ],
  "links": [
   {
+   "name": "KR-Hive-BottomPAFladder instance",
+   "kind": "interact",
+   "source": [
+    -4522.6328125,
+    -4926.4990234375,
+    -908.07421875
+   ],
+   "landing": "PalaceOfFangsTop",
+   "target": [
+    -6019.89892578125,
+    -5973.3779296875,
+    2300.030029296875
+   ]
+  },
+  {
+   "name": "KR-Hive-BottomPAFladder instance",
+   "kind": "interact",
+   "source": [
+    -5920.5439453125,
+    -5819.39501953125,
+    2282.8779296875
+   ],
+   "landing": "PalaceOfFangsBottom",
+   "target": [
+    -3989.7109375,
+    -4839.2998046875,
+    -921.6326904296875
+   ]
+  },
+  {
    "name": "KR-Hive-StartLadder-1 instance",
    "kind": "interact",
    "source": [
@@ -370,21 +400,6 @@
     6142.5859375,
     -4021.551025390625,
     -1309.2349853515625
-   ]
-  },
-  {
-   "name": "KR-Hive-BottomPAFladder instance",
-   "kind": "interact",
-   "source": [
-    -4522.6328125,
-    -4926.4990234375,
-    -908.07421875
-   ],
-   "landing": "PalaceOfFangsMiddle",
-   "target": [
-    -5476.22216796875,
-    -4864.1650390625,
-    1226.3050537109375
    ]
   },
   {
@@ -430,21 +445,6 @@
     2724.51904296875,
     -6742.0087890625,
     240.0886993408203
-   ]
-  },
-  {
-   "name": "KR-Hive-BottomPAFladder instance",
-   "kind": "interact",
-   "source": [
-    -5920.5439453125,
-    -5819.39501953125,
-    2282.8779296875
-   ],
-   "landing": "PalaceOfFangsMiddle",
-   "target": [
-    -5476.22216796875,
-    -4864.1650390625,
-    1226.3050537109375
    ]
   },
   {

@@ -4,9 +4,9 @@ Some zones are pieces of floor no walk joins: Triton Avenue's two halves, its le
 isle. The game joins them with links: a volume the wizard steps into, or a placed object it
 presses the interact key at (a fast-travel stone, a zipline, a ladder). Either way the server
 moves the wizard to an arrival point, and keeps it there, because the move was its own. No
-client file says where any link lands, so the landing is put together from what the files do
-keep, in the order core's ``docs/WALKING.md`` (*In-zone links*) gives, each with the evidence
-it rests on. None of it is the server's word, so a walk drops a link that moves nobody and
+client file says where a link lands but a carpet ride's, so a landing is otherwise put together
+from what the files do keep, in the order core's ``docs/WALKING.md`` (*In-zone links*) gives,
+each with the evidence it rests on. None of it is the server's word, so a walk drops a link that moves nobody and
 replans. Moved from BartleBot's ``tools/probe_walk_route.py`` and
 ``tools/zone_graph/zone_nav.py``.
 
@@ -260,6 +260,10 @@ INTERACT_SECONDS = 6.0  # the press, the teleport, a margin
 RIDE_SECONDS = 20.0  # a zipline's ride, before one is timed
 NAV_OBJECT_REACH = 700.0  # a zone.nav edge's end, or a ride's first end, this near an object is its
 RIDE_LANDING_REACH = 1000.0  # a ride lands on the arrival point this near its far end (800-920 seen)
+# A pair's end lands on an arrival point this near its partner (Dark Water Trench's whalebirds
+# 600 off, as pressed; Ruined Alcazar's isle teleports up to 1,600). With none so near, the two are
+# no pair: the Krokotopia Crypt's twin "Teleporter-Static" have only a point 10,000 away.
+PAIR_LANDING_REACH = 2000.0
 PAD_REACH = 300.0  # an object this near a volume is the pad drawn at it
 SHORTCUT_MIN = 1000.0  # a press that moves the wizard less than this, up included, is no link worth routing through
 
@@ -270,9 +274,11 @@ _LINK_VOLUME = re.compile(r"teleport|activator", re.IGNORECASE)
 _MOVING_VOLUME = re.compile(r"teleport|(?<![a-z])to(?![a-z])", re.IGNORECASE)
 _FILLER = {"target", "location", "teleport", "teleportvol", "activator", "volume", "the", "trigger"}
 _DIRECTIONS = {"to", "from"}
-_TRAVEL_PROMPT = re.compile(r"\b(teleport|ride|climb|descend|ascend|travel|exit)\b", re.IGNORECASE)
+_TRAVEL_PROMPT = re.compile(r"\b(teleport|ride|climb|descend|ascend|travel|exit|swim)\b", re.IGNORECASE)
 # An object with no prompt the files resolve is taken by its template's name instead.
 _TRAVEL_NAME = re.compile(r"teleport|rope|ladder|zip.?line|boat|elevator|lift|cart|dingh?y|portal", re.IGNORECASE)
+# A pad that says what it is.
+_PAD_VOLUME = re.compile(r"teleport", re.IGNORECASE)
 _STONE = re.compile(r"Teleporter([A-F])(?![a-z])")  # not TeleporterArch
 _STONE_BACK = re.compile(r"To(Main|Hub)|BackToHub", re.IGNORECASE)
 # Dragonspyre's stones name a letter and a role, in either order: the template
@@ -351,12 +357,14 @@ def link_candidates(volumes: Sequence[Volume], named: Mapping[str, XYZ]) -> list
 # interact key at. The behavior that moves the wizard is stripped from the client's copy of every
 # one (DeletedBehavior), so where each lands is put together from what the files do keep:
 #
-#   - a ride's template (a zipline's) holds its two ends as LOCATION records: it lands on the
+#   - a carpet ride's template names the arrival point it lands on;
+#   - another ride's template (a zipline's) holds its two ends as LOCATION records: it lands on the
 #     arrival point nearest the second (both ziplines pressed live did, 3 units off);
 #   - a stone of a TeleporterX family lands at the arrival point nearest its partner: X at the
 #     one nearest X_ToMain, X_ToMain at the one nearest the hub's stones (Triton's four, pressed
 #     live, all did);
-#   - a pair of travel objects named X and X_B: each at the arrival point nearest the other;
+#   - a two-way pair (X and X_B or X-A, two sharing a tag, a teleporter's _TOP and _BOTTOM):
+#     each at the arrival point nearest the other;
 #   - zone.nav has an edge no walk takes for most links: one starting near a placed object whose
 #     prompt is a travel verb is that object's link, to the arrival point nearest the edge's far
 #     end, or the far end itself. zone_links does the same for a volume its name does not pair
@@ -370,6 +378,16 @@ _PROMPT_SPAN = 600
 _LOCATION_NAME = bytes.fromhex("cbdec46e")
 _LOCATION_XYZ = tuple(bytes.fromhex(h) for h in ("bffe5a5a", "c0fe5a5a", "c1fe5a5a"))
 _LOCATION_ZONE = bytes.fromhex("c122a8ba")
+# A template's interaction can begin with the quests it belongs to, each by its title, before the
+# prompt: Ahmarra's "Hooper Trooper" opens with "Jelly School" and only then says Teleport.
+_QUEST_TITLES = "QuestTitle"
+# An InteractCarpetRide (Ahmarra's leaves and wing harnesses, the Oasis's boats) names the zone it
+# is in and the arrival point it carries the wizard to, each a length-prefixed string by property
+# hash. The one place a client file says where a link lands.
+_CARPET_RIDE = b"InteractCarpetRide"
+_RIDE_ZONE = bytes.fromhex("79944a9b")
+_RIDE_LANDING = bytes.fromhex("3b53465b")
+_RIDE_SPAN = 400
 
 
 @dataclass(frozen=True)
@@ -379,6 +397,7 @@ class InteractTemplate:
     name: str
     prompt: str  # the interact prompt's English text, "" for none
     ends: tuple[tuple[XYZ, str], ...] = ()  # each LOCATION record: position, zone
+    ride: tuple[str, str] | None = None  # a carpet ride's zone, and the arrival point it lands on
 
 
 @dataclass(frozen=True)
@@ -412,16 +431,93 @@ def _locations_in(data: bytes) -> tuple[tuple[XYZ, str], ...]:
     return tuple(out)
 
 
+def _ride_in(data: bytes) -> tuple[str, str] | None:
+    """The zone and landing a template's InteractCarpetRide names, or None when it has none."""
+    start = data.find(_CARPET_RIDE)
+    if start < 0:
+        return None
+    found = [data.find(key, start, start + _RIDE_SPAN) for key in (_RIDE_ZONE, _RIDE_LANDING)]
+    if min(found) < 0:
+        return None
+    zone, landing = (_short_string(data, at + len(_RIDE_ZONE)) for at in found)
+    return zone, landing
+
+
 def parse_interact_template(name: str, data: bytes, lang: Callable[[str, str], str]) -> InteractTemplate | None:
-    """A template file's interact prompt and LOCATION records, or None when it has no
+    """A template file's interact prompt, LOCATION records and ride, or None when it has no
     InteractableBehavior. *lang*(file stem, key) is the English text of a ``.lang`` key, or "".
     The prompt is the first key after the behavior that resolves: "Press X to Teleport" from
-    GUI.lang, or the object's own words ("Climb Rope", from WizardGameObjects.lang)."""
+    GUI.lang, or the object's own words ("Climb Rope", from WizardGameObjects.lang). A quest's
+    title is passed over when any other key resolves. With none it stays, as an object left with
+    no prompt at all would be taken for travel by its name (Krokotopia's "Teleporter-Static")."""
     at = data.find(_INTERACTABLE)
     if at < 0:
         return None
-    keys = (lang(k.group(1).decode(), k.group(2).decode()) for k in _PROMPT_KEY.finditer(data, at, at + _PROMPT_SPAN))
-    return InteractTemplate(name, next((words for words in keys if words), ""), _locations_in(data))
+    found = [
+        (k.group(1).decode(), lang(k.group(1).decode(), k.group(2).decode()))
+        for k in _PROMPT_KEY.finditer(data, at, at + _PROMPT_SPAN)
+    ]
+    resolved = [(stem, words) for stem, words in found if words]
+    # Quest titles sort last, and are otherwise kept in the file's order.
+    resolved.sort(key=lambda row: row[0] == _QUEST_TITLES)
+    prompt = resolved[0][1] if resolved else ""
+    return InteractTemplate(name, prompt, _locations_in(data), _ride_in(data))
+
+
+def _travel(placed: Sequence[PlacedObject]) -> list[tuple[str, XYZ]]:
+    """(tag, position) of each placed object pressed to travel, by its prompt or, with none, its name."""
+    return [
+        (obj.tag, obj.at)
+        for obj in placed
+        if _TRAVEL_PROMPT.search(obj.template.prompt)
+        or (not obj.template.prompt and _TRAVEL_NAME.search(obj.template.name))
+    ]
+
+
+def _partners(placed: Sequence[PlacedObject]) -> list[tuple[tuple[str, XYZ], XYZ, bool]]:
+    """((tag, position), partner's position, only a bridge) for each object of a two-way pair.
+    Among the travel objects: X and X_B (Krokotopia's Forgotten Tombs), X and X-A (Ahmarra's
+    "NPC12" and "NPC12-A"), and the only two sharing one zone tag (Dark Water Trench's
+    whalebirds and safe currents). And a teleporter's _TOP and _BOTTOM, whatever their prompt
+    says ("Press X to Use" in Bale Flotilla).
+
+    *Only a bridge* is true of every pair but X and X_B: it is a link only between two pieces of
+    floor, never as a shortcut a walk could do without. The game's files say less of these, and
+    none has been pressed where the ends are a walk apart: taking one would trade a walk that
+    works for a guess (a shipped bot's in Katzenstein's Lab, to save 2 s)."""
+    travel = _travel(placed)
+    by_name = {tag.split(" instance")[0]: (tag, at) for tag, at in travel}
+    out = []
+    for name, here in by_name.items():
+        for suffix, only_bridge in (("_B", False), ("-A", True)):
+            other = by_name.get(name.removesuffix(suffix)) if name.endswith(suffix) else by_name.get(name + suffix)
+            if other is not None:
+                out.append((here, other[1], only_bridge))
+
+    sharing: dict[str, list[tuple[str, XYZ]]] = {}
+    for tag, at in travel:
+        sharing.setdefault(tag, []).append((tag, at))
+    for twins in sharing.values():
+        if len(twins) == 2:
+            first, second = twins
+            out += [(first, second[1], True), (second, first[1], True)]
+
+    named = {obj.tag.split(" instance")[0]: obj for obj in placed}
+    for name, obj in named.items():
+        top = name.removesuffix("_TOP")
+        bottom = named.get(top + "_BOTTOM")
+        if top != name and bottom is not None and _TRAVEL_NAME.search(obj.template.name):
+            out += [((obj.tag, obj.at), bottom.at, True), ((bottom.tag, bottom.at), obj.at, True)]
+    return out
+
+
+def _rides_within(obj: PlacedObject, zone: str, named: Mapping[str, XYZ]) -> bool:
+    """Whether *obj* is a carpet ride that sets the wizard down in *zone*. One naming a landing
+    that is no arrival point of it leaves it: the Oasis's boat names one on the Sphinx's island."""
+    if obj.template.ride is None:
+        return False
+    where, landing = obj.template.ride
+    return where == zone and landing in named
 
 
 #: Whether two points stand on different pieces of floor.
@@ -440,6 +536,17 @@ def interact_candidates(
     points = {name: p for name, p in named.items() if "cinematic" not in name.lower()}
     found: dict[tuple[str, XYZ], Link] = {}  # by tag and place: tags repeat
 
+    # A carpet ride names its landing.
+    leaving = set()
+    for obj in placed:
+        if obj.template.ride is None:
+            continue
+        if _rides_within(obj, zone, named):
+            landing = obj.template.ride[1]
+            found[obj.tag, obj.at] = Link(obj.tag, obj.at, landing, named[landing], "ride")
+        else:
+            leaving.add((obj.tag, obj.at))
+
     # A ride is shown, then the server sets the wizard down on the arrival point past its far
     # end: ZipLine-3-Quest, pressed live, landed 3 units from "Target-ToMajorIsland", 800 past it.
     for obj in placed:
@@ -450,7 +557,7 @@ def interact_candidates(
                 nearest = min(points, key=lambda n: math.dist(points[n][:2], ends[1][:2]))
                 if math.dist(points[nearest][:2], ends[1][:2]) <= RIDE_LANDING_REACH:
                     landing, target = nearest, points[nearest]
-            found[obj.tag, obj.at] = Link(obj.tag, obj.at, landing, target, "ride")
+            found.setdefault((obj.tag, obj.at), Link(obj.tag, obj.at, landing, target, "ride"))
 
     stones = [(obj.tag, obj.at, *kind) for obj in placed if (kind := _stone(obj))]
     hub = [at for _, at, _, back in stones if not back]
@@ -463,26 +570,20 @@ def interact_candidates(
             landing = min(points, key=lambda n: math.dist(points[n][:2], partner[:2]))
             found.setdefault((tag, at), Link(tag, at, landing, points[landing], "interact"))
 
-    travel = [
-        (obj.tag, obj.at)
-        for obj in placed
-        if _TRAVEL_PROMPT.search(obj.template.prompt)
-        or (not obj.template.prompt and _TRAVEL_NAME.search(obj.template.name))
-    ]
-    # A pair named X and X_B (Krokotopia's Forgotten Tombs teleporters): each lands at the
-    # arrival point nearest the other.
-    by_name = {tag.split(" instance")[0]: (tag, at) for tag, at in travel}
+    # A two-way pair (_partners): each lands at the arrival point nearest the other. Nearest in
+    # all three axes: a _TOP and its _BOTTOM are thousands of units apart in height and little else.
     if points:
-        for name, (tag, at) in by_name.items():
-            other = by_name.get(name.removesuffix("_B")) if name.endswith("_B") else by_name.get(name + "_B")
-            if other is not None:
-                landing = min(points, key=lambda n: math.dist(points[n][:2], other[1][:2]))
+        for (tag, at), other, _ in _partners(placed):
+            landing = min(points, key=lambda n: math.dist(points[n], other))
+            if math.dist(points[landing], other) <= PAIR_LANDING_REACH:
                 found.setdefault((tag, at), Link(tag, at, landing, points[landing], "interact"))
 
+    travel = _travel(placed)
     if nav is not None:
         for (tag, at), (landing, target) in nav_links(nav, travel, points, crosses).items():
             found.setdefault((tag, at), Link(tag, at, landing, target, "interact"))
-    return list(found.values())
+    # A ride out of the zone is no link by any rule above.
+    return [link for key, link in found.items() if key not in leaving]
 
 
 def nav_links(
@@ -542,6 +643,13 @@ def zone_links(
     :func:`~bartleby.runtime.movement.zone_grid.pieces`."""
     by_name = link_candidates(volumes, named)
     every_volume = [(v.name, tuple(v.center)) for v in volumes if _LINK_VOLUME.search(v.name)]
+    # A pair's end or a ride that names its landing is hidden only by a volume that teleports or
+    # says it does: a quest's activator at it (Eastern Sea's traveler stands in one) is no pad.
+    true_pads = [(v.name, tuple(v.center)) for v in volumes if _PAD_VOLUME.search(v.name) or v.name in teleports]
+    pairs = _partners(placed)
+    certain = {here for here, _, _ in pairs}
+    only_bridges = {here for here, _, only_bridge in pairs if only_bridge}
+    certain |= {(obj.tag, obj.at) for obj in placed if _rides_within(obj, zone, named)}
     moving = [
         (v.name, tuple(v.center))
         for v in volumes
@@ -575,9 +683,11 @@ def zone_links(
                 out.append(link)
     for link in interact_candidates(zone, placed, named, nav, crosses):
         found = ends(link)
-        if found is None or any(math.dist(link.source[:2], v[1][:2]) <= PAD_REACH for v in every_volume):
+        pads = true_pads if (link.name, link.source) in certain else every_volume
+        if found is None or any(math.dist(link.source[:2], pad[:2]) <= PAD_REACH for _, pad in pads):
             continue
-        if label[found[0]] != label[found[1]] or math.dist(link.source, link.target) >= SHORTCUT_MIN:
+        shortcut = (link.name, link.source) not in only_bridges and math.dist(link.source, link.target) >= SHORTCUT_MIN
+        if label[found[0]] != label[found[1]] or shortcut:
             out.append(link)
     return out
 

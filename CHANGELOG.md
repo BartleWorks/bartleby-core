@@ -14,6 +14,18 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 - **Walk maps for Ahmarra's main zones**, the eleven beyond Bale Flotilla (BartleBot #339).
   BartleBot's zone map declares them, and needs them to walk in them.
+- **Ahmarra's ways about its zones are links**: its teleporting NPCs, leaf rides and wing
+  harnesses, safe currents, whalebirds and Bale Flotilla's two teleporters. Primal Archipelago,
+  Dark Water Trench and Eastern Sea, which were in pieces no walk joined, are whole. A carpet
+  ride's template names its landing (`InteractTemplate.ride`); "Swim" is a travel verb; and two
+  travel objects named `X` and `X-A` or sharing a zone tag, and a teleporter's `_TOP` and
+  `_BOTTOM`, are two-way pairs, linked only between pieces of floor no walk joins.
+- **A quest's title is no longer read as an object's prompt** when its template holds another.
+  With the pair rules, this also changes links in Tyrian Gorge (two ladders added), Ruined
+  Alcazar (isle teleports), the Hive (its Palace of Fangs ladder now lands at the other end, not
+  the middle) and Stone of Heaven (two ropes added). Every walk the zone map and shipped bots
+  ask for in them still plans; six in the Hive take fewer ladders. None of these is checked in
+  game.
 
 ### Fixed
 

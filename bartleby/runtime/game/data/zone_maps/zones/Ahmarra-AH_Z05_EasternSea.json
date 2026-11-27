@@ -59,7 +59,38 @@
   ]
  },
  "patrols": [],
- "links": [],
+ "links": [
+  {
+   "name": "AH-EAST-NPC12 instance",
+   "kind": "interact",
+   "source": [
+    1685.10400390625,
+    -1572.9530029296875,
+    538.3635864257812
+   ],
+   "landing": "TargetLocation_From_JellyfishIsland_02",
+   "target": [
+    10402.7099609375,
+    -10251.0400390625,
+    -316.11468505859375
+   ]
+  },
+  {
+   "name": "AH-EAST-NPC12-A instance",
+   "kind": "interact",
+   "source": [
+    10097.7998046875,
+    -9944.78515625,
+    -387.7434997558594
+   ],
+   "landing": "TargetLocation_From_JellyfishIsland_01",
+   "target": [
+    2121.1640625,
+    -1604.946044921875,
+    416.15380859375
+   ]
+  }
+ ],
  "exits": [],
  "gates": [
   {

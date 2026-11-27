@@ -598,8 +598,53 @@
    ]
   },
   {
+   "name": "AH-Leaf-ToBird instance",
+   "kind": "ride",
+   "source": [
+    -5056.2587890625,
+    -15270.26953125,
+    66.1044921875
+   ],
+   "landing": "LeafTeleportLanding6A",
+   "target": [
+    11924.6201171875,
+    -11044.5595703125,
+    58.33916091918945
+   ]
+  },
+  {
+   "name": "AH-Leaf-FromBird instance",
+   "kind": "ride",
+   "source": [
+    11606.0703125,
+    -11193.490234375,
+    49.965579986572266
+   ],
+   "landing": "LeafTeleportLanding_3A",
+   "target": [
+    -4859.865234375,
+    -15156.6396484375,
+    90.90064239501953
+   ]
+  },
+  {
+   "name": "AH-Leaf2-ToNext instance",
+   "kind": "ride",
+   "source": [
+    11505.830078125,
+    -7923.43798828125,
+    12.15198040008545
+   ],
+   "landing": "LeafTeleportLanding_5A",
+   "target": [
+    11879.8603515625,
+    -1829.0999755859375,
+    1948.030029296875
+   ]
+  },
+  {
    "name": "AH-Leaf2-ToNext-Back instance",
-   "kind": "interact",
+   "kind": "ride",
    "source": [
     11884.849609375,
     -1870.053955078125,
@@ -613,8 +658,53 @@
    ]
   },
   {
+   "name": "AH-Leaf3-ToNext instance",
+   "kind": "ride",
+   "source": [
+    13191.5595703125,
+    2005.27294921875,
+    1979.8070068359375
+   ],
+   "landing": "LeafTeleportLanding_5F",
+   "target": [
+    19859.490234375,
+    373.7897033691406,
+    2599.1259765625
+   ]
+  },
+  {
+   "name": "AH-Leaf3-ToNext-Back instance",
+   "kind": "ride",
+   "source": [
+    19859.490234375,
+    373.7897033691406,
+    2599.1259765625
+   ],
+   "landing": "LeafTeleportLanding_5E",
+   "target": [
+    13191.5595703125,
+    2005.27294921875,
+    1979.8070068359375
+   ]
+  },
+  {
+   "name": "AH-Leaf3-ToLast instance",
+   "kind": "ride",
+   "source": [
+    23653.390625,
+    -2756.69091796875,
+    2642.7958984375
+   ],
+   "landing": "LeafTeleportLanding_5C",
+   "target": [
+    18944.19921875,
+    -7876.537109375,
+    3608.31396484375
+   ]
+  },
+  {
    "name": "AH-Leaf3-ToLast-Back instance",
-   "kind": "interact",
+   "kind": "ride",
    "source": [
     19122.650390625,
     -7984.46484375,
@@ -625,6 +715,96 @@
     23679.060546875,
     -2645.262939453125,
     2640.9560546875
+   ]
+  },
+  {
+   "name": "AH-LastToSecret instance",
+   "kind": "ride",
+   "source": [
+    18177.55078125,
+    -8361.640625,
+    3585.31396484375
+   ],
+   "landing": "Target location-LastToSecret",
+   "target": [
+    20871.51953125,
+    -11334.5302734375,
+    4520.59423828125
+   ]
+  },
+  {
+   "name": "AH-LastToSecret-Back instance",
+   "kind": "ride",
+   "source": [
+    20944.51953125,
+    -11257.5498046875,
+    4520.583984375
+   ],
+   "landing": "Target location-LastToSecret-Back",
+   "target": [
+    18129.400390625,
+    -8427.216796875,
+    3585.31396484375
+   ]
+  },
+  {
+   "name": "AH-LastToBird instance",
+   "kind": "ride",
+   "source": [
+    15116.1298828125,
+    -7786.40576171875,
+    3552.419921875
+   ],
+   "landing": "Target location-LastToBird",
+   "target": [
+    13204.900390625,
+    -11010.3798828125,
+    34.6656494140625
+   ]
+  },
+  {
+   "name": "AH-LastToBird-Back instance",
+   "kind": "ride",
+   "source": [
+    13214.3603515625,
+    -10977.0595703125,
+    34.66571044921875
+   ],
+   "landing": "TeleportLocation_LastToBird-Back",
+   "target": [
+    15199.75,
+    -7766.8740234375,
+    3585.31396484375
+   ]
+  },
+  {
+   "name": "AH-BirdToBug instance",
+   "kind": "ride",
+   "source": [
+    10130.8701171875,
+    -7330.7880859375,
+    36.195560455322266
+   ],
+   "landing": "Target location-FromBirdIsland",
+   "target": [
+    -11704.98046875,
+    5371.42919921875,
+    17.620609283447266
+   ]
+  },
+  {
+   "name": "AH-BirdToBug-Back instance",
+   "kind": "ride",
+   "source": [
+    -11674.7900390625,
+    5207.44189453125,
+    17.914310455322266
+   ],
+   "landing": "Target location-FromBug-Wings",
+   "target": [
+    10104.919921875,
+    -7234.35302734375,
+    44.556270599365234
    ]
   }
  ],

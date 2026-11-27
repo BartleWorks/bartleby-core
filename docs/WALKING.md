@@ -135,8 +135,8 @@ take one: **step into a volume**, or **press the interact key at a placed object
 fast-travel stone, a zipline, a ladder, a rope). Every one taken so far, of either kind, set
 the wizard down within 5 units of one of the zone's named arrival points (`gamedata.bin`'s
 `m_locationList`), so a link is planned as *where it is taken* plus *which arrival point it
-lands on*. **No client file says where any link lands**: a volume's trigger has a
-`ResTeleport` result with no properties left (below, *Exits*), and every world object's template has `DeletedBehavior` where the behavior
+lands on*. **For all but a carpet ride, no client file says where a link lands**: a volume's
+trigger has a `ResTeleport` result with no properties left (below, *Exits*), and every world object's template has `DeletedBehavior` where the behavior
 that moves the wizard would be (`TeleportProximityBehaviorTemplate`, whose `m_locationName`
 is exactly that landing, survives only in housing and guild templates). So the landing is put
 together from what the files do keep, in this order (`zone_links.py`'s `zone_links`):
@@ -145,9 +145,10 @@ together from what the files do keep, in this order (`zone_links.py`'s `zone_lin
 |---|---|---|
 | a volume's name | the arrival point sharing the most words, "to"/"from" breaking a tie, no link where two fit as well | Triton's six volumes (four walked, 1 to 5 off) |
 | `zone.nav` | for a volume the name leaves on its own piece, if its name says it moves the wizard (teleport, to) or a teleporting trigger fires on it (*Exits*), the far end of the quest arrow's edge starting at it | Lemuria's tower lifts, each named for the end it stands at; Krokotopia's Forgotten Tombs; Crimson Fields' passage north, an `Activator Volume` that carries the wizard 20,000 units to `FromBattlefieldAMain` and walks like a passage in game |
-| a ride's template | a zipline's `InteractableBehavior` holds its two ends as LOCATION records; it lands on the arrival point nearest the second (800 to 920 past it) | all four Floating Mountains ziplines; two pressed, 3 off each |
+| a carpet ride's template | its `InteractCarpetRide` names its zone and **the arrival point it lands on**. One naming no arrival point of its zone leaves it, and is no link by any rule here | Ahmarra's leaves and wing harnesses (12 in Primal Archipelago; `Leaf-ToBird` and the harness land where a player saw them land, `Leaf-ToBird` on a point farther from its return leaf than another); the Oasis's boat names a point on the Sphinx's island |
+| another ride's template | a zipline's `InteractableBehavior` holds its two ends as LOCATION records; it lands on the arrival point nearest the second (800 to 920 past it) | all four Floating Mountains ziplines; two pressed, 3 off each |
 | a stone's partner | a `TeleporterX` stone lands at the arrival point nearest `TeleporterX_ToMain`, and that one at the arrival point nearest the hub's stones; Dragonspyre names its own by letter and role in either order (`DS_TeleportStoneA_Main`, `ArenaTeleportStoneSecondaryA`), Main at the hub and Secondary at the far end | Triton's four (pressed, 1 to 5 off); Colossus, Cyclops, Firecat, nine Krokotopia zones and Hametsu give names like "StreetB", "Target_Arena", "BackToHub", "HamPorter2"; Dragonspyre's Arena, whose `FromMainStoneA` and `FromOuterStones` match (not yet pressed) |
-| an X / X_B pair | each at the arrival point nearest the other | Krokotopia's Forgotten Tombs teleporters |
+| a two-way pair: X and X_B or X and X-A among travel objects; the only two travel objects sharing a zone tag; a teleporter's _TOP and _BOTTOM, whatever their prompt says | each at the arrival point nearest the other, in all three axes, if one is within 2,000 | Krokotopia's Forgotten Tombs teleporters; Dark Water Trench's two safe currents and its whalebirds (all six ends land where a player saw them land); Eastern Sea's `NPC12` and `NPC12-A`; Bale Flotilla's `Teleport_2_TOP` and `_BOTTOM` |
 | `zone.nav` | for any other object whose prompt is a travel verb, the far end of the edge starting nearest it (within 700) | Mirage's caravan ladders (four climbed, 0 to 4 off; Ladder 04 has no edge), Tyrian Gorge's six ("Ladder 01 top", ...), Novus's ropes, Krokotopia's hub teleporter |
 
 What the sources are:
@@ -164,15 +165,24 @@ What the sources are:
   Ladder 06 starts its climb down and a 7,004-unit edge across the zone). It lacks some links:
   Triton's stones are not in it, nor Mirage's Ladder 04.
 - **A travel object** is a placed object whose template's prompt, from `GUI.lang` or its own
-  words in `WizardGameObjects.lang`, says Teleport, Ride, Climb, Descend, Ascend, Travel or
-  Exit (613 templates), or, with no prompt, whose name says teleport, rope, ladder, zipline,
-  boat, elevator, lift, cart, dinghy or portal.
+  words in `WizardGameObjects.lang`, says Teleport, Ride, Climb, Descend, Ascend, Travel, Exit or
+  Swim, or, with no prompt, whose name says teleport, rope, ladder, zipline,
+  boat, elevator, lift, cart, dinghy or portal. **A template can name its quests before its
+  prompt**, so a quest's title is passed over when any other text resolves. Reading the first one
+  gave Eastern Sea's `NPC12` the prompt "Jelly School" instead of "Press X to Teleport"
+  (2026-11-27). With no other text the title stays, since an object left with no prompt would be
+  taken for travel by its name.
 - **A volume link must join two pieces of floor**: that alone throws out zone exits, whose
   names match an arrival point on their own piece ("Street4 to Cavern"). **An object link is
   kept if it joins two pieces or moves the wizard 1,000 units or more**, as a stone is worth
-  pressing even where the far end can be walked to; the route's cost decides. An object within
-  300 of a volume is the pad drawn there (Triton's `Telepapad`s), not a link. Cinematic points
-  are left out.
+  pressing even where the far end can be walked to; the route's cost decides. **A pair other
+  than X and X_B is kept only where it joins two pieces**: none has been pressed where its ends
+  are a walk apart, and as shortcuts they would have changed walks that work (one a shipped bot
+  takes in Katzenstein's Lab, to save 2 s). An object within 300 of a teleport or activator
+  volume is the pad drawn there (Triton's `Telepapad`s), not a link. A carpet ride or a pair's
+  end is hidden only by a volume that teleports or is named for it: Eastern Sea's `NPC12-A`
+  stands in a quest goal's activator. The wider rule stays for the rest. Cinematic points are
+  left out.
 
 None of this is the server's word, so a link that moves nobody is dropped by the walk and the
 route replanned. That has already paid off: Floating Mountains has `AZ-ZipLine-3` and a

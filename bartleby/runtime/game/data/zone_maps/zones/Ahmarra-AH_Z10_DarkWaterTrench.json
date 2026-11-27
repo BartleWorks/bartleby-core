@@ -318,6 +318,96 @@
     2581.330078125,
     -4338.85400390625
    ]
+  },
+  {
+   "name": "WhaleBirdTeleporters",
+   "kind": "interact",
+   "source": [
+    14763.6298828125,
+    -1024.4620361328125,
+    420.9526062011719
+   ],
+   "landing": "TargetLocation_Near_MonsterChasm",
+   "target": [
+    17098.0703125,
+    1896.0050048828125,
+    -2591.68310546875
+   ]
+  },
+  {
+   "name": "WhaleBirdTeleporters",
+   "kind": "interact",
+   "source": [
+    16574.169921875,
+    1961.281005859375,
+    -2583.344970703125
+   ],
+   "landing": "TargetLocation_BackToTop_FromMonsterChasm",
+   "target": [
+    14996.419921875,
+    -1574.93896484375,
+    420.9518127441406
+   ]
+  },
+  {
+   "name": "AH-DARK_SafeCurrentSign 01",
+   "kind": "interact",
+   "source": [
+    -1326.4659423828125,
+    1987.906982421875,
+    101.10569763183594
+   ],
+   "landing": "TargetLocation_Crossing_A",
+   "target": [
+    -969.6123046875,
+    -1578.1689453125,
+    436.3327941894531
+   ]
+  },
+  {
+   "name": "AH-DARK_SafeCurrentSign 01",
+   "kind": "interact",
+   "source": [
+    -1053.135009765625,
+    -1167.1639404296875,
+    455.6119079589844
+   ],
+   "landing": "TargetLocation_Crossing_B",
+   "target": [
+    -1137.7010498046875,
+    2349.89208984375,
+    133.87060546875
+   ]
+  },
+  {
+   "name": "AH-DARK_SafeCurrentSign 02",
+   "kind": "interact",
+   "source": [
+    12722.23046875,
+    -1370.2530517578125,
+    420.8789978027344
+   ],
+   "landing": "TargetLocation_Crossing_C",
+   "target": [
+    13278.9599609375,
+    3289.12109375,
+    133.87069702148438
+   ]
+  },
+  {
+   "name": "AH-DARK_SafeCurrentSign 02",
+   "kind": "interact",
+   "source": [
+    13262.6396484375,
+    2956.294921875,
+    133.87069702148438
+   ],
+   "landing": "TargetLocation_Crossing_D",
+   "target": [
+    12755.240234375,
+    -1642.7120361328125,
+    420.9219970703125
+   ]
   }
  ],
  "exits": [
@@ -475,7 +565,7 @@
     1987.906982421875,
     101.10569763183594
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -498,7 +588,7 @@
     -1167.1639404296875,
     455.6119079589844
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -521,7 +611,7 @@
     -1370.2530517578125,
     420.8789978027344
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
@@ -544,7 +634,7 @@
     2956.294921875,
     133.87069702148438
    ],
-   "wall": false,
+   "wall": true,
    "footprints": [
     {
      "center": [
