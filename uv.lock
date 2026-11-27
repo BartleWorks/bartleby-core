@@ -71,7 +71,7 @@ requires-dist = [
     { name = "pyperclip", marker = "extra == 'qt'", specifier = ">=1.8" },
     { name = "pyqt6", marker = "extra == 'qt'", specifier = ">=6.9" },
     { name = "vdf", specifier = ">=3.4" },
-    { name = "wizsprinter", marker = "extra == 'runtime'", git = "https://github.com/BartleWorks/wizsprinter.git?rev=5d5bd4c54654c1c57492789665fe2b58569c13fd" },
+    { name = "wizsprinter", marker = "extra == 'runtime'", git = "https://github.com/BartleWorks/wizsprinter.git?rev=6c6d51d6cd5160980041dca917d72ac3e17c7947" },
     { name = "wizwalker", marker = "extra == 'runtime'", git = "https://github.com/BartleWorks/wizwalker.git?rev=ed97af1a8d91cd74afcbccd81ae2afd10dc742f4" },
 ]
 provides-extras = ["qt", "runtime"]
@@ -941,7 +941,7 @@ wheels = [
 [[package]]
 name = "wizsprinter"
 version = "0.5.5"
-source = { git = "https://github.com/BartleWorks/wizsprinter.git?rev=5d5bd4c54654c1c57492789665fe2b58569c13fd#5d5bd4c54654c1c57492789665fe2b58569c13fd" }
+source = { git = "https://github.com/BartleWorks/wizsprinter.git?rev=6c6d51d6cd5160980041dca917d72ac3e17c7947#6c6d51d6cd5160980041dca917d72ac3e17c7947" }
 dependencies = [
     { name = "lark" },
     { name = "wizwalker" },

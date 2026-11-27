@@ -221,6 +221,11 @@ Current pins, both on `main`:
   where they were fixed waits, and the round waits read the duel every 0.2 s, not 0.5 s.
   On top of `7900369` (`bartlebot-pin-20261021`), which polls for the friend-teleport
   confirmation.
+- **wizsprinter `6c6d51d`** (`bartlebot-pin-20261127b`): `SprintyCombat.turn_acted`, whether
+  the round just played cast a card (a fizzle included), fused an enchant, discarded or drew,
+  which `FightWatch` reads so a round in which a player used a card never counts toward fleeing.
+  A config of numbered lines alone passes the rounds after its last line, where it raised and
+  left the wizard idle in the duel. On top of `5d5bd4c`, below.
 - **wizsprinter `5d5bd4c`** (`bartlebot-pin-20261127`): an enchant's backups and protected
   buffs. `[sharp | "Aegis"]` fuses the first option in hand that can be cast; a second
   bracket stays a second step, for a fusion. `stacks` counts an effect that reads

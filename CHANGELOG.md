@@ -8,6 +8,22 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## Unreleased
+
+Nothing breaks.
+
+### Changed
+
+- **A fight is fled later.** `FightWatch` counts a planning phase toward fleeing only once its
+  round is past every numbered `{N}` line among our players' strategies in the fight, and only
+  when none of them used a card on its last turn (wizsprinter's `turn_acted`), as well as none
+  holding a castable damage card and no damage over time on the enemies, as before. A
+  strategy with a late hit, or a large deck slow to reach one, is no longer fled. A turn played
+  by hand counts as one that used a card. `RoundReport` gains `numbered_through` and `acted`,
+  both defaulted.
+- **wizsprinter `6c6d51d`**, which reports `turn_acted` and passes a round past a config's
+  last numbered line, where it raised.
+
 ## 0.15.3
 
 Nothing breaks.
