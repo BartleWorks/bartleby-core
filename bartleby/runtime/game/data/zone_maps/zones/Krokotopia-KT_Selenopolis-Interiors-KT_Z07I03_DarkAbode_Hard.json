@@ -1,0 +1,93 @@
+{
+ "format": 2,
+ "zone": "Krokotopia/KT_Selenopolis/Interiors/KT_Z07I03_DarkAbode_Hard",
+ "named": {
+  "Start": [
+   8.680137634277344,
+   -2919.450927734375,
+   40.162109375
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point",
+   "template": "Adv_KT_SE_Treant_Tormented_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     25.059139251708984,
+     -282.0987854003906,
+     -222.0225067138672
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport source",
+   "center": [
+    -23.684329986572266,
+    -3713.94189453125,
+    -29.183589935302734
+   ],
+   "shape": "Sphere",
+   "radius": 353.5892028808594,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "Adv_KT_SE_MonsterChest_TakingTree",
+   "template": "Adv_KT_SE_MonsterChest_TakingTree",
+   "at": [
+    1103.43603515625,
+    -768.190673828125,
+    -222.0225067138672
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -229.74751140729123,
+     "zhi": -145.25750194991585,
+     "firm": true,
+     "hull": [
+      [
+       1025.1462323719904,
+       -778.7370393852723
+      ],
+      [
+       1025.1462348009743,
+       -778.7370458604795
+      ],
+      [
+       1078.4004581308704,
+       -839.7431774992707
+      ],
+      [
+       1163.6116652148874,
+       -765.3595617812596
+      ],
+      [
+       1163.6116627859035,
+       -765.3595553060524
+      ],
+      [
+       1110.3574394560073,
+       -704.3534236672612
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

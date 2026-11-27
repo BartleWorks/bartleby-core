@@ -1,0 +1,92 @@
+{
+ "format": 2,
+ "zone": "Aquila/Interiors/AQ_Z03_HouseOfFaun_Hard",
+ "named": {
+  "Start": [
+   26.33102035522461,
+   -3026.547119140625,
+   22.199810028076172
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn pointBoss",
+   "template": "Adv_AQ-Satyr-Death",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     89.49442291259766,
+     -615.6995239257812,
+     44.39958953857422
+    ]
+   ]
+  },
+  {
+   "spawner": "NightImp",
+   "template": "Adv_AQ-Imp",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     23.81155014038086,
+     428.8515930175781,
+     44.39958953857422
+    ],
+    [
+     -281.0754089355469,
+     -168.2375030517578,
+     44.39971923828125
+    ],
+    [
+     455.5945129394531,
+     -170.7736053466797,
+     44.39960861206055
+    ]
+   ]
+  },
+  {
+   "spawner": "AnguishedWoodman",
+   "template": "Adv_AQ-DarkTreant",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     23.81155014038086,
+     428.8515930175781,
+     44.39958953857422
+    ],
+    [
+     -281.0754089355469,
+     -168.2375030517578,
+     44.39971923828125
+    ],
+    [
+     455.5945129394531,
+     -170.7736053466797,
+     44.39960861206055
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -11.606639862060547,
+    -3335.797119140625,
+    22.199769973754883
+   ],
+   "shape": "Sphere",
+   "radius": 163.91180419921875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

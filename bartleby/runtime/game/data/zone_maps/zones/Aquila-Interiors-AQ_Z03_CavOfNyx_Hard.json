@@ -1,0 +1,68 @@
+{
+ "format": 2,
+ "zone": "Aquila/Interiors/AQ_Z03_CavOfNyx_Hard",
+ "named": {
+  "Start": [
+   54.252689361572266,
+   -3414.594970703125,
+   581.0974731445312
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Cronus",
+   "template": "Adv_AQ-Immortal-Kronus",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     10.186829566955566,
+     -22.072729110717773,
+     386.6637878417969
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point A",
+   "template": "Adv_AQ-Kronus-Shield-01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     33.67934036254883,
+     130.6544952392578,
+     431.9096984863281
+    ],
+    [
+     -309.0621032714844,
+     -320.2196960449219,
+     357.10479736328125
+    ],
+    [
+     303.2190856933594,
+     -405.9382019042969,
+     349.3836975097656
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_BacktoTartarus",
+   "center": [
+    -114.75900268554688,
+    -4293.35205078125,
+    581.0975952148438
+   ],
+   "shape": "Sphere",
+   "radius": 523.99169921875,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

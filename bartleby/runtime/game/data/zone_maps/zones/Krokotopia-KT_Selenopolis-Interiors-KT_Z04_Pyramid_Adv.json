@@ -1,0 +1,495 @@
+{
+ "format": 2,
+ "zone": "Krokotopia/KT_Selenopolis/Interiors/KT_Z04_Pyramid_Adv",
+ "named": {
+  "Start": [
+   -15.338939666748047,
+   -2772.196044921875,
+   -5.305908203125
+  ],
+  "Target_From_Sele_Lower": [
+   -63.50410079956055,
+   -2768.4208984375,
+   -5.305787086486816
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn_OldQuack",
+   "template": "Adv_KT_SE_Duck_Librarian_B_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -530.3662719726562,
+     10907.849609375,
+     751.8297119140625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_SoulEater_1",
+   "template": "KT_SE_Ammit_Base_A_07",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -234.23800659179688,
+     11151.509765625,
+     748.830810546875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_SoulEater_2",
+   "template": "KT_SE_Ammit_Base_A_07",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     135.29420471191406,
+     11141.919921875,
+     748.8306884765625
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_SoulEater_3",
+   "template": "KT_SE_Ammit_Base_A_07",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     438.6474914550781,
+     10935.400390625,
+     748.8306274414062
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_QuentinQual",
+   "template": "Adv_KT_SE_Duck_Librarian_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     165.6470947265625,
+     4794.5361328125,
+     371.79998779296875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_DrakeLockely",
+   "template": "Adv_KT_SE_Duck_Adventurer_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -197.8574981689453,
+     4810.77978515625,
+     371.79998779296875
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_LoonKnight",
+   "template": "Adv_KT_SE_Duck_Moon_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -505.6588134765625,
+     18132.7109375,
+     1000.469970703125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_QuentinQuail_R4",
+   "template": "KT_SE_Roach_Warrior_C_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -203.23280334472656,
+     18359.009765625,
+     1000.469970703125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_DrakeLockely_R4",
+   "template": "KT_SE_Roach_Warrior_C_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     163.56460571289062,
+     18358.990234375,
+     1000.469970703125
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn_OldQuack_R4",
+   "template": "KT_SE_Roach_Warrior_C_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     471.4148864746094,
+     18139.0390625,
+     1000.469970703125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_2_Sele_Lower",
+   "center": [
+    -28.640979766845703,
+    -3033.113037109375,
+    -5.306151866912842
+   ],
+   "shape": "Sphere",
+   "radius": 208.2397003173828,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "TeleportVol_Teleport_2_Sele_Upper",
+   "center": [
+    4620.88720703125,
+    17776.560546875,
+    1345.012939453125
+   ],
+   "shape": "Sphere",
+   "radius": 744.5626831054688,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "KT_DataConsole_01",
+   "template": "KT_DataConsole_01",
+   "at": [
+    461.24139404296875,
+    -1146.72998046875,
+    -46.97904968261719
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      466.6731892291568,
+      -1145.08597876362
+     ],
+     "radius": 82.2414,
+     "zlo": -27.683449446350835,
+     "zhi": 131.33635055364917,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      485.8618631759427,
+      -1074.8040727399755
+     ],
+     "radius": 50.1646,
+     "zlo": -27.683498611701935,
+     "zhi": 314.8238013882981,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      485.86190825557844,
+      -1218.2241727399685
+     ],
+     "radius": 50.1646,
+     "zlo": -27.683498611701964,
+     "zhi": 312.17060138829805,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT-Inviso-Blocker instance",
+   "template": "KT-Inviso-Blocker",
+   "at": [
+    -6.138476848602295,
+    149.84170532226562,
+    50.36603927612305
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -149.35136072387695,
+     "zhi": 350.64863927612305,
+     "firm": true,
+     "hull": [
+      [
+       -583.0680768486023,
+       70.12915532226562
+      ],
+      [
+       594.6439231513976,
+       70.12915532226562
+      ],
+      [
+       594.6439231513976,
+       253.77665532226564
+      ],
+      [
+       -583.0680768486023,
+       253.77665532226564
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT-Inviso-Blocker_Room3",
+   "template": "KT-Inviso-Blocker",
+   "at": [
+    28.968530654907227,
+    12831.259765625,
+    745.636474609375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 545.919074609375,
+     "zhi": 1045.919074609375,
+     "firm": true,
+     "hull": [
+      [
+       -547.9610693450927,
+       12751.547215625
+      ],
+      [
+       629.7509306549073,
+       12751.547215625
+      ],
+      [
+       629.7509306549073,
+       12935.194715624999
+      ],
+      [
+       -547.9610693450927,
+       12935.194715624999
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT-Inviso-Blocker_Room2",
+   "template": "KT-Inviso-Blocker",
+   "at": [
+    -22.354259490966797,
+    6492.87890625,
+    418.5592041015625
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 218.8418041015625,
+     "zhi": 718.8418041015625,
+     "firm": true,
+     "hull": [
+      [
+       -599.2838594909668,
+       6413.166356250001
+      ],
+      [
+       578.4281405090331,
+       6413.166356250001
+      ],
+      [
+       578.4281405090331,
+       6596.81385625
+      ],
+      [
+       -599.2838594909668,
+       6596.81385625
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "KT_DataConsole_02 instance",
+   "template": "KT_DataConsole_02",
+   "at": [
+    650.8992919921875,
+    5219.4169921875,
+    331.53338623046875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      652.4875947522327,
+      5224.8653388839
+     ],
+     "radius": 82.2414,
+     "zlo": 350.8289862297514,
+     "zhi": 509.84878622975145,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      604.0821011752944,
+      5279.3140317023535
+     ],
+     "radius": 50.1646,
+     "zlo": 350.8289346886902,
+     "zhi": 693.3362346886902,
+     "firm": true,
+     "hull": null
+    },
+    {
+     "center": [
+      724.2393305030629,
+      5201.009719347514
+     ],
+     "radius": 50.1646,
+     "zlo": 350.8289381110782,
+     "zhi": 690.6830381110782,
+     "firm": true,
+     "hull": null
+    }
+   ]
+  },
+  {
+   "name": "KT-Inviso-Blocker_Room4",
+   "template": "KT-Inviso-Blocker",
+   "at": [
+    3066.3359375,
+    17816.919921875,
+    1174.781005859375
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 975.0636025751949,
+     "zhi": 1475.063610141525,
+     "firm": true,
+     "hull": [
+      [
+       2986.623194020565,
+       18393.849496851886
+      ],
+      [
+       2986.6235637237687,
+       17216.137496851945
+      ],
+      [
+       2986.623584323914,
+       17216.13749685195
+      ],
+      [
+       3170.2710637237597,
+       17216.13755450192
+      ],
+      [
+       3170.271084323905,
+       17216.137554501925
+      ],
+      [
+       3170.2707146207013,
+       18393.849554501867
+      ],
+      [
+       3170.2706940205558,
+       18393.849554501863
+      ],
+      [
+       2986.6232146207103,
+       18393.849496851893
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Adv_KT_SE_MonsterChest_LoonKnight instance",
+   "template": "Adv_KT_SE_MonsterChest_LoonKnight",
+   "at": [
+    25.889650344848633,
+    19628.900390625,
+    1131.9620361328125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 1124.2370361328126,
+     "zhi": 1208.7270361328124,
+     "firm": true,
+     "hull": [
+      [
+       -21.305349655151367,
+       19585.360390625
+      ],
+      [
+       91.80465034484862,
+       19585.360390625
+      ],
+      [
+       91.80465034484862,
+       19666.340390625002
+      ],
+      [
+       -21.305349655151367,
+       19666.340390625002
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

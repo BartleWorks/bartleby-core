@@ -1,0 +1,86 @@
+{
+ "format": 2,
+ "zone": "Aquila/Interiors/AQ_Z02_PirateShip_Hard",
+ "named": {
+  "Start": [
+   1158.2769775390625,
+   -834.4119873046875,
+   2.6703529357910156
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "Spawn point Small01",
+   "template": "Adv_AQ-Squid-Tentacle-Sml-B",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1002.4520263671875,
+     -2951.179931640625,
+     26.308290481567383
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point small02",
+   "template": "Adv_AQ-Squid-Tentacle-Sml-A",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1373.43505859375,
+     -2944.45703125,
+     2.670876979827881
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Big02",
+   "template": "Adv_AQ-Squid-Tentacle-Lg-A",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     1667.77099609375,
+     -2729.743896484375,
+     15.112759590148926
+    ]
+   ]
+  },
+  {
+   "spawner": "Spawn point Big01",
+   "template": "Adv_AQ-Squid-Tentacle-Lg-B",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     692.6356811523438,
+     -2794.091064453125,
+     2.671096086502075
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport location",
+   "center": [
+    -511.3110046386719,
+    12.19297981262207,
+    13.83117961883545
+   ],
+   "shape": "Sphere",
+   "radius": 249.0511016845703,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

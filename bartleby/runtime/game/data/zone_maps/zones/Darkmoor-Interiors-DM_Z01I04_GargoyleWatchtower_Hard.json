@@ -1,0 +1,86 @@
+{
+ "format": 2,
+ "zone": "Darkmoor/Interiors/DM_Z01I04_GargoyleWatchtower_Hard",
+ "named": {
+  "Start": [
+   0.09971355646848679,
+   411.468505859375,
+   2.0
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPoint_Mob_01",
+   "template": "Adv_DM_Gargoyle_CommanderF_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -19.614959716796875,
+     1504.0400390625,
+     2.00006103515625
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_02",
+   "template": "Adv_DM_Gargoyle_BaseF_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -505.83209228515625,
+     1692.0360107421875,
+     2.00006103515625
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_03",
+   "template": "Adv_DM_Gargoyle_BaseF_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -52.51375961303711,
+     1995.280029296875,
+     2.00006103515625
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_04",
+   "template": "Adv_DM_Gargoyle_BaseF_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     359.3132019042969,
+     1752.875,
+     2.00006103515625
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportSource_Exit_to_Graveholm",
+   "center": [
+    0.09966850280761719,
+    -103.95770263671875,
+    2.0
+   ],
+   "shape": "",
+   "radius": 158.27430725097656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

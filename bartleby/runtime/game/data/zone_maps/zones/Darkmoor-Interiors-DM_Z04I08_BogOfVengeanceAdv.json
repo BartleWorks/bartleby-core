@@ -1,0 +1,183 @@
+{
+ "format": 2,
+ "zone": "Darkmoor/Interiors/DM_Z04I08_BogOfVengeanceAdv",
+ "named": {
+  "Start": [
+   -1126.60302734375,
+   3054.466064453125,
+   371.00909423828125
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPoint_Mob_01_B",
+   "template": "Adv_DM_Blob_Shadow_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -452.9754943847656,
+     2051.638916015625,
+     371.00909423828125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_A",
+   "template": "Adv_DM_Scholomari_PriestessF_B_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -208.4344940185547,
+     2214.339111328125,
+     371.00909423828125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_C",
+   "template": "Adv_DM_Blob_Shadow_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     248.91270446777344,
+     1578.155029296875,
+     371.00909423828125
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Mob_01_D",
+   "template": "Adv_DM_Blob_Shadow_A_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -16.899179458618164,
+     1476.2879638671875,
+     371.00909423828125
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_TeleportSource_Exit_01",
+   "center": [
+    -1380.677001953125,
+    3337.60498046875,
+    371.00909423828125
+   ],
+   "shape": "",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "DM_Bog_Blocker_01 instance",
+   "template": "DM_Bog_Blocker_01",
+   "at": [
+    1076.925048828125,
+    280.8291015625,
+    293.54949951171875
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 43.549474025557345,
+     "zhi": 543.549526420187,
+     "firm": true,
+     "hull": [
+      [
+       262.88514871438383,
+       84.94302047611839
+      ],
+      [
+       628.307993707668,
+       -436.22070971351576
+      ],
+      [
+       628.3080116012063,
+       -436.2207190198082
+      ],
+      [
+       1930.925031636641,
+       477.1314385158288
+      ],
+      [
+       1565.502186643357,
+       998.2951687054629
+      ],
+      [
+       1565.5021687498186,
+       998.2951780117553
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Adv_DM_MonsterChest_HierophantOfDestruction instance",
+   "template": "Adv_DM_MonsterChest_HierophantOfDestruction",
+   "at": [
+    534.1525268554688,
+    922.1699829101562,
+    371.00909423828125
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": 363.2840896314372,
+     "zhi": 447.7740987821135,
+     "firm": true,
+     "hull": [
+      [
+       455.1906955870651,
+       924.5254734685325
+      ],
+      [
+       455.19069752998837,
+       924.5254666345844
+      ],
+      [
+       497.7890765252347,
+       855.6550193659823
+      ],
+      [
+       593.9848815456302,
+       915.1549285800143
+      ],
+      [
+       593.9848796027069,
+       915.1549354139623
+      ],
+      [
+       551.3865006074606,
+       984.0253826825644
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

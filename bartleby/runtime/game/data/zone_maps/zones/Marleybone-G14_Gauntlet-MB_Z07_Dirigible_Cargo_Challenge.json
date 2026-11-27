@@ -1,0 +1,47 @@
+{
+ "format": 2,
+ "zone": "Marleybone/G14_Gauntlet/MB_Z07_Dirigible_Cargo_Challenge",
+ "named": {
+  "Start": [
+   10.870969772338867,
+   -2514.156982421875,
+   -5.335552032192936e-06
+  ],
+  "From G14MB Cabin": [
+   4.9166259765625,
+   2511.2958984375,
+   0.0001199807011289522
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_To G14MB Cargo02",
+   "center": [
+    4.695435047149658,
+    -3211.06591796875,
+    0.4951629936695099
+   ],
+   "shape": "",
+   "radius": 455.5592041015625,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume",
+   "center": [
+    -3.7996859550476074,
+    3090.160888671875,
+    -6.351500988006592
+   ],
+   "shape": "Sphere",
+   "radius": 424.3976135253906,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

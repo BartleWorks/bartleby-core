@@ -1,0 +1,121 @@
+{
+ "format": 2,
+ "zone": "Wallaru/Interiors/WL_Z04_I05_FreddiesDomain_Hard",
+ "named": {
+  "Start": [
+   1.121917963027954,
+   -1548.6600341796875,
+   -12.28197956085205
+  ]
+ },
+ "patrols": [
+  {
+   "spawner": "SpawnPoint_Boss_01",
+   "template": "Adv_WL_Toad_EvilClaw_A_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -89.11699676513672,
+     -2728.19091796875,
+     -12.27439022064209
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Minion_01",
+   "template": "Adv_WL_Toad_EvilClaw_B_01",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     -449.6286926269531,
+     -3024.00390625,
+     -12.306159973144531
+    ]
+   ]
+  },
+  {
+   "spawner": "SpawnPoint_Minion_02",
+   "template": "Adv_WL_Toad_EvilClaw_B_02",
+   "proximity": 350.0,
+   "max_spawns": 1,
+   "start_node_type": 1,
+   "points": [
+    [
+     229.68409729003906,
+     -3043.385986328125,
+     -12.256589889526367
+    ]
+   ]
+  }
+ ],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Teleport_Exit",
+   "center": [
+    45.86962890625,
+    -875.273681640625,
+    -12.292719841003418
+   ],
+   "shape": "Sphere",
+   "radius": 100.0,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": [
+  {
+   "name": "WL_MonsterChest",
+   "template": "Adv_WL_MonsterChest_Freddie",
+   "at": [
+    -446.2497863769531,
+    -1880.2359619140625,
+    -12.29345989227295
+   ],
+   "wall": false,
+   "footprints": [
+    {
+     "center": [
+      0.0,
+      0.0
+     ],
+     "radius": 0.0,
+     "zlo": -20.018462557294797,
+     "zhi": 64.4715421001801,
+     "firm": true,
+     "hull": [
+      [
+       -505.9385153739862,
+       -1888.3831876076429
+      ],
+      [
+       -447.4926332996255,
+       -1944.4352996869384
+      ],
+      [
+       -447.492630634429,
+       -1944.435298550334
+      ],
+      [
+       -369.2010228635088,
+       -1862.800157510189
+      ],
+      [
+       -427.6469049378695,
+       -1806.7480454308934
+      ],
+      [
+       -427.646907603066,
+       -1806.7480465674978
+      ]
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -420,6 +420,13 @@ all, and `Grid` raises "nothing to walk on" for it. BartleBot's
 without one. A later product's zones (BartleBuddy's quests) join by a further `--names` or
 `--zone-nav`.
 
+**Challenge Mode copies** are built beside the zones named. Challenge Mode loads a dungeon as a
+second zone with its own wad (`_Hard`, `_Challenge`, `_Adv` or `Adv` on the id), a bot names only
+the ordinary one, and a walk plans on the zone the client is in. So the build adds every copy of a
+listed zone that the install has a wad for (`with_challenge_copies`). They were left out until
+2026-11-27, when the party at Captain Nemo, in Challenge Mode, had no map to walk to him on. The
+check at Run reads only the zones a bot names, so it could not say so.
+
 **What a map holds:**
 
 | file | holds |

@@ -1,0 +1,47 @@
+{
+ "format": 2,
+ "zone": "Marleybone/G14_Gauntlet/MB_Z06_Rooftop_Challenge",
+ "named": {
+  "Start": [
+   -1227.4449462890625,
+   -4232.1240234375,
+   -170.3592071533203
+  ],
+  "From Airship": [
+   -46.833499908447266,
+   2092.652099609375,
+   -170.3592987060547
+  ]
+ },
+ "patrols": [],
+ "links": [],
+ "exits": [
+  {
+   "name": "TeleportVol_Exit To MBBarkingham",
+   "center": [
+    -1551.6109619140625,
+    -4238.06005859375,
+    -150.6580047607422
+   ],
+   "shape": "",
+   "radius": 200.77670288085938,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  },
+  {
+   "name": "Activator Volume (1)",
+   "center": [
+    -1.5026860237121582,
+    2637.93505859375,
+    -170.3594970703125
+   ],
+   "shape": "Sphere",
+   "radius": 355.9667053222656,
+   "length": 0.0,
+   "width": 0.0,
+   "height": 0.0
+  }
+ ],
+ "gates": []
+}

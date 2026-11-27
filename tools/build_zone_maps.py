@@ -14,6 +14,10 @@ WHICH ZONES
     its Scales of Knowledge table, whose stations no bot need name). A zone the install has no
     wad for is reported and left out.
 
+    Each of those zones' Challenge Mode copies the install has a wad for is built too, listed
+    under the same reasons plus ``"challenge"``. A copy is a zone of its own, with its own wad,
+    and a bot names only the ordinary one: in Challenge Mode it walks in the copy.
+
 WHAT IT NEEDS
     The game's ``Data/GameData`` folder, with every zone's wad: a live install lacks the wads of
     zones its player never visited, so build on a machine that has them all. And the type list
@@ -99,6 +103,22 @@ def zone_set(zone_nav: Path | None, names: Sequence[Path]) -> dict[str, list[str
             for zone in _zone_params(json.loads(path.read_text(encoding="utf-8"))):
                 zones.setdefault(zone, set()).add(why)
     return {zone: sorted(why) for zone, why in sorted(zones.items())}
+
+
+#: What the game appends to a dungeon zone's id for its Challenge Mode copy. There is no one
+#: tag, and one Darkmoor zone's has no underscore (BartleBot's ``zone_names`` has the same list).
+CHALLENGE_SUFFIXES = ("_Challenge", "_Hard", "_Adv", "Adv")
+
+
+def with_challenge_copies(zones: dict[str, list[str]], game_data: Path) -> dict[str, list[str]]:
+    """*zones* and every Challenge Mode copy of one that the install has a wad for."""
+    found = dict(zones)
+    for zone, why in zones.items():
+        for suffix in CHALLENGE_SUFFIXES:
+            copy = zone + suffix
+            if copy not in found and zone_wad_path(copy, game_data).exists():
+                found[copy] = sorted({*why, "challenge"})
+    return dict(sorted(found.items()))
 
 
 # --- building ----------------------------------------------------------------------------------
@@ -336,7 +356,9 @@ def main() -> int:
     ap.add_argument("--pairs", type=int, default=60, help="with --compare, at most this many pairs of points a zone")
     args = ap.parse_args()
 
-    listed = list(zone_set(args.zone_nav, args.names)) if args.zone_nav or args.names else []
+    listed = []
+    if args.zone_nav or args.names:
+        listed = list(with_challenge_copies(zone_set(args.zone_nav, args.names), args.game_data))
     if args.compare:
         if not args.zone:
             ap.error("--compare needs --zone")
