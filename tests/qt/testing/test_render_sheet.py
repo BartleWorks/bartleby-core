@@ -6,7 +6,7 @@ import os
 
 import pytest
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor, QImage, QPainter
+from PyQt6.QtGui import QColor, QGuiApplication, QImage, QPainter
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from bartleby.qt.testing.render_sheet import Surface, compare, core_themes, is_blank, render
@@ -44,9 +44,6 @@ def test_a_sheet_is_drawn_once_per_theme(qapp, tmp_path):
     assert not any(is_blank(p) for p in written)
 
 
-# A known flake (BartleWorks/bartleby-core#20): under -n auto the two runs' dark renders
-# can differ, and it passes alone. See tests/CLAUDE.md, "Known flakes are marked".
-@pytest.mark.flaky(reruns=2)
 def test_two_runs_on_one_tree_compare_identical(qapp, tmp_path):
     render(SHEET, tmp_path / "a")
     render(SHEET, tmp_path / "b")
@@ -110,6 +107,36 @@ def test_a_widget_the_surface_replaced_is_gone_before_the_grab(qapp, tmp_path):
         image = QImage(str(tmp_path / f"replaced.{theme}.png"))
         colors = {image.pixelColor(x, y).name() for x in range(image.width()) for y in range(image.height())}
         assert colors == {"#0000ff"}, theme
+
+
+class _Placed(QWidget):
+    """Records, as it is shown, where its native window is."""
+
+    def __init__(self, shown_at: list) -> None:
+        super().__init__()
+        self._shown_at = shown_at
+
+    def showEvent(self, event):  # noqa: N802 - Qt's name
+        self._shown_at.append(self.windowHandle().position())
+
+
+@pytest.mark.parametrize("native_window_first", [False, True], ids=["unmade", "made_by_the_factory"])
+def test_a_surface_is_put_on_the_primary_screen_before_it_is_grabbed(qapp, tmp_path, native_window_first):
+    """Left unplaced, Qt opens it on the mouse pointer's screen, and the grab takes that screen's scale."""
+    shown_at = []
+
+    def build() -> QWidget:
+        widget = _Placed(shown_at)
+        if native_window_first:
+            widget.winId()
+        return widget
+
+    render([Surface("placed", build, (40, 40))], tmp_path)
+
+    corner = QGuiApplication.primaryScreen().availableGeometry().topLeft()
+    # Within a window frame's margins: ``move`` places the frame, not the client area.
+    assert len(shown_at) == 2
+    assert all((at - corner).manhattanLength() < 100 for at in shown_at), shown_at
 
 
 def test_the_offscreen_platform_is_pointed_at_the_systems_fonts(monkeypatch, tmp_path):

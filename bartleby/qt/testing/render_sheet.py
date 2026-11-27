@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from PyQt6.QtCore import QEvent, Qt
-from PyQt6.QtGui import QImage
+from PyQt6.QtGui import QGuiApplication, QImage
 from PyQt6.QtWidgets import QApplication, QWidget
 
 #: Turns of the event loop between showing a surface and grabbing it: enough for layouts,
@@ -100,12 +100,27 @@ def _free(app: QApplication, widget: QWidget) -> None:
     app.sendPostedEvents(None, QEvent.Type.DeferredDelete)
 
 
+def _put_on_primary_screen(widget: QWidget) -> None:
+    """Place *widget* on the primary screen, so the mouse pointer doesn't choose its scale.
+
+    Qt opens a window nobody has placed on whichever screen the pointer is on, and a grab is
+    at that screen's scale. With two screens scaled differently, a pointer that crossed between
+    them changed the pixels from one run to the next. A native window the factory already made
+    is moved too: under ``WA_DontShowOnScreen`` the widget's own move never reaches it.
+    """
+    corner = QGuiApplication.primaryScreen().availableGeometry().topLeft()
+    widget.move(corner)
+    if widget.windowHandle() is not None:
+        widget.windowHandle().setPosition(corner)
+
+
 def render_one(surface: Surface) -> QImage:
     """*surface* drawn in the theme now current, at its size."""
     app = QApplication.instance()
     widget = surface.build()
     try:
         widget.setAttribute(Qt.WidgetAttribute.WA_DontShowOnScreen, True)
+        _put_on_primary_screen(widget)
         widget.resize(*surface.size)
         widget.show()
         _settle(app)

@@ -29,6 +29,10 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ### Fixed
 
+- **A render sheet's pixels no longer depend on where the mouse pointer is.** Qt opened each
+  surface on the pointer's screen and grabbed it at that screen's scale, so with two screens
+  scaled differently, moving the pointer between them made two runs of one tree differ.
+  `render_sheet` now puts every surface on the primary screen.
 - **A step's lip is floor.** `collision.walkable_triangles` keeps a face too steep for floor
   when it rises no more than `LIP_RISE` (20, the step a walk takes). Ironworks' raised walkway
   ends in lips rising 12 to 18 that were read as cliffs, which left no route onto it. The maps
