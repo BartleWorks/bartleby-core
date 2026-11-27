@@ -62,21 +62,26 @@ _ENCHANT_AHEAD = " & ".join(
 #: or with no boss left, single-target at a mob, so a leftover minion is never only passed
 #: at; then fillers, the buffs that won't stack, and a pass. Short of pips for a hit, it keeps
 #: its buffs. Generic to any school.
+#:
+#: A blade takes Sharpened Blade, or Aegis without one, a trap Potent Trap or Indemnity, and
+#: a shield Aegis: a protected buff is no weaker, and an enchant not in hand is skipped. The
+#: enchant-ahead slot fuses only Sharpened and Potent: an Aegis fused early would leave no
+#: room on the card for a Sharpened Blade drawn later.
 _PRIORITY = [
     _ENCHANT_AHEAD,
     "?(self.health < 30%) any<heal> @ self",
-    "?(self.beneficial_wards == 0) any<ward> @ self",
+    '?(self.beneficial_wards == 0) any<ward>["Aegis"] @ self',
     '"Feint Mass - Amulet"',
-    "any<trap & !aoe & stacks>[potent] @ boss",
-    "any<blade & stacks>[sharp] @ self",
+    'any<trap & !aoe & stacks>[potent | "Indemnity"] @ boss',
+    'any<blade & stacks>[sharp | "Aegis"] @ self',
     "?(self.beneficial_auras == 0) any<aura & out_damage>",
     "any<damage & aoe>[any<mod_damage>]",
     "any<damage>[any<mod_damage>] @ boss",
     "?(all(enemies).is_boss == 0) any<damage>[any<mod_damage>] @ enemy",
     "any<global>",
     "any<shadow>",
-    "any<trap & !aoe>[potent] @ boss",
-    "any<blade>[sharp] @ self",
+    'any<trap & !aoe>[potent | "Indemnity"] @ boss',
+    'any<blade>[sharp | "Aegis"] @ self',
     "pass",
 ]
 

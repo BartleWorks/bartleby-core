@@ -125,6 +125,7 @@ _AFTER_DECK = re.compile(r"\bdeck\s*\.\s*\Z", re.IGNORECASE)
 DSL_HELP = (
     "{round} move @ target | move @ target | pass — rounds optional, '|' is priority order.\n"
     'Moves: "Named Spell" or any<damage|heal|blade|trap|charm|ward|aura|...>[enchant]\n'
+    'An enchant can name backups, first preferred: any<blade>[sharp | "Aegis"]\n'
     "Combine types with &, and rule one out with !: any<trap & !aoe>, or a card by name: any<trap & !feint>\n"
     'Targets: self, enemy, boss, ally, aoe, or a name — Nightshade, or "Lord Nightshade"\n'
     "Pick one out with ally(0) or enemy(1). ally(last) is the last player on the team, you included,\n"
@@ -296,7 +297,9 @@ def _apply_punct(text: str, contexts: list[Context], last: str | None) -> None:
         contexts[0] = Context.DISCARD_TARGET if word == "discard" else Context.TARGET
     elif text == "&" and len(contexts) == 1:
         contexts[0] = Context.MOVE
-    elif text == "|":
+    elif text == "|" and top is not Context.ENCHANT:
+        # Inside ``[sharp | "Aegis"]`` it separates an enchant's backups, and the
+        # bracket stays open; anywhere else it starts the next priority.
         contexts[:] = list(_BASE)
 
 
@@ -416,7 +419,7 @@ def _offered(stack: tuple[Context, ...], last: str | None) -> tuple[str, ...]:
     match top:
         case Context.MOVE if last in (None, "|", "&", "}"):
             return ("any<", *MOVE_KEYWORDS)
-        case Context.ENCHANT if last == "[":
+        case Context.ENCHANT if last in ("[", "|"):
             return ("any<",)
         case Context.SPELL_LIST if last in ("(", ","):
             return ("any<",)
