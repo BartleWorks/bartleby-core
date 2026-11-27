@@ -742,6 +742,28 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
   to is dropped and left out of later scans, so its search of every reachable cell is paid
   once; a zone with no map is picked by straight line. Near the node's timeout, a group whose
   planned walk runs past the time left goes only for a player below a fail threshold.
+- **A long walk to one of ours becomes a port** (Stage 3 of its #340), whichever node walks,
+  once the run has a port map. Each mover walks with `longest` at `PORT_LONGEST`, which is
+  `PORT_COST` (3 s, the user's estimate of a port within a zone) plus `PORT_MARGIN` (2 s), so a
+  shorter walk never asks. A plan over it ends `TOO_LONG`, and the mover costs each player of
+  ours it could port to: one in the zone, not fighting, holding no movement lease, with a port
+  route from the mover. A trip is `PORT_COST` plus the walk on from that player, a
+  `seconds_to` search from where it stands at the mover's own speed (`WalkResult.speed`), since
+  a search out from the goal would cost the way back, which a one-way link makes differ. A
+  player whose straight line to the goal already misses the margin is never searched. The
+  quickest trip wins if it beats `planned` by `PORT_MARGIN`; then the mover ports through
+  BartleBot's `port_map.port_waves`, under its movement lease, and walks the rest on the same
+  walker with no `longest`. When nothing wins, or the port goes nowhere, it walks the kept plan.
+  - **The movers of one call join as they arrive.** A mover still on its first walk is a target
+    whose trip is the wait for it, at most what is left of `PORT_LONGEST` since the call began.
+    The long walker waits only while a port to it would still save the margin, and costs every
+    target again whenever a walk of the call changes, so it ports to the first to arrive.
+  - **A zone that refuses a port** is walked for the rest of the run: the refusal goes in the
+    run's `no_port_zones`, logged once, cleared at the next run's start. A walk into a fight or
+    an exit always walks, and so does a walk with no port map (the authoring tools' go-to).
+  - **Each port is a span** in the run trace, with its zone, route, seconds from the first click
+    to the landing check and whether it landed or was refused, so `PORT_COST` can be set from
+    real runs. Not yet run in game.
 - **Ahead of need**: a thread builds and saves every zone's copy from startup, the open bot's
   zones first, then those Sync in Zone's network crosses, then the rest. A build holds the
   event loop at most about 33 ms (Triton Avenue, the largest map, 6.1 s to build). Each client's
