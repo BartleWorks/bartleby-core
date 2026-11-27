@@ -2,6 +2,7 @@
 
 import ast
 import asyncio
+import dataclasses
 import math
 import threading
 from pathlib import Path
@@ -15,6 +16,7 @@ from bartleby.runtime.movement.gates import Gate
 from bartleby.runtime.movement.patrols import HARD, Patrol
 from bartleby.runtime.movement.route import (
     EXIT_MARGIN,
+    WALL_WEIGHT,
     WIZARD_SPEED,
     Leg,
     PlanStopped,
@@ -23,9 +25,10 @@ from bartleby.runtime.movement.route import (
     build_planner,
     link_reach,
     walking_seconds,
+    wall_cost,
 )
 from bartleby.runtime.movement.walk import plan_in_thread
-from bartleby.runtime.movement.zone_grid import CELL, CLEARANCE, MAX_RISE, STEP_TOL
+from bartleby.runtime.movement.zone_grid import CELL, CLEARANCE, MAX_RISE, ROOM_STEPS, STEP_TOL
 from bartleby.runtime.movement.zone_links import LINK_REACH, InteractTemplate, Link, PlacedObject, Volume
 from tests.runtime.movement.test_zone_grid import two_storeys
 from tests.runtime.movement.zone_fixtures import box, floor, mesh
@@ -747,3 +750,98 @@ async def test_seconds_to_in_a_thread_stops_its_search_when_its_caller_is_cancel
     with pytest.raises(asyncio.CancelledError):
         await task
     assert await asyncio.to_thread(stopped.wait, 5)
+
+
+# --- room from walls ---------------------------------------------------------------------------
+
+
+def _nearest_walked(planner: ZonePlanner, route, point) -> float:
+    """How near any straight stretch walked comes to *point*."""
+    best = math.inf
+    for leg in planner.legs(route):
+        for a, b in zip(leg.waypoints, leg.waypoints[1:]):
+            for t in np.linspace(0, 1, 101):
+                best = min(best, math.dist((a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])), point))
+    return best
+
+
+def _ell() -> ZonePlanner:
+    """Two arms 400 wide, meeting at an inside corner at (1600, 400)."""
+    return _planner(mesh(floor(0, 0, 2000, 400, 0), floor(1600, 400, 2000, 2000, 0)))
+
+
+def _two_gaps(wide: tuple[float, float]) -> ZonePlanner:
+    """The hall 3000 by 2000 cut at x 1500, with a gap 120 wide at y 440 to 560 and one 600 wide at *wide*."""
+    edges = [0.0, 440.0, 560.0, *wide, 2000.0]
+    walls = [
+        box((1500, (lo + hi) / 2, 150), GATE_DEPTH, hi - lo, 300)
+        for lo, hi in zip(edges[::2], edges[1::2], strict=True)
+        if hi > lo
+    ]
+    return _planner(mesh(floor(0, 0, 3000, 2000, 0)), *walls)
+
+
+def _bare(planner: ZonePlanner) -> ZonePlanner:
+    """*planner* pricing no room from walls, as every planner did before 0.15.5."""
+    return dataclasses.replace(planner, wall_room=None)
+
+
+def test_a_route_round_an_inside_corner_keeps_about_100_from_it_where_it_cut_to_34():
+    planner = _ell()
+
+    keeping = planner.route((200, 200), (1800, 1800))
+    cutting = _bare(planner).route((200, 200), (1800, 1800))
+
+    assert _nearest_walked(planner, keeping, (1600, 400)) >= 100
+    assert _nearest_walked(planner, cutting, (1600, 400)) < 50  # inside a 49-unit wizard
+
+
+def test_a_route_from_beside_a_wall_steps_off_it_rather_than_walking_along_it():
+    planner = _planner(mesh(floor(0, 0, 4000, 1000, 0)))
+
+    route = planner.route((200, 60), (3800, 60))
+
+    bare = _bare(planner)
+    assert _nearest_walked(planner, route, (2000, 0)) >= 140  # the wall's face, halfway along
+    assert _nearest_walked(bare, bare.route((200, 60), (3800, 60)), (2000, 0)) == pytest.approx(60, abs=5)
+
+
+def test_a_route_squeezes_through_floor_with_only_clearance_when_room_is_too_far_round():
+    near, far = _two_gaps((650, 1250)), _two_gaps((750, 1350))
+
+    roomy = near.route((1300, 500), (1700, 500))
+    squeezed = far.route((1300, 500), (1700, 500))
+
+    assert max(p[1] for p in near.waypoints(roomy)) > 650  # through the wide gap, some 380 further
+    assert max(p[1] for p in far.waypoints(squeezed)) == pytest.approx(500, abs=CELL)  # the narrow one
+    assert float(far.wall_room[(0, *far.grid.index(1500, 500))]) == CLEARANCE
+
+
+def test_straightening_never_costs_more_for_room_from_walls_than_the_grid_route_did():
+    planner = _ell()
+    walls = planner.wall_line()
+    route = planner.route((200, 200), (1800, 1800))
+    nodes = route.nodes
+    spent = [0.0]
+    for p, q in zip(nodes, nodes[1:]):
+        spent.append(spent[-1] + math.hypot(q[1] - p[1], q[2] - p[2]) * CELL * (walls[p[1:]] + walls[q[1:]]) / 2)
+
+    turns = planner.turns(route)
+
+    for a, b in zip(turns, turns[1:]):
+        ia, ib = nodes.index(a), nodes.index(b)
+        assert route_module._line_cost(planner.grid, walls, a, b) <= spent[ib] - spent[ia] + CELL * WALL_WEIGHT / 4
+
+
+def test_wall_cost_is_all_of_the_weight_under_the_middle_step_a_quarter_under_the_last_and_none_beyond():
+    room = np.array([0.0, CLEARANCE, ROOM_STEPS[1], ROOM_STEPS[-1]])
+
+    assert wall_cost(room).tolist() == [WALL_WEIGHT, WALL_WEIGHT, WALL_WEIGHT / 4, 0.0]
+
+
+def test_seconds_to_pays_for_room_from_walls_as_a_route_does():
+    planner = _ell()
+
+    [seconds] = planner.seconds_to((200, 200), [(1800, 1800)])
+
+    assert seconds == pytest.approx(_route_seconds(planner, (200, 200), (1800, 1800)), abs=CELL / WIZARD_SPEED)

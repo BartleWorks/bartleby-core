@@ -25,6 +25,17 @@ Nothing breaks.
   walk from the same spot to the same goal, on an unchanged planner, takes it instead of
   planning. A caller handling every `WalkEnd` meets the new member only by passing *longest*.
 
+### Changed
+
+- **Routes keep their room from walls.** Every route pays to keep about 100 units from walls
+  and drops where the floor allows (`Grid.wall_room`, `ROOM_STEPS`, `route.WALL_WEIGHT`), and
+  squeezes down to the 50 of clearance only through narrows; straightening never pays more
+  for room than the path it replaces. Routes round inside corners no longer cut them, at 1 to
+  1.4% more length and 4 to 5% more planning on the shipped maps tried. `ZonePlanner` gains
+  `wall_room` (None prices no room), `step_cost` and `wall_line`; `smooth` takes *walls*. The
+  zone maps' saved copies are rebuilt once (`CACHE_VERSION` 3). For BartleBot's epic #340
+  (core #38).
+
 ## 0.15.4
 
 Nothing breaks.

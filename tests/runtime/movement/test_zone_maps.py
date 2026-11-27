@@ -87,6 +87,7 @@ def _assert_plans_alike(one, other) -> None:
     assert (one.grid.x0, one.grid.y0, one.grid.cell) == (other.grid.x0, other.grid.y0, other.grid.cell)
     np.testing.assert_array_equal(one.passable, other.passable)
     np.testing.assert_array_equal(one.clearance, other.clearance)
+    np.testing.assert_array_equal(one.wall_room, other.wall_room)
     np.testing.assert_array_equal(one.cost, other.cost)
     assert (one.named, one.links, one.exits) == (other.named, other.links, other.exits)
     assert [g.key() for g in one.gates] == [g.key() for g in other.gates]
@@ -316,6 +317,25 @@ def test_a_copy_saved_by_another_cache_version_is_rebuilt(shipped, tmp_path, mon
     assert not _maps(shipped, tmp_path).saved(ZONE)
 
 
+def test_a_copy_saved_before_the_room_from_walls_is_rebuilt_quietly(shipped, tmp_path, monkeypatch, caplog):
+    """A copy from CACHE_VERSION 2 has no wall_room: its key no longer fits, so it is rebuilt as
+    any stale copy is, with no warning that it was unreadable for each zone a session loads."""
+    monkeypatch.setattr(zone_maps, "CACHE_VERSION", 2)
+    _maps(shipped, tmp_path).planner(ZONE)
+    path = tmp_path / "saved" / "Test-T_Isles.npz"
+    with np.load(path) as arrays:
+        old = {name: arrays[name] for name in arrays.files if name != "wall_room"}
+    path.write_bytes(zone_maps._npz_bytes(old, level=1))
+    monkeypatch.setattr(zone_maps, "CACHE_VERSION", 3)
+
+    with caplog.at_level(logging.WARNING):
+        planner = _maps(shipped, tmp_path).planner(ZONE)
+
+    _assert_plans_alike(planner, build_planner(_isles()))
+    assert caplog.records == []
+    assert _maps(shipped, tmp_path).saved(ZONE)
+
+
 def test_a_damaged_copy_is_rebuilt_and_said_so(shipped, tmp_path, caplog):
     maps = _maps(shipped, tmp_path)
     maps.planner(ZONE)
@@ -474,8 +494,8 @@ BUILT_BY = (
 # 2026-11-26: walkable_triangles keeps a step's lip. It runs when a map is built, not when a copy
 # is, so a copy of the same map is the same; a floor the rule changed has new bytes, and so a new
 # key. CACHE_VERSION kept.
-BUILT_BY_SHA = "e86f39e06303c5390d7bd52c97eb65158062fec6b71a3588055efa136fd6dabe"
-CHECKED_AT = 2
+BUILT_BY_SHA = "3925d42fdac09e80c352a76daee6f3d3b54239fc531a62abce04810cd6a1ab47"
+CHECKED_AT = 3
 
 
 def test_cache_version_follows_the_planner():

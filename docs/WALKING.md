@@ -101,6 +101,19 @@ cells with three), and a step goes only to the neighbor's floor at about the sam
 and nothing else, join storeys. Floor is passable only if every cell within the clearance has
 floor at about its height, which keeps a route off both walls and drop edges.
 
+**Room from walls and drops** (`Grid.wall_room`, since 0.15.5, Stage 1.2 of BartleBot's #340):
+each floor spot's room is the widest of `ROOM_STEPS` (50, 80, 120) it has floor all round
+within, measured as passable is. On the cells, a spot at 80 stands 100 to 120 units from a
+straight wall's face, and one at 120 stands 140 to 160. A route pays to keep the most room
+there is (`route.WALL_WEIGHT`, below), and narrow floor is never refused, only priced, so it
+squeezes down to the clearance only where the floor narrows: a doorway, a bridge, a gap. **Why:**
+walks were seen clipping into corners (the user, 2026-11-27). The clearance is a 50-unit radius,
+but its one-cell disc has no diagonal, so a route on a test zone's inside corner passed 34 units
+from it, and the walker turning toward its next waypoint 80 units early (*Following*, below)
+cuts every inside corner by some 25 more. With the room priced, that route keeps 105. The
+middle step alone kept 57 there, since a two-cell disc's diagonal reach is short too, so 120
+is what buys about 100 at a corner.
+
 ### Mobs: `spawnData.xml`, `pathData.xml`, `pathNodeData.bin`
 
 `patrols.py`. Every mob spawner names a path; the path is a list of node ids, and the nodes
@@ -377,8 +390,22 @@ the floor near where it is taken (100 units of a volume's center, 150 of an obje
 landing, costing 4 seconds of walking for a volume, 6 for a press, 20 for a ride. The
 heuristic does not know about links, so a route through one is found but not always the
 shortest. The route is then straightened: from each kept point, the furthest point still
-reachable in a straight line without coming nearer a patrol than the route itself did. That
-cuts 100 to 300 grid turns to 20 to 40. A route with links comes back as **legs**, each
+reachable in a straight line without coming nearer a patrol than the route itself did, and
+without paying more for its room from walls than the stretch of route it replaces, give or
+take a cell at the middle step (`smooth`'s *walls*). That cuts 100 to 300 grid turns to 20 to
+40.
+
+**Room from walls costs a step** `WALL_WEIGHT` (4) more per unit walked on floor with under 80
+of room, and a quarter of that under 120, added to the patrols' cost per floor spot
+(`ZonePlanner.step_cost`), whether or not a walk avoids mobs. So 50 units of the tightest floor
+cost what 250 of roomy floor do: a route takes a wider way up to that much further round. On a
+test hall cut by a wall with a gap 120 wide, a gap 600 wide some 380 units further round is
+taken, and one 600 further is not. Straightening is held to the same price rather than to the
+least room along the stretch, since a route starting beside a wall has the least there is
+there, and its line would then hug the wall all the way. On the shipped maps (2026-11-27, 12
+random routes over 2,000 units in Unicorn Way and 8 in the Hive): the same routes found,
+planning 4 to 5% slower, routes 1 to 1.4% longer; 16 of the 20 straightened lines had crossed a
+cell with no room at all, and with the room priced none came under 50, and half kept 80. A route with links comes back as **legs**, each
 straightened alone and each but the last ending at the link's volume, or on the floor beside
 the object to press.
 

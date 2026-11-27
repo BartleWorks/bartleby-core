@@ -206,6 +206,9 @@ def test_a_spin_box_keeps_its_step_buttons(themed_app):
 # ---------------------------------------------------------------------------
 
 
+# A known flake (BartleWorks/BartleBuddy#13): fails under -n auto load in the dark theme, and passes alone.
+# See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 def test_the_dropdown_edge_is_one_pixel_like_every_other(themed_app):
     """The artifact ``_combo_arrow_qss`` exists to remove.
 
