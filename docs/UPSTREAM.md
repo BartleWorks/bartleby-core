@@ -221,6 +221,12 @@ Current pins, both on `main`:
   where they were fixed waits, and the round waits read the duel every 0.2 s, not 0.5 s.
   On top of `7900369` (`bartlebot-pin-20261021`), which polls for the friend-teleport
   confirmation.
+- **wizsprinter `5d5bd4c`** (`bartlebot-pin-20261127`): an enchant's backups and protected
+  buffs. `[sharp | "Aegis"]` fuses the first option in hand that can be cast; a second
+  bracket stays a second step, for a fusion. `stacks` counts an effect that reads
+  `protected` (Aegis, Indemnity) as the plain spell's, as the game stacks it, and a move's
+  own Aegis or Indemnity as no enchant. The decision trace says why a move's enchant was
+  skipped. Run in game on 2026-11-27. On top of `bcd5758`, below.
 - **wizsprinter `bcd5758`** (`bartlebot-pin-20261121`): the host's team order
   (BartleBuddy #31, Stage 4). `SprintyCombat.team_order`, owner ids in the duel's combat
   order, which a backward `ally(-N)` counts through instead of the seats, so `ally(last)` is

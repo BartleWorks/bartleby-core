@@ -10,7 +10,19 @@ can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
 ## Unreleased
 
+### Breaking
+
+- **The fallback DSL uses Aegis and Indemnity, and needs wizsprinter `c9ad4bc` or later.**
+  `LAST_RESORT_DSL` gives a blade `[sharp | "Aegis"]`, a trap `[potent | "Indemnity"]` and a
+  shield `["Aegis"]`: an enchant's backups, which an older wizsprinter does not parse. A
+  product moves its own wizsprinter pin with this one, and a shipped Default that must equal
+  the fallback (BartleBot's) changes with it.
+
 ### Fixed
+
+- **A `|` inside an enchant's bracket is a backup, not the next priority.** The DSL editor's
+  scanner (`dsl_syntax.scan_line`) kept the bracket open past it, and completion after it offers
+  what the bracket does. The tooltip shows the form.
 
 - **A step's lip is floor.** `collision.walkable_triangles` keeps a face too steep for floor
   when it rises no more than `LIP_RISE` (20, the step a walk takes). Ironworks' raised walkway
