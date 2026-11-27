@@ -66,6 +66,9 @@ class _Recorded(ClientInput):
         await super().write_yaw(yaw)
 
 
+# A known flake (BartleWorks/bartleby-core#40): fails under -n auto load, and passes alone.
+# See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 async def test_a_walk_reaches_its_goal_within_50_units_pressing_only_through_its_lease():
     client = _client()
     inputs = []
@@ -1061,6 +1064,9 @@ async def test_a_replan_gives_the_walk_time_for_the_route_left(monkeypatch):
     assert result.end is WalkEnd.ARRIVED
 
 
+# A known flake (BartleWorks/bartleby-core#40): fails under -n auto load, and passes alone.
+# See tests/CLAUDE.md, "Known flakes are marked".
+@pytest.mark.flaky(reruns=2)
 async def test_a_walk_replanned_over_and_over_ends_at_its_ceiling(monkeypatch):
     # Ceilings, cut since running out is the branch tested: 3 s for the first plan's 6 s, and 1.5 s
     # in all, which no replan renews.
