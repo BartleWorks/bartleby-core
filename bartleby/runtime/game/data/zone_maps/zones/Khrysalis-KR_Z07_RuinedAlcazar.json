@@ -160,18 +160,18 @@
  ],
  "links": [
   {
-   "name": "KR-RadianceRebornTeleporter",
+   "name": "KR-Z07-TeleportToCrabIsland",
    "kind": "interact",
    "source": [
-    -6.113241195678711,
-    -70.63642883300781,
-    133.8686065673828
+    -420.7615966796875,
+    -722.1392211914062,
+    122.45870208740234
    ],
-   "landing": "zone.nav node 60",
+   "landing": "Target-CrabIsle",
    "target": [
-    -6783.466796875,
-    -6017.5869140625,
-    1681.99560546875
+    -5014.27978515625,
+    -5992.11083984375,
+    1682.0340576171875
    ]
   },
   {
@@ -190,18 +190,48 @@
    ]
   },
   {
-   "name": "KR-Z07-TeleportToCrabIsland",
+   "name": "KR-Z07-TeleportToStagIsland",
    "kind": "interact",
    "source": [
-    -420.7615966796875,
-    -722.1392211914062,
-    122.45870208740234
+    -7064.4140625,
+    8486.458984375,
+    2033.06201171875
    ],
-   "landing": "zone.nav node 60",
+   "landing": "Target-FromIslands",
    "target": [
-    -6783.466796875,
-    -6017.5869140625,
-    1681.99560546875
+    -9.351783752441406,
+    -746.5823974609375,
+    107.10769653320312
+   ]
+  },
+  {
+   "name": "KR-Z07-TeleportToSerpentIsle",
+   "kind": "interact",
+   "source": [
+    425.43310546875,
+    753.6262817382812,
+    110.38159942626953
+   ],
+   "landing": "Target-SerpentIsle",
+   "target": [
+    5118.8828125,
+    7083.615234375,
+    1265.458984375
+   ]
+  },
+  {
+   "name": "KR-Z07-TeleportToSerpentIsle",
+   "kind": "interact",
+   "source": [
+    6334.31787109375,
+    6111.3837890625,
+    1274.9990234375
+   ],
+   "landing": "Target-FromIslands",
+   "target": [
+    -9.351783752441406,
+    -746.5823974609375,
+    107.10769653320312
    ]
   },
   {
@@ -211,6 +241,36 @@
     432.2142028808594,
     -715.4401245117188,
     110.38960266113281
+   ],
+   "landing": "Target-PhoenixIsle",
+   "target": [
+    5392.01220703125,
+    -6096.65380859375,
+    759.17529296875
+   ]
+  },
+  {
+   "name": "KR-Z07-TeleportToPhoenixIsle",
+   "kind": "interact",
+   "source": [
+    5664.39892578125,
+    -7856.89990234375,
+    775.0438842773438
+   ],
+   "landing": "Target-FromIslands",
+   "target": [
+    -9.351783752441406,
+    -746.5823974609375,
+    107.10769653320312
+   ]
+  },
+  {
+   "name": "KR-RadianceRebornTeleporter",
+   "kind": "interact",
+   "source": [
+    -6.113241195678711,
+    -70.63642883300781,
+    133.8686065673828
    ],
    "landing": "zone.nav node 60",
    "target": [

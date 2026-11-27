@@ -102,6 +102,32 @@ def test_a_template_gives_its_prompt_and_its_location_records():
     assert template.ends[1][0] == pytest.approx((7000, 0, 50))
 
 
+def test_a_quests_title_before_the_prompt_is_not_the_prompt():
+    data = template_bytes("GUI_00000042", quest_key="QuestTitle_00002250")
+    lang = {("GUI", "00000042"): "Press X to Teleport", ("QuestTitle", "00002250"): "Jelly School"}
+
+    template = parse_interact_template("NPC12", data, lambda stem, key: lang.get((stem, key), ""))
+
+    assert (template.prompt, template.ride) == ("Press X to Teleport", None)
+
+
+def test_a_quests_title_with_no_other_prompt_is_kept():
+    data = template_bytes(None, quest_key="QuestTitle_00002250")
+    lang = {("QuestTitle", "00002250"): "Jelly School"}
+
+    template = parse_interact_template("Teleporter-Static", data, lambda stem, key: lang.get((stem, key), ""))
+
+    assert template.prompt == "Jelly School"
+
+
+def test_a_carpet_ride_gives_its_zone_and_the_landing_it_names():
+    data = template_bytes("GUI_00000042", ride=(ZONE, "LeafTeleportLanding6A"))
+
+    template = parse_interact_template("Leaf", data, lambda stem, key: "")
+
+    assert template.ride == (ZONE, "LeafTeleportLanding6A")
+
+
 def test_a_template_with_no_interactable_behavior_is_none():
     assert parse_interact_template("Rock", b"BINd" + bytes(40), lambda stem, key: "") is None
 
@@ -209,6 +235,86 @@ def test_an_x_and_x_b_pair_each_land_by_the_other():
     assert links == {"Tomb_Teleporter": "TombFar", "Tomb_Teleporter_B": "TombNear"}
 
 
+def _pair(first: str, second: str, template: InteractTemplate = TELEPORT) -> list[PlacedObject]:
+    return [PlacedObject(first, (0, 0, 0), template), PlacedObject(second, (9000, 0, 0), template)]
+
+
+_ISLAND_POINTS = {"From Island 01": (400, 0, 0), "From Island 02": (9400, 0, 0)}
+
+
+@pytest.mark.parametrize(
+    ("first", "second"),
+    [("NPC12 instance", "NPC12-A instance"), ("AH-DARK_SafeCurrentSign 01", "AH-DARK_SafeCurrentSign 01")],
+    ids=["x and x-a", "one tag"],
+)
+def test_the_two_ends_of_a_pair_each_land_by_the_other(first, second):
+    links = interact_candidates(ZONE, _pair(first, second), _ISLAND_POINTS, None)
+
+    assert [(link.name, link.source[0], link.landing) for link in links] == [
+        (first, 0, "From Island 02"),
+        (second, 9000, "From Island 01"),
+    ]
+
+
+def test_a_pair_with_no_arrival_point_near_the_partner_is_none():
+    """The Crypt's twins: the only point there is lies thousands of units from either."""
+    named = {"Storm Island Arrive": (4500, 9000, 0)}
+
+    assert interact_candidates(ZONE, _pair("Teleporter-Static", "Teleporter-Static"), named, None) == []
+
+
+def test_three_objects_sharing_a_tag_are_no_pair():
+    placed = [*_pair("Theodolite", "Theodolite"), PlacedObject("Theodolite", (4000, 0, 0), TELEPORT)]
+
+    assert interact_candidates(ZONE, placed, _ISLAND_POINTS, None) == []
+
+
+def test_two_objects_sharing_a_tag_that_are_not_for_travel_are_no_pair():
+    chair = InteractTemplate("Chair", "Sit")
+
+    assert interact_candidates(ZONE, _pair("Chair", "Chair", chair), _ISLAND_POINTS, None) == []
+
+
+def test_a_teleporters_top_and_bottom_each_land_by_the_other_whatever_their_prompt_says():
+    use = InteractTemplate("Bale_Teleport_2_TOP", "Press X to Use")
+    # The two ends are far apart in height alone, so the landing is nearest in all three axes.
+    placed = [PlacedObject("Teleport_2_TOP", (0, 0, 0), use), PlacedObject("Teleport_2_BOTTOM", (60, 0, 12000), use)]
+    named = {"From_TOP": (300, 0, 0), "From_BOTTOM": (200, 0, 12000)}
+
+    links = {link.name: link.landing for link in interact_candidates(ZONE, placed, named, None)}
+
+    assert links == {"Teleport_2_TOP": "From_BOTTOM", "Teleport_2_BOTTOM": "From_TOP"}
+
+
+def test_a_top_and_bottom_that_are_no_teleporter_are_no_pair():
+    shelf = InteractTemplate("Bookshelf_TOP", "Press X to Use")
+    placed = [PlacedObject("Shelf_TOP", (0, 0, 0), shelf), PlacedObject("Shelf_BOTTOM", (0, 0, 9000), shelf)]
+    named = {"Up": (0, 0, 9000), "Down": (0, 0, 0)}
+
+    assert interact_candidates(ZONE, placed, named, None) == []
+
+
+def test_a_carpet_ride_lands_on_the_point_it_names_however_far_that_is_from_another():
+    leaf = InteractTemplate("Leaf", "", ride=(ZONE, "Landing6A"))
+    # A nearer point to where its partner would stand: the ride's own word wins.
+    named = {"Landing3B": (9000, 0, 0), "Landing6A": (9350, 0, 0)}
+
+    [link] = interact_candidates(ZONE, [PlacedObject("Leaf-ToBird", (0, 0, 0), leaf)], named, None)
+
+    assert (link.kind, link.landing, link.target) == ("ride", "Landing6A", (9350, 0, 0))
+
+
+@pytest.mark.parametrize(
+    "ride", [(ZONE, "Sphinx Island Arrive"), ("Test/T_Elsewhere", "Here")], ids=["no such point", "another zone"]
+)
+def test_a_carpet_ride_that_leaves_the_zone_is_no_link(ride):
+    boat = InteractTemplate("BoatRide", "Press X to Ride", ride=ride)
+    # zone.nav has an edge from it, which would make a link of any other travel object.
+    nav = ZoneNav([(50, 0, 0), (9000, 0, 0)], [(0, 1), (1, 0)])
+
+    assert interact_candidates(ZONE, [PlacedObject("Boat", (0, 0, 0), boat)], {"Here": (9000, 0, 0)}, nav) == []
+
+
 def test_a_travel_object_lands_where_its_zone_nav_edge_ends():
     ladder = InteractTemplate("Ladder", "Climb")
     nav = ZoneNav([(50, 0, 0), (60, 0, 800)], [(0, 1), (1, 0)])
@@ -257,6 +363,29 @@ def test_an_object_at_a_volume_is_the_pad_drawn_there():
     assert [link.name for link in links] == ["TeleportVol To Isle"]
 
 
+@pytest.mark.parametrize(
+    ("volume", "teleports", "second", "kept"),
+    [
+        ("ActivatorVolume_Goal", frozenset(), "Telepapad_B", ["Telepapad"]),
+        ("ActivatorVolume_Goal", frozenset(), "Other", []),
+        ("ActivatorVolume_Goal", frozenset({"ActivatorVolume_Goal"}), "Telepapad_B", []),
+        ("TeleportVol Pad", frozenset(), "Telepapad_B", []),
+    ],
+    ids=["a pair in a quest's activator", "no pair", "it teleports", "it says it does"],
+)
+def test_a_quests_activator_hides_an_object_unless_it_is_one_end_of_a_pair(volume, teleports, second, kept):
+    """Eastern Sea's traveler stands in a quest goal's activator volume, which is no pad. Alone,
+    an object is still hidden by one: the wider rule predates the pairs."""
+    grid, passable, label = _islands()
+    nav = ZoneNav([(520, 500, 0), (3480, 400, 0)], [(0, 1)])
+    placed = [PlacedObject("Telepapad", (520, 500, 0), TELEPORT), PlacedObject(second, (3500, 400, 0), TELEPORT)]
+    named = {"Target Isle": (3500, 400, 0), "Target Home": (520, 500, 0)}
+
+    links = zone_links(ZONE, grid, passable, label, [_volume(volume, (500, 500, 0))], placed, named, nav, teleports)
+
+    assert [link.name for link in links if link.name == "Telepapad"] == kept
+
+
 def test_an_object_on_one_piece_is_kept_only_as_a_long_shortcut():
     grid = Grid(walkable_triangles([mesh(floor(0, 0, 4000, 1000, 0))]))
     passable = grid.passable()
@@ -272,6 +401,24 @@ def test_an_object_on_one_piece_is_kept_only_as_a_long_shortcut():
     links = zone_links(ZONE, grid, passable, label, [], placed, named, None)
 
     assert sorted(link.name for link in links) == ["Far", "Far_B"]
+
+
+@pytest.mark.parametrize(
+    ("first", "second"),
+    [("Far-A", "Far"), ("Far", "Far"), ("Far_TOP", "Far_BOTTOM")],
+    ids=["x and x-a", "one tag", "top and bottom"],
+)
+def test_a_pair_found_by_less_than_x_and_x_b_is_a_link_only_between_pieces_of_floor(first, second):
+    named = {"by first": (260, 200, 0), "by second": (3740, 200, 0)}
+    placed = [PlacedObject(first, (200, 200, 0), TELEPORT), PlacedObject(second, (3800, 200, 0), TELEPORT)]
+    whole = Grid(walkable_triangles([mesh(floor(0, 0, 4000, 1000, 0))]))
+    split, split_passable, split_label = _islands()
+
+    on_one = zone_links(ZONE, whole, whole.passable(), pieces(whole, whole.passable()), [], placed, named, None)
+    between = zone_links(ZONE, split, split_passable, split_label, [], placed, named, None)
+
+    assert on_one == []
+    assert sorted(link.landing for link in between) == ["by first", "by second"]
 
 
 def test_a_zones_exits_are_its_teleport_volumes_that_are_not_its_links():

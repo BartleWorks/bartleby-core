@@ -7,6 +7,72 @@
    "wad": "270dd206b173f81f85efb81fdd339070a28ec9a8a126a9ad850a4e9d1dd45b09",
    "zone": "zones/Ahmarra-AH_Z00_BaleFlotilla.json"
   },
+  "Ahmarra/AH_Z01_WesternSea": {
+   "floor": "floors/4b35b72de06bbf8d.npz",
+   "objects": "1097fc04e00402cab64bcfa6305f746a1f0b03feb29e42aa4a4787d2afa71bf1",
+   "wad": "8f8cb7661b4784be693df87b7fba9a791b65fc2508bbcdc26ed40c63702e2c95",
+   "zone": "zones/Ahmarra-AH_Z01_WesternSea.json"
+  },
+  "Ahmarra/AH_Z02_FloodedCity": {
+   "floor": "floors/08600b90872bda93.npz",
+   "objects": "9261ef579c7aa47c9e5076b7102d4d30c3acb645bd607c6473a907b162b26e91",
+   "wad": "ab702e89b337a3de1c614fd7cb061ecfb455401d7a0a904ff7a581973ad72339",
+   "zone": "zones/Ahmarra-AH_Z02_FloodedCity.json"
+  },
+  "Ahmarra/AH_Z03_IslandOfTheStorm": {
+   "floor": "floors/5c7970a888e5dcb4.npz",
+   "objects": "9d966e51a877dbf81dbb0ebc15f58ed1fc46be0e71df9f7ef155cd377a72c946",
+   "wad": "70e529cee1c03fed6e78d9189b34c24343bae18fbd7a6fc1db712a20d3d9aeaf",
+   "zone": "zones/Ahmarra-AH_Z03_IslandOfTheStorm.json"
+  },
+  "Ahmarra/AH_Z03_IslandOfTheStorm_B": {
+   "floor": "floors/12b055f003ac0d82.npz",
+   "objects": "3232440f4aad0415cce13bed7d20bbbf4628e8a39dc52e46fa4a5cc4e006cf9a",
+   "wad": "be275984cb90c5c2ad2aac7c2d6581976250fa449a51f6aa2b47ddd81fe8aad8",
+   "zone": "zones/Ahmarra-AH_Z03_IslandOfTheStorm_B.json"
+  },
+  "Ahmarra/AH_Z04_PrimalArchipelago": {
+   "floor": "floors/87217d837c3bd439.npz",
+   "objects": "feef12ec3306e6c531ba403293f9457b1de540f26025cf69cad1171f800b895c",
+   "wad": "ed05c1405ea865cb7f0d9ea66d7a91728a2fbeb582a9574a17203dbb31c7db76",
+   "zone": "zones/Ahmarra-AH_Z04_PrimalArchipelago.json"
+  },
+  "Ahmarra/AH_Z05_EasternSea": {
+   "floor": "floors/389e2b6f6cb237df.npz",
+   "objects": "7faf457f007d703adbc967a64c3d12af13490e3554010d2486e4e0585524aae5",
+   "wad": "e53710ce9944d3a9d030c37dbdf8bf269a6586695b9ccc47bfeb63b85a4d029a",
+   "zone": "zones/Ahmarra-AH_Z05_EasternSea.json"
+  },
+  "Ahmarra/AH_Z06_ForbiddenCity": {
+   "floor": "floors/e520c264a6a291c3.npz",
+   "objects": "89047d4488787c9709d57027b33c9276a8582d1458297ed35f6ca02d39be762a",
+   "wad": "0582329e489ca2dd00ae4b104b50a0a2e9ce144df4abb3de2ee7586051baf3cb",
+   "zone": "zones/Ahmarra-AH_Z06_ForbiddenCity.json"
+  },
+  "Ahmarra/AH_Z07_AkashicCityB": {
+   "floor": "floors/bed46b601a656033.npz",
+   "objects": "e445fb1753996861e5fffed6396663e0766aa76a5f9a5d3832a02b05411fd19e",
+   "wad": "3fd558e68a6fd280b56b7b047126bce8a8891ee3b1b7f752e12250273b9e5242",
+   "zone": "zones/Ahmarra-AH_Z07_AkashicCityB.json"
+  },
+  "Ahmarra/AH_Z08_AkashicCityY": {
+   "floor": "floors/8eb34ac1315552d3.npz",
+   "objects": "27e79b19dd53db635eec0ba55a38f4058e8762d73f135f337a21bdd35edf0032",
+   "wad": "aeb977fe2e9f98335b79e615aff3cc9f767d268c2d9cfd5f758d0c22b090f282",
+   "zone": "zones/Ahmarra-AH_Z08_AkashicCityY.json"
+  },
+  "Ahmarra/AH_Z09_AkashicCityW": {
+   "floor": "floors/9481bf2913f8f929.npz",
+   "objects": "16c6e0067524f856b471e1bbd589e000470438826fa1fa2265d862078d07420b",
+   "wad": "81cc5122039de2cfc11a3b300e345f626a650a2a719ed8b27b9bd45b513f0ecf",
+   "zone": "zones/Ahmarra-AH_Z09_AkashicCityW.json"
+  },
+  "Ahmarra/AH_Z10_DarkWaterTrench": {
+   "floor": "floors/2111e2993ab49961.npz",
+   "objects": "924262d876903958fea1aad5f236a7d60711a778b47f3121f8f71605082a0907",
+   "wad": "14c964c1d234812f79bbb87f13e2437c102dc95c181a508370dad056e64e16fb",
+   "zone": "zones/Ahmarra-AH_Z10_DarkWaterTrench.json"
+  },
   "Aquila/AQ_Z00_Hub": {
    "floor": "floors/440d980d03242b46.npz",
    "objects": "b59f5c569f30ffd3be5107bdfcb2dfbd02bc9733e0048e4623a7586d16653b47",

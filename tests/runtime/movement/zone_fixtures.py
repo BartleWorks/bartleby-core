@@ -129,10 +129,23 @@ def zone_nav_bytes(nodes: Sequence[XYZ], pairs: Sequence[tuple[int, int]]) -> by
     return b"".join(out)
 
 
-def template_bytes(prompt_key: str | None, locations: Sequence[tuple[XYZ, str]] = ()) -> bytes:
+def template_bytes(
+    prompt_key: str | None,
+    locations: Sequence[tuple[XYZ, str]] = (),
+    *,
+    quest_key: str | None = None,
+    ride: tuple[str, str] | None = None,
+) -> bytes:
     """A template file with an InteractableBehavior, its prompt's ``.lang`` key (``GUI_00000001``
-    style), and a LOCATION record per (position, zone)."""
+    style), and a LOCATION record per (position, zone). *quest_key* is a quest's title key before
+    the prompt's, and *ride* an InteractCarpetRide's zone and landing."""
     out = [b"BINd" + bytes(8), b"\x28InteractableBehavior", bytes(6)]
+    if quest_key:
+        out.append(_short(quest_key))
+    if ride:
+        out.append(_short("InteractCarpetRide") + bytes(12))
+        for key, value in zip(("79944a9b", "3b53465b"), ride):
+            out.append(bytes.fromhex(key) + _short(value))
     if prompt_key:
         out.append(_short(prompt_key))
     for (x, y, z), zone in locations:

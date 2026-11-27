@@ -348,6 +348,36 @@
  ],
  "links": [
   {
+   "name": "KR-TyrianGorge-LadderNewSection1 instance",
+   "kind": "interact",
+   "source": [
+    201.07589721679688,
+    -4315.9091796875,
+    -798.9287719726562
+   ],
+   "landing": "TopNewSection",
+   "target": [
+    -1510.655029296875,
+    -3300.31689453125,
+    1246.52294921875
+   ]
+  },
+  {
+   "name": "KR-TyrianGorge-LadderNewSection1 instance",
+   "kind": "interact",
+   "source": [
+    -1289.301025390625,
+    -3388.825927734375,
+    1245.677001953125
+   ],
+   "landing": "LowerLevelNewSection",
+   "target": [
+    26.455949783325195,
+    -4321.5361328125,
+    -905.3258056640625
+   ]
+  },
+  {
    "name": "KR-TyrianGorge-LadderA instance",
    "kind": "interact",
    "source": [

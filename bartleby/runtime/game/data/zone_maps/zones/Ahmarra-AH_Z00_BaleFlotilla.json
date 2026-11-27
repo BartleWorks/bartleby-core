@@ -84,7 +84,38 @@
   ]
  },
  "patrols": [],
- "links": [],
+ "links": [
+  {
+   "name": "AH-BALE-Teleport_2_TOP",
+   "kind": "interact",
+   "source": [
+    3468.037109375,
+    9764.2109375,
+    21.869930267333984
+   ],
+   "landing": "Target_From_BOTTOM",
+   "target": [
+    -1882.0889892578125,
+    8820.8369140625,
+    12810.5400390625
+   ]
+  },
+  {
+   "name": "AH-BALE-Teleport_2_BOTTOM",
+   "kind": "interact",
+   "source": [
+    -2170.35107421875,
+    9259.8447265625,
+    12833.3095703125
+   ],
+   "landing": "Target_From_TOP",
+   "target": [
+    3803.08203125,
+    9861.4755859375,
+    -0.5626220703125
+   ]
+  }
+ ],
  "exits": [
   {
    "name": "AV_PetTeleport_Ship1",
