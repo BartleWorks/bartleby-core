@@ -805,11 +805,13 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
     and logs that it waits for it to plan its walk. The long walker costs every target again
     whenever a walk of the call changes, so it ports to the first to arrive.
   - **The waiting is bounded.** All of a long walker's waiting together lasts at most
-    `_wait_bound`: `PORT_WAIT_LONGEST` (7 s, as long as `PORT_LONGEST`, since a mover is waited
-    for only while it plans or walks a plan no longer than that), or `planned` less `PORT_MARGIN`
-    and `PORT_COST` when that is shorter. Past it, only a player already standing ready counts,
-    and with none the long walker walks. A mover not arrived by then has been held up on its
-    way, so a wait that comes to nothing costs at most those 7 s.
+    `_wait_bound`: `MOVER_WAIT_LONGEST` (5 s), or `planned` less `PORT_MARGIN` and `PORT_COST`
+    when that is shorter, for a walk planned under 12 s. Past it, only a player already standing
+    ready counts, and with none the long walker walks. A mover not arrived by then has most
+    likely been held up on its way, so a wait that comes to nothing costs at most those 5 s. It
+    is its own constant, not `PORT_LONGEST`, so costing a port differently never moves it: the
+    run logs showed movers waiting up to 18.5 s for another mover on a long walk (2026-11-27),
+    and the user chose 5 s.
   - **A change made while a long walker costs its targets is never slept through.** The call
     counts its changes (`_Call.generation`); the long walker reads the count before it costs any
     target and sleeps only while the count is unchanged (`_Call.changed`). Found live on
