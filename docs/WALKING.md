@@ -685,9 +685,10 @@ walks on it, on a planner built from the wad.
   It is arrived once it stands within *reach* of the goal's position now, or once the goal reads
   None, and a walk that starts within reach presses nothing and plans nothing. *reach* is
   `ARRIVE_GOAL` by default; a fixed point given a larger one ends within it too, and a fixed point
-  at the default is walked exactly as before, with no reach measured. Collect Wisps passes 300,
-  100 under the 401 to 418 units from which a wizard took a health wisp (`WIZARD101.md`, *How
-  wisps move*).
+  at the default is walked exactly as before, with no reach measured. Collect Wisps passes none,
+  so its walks go right up to the wisp: a reach of 300, under the 401 to 418 units from which a
+  still wizard took a health wisp (`WIZARD101.md`, *How wisps move*), often took nothing in game
+  until a second walk closed the gap (2026-11-28).
   - **It re-aims** once the goal has strayed more than `REAIM` (150) from where the route ends,
     at most every `WALK_REAIM_EVERY` (1.5 s; a world wisp moves about 130 units in that time). If
     the line from the wizard to the goal is clear (`ZonePlanner.straight`: the floor a route may
@@ -773,11 +774,12 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
   planned walk runs past the time left goes only for a player below a fail threshold.
 - **Collect Wisps walks to the wisp, not to where it was** (Stage 5 of its #340): its goal is
   the wisp's position read afresh, None once the entity reads no more, is no longer the wisp it
-  was, or is gone from the client's list, with a reach of 300. The port question reads the goal
-  once. A walker that arrived within reach, whose ratio did not rise and whose wisp is still
-  listed a moment later, walks on to `ARRIVE_GOAL` of it once, so neither a smaller reach than
-  the health wisps' nor a still wizard beside a wisp that barely moves passes for the game's word
-  that the player is full.
+  was, or is gone from the client's list, at the default reach, `ARRIVE_GOAL` (since 2026-11-28;
+  300 before). The port question reads the goal once. A walker that arrived, whose ratio did not
+  rise and whose wisp is still listed a moment later, walks up to it once more: a walk to a moving
+  goal may end at its route's end up to `REAIM` from it, the wisp drifts on meanwhile, and a still
+  wizard beside a wisp that barely moves must not pass for the game's word that the player is
+  full.
 - **Collect Wisps takes the game's word that a player is full** (Stage 6 of its #340): a walker
   that closed in on a wisp, saw no rise, and still finds it listed `timing.WISP_LINGER` (2 s)
   later is full of that kind, walks to no more of it and passes the fail check on it, until its
@@ -786,9 +788,8 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
   measures the time left from the last hop that helped anyone.
 - **A long walk to one of ours becomes a port** (Stage 3 of its #340), whichever node walks,
   once the run has a port map. Each mover walks with `longest` at `PORT_LONGEST`, which is
-  `PORT_COST` (3 s, the user's estimate of a port within a zone) plus `PORT_MARGIN` (2 s), so a
-  shorter walk never asks. A plan over it ends `TOO_LONG`, and the mover costs each player of
-  ours it could port to: one in the zone, not fighting, holding no movement lease, with a port
+  `PORT_COST` (5 s) plus `PORT_MARGIN` (2 s), so a shorter walk never asks. A plan over it
+  ends `TOO_LONG`, and the mover costs each player of ours it could port to: one in the zone, not fighting, holding no movement lease, with a port
   route from the mover. A trip is `PORT_COST` plus the walk on from that player, a
   `seconds_to` search from where it stands at the mover's own speed (`WalkResult.speed`), since
   a search out from the goal would cost the way back, which a one-way link makes differ. A
@@ -804,11 +805,11 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
     and logs that it waits for it to plan its walk. The long walker costs every target again
     whenever a walk of the call changes, so it ports to the first to arrive.
   - **The waiting is bounded.** All of a long walker's waiting together lasts at most
-    `_wait_bound`: `PORT_WAIT_LONGEST` (5 s, as long as `PORT_LONGEST`, since a mover is waited
+    `_wait_bound`: `PORT_WAIT_LONGEST` (7 s, as long as `PORT_LONGEST`, since a mover is waited
     for only while it plans or walks a plan no longer than that), or `planned` less `PORT_MARGIN`
     and `PORT_COST` when that is shorter. Past it, only a player already standing ready counts,
     and with none the long walker walks. A mover not arrived by then has been held up on its
-    way, so a wait that comes to nothing costs at most those 5 s.
+    way, so a wait that comes to nothing costs at most those 7 s.
   - **A change made while a long walker costs its targets is never slept through.** The call
     counts its changes (`_Call.generation`); the long walker reads the count before it costs any
     target and sleeps only while the count is unchanged (`_Call.changed`). Found live on
@@ -824,8 +825,10 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
     run's `no_port_zones`, logged once, cleared at the next run's start. A walk into a fight or
     an exit always walks, and so does a walk with no port map (the authoring tools' go-to).
   - **Each port is a span** in the run trace, with its zone, route, seconds from the first click
-    to the landing check and whether it landed or was refused, so `PORT_COST` can be set from
-    real runs. Not yet run in game.
+    to the landing check and whether it landed or was refused. `PORT_COST` was set from them
+    (2026-11-28; the user's estimate of 3 s before): 11 group ports took 3.9 to 11.8 s, a median
+    of 6.6; two ports within a zone took 3.9 and 5.1 s; and the friends-list clicks alone, 3.4 to
+    3.9 s. The user chose 5 s.
 - **Ahead of need**: a thread builds and saves every zone's copy from startup, the open bot's
   zones first, then those Sync in Zone's network crosses, then the rest. A build holds the
   event loop at most about 33 ms (Triton Avenue, the largest map, 6.1 s to build). Each client's

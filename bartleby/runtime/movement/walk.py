@@ -124,8 +124,9 @@ logger = logging.getLogger(__name__)
 ARRIVE_TURN = 80.0
 #: Units from the goal at which a walk has arrived.
 ARRIVE_GOAL = 50.0
-#: Units a moving goal may stray from where the walk's route ends before the walk re-aims. Under
-#: the 300 a walk to a wisp ends within, so a route that ends where a wisp was still ends in reach.
+#: Units a moving goal may stray from where the walk's route ends before the walk re-aims. A walk
+#: that reaches its route's end with the goal no farther off than this is arrived, as for a fixed
+#: point, so a wisp a walk ends short of is up to this far away.
 REAIM = 150.0
 #: Radians off the heading under which the yaw is left alone.
 DEADBAND = math.radians(4)
