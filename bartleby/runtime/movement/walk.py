@@ -316,6 +316,20 @@ class Listing:
     mobs: dict[int, tuple[object, str]]
 
 
+async def own_speed(client) -> float:
+    """Units a second *client*'s wizard walks at, by its speed field, which a walk never writes:
+    what a walk plans its seconds with, and what a caller costing a route before any walk reads.
+    An unreadable field, or one no real wizard has, is on foot."""
+    try:
+        field_value = await client.client_object.speed_multiplier()
+    except Exception:  # noqa: BLE001 - unreadable just now: plan on foot
+        return WIZARD_SPEED
+    # A logged-out character's field is freed memory; nothing real is past 2.0x.
+    if not isinstance(field_value, int | float) or not 0 <= field_value <= 100:
+        return WIZARD_SPEED
+    return WIZARD_SPEED * (1 + field_value / 100)
+
+
 async def plan_in_thread[T](plan: Callable[..., T], *args) -> T:
     """``plan(*args, stop=…)`` in a worker thread, as a route's plan runs: it takes seconds in a
     big zone, and on the loop it would hold everything else. A thread cannot be cancelled, so a
@@ -748,13 +762,8 @@ class RouteWalker:
         return (pos.x, pos.y, pos.z), await self.client.body.yaw()
 
     async def _expected_speed(self) -> float:
-        """Units a second the wizard walks at: its own, by its speed field, which a walk never writes."""
-        try:
-            field_value = await self.client.client_object.speed_multiplier()
-        except Exception:  # noqa: BLE001 - unreadable just now: plan on foot
-            return WIZARD_SPEED
-        # A logged-out character's field is freed memory; nothing real is past 2.0x.
-        return WIZARD_SPEED * (1 + field_value / 100) if 0 <= field_value <= 100 else WIZARD_SPEED
+        """Units a second the wizard walks at: :func:`own_speed`."""
+        return await own_speed(self.client)
 
     async def walk(
         self,

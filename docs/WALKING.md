@@ -546,6 +546,7 @@ walks on it, on a planner built from the wad.
 - **Speed.** Walking is horizontal only: a stair's height is free. On foot it measured 600 on
   flat ground (wizwalker's constant says 580); a mount multiplies it, most by 1.4 and the
   fastest by 1.55. The walker reads `speed_multiplier` (a percentage) to give a walk its time,
+  through `walk.own_speed(client)` (since 0.15.7, for a caller costing a route before a walk),
   and never writes it, nor a position; a guard test reads the module for either. On the +40%
   mount: 840 expected, 838 measured.
 - **Planning never runs on the event loop.** A long route takes about 5 s to plan in the Outback,
