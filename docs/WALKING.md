@@ -678,6 +678,34 @@ walks on it, on a planner built from the wad.
   blocked spots or links since; the gates are read before it, as before any first plan, so a gate
   listed meanwhile plans afresh. Any other walk drops it. Only a `TOO_LONG` keeps one: a walk that
   ended `BLOCKED` or `TIMED_OUT` and is asked for again must not rerun the plan that failed.
+- **A goal that moves** (`walk(lease, goal_read, reach=…)`, since 0.15.6, for BartleBot's #340):
+  the goal is a `GoalRead`, a coroutine function giving where the goal is now, or None once it is
+  gone, as a wisp is once taken. The walk reads it every tick and plans to where it first read.
+  It is arrived once it stands within *reach* of the goal's position now, or once the goal reads
+  None, and a walk that starts within reach presses nothing and plans nothing. *reach* is
+  `ARRIVE_GOAL` by default; a fixed point given a larger one ends within it too, and a fixed point
+  at the default is walked exactly as before, with no reach measured. Collect Wisps passes 300,
+  100 under the 401 to 418 units from which a wizard took a health wisp (`WIZARD101.md`, *How
+  wisps move*).
+  - **It re-aims** once the goal has strayed more than `REAIM` (150) from where the route ends,
+    at most every `WALK_REAIM_EVERY` (1.5 s; a world wisp moves about 130 units in that time). If
+    the line from the wizard to the goal is clear (`ZonePlanner.straight`: the floor a route may
+    use, no volume link stepped into, and `HARD` kept outside every patrol's trigger radius, or as
+    much as the nearer end keeps), it steers straight at the goal, and follows it as it moves
+    while it stays within `REAIM` of where the line was found clear. Otherwise it plans a route to
+    the goal in a worker thread **while it walks on** along the old one, since that still leads
+    toward the goal and a plan can take seconds; when the plan comes back, it walks straight to
+    the furthest waypoint of the new route's first leg it has a clear line to, and on from there,
+    or plans afresh, standing, if none is clear. Reaching the end of its route with the goal moved
+    on, it stands and turns toward it, still no oftener than `WALK_REAIM_EVERY`; with the goal
+    within `REAIM` of the route's end it is arrived, as for a fixed point. `WalkResult.reaims`
+    counts the turns, and `WalkResult.goal` is where the goal last read.
+  - **It never aims ahead.** A wizard walks at least 6.7 times a world wisp's 88 units a second,
+    and the walker does not know the loop's shape, so a straight-line guess at where the wisp will
+    be would be wrong on its curves.
+  - **A plan kept** from a `TOO_LONG` walk fits a moving goal that has strayed less than `REAIM`
+    since, so the walk after a refused port does not plan again. A walk into a fight takes only a
+    fixed point.
 - **It ends** on the goal, no route, being blocked (by stalls; mobs no longer end it), a fight, a zone change,
   running out of time or a plan too long, with a `WalkResult` saying which and `describe()` naming the zone and both
   points; and it lets go of every key however it ends, and stops its mob watch even if a second
@@ -742,6 +770,13 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
   to is dropped and left out of later scans, so its search of every reachable cell is paid
   once; a zone with no map is picked by straight line. Near the node's timeout, a group whose
   planned walk runs past the time left goes only for a player below a fail threshold.
+- **Collect Wisps walks to the wisp, not to where it was** (Stage 5 of its #340): its goal is
+  the wisp's position read afresh, None once the entity reads no more, is no longer the wisp it
+  was, or is gone from the client's list, with a reach of 300. The port question reads the goal
+  once. A walker that arrived within reach, whose ratio did not rise and whose wisp is still
+  listed a moment later, walks on to `ARRIVE_GOAL` of it once, so neither a smaller reach than
+  the health wisps' nor a still wizard beside a wisp that barely moves passes for the game's word
+  that the player is full.
 - **A long walk to one of ours becomes a port** (Stage 3 of its #340), whichever node walks,
   once the run has a port map. Each mover walks with `longest` at `PORT_LONGEST`, which is
   `PORT_COST` (3 s, the user's estimate of a port within a zone) plus `PORT_MARGIN` (2 s), so a
