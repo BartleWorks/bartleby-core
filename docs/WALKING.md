@@ -796,10 +796,30 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
   quickest trip wins if it beats `planned` by `PORT_MARGIN`; then the mover ports through
   BartleBot's `port_map.port_waves`, under its movement lease, and walks the rest on the same
   walker with no `longest`. When nothing wins, or the port goes nowhere, it walks the kept plan.
-  - **The movers of one call join as they arrive.** A mover still on its first walk is a target
-    whose trip is the wait for it, at most what is left of `PORT_LONGEST` since the call began.
-    The long walker waits only while a port to it would still save the margin, and costs every
-    target again whenever a walk of the call changes, so it ports to the first to arrive.
+  - **The movers of one call join as they arrive.** A mover walking a short first plan, one no
+    longer than `PORT_LONGEST`, is a target whose trip is the wait for it, at most what is left
+    of `PORT_LONGEST` since it began walking, which its walker's first tick marks (`_Call.short`).
+    A mover still planning is no target, since its plan may be as long as the long walker's own:
+    a long walker with no target holds only until such a mover is known to be short or long,
+    and logs that it waits for it to plan its walk. The long walker costs every target again
+    whenever a walk of the call changes, so it ports to the first to arrive.
+  - **The waiting is bounded.** All of a long walker's waiting together lasts at most
+    `_wait_bound`: `PORT_WAIT_LONGEST` (5 s, as long as `PORT_LONGEST`, since a mover is waited
+    for only while it plans or walks a plan no longer than that), or `planned` less `PORT_MARGIN`
+    and `PORT_COST` when that is shorter. Past it, only a player already standing ready counts,
+    and with none the long walker walks. A mover not arrived by then has been held up on its
+    way, so a wait that comes to nothing costs at most those 5 s.
+  - **A change made while a long walker costs its targets is never slept through.** The call
+    counts its changes (`_Call.generation`); the long walker reads the count before it costs any
+    target and sleeps only while the count is unchanged (`_Call.changed`). Found live on
+    2026-11-27: the costing awaits reads, a peer's change made during them was slept through,
+    and the walker sat out its whole deadline, which was then `planned` less 5 s (50 s before a
+    55 s walk), and walked the whole way after.
+  - **With Player Realms Separate**, a player is a target, and a mover of the call is waited
+    for, only once `machine.are_together` says it shares the mover's realm (`PLAYER_REALMS.md`,
+    *Acting*). A port onto a player not known to be on the mover's realm could carry it onto
+    another's. A machine with no `are_together` ports nobody under Separate. Together leaves the
+    targets as above.
   - **A zone that refuses a port** is walked for the rest of the run: the refusal goes in the
     run's `no_port_zones`, logged once, cleared at the next run's start. A walk into a fight or
     an exit always walks, and so does a walk with no port map (the authoring tools' go-to).

@@ -100,7 +100,8 @@ Player Realms page; its other team question, the combat one, leaves the walk ins
 | `enter_dungeon` | on the sigil before X, and at the entrance after | nothing |
 | `handle_combat` | together before anyone engages; one realm and one duel circle once in battle; a split fight is finished, then repaired | a fight center is shared only within a realm |
 | `change_realm` | favorite: all to it; next: the leader, then the rest to its realm; checked after | favorite: P1 to it, the rest the rows after; next: one block of fresh rows (below); a collision is logged |
-| `sync_in_zone` | leader travels, hops, everyone it does not see ports to it, confirmed by sight | everyone travels; nobody ports or hops |
+| `sync_in_zone` | leader travels, hops, everyone it does not see ports to it, confirmed by sight | everyone travels; nobody hops, and a port is only a walk's own (below) |
+| a walk's port (`walking.walk_clients`, `_port_or_walk`) | to any player of ours with a port route (`WALKING.md`) | only to one seen on the mover's realm (`are_together`), and a mover of the same call is waited for only then; with no record, nobody |
 
 **Next realm, Separate** is for a resource that respawns slowly and per realm, so each hop must
 land every player on a realm nobody has visited recently. Next realm cycles the 21 realms of
