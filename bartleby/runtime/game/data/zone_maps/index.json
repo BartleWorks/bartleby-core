@@ -85,6 +85,18 @@
    "wad": "32b8cdc17fab3d185107e1db083b17e5c21e5ba822ad44c75f34269551692ee2",
    "zone": "zones/Ahmarra-Interiors-AH_Z05I02_RuinedHermitage_Hard.json"
   },
+  "Ahmarra/Interiors/AH_Z10I07_SkallofJudgement": {
+   "floor": "floors/c7e48654eb95af56.npz",
+   "objects": "9681dfe4f9aceaafc9da7015cd4fbe0bc7f14d627b6469de2bd73201b4922c69",
+   "wad": "b01b8791249e01cfc407563fc994772812c28eb90e1e48deb41e4731bbfc17f7",
+   "zone": "zones/Ahmarra-Interiors-AH_Z10I07_SkallofJudgement.json"
+  },
+  "Ahmarra/Interiors/AH_Z10I07_SkallofJudgement_Hard": {
+   "floor": "floors/c7e48654eb95af56.npz",
+   "objects": "83959cb8c71abab235f46a8b251150f69952a0750c9512387e1552450f63767c",
+   "wad": "0d913a54dc15c2f0605dd7dcf2808127c8ecdc60fceb01189f320c2957315969",
+   "zone": "zones/Ahmarra-Interiors-AH_Z10I07_SkallofJudgement_Hard.json"
+  },
   "Aquila/AQ_Z00_Hub": {
    "floor": "floors/440d980d03242b46.npz",
    "objects": "b59f5c569f30ffd3be5107bdfcb2dfbd02bc9733e0048e4623a7586d16653b47",
