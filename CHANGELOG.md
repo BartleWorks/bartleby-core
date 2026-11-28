@@ -8,6 +8,26 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## 0.15.7
+
+Nothing breaks.
+
+### Added
+
+- **`walk.own_speed(client)`**, the units a second a wizard walks at by its speed field, as a
+  walk plans with it: public for a caller costing a route before any walk, such as BartleBot's
+  `walking.seconds_to`. An unreadable field, or one outside 0 to 100, is on foot (600).
+- **`timing.WISP_LINGER`** (2.0 s), how long BartleBot's Collect Wisps waits, after closing in
+  on a wisp nobody took, before reading the wisp list afresh: past the 1.3-1.8 s a taken wisp
+  stays listed. For BartleBot's #344.
+
+### Changed
+
+- `timing.WISP_COLLECT_TIMEOUT`'s comment says what Collect Wisps' timeout now is: the longest
+  to go without a wisp helping anyone. Its value is unchanged.
+- `docs/WIZARD101.md` records the misread max health and what Collect Wisps' full check does
+  about it.
+
 ## 0.15.6
 
 Nothing breaks.

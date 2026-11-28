@@ -109,6 +109,13 @@ Stated 2026-09-27 for BartleBot #117; the full write-up is the design comment on
 - Wisps are shared, but simultaneous arrivals both get the reward. A wizard full on a
   resource does not collect that wisp kind, and the wisp passes it by (stated again 2026-11-27,
   and seen: full, a wizard let world wisps pass within 137-146 units).
+- **Max health sometimes reads higher than it is**, so a wizard at full health reads a ratio
+  below 1 that no wisp raises. The cause is not known, so nothing corrects the read. BartleBot's
+  Collect Wisps takes the game at its word instead (its #344): a walker that closed in on a wisp,
+  saw no rise, and still finds the wisp listed `timing.WISP_LINGER` (2 s) later, past the
+  1.3-1.8 s a taken wisp lingers, is full of that kind. It walks to no more of that kind, and
+  passes the node's fail check on it, with an INFO line naming the player and the ratio read. A
+  later rise in that ratio withdraws the verdict.
 
 ### How wisps move, and how near a wizard takes one
 

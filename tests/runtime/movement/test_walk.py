@@ -187,6 +187,25 @@ async def test_a_plan_within_longest_is_walked_and_every_walk_says_what_it_plann
     assert unasked.planned == pytest.approx(1.0, abs=0.05)
 
 
+@pytest.mark.parametrize(("field_value", "speed"), [(0, 600.0), (55, 930.0), (100, 1200.0), (250, 600.0), (-1, 600.0)])
+async def test_own_speed_is_the_speed_field_as_a_percentage_of_on_foot(field_value, speed):
+    client = _client()
+    client.speed = field_value
+
+    assert await walk_module.own_speed(client) == pytest.approx(speed)
+
+
+async def test_own_speed_of_an_unreadable_field_is_on_foot():
+    client = _client()
+
+    async def _freed():
+        raise RuntimeError("freed")
+
+    client.client_object.speed_multiplier = _freed
+
+    assert await walk_module.own_speed(client) == 600.0
+
+
 async def test_a_plan_is_costed_at_the_wizards_own_speed():
     on_foot = _client()
     on_foot.speed = 0

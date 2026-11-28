@@ -546,6 +546,7 @@ walks on it, on a planner built from the wad.
 - **Speed.** Walking is horizontal only: a stair's height is free. On foot it measured 600 on
   flat ground (wizwalker's constant says 580); a mount multiplies it, most by 1.4 and the
   fastest by 1.55. The walker reads `speed_multiplier` (a percentage) to give a walk its time,
+  through `walk.own_speed(client)` (since 0.15.7, for a caller costing a route before a walk),
   and never writes it, nor a position; a guard test reads the module for either. On the +40%
   mount: 840 expected, 838 measured.
 - **Planning never runs on the event loop.** A long route takes about 5 s to plan in the Outback,
@@ -777,6 +778,12 @@ BartleBot walks its run's clients on the walker above (Stage 4 of its #322; its
   listed a moment later, walks on to `ARRIVE_GOAL` of it once, so neither a smaller reach than
   the health wisps' nor a still wizard beside a wisp that barely moves passes for the game's word
   that the player is full.
+- **Collect Wisps takes the game's word that a player is full** (Stage 6 of its #340): a walker
+  that closed in on a wisp, saw no rise, and still finds it listed `timing.WISP_LINGER` (2 s)
+  later is full of that kind, walks to no more of it and passes the fail check on it, until its
+  ratio of that kind rises (`WIZARD101.md`, *How wisps move*). Its timeout is a progress
+  deadline: the clock restarts whenever a round's ratios show a rise, so the near-timeout rule
+  measures the time left from the last hop that helped anyone.
 - **A long walk to one of ours becomes a port** (Stage 3 of its #340), whichever node walks,
   once the run has a port map. Each mover walks with `longest` at `PORT_LONGEST`, which is
   `PORT_COST` (3 s, the user's estimate of a port within a zone) plus `PORT_MARGIN` (2 s), so a
