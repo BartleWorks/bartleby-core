@@ -464,10 +464,10 @@ INTERACT_ANIMATION_DELAY = 0.0
 # this exists to retire.
 
 WISP_COLLECT_TIMEOUT = 10.0
-# Ceiling on how long collect_wisps may spend moving the group between
-# wisps. Guards against a game bug where a client's
-# displayed max HP can read far above actual, making calc_health_ratio()
-# never clear the threshold and the collection loop spin indefinitely.
+# The longest Collect Wisps goes without a wisp helping anyone: its clock restarts whenever a
+# hop raised a ratio, so a slow hop that delivers is never cut short. A backstop for what its
+# full check cannot see (a wizard whose max health reads higher than it is never reaches
+# full by its ratio; docs/WIZARD101.md, How wisps move).
 
 DECK_PAGE_OPEN_TIMEOUT = 5.0
 # Ceiling on waiting for the deck page to appear after pressing P. Measured at
@@ -792,6 +792,12 @@ WISP_TAKE_WAIT = 0.3
 WISP_LISTED_EVERY = 1.0
 # Seconds between the checks, while a walk follows a wisp, that the client still lists it: a
 # freed entity can go on reading the numbers it had.
+
+WISP_LINGER = 2.0
+# Seconds a walker that closed in on a wisp and took nothing waits before reading the wisp list
+# afresh, to tell "full" from "someone else took it": a taken wisp stays listed 1.3-1.8 s after
+# the pickup (docs/WIZARD101.md, How wisps move). Paid once per player and kind, when the game
+# is about to be taken at its word that the player is full.
 
 
 def jitter(base: float, factor: float = 0.2) -> float:
