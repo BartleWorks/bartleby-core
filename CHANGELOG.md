@@ -25,6 +25,8 @@ Nothing breaks.
   walk into a fight with a moving goal raises `ValueError`. `ZonePlanner.straight(start, goal,
   avoid)` says whether a straight line between two points is clear to walk. For BartleBot's epic
   #340 (core #39).
+- **Two wisp timings**, `timing.WISP_TAKE_WAIT` (0.3 s) and `WISP_LISTED_EVERY` (1.0 s), for
+  BartleBot's Collect Wisps following a wisp and closing in on one nobody took.
 
 ## 0.15.5
 

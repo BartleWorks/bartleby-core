@@ -784,6 +784,15 @@ WISP_COLLECT_DELAY = 0.1
 # Pause between wisp teleports, so a collection registers before the health/mana ratio is
 # read again. Matches the Deimos utils.py pattern.
 
+WISP_TAKE_WAIT = 0.3
+# Seconds a walker that ended within reach of a wisp waits for a ratio to rise before closing in
+# on it. The ratio rises as the wisp is taken, from about 400 units off, before the wisp flies the
+# rest of the way (docs/WIZARD101.md, How wisps move).
+
+WISP_LISTED_EVERY = 1.0
+# Seconds between the checks, while a walk follows a wisp, that the client still lists it: a
+# freed entity can go on reading the numbers it had.
+
 
 def jitter(base: float, factor: float = 0.2) -> float:
     """Return base ± (factor * base) as a uniform random value.
