@@ -845,3 +845,31 @@ def test_seconds_to_pays_for_room_from_walls_as_a_route_does():
     [seconds] = planner.seconds_to((200, 200), [(1800, 1800)])
 
     assert seconds == pytest.approx(_route_seconds(planner, (200, 200), (1800, 1800)), abs=CELL / WIZARD_SPEED)
+
+
+# --- a straight line ------------------------------------------------------------------------
+
+
+def test_a_straight_line_is_clear_on_open_floor_and_not_through_a_wall():
+    planner = _walled((800, 1000))
+
+    assert planner.straight((300, 300), (1200, 700))
+    assert planner.straight((300, 900), (2700, 900))  # through the gap
+    assert not planner.straight((300, 300), (2700, 300))  # through the wall
+
+
+def test_a_straight_line_never_steps_into_a_volume_link_it_does_not_start_or_end_in():
+    planner = _hall_with_a_volume_link()
+
+    assert not planner.straight((200, 1000), (3800, 1000))
+    assert planner.straight((200, 1000), (3800, 1600))
+    assert planner.straight((2000, 1000), (3800, 1000))  # walking out of it
+
+
+def test_a_straight_line_avoiding_patrols_keeps_hard_outside_their_trigger_radius():
+    planner = _street()  # a ghost of radius 200 walking x 2000, from y 0 to 900
+
+    assert not planner.straight((200, 500), (3800, 500))  # across its walk
+    assert planner.straight((200, 500), (3800, 500), avoid=False)
+    assert planner.straight((200, 1800), (3800, 1800))  # 700 outside it at the nearest
+    assert not planner.straight((200, 1250), (3800, 1250))  # only 150 outside it there

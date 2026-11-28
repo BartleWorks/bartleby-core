@@ -16,6 +16,7 @@ from bartleby.runtime.clients import game_keys
 from bartleby.runtime.game.key_bindings import GameAction
 from bartleby.runtime.input import ClientInput
 from bartleby.runtime.movement import walk as walk_module
+from bartleby.runtime.movement.geometry import flat_distance
 from bartleby.runtime.movement.route import PlanStopped, ZoneFiles, ZonePlanner, build_planner
 from bartleby.runtime.movement.walk import ClientRead, GateRead, Listing, RouteWalker, WalkEnd, rejoin
 from bartleby.runtime.movement.zone_links import Link, Volume
@@ -1179,3 +1180,214 @@ async def test_a_walk_leaves_the_speed_field_as_it_found_it():
 
     assert client.speed == 100
     assert [r for r in client.inputs if r.kind == "speed"] == []
+
+
+# --- a goal that moves ------------------------------------------------------------------------
+
+
+def _moving(path, speed):
+    """A goal that goes along *path* at *speed* units a second from now, and stays at its end:
+    read afresh on every call, as a wisp's position is."""
+    began = time.monotonic()
+
+    def at(gone: float):
+        for a, b in itertools.pairwise(path):
+            leg = math.dist(a[:2], b[:2])
+            if gone <= leg:
+                f = gone / leg if leg else 1.0
+                return tuple(p + (q - p) * f for p, q in zip(a, b))
+            gone -= leg
+        return tuple(path[-1])
+
+    moved = [0.0]
+
+    async def goal():
+        moved[0] = (time.monotonic() - began) * speed
+        return at(moved[0])
+
+    goal.moved = lambda: min(moved[0], _length(path))  # units along its path, as last read
+    return goal
+
+
+def _length(path) -> float:
+    return sum(math.dist(a[:2], b[:2]) for a, b in itertools.pairwise(path))
+
+
+async def test_a_walk_to_a_goal_that_moves_1500_units_around_a_wall_ends_within_reach_of_where_it_is():
+    client = _client((300.0, 200.0, 0.0))
+    planner = _walled((800, 1000))  # the wall at x 1500 is open only from y 800 up
+    # Beyond the wall, and away round the far end of the hall.
+    path = [(2000.0, 200.0, 0.0), (2900.0, 200.0, 0.0), (2900.0, 900.0, 0.0), (1700.0, 900.0, 0.0)]
+    goal = _moving(path, 600.0)  # half the walker's 1,200 units a second
+
+    result = await _walk_lease(RouteWalker(client, planner), client, goal, reach=300.0)
+
+    assert result.arrived, result.describe()
+    assert goal.moved() >= 1500
+    assert result.reaims >= 1
+    assert result.position[0] > 1500  # through the gap, after the goal
+    assert flat_distance(result.position, result.goal) <= 300
+    assert client.held == set()
+
+
+async def test_a_moving_goal_at_the_default_reach_is_walked_up_to_within_arrive_goal():
+    client = _client((300.0, 200.0, 0.0))
+    goal = _moving([(1500.0, 200.0, 0.0), (1500.0, 1100.0, 0.0)], 400.0)
+
+    result = await _walk_lease(RouteWalker(client, _hall()), client, goal)
+
+    assert result.arrived, result.describe()
+    assert flat_distance(result.position, result.goal) <= walk_module.ARRIVE_GOAL + 10
+    assert result.goal[1] > 400
+
+
+async def test_a_goal_that_reads_none_mid_walk_ends_the_walk_arrived_and_the_wizard_stands_still():
+    client = _client()
+
+    async def goal():
+        return None if client.position[0] > 1000 else (3600.0, 1000.0, 0.0)
+
+    result = await _walk_lease(RouteWalker(client, _hall()), client, goal)
+    stopped = client.position
+    await asyncio.sleep(0.2)
+
+    assert result.end is WalkEnd.ARRIVED and "gone" in result.detail
+    assert client.held == set()
+    assert client.position == stopped
+    assert result.position[0] < 2000
+
+
+async def test_a_goal_gone_before_the_walk_sets_off_presses_nothing_and_plans_nothing():
+    client = _client()
+    planner = _hall()
+    plans = _counting(planner)
+
+    async def goal():
+        return None
+
+    result = await _walk_lease(RouteWalker(client, planner), client, goal)
+
+    assert result.end is WalkEnd.ARRIVED and result.planned is None
+    assert plans == [] and [r for r in client.inputs if r.kind in ("down", "yaw")] == []
+
+
+async def test_a_walk_that_starts_within_reach_ends_arrived_pressing_nothing_and_planning_nothing():
+    client = _client()
+    planner = _hall()
+    plans = _counting(planner)
+
+    fixed = await _walk_lease(RouteWalker(client, planner), client, (450, 1000, 0), reach=300.0)
+    moved = await _walk_lease(RouteWalker(client, planner), client, _moving([(200.0, 1250.0, 0.0)], 0.0), reach=300.0)
+
+    assert fixed.arrived and moved.arrived
+    assert fixed.planned is None and moved.planned is None
+    assert plans == [] and [r for r in client.inputs if r.kind in ("down", "yaw")] == []
+
+
+async def test_a_fixed_point_with_a_reach_past_arrive_goal_ends_once_within_reach():
+    client = _client()
+
+    result = await _walk_lease(RouteWalker(client, _hall()), client, (3000, 1000, 0), reach=400.0)
+
+    assert result.arrived
+    assert 300 <= flat_distance(result.position, (3000, 1000, 0)) <= 400
+
+
+def _asked(planner: ZonePlanner, client=None, slow: float = 0.0) -> list[tuple[str, float]]:
+    """Every route and straight line *planner* is asked for from now on, by kind and when. With
+    *slow*, each route but the first takes that many seconds, and notes halfway whether *client*
+    held a key then."""
+    asked: list[tuple[str, float]] = []
+    route, straight = planner.route, planner.straight
+
+    def routing(*a, **k):
+        asked.append(("route", time.monotonic()))
+        if slow and sum(kind == "route" for kind, _ in asked) > 1:
+            time.sleep(slow / 2)
+            asked.append(("held" if client.held else "stood", time.monotonic()))
+            time.sleep(slow / 2)
+        return route(*a, **k)
+
+    def straightening(*a, **k):
+        asked.append(("straight", time.monotonic()))
+        return straight(*a, **k)
+
+    planner.route, planner.straight = routing, straightening
+    return asked
+
+
+async def test_re_aiming_asks_the_planner_no_oftener_than_every_walk_reaim_every(monkeypatch):
+    monkeypatch.setattr(walk_module, "WALK_REAIM_EVERY", 0.4)
+    client = _client((200.0, 200.0, 0.0))
+    planner = _hall()
+    asked = _asked(planner)
+    # Round and round the hall's far end, fast enough to be some while caught at the default reach.
+    loop = [(3600.0, 1800.0, 0.0), (3600.0, 200.0, 0.0), (2200.0, 200.0, 0.0), (2200.0, 1800.0, 0.0)] * 3
+    goal = _moving(loop, 900.0)
+
+    result = await _walk_lease(RouteWalker(client, planner), client, goal)
+
+    re_aims = [t for _kind, t in asked[1:]]  # the first is the walk's own plan
+    assert result.reaims >= 2 and len(re_aims) >= 2
+    assert all(b - a >= 0.4 - 0.05 for a, b in itertools.pairwise(re_aims))
+
+
+async def test_a_re_aim_on_a_route_keeps_walking_while_it_plans():
+    client = _client((300.0, 200.0, 0.0))
+    planner = _walled((800, 1000))
+    asked = _asked(planner, client, slow=0.4)
+    walker = RouteWalker(client, planner)
+
+    async def never(*_a):
+        return False  # no clear line to the goal: every re-aim plans a route
+
+    walker._straight = never
+    goal = _moving([(2700.0, 200.0, 0.0), (2700.0, 600.0, 0.0)], 300.0)
+
+    result = await _walk_lease(walker, client, goal, reach=300.0)
+
+    assert result.arrived, result.describe()
+    assert result.reaims >= 1
+    assert "held" in [kind for kind, _ in asked]
+    assert "stood" not in [kind for kind, _ in asked]
+
+
+async def test_a_kept_plan_fits_a_moving_goal_that_strayed_less_than_reaim():
+    client = _client()
+    planner = _hall()
+    walker = RouteWalker(client, planner)
+    plans = _counting(planner)
+
+    def at(x):
+        async def goal():
+            return (x, 1000.0, 0.0)
+
+        return goal
+
+    await _walk_lease(walker, client, at(1400.0), longest=0.5)
+    near = await _walk_lease(walker, client, at(1400.0 + walk_module.REAIM - 20), longest=0.5)
+    far = await _walk_lease(walker, client, at(1400.0 + walk_module.REAIM + 50), longest=0.5)
+
+    assert near.end is WalkEnd.TOO_LONG and far.end is WalkEnd.TOO_LONG
+    assert len(plans) == 2  # the first, and the far one's: the near one took the kept plan
+
+
+async def test_a_walk_into_a_fight_takes_only_a_fixed_point():
+    client = _client()
+
+    async def goal():
+        return (1400.0, 1000.0, 0.0)
+
+    with pytest.raises(ValueError, match="fixed point"):
+        await _walk_lease(RouteWalker(client, _hall()), client, goal, fight=True)
+
+
+async def test_a_walk_to_a_fixed_point_asks_for_no_straight_line_and_never_re_aims():
+    client = _client()
+    planner = _hall()
+    asked = _asked(planner)
+
+    result = await _walk_lease(RouteWalker(client, planner), client, (2600, 1400, 0))
+
+    assert result.arrived and result.reaims == 0
+    assert [kind for kind, _ in asked] == ["route"]

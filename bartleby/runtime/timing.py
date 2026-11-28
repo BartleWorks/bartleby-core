@@ -931,6 +931,11 @@ WALK_LOOK_STEP = 0.1
 WALK_DETOUR_EVERY = 1.0
 # Seconds at least between two detours sought around mobs.
 
+WALK_REAIM_EVERY = 1.5
+# Seconds at least between two re-aims of a walk to a moving goal (a wisp): each asks the planner
+# for a straight line or a route, which takes seconds in a big zone. A world wisp moves about 130
+# units in that time, under REAIM, so a walk that re-aims no oftener still keeps up with one.
+
 WALK_TIME_ALLOWANCE = 20.0
 # Seconds a walk is given beyond three times its planned walking time, its links' waits, its
 # waits for mobs and its planning, before it ends out of time.

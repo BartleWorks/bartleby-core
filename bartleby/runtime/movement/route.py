@@ -556,6 +556,24 @@ class ZonePlanner:
             return None
         return _route(floor, volumes, *found)
 
+    def straight(self, start: Sequence[float], goal: Sequence[float], avoid: bool = True) -> bool:
+        """Whether a wizard at *start* can walk straight to *goal*: on the floor a route between
+        them may use (:meth:`floor_for`), stepping into no volume link, and with *avoid*, keeping
+        :data:`~bartleby.runtime.movement.patrols.HARD` outside every patrol's trigger radius, as a
+        route does where there is room, or as far as the nearer end keeps where it is less.
+        What a walk to a moving goal asks before it steers at the goal with no plan. It snaps both
+        to the floor as :meth:`route` does, so it costs about what a route's setup does: off the
+        event loop, as every plan is."""
+        floor = self.floor_for(start, goal)
+        s, g = self.node(*start, passable=floor), self.node(*goal, passable=floor)
+        if s is None or g is None:
+            return False
+        floor = floor & ~self.volume_floor(floor, s, g)
+        least = -math.inf
+        if avoid:
+            least = min(float(self.clearance[s[1:]]), float(self.clearance[g[1:]]), HARD) - self.grid.cell
+        return straight_ok(self.grid, floor, self.clearance, s, g, least, self.max_rise)
+
     def seconds_to(
         self,
         start: Sequence[float],

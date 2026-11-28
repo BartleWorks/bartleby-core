@@ -58,6 +58,13 @@
 * **A plan too long** (``walk(..., longest=…)``) ends the walk :attr:`WalkEnd.TOO_LONG` before a
   key is pressed, with the plan's walking seconds on :attr:`WalkResult.planned`, as every walk
   has them; the walker keeps that plan for the next walk from the same spot to the same goal.
+* **A goal that moves** (a :data:`GoalRead`, such as a wisp's position) is read every tick. The walk
+  is arrived once within ``walk(..., reach=…)`` of where the goal is now, or once the goal reads
+  None, since a wisp taken is gone. When the goal has moved more than :data:`REAIM` from where its
+  route ends, the walk re-aims, at most every :data:`~bartleby.runtime.timing.WALK_REAIM_EVERY`:
+  straight at the goal when the line there is clear (:meth:`~bartleby.runtime.movement.route.ZonePlanner.straight`),
+  following it as it moves, or else on a route planned while it walks on along the old one. It
+  never aims ahead of the goal.
 
 It ends on the goal, no route, being blocked, a fight, a zone change, running out of time
 (the time given again at each replan and detour, for the route left, and never past
@@ -103,6 +110,7 @@ from bartleby.runtime.timing import (
     WALK_MOB_WAIT,
     WALK_PRESS_EVERY,
     WALK_PROMPT_WAIT,
+    WALK_REAIM_EVERY,
     WALK_SETTLE,
     WALK_STALL_WINDOW,
     WALK_STATE_POLL,
@@ -116,6 +124,9 @@ logger = logging.getLogger(__name__)
 ARRIVE_TURN = 80.0
 #: Units from the goal at which a walk has arrived.
 ARRIVE_GOAL = 50.0
+#: Units a moving goal may stray from where the walk's route ends before the walk re-aims. Under
+#: the 300 a walk to a wisp ends within, so a route that ends where a wisp was still ends in reach.
+REAIM = 150.0
 #: Radians off the heading under which the yaw is left alone.
 DEADBAND = math.radians(4)
 #: Units a second faster than which a move between two reads is a jump, not walking, or twice
@@ -191,6 +202,12 @@ DETOUR_REACH = 1500.0
 #: The moments, in seconds from now, at which :func:`room` compares the wizard with each mob.
 LOOK_AHEAD = tuple(k * WALK_LOOK_STEP for k in range(int(round(WALK_LOOK_AHEAD / WALK_LOOK_STEP)) + 1))
 
+#: Where a moving goal is now, or None once it is gone (a wisp taken): what a walk to it reads
+#: every tick. It handles its own read failures; anything it raises ends the walk with it.
+GoalRead = Callable[[], Awaitable[Point | None]]
+#: What a walk goes to: a fixed point, or a goal it reads again.
+Goal = Point | GoalRead
+
 
 class WalkEnd(StrEnum):
     """How a walk ended."""
@@ -211,7 +228,7 @@ class WalkResult:
     end: WalkEnd
     zone: str | None
     start: Point
-    goal: Point
+    goal: Point  # a moving goal's position as last read
     position: Point | None = None
     detail: str = ""
     seconds: float = 0.0
@@ -221,6 +238,7 @@ class WalkResult:
     planned: float | None = None
     speed: float | None = None
     replans: int = 0
+    reaims: int = 0  # times a walk to a moving goal turned toward where it had moved
     recoveries: int = 0
     detours: int = 0
     links_taken: int = 0
@@ -674,12 +692,15 @@ class _Kept:
     legs: list[Leg]
     state: tuple
 
-    def fits(self, planner: ZonePlanner, start: Point, goal: Point, fight: Point | None) -> bool:
+    def fits(self, planner: ZonePlanner, start: Point, goal: Point, fight: Point | None, moving: bool = False) -> bool:
         """Whether a walk from *start* to *goal* may take it: from within ARRIVE_GOAL of where it
-        was planned, to the same goal and the same fight, on a planner nothing has changed since."""
+        was planned, to the same goal and the same fight, on a planner nothing has changed since.
+        A *moving* goal is the same within REAIM, which is as far as it may stray from a route's
+        end before the walk re-aims anyway."""
+        same_goal = flat_distance(goal, self.goal) <= REAIM if moving else tuple(goal) == self.goal
         return (
             flat_distance(start, self.start) <= ARRIVE_GOAL
-            and tuple(goal) == self.goal
+            and same_goal
             and fight == self.fight
             and _planner_state(planner) == self.state
         )
@@ -720,6 +741,7 @@ class RouteWalker:
         self._spare: frozenset[int] = frozenset()  # the mobs that walk means to meet, by key
         self._detour_failed: str | None = None  # the kind of reason no detour was taken, last logged
         self._kept: _Kept | None = None  # the plan of the last walk, when it ended TOO_LONG
+        self._moving: GoalRead | None = None  # the goal of a walk to one that moves, while one is walked
 
     async def _read(self) -> tuple[Point, float]:
         pos = await self.client.body.position()
@@ -737,13 +759,20 @@ class RouteWalker:
     async def walk(
         self,
         lease: Lease,
-        goal: Point,
+        goal: Goal,
         *,
         fight: bool = False,
         spare: Sequence[int] = (),
         longest: float | None = None,
+        reach: float = ARRIVE_GOAL,
     ) -> WalkResult:
         """Walk to *goal* through *lease*'s input, from where the wizard stands.
+
+        *goal* is a point, or a :data:`GoalRead` for a goal that moves: read every tick, re-aimed
+        at once it strays past REAIM from where the route ends, and arrived at once it reads
+        None. *reach* is how near the goal's position now a walk has arrived; past ARRIVE_GOAL,
+        or for a goal that moves, it is measured every tick, and a walk that starts within it
+        presses nothing. A fixed point at the default reach is walked as it always was.
 
         *fight* makes it a walk into a fight at *goal*: the patrols of the mobs there cost its plan
         nothing, and the watch leaves out the mobs in *spare* (their keys, the entities' global ids)
@@ -754,20 +783,35 @@ class RouteWalker:
         (:attr:`WalkResult.planned`): a plan over it ends the walk :attr:`WalkEnd.TOO_LONG`
         before any key is pressed. The walker keeps that plan, and the next walk it is asked for,
         if it starts within ARRIVE_GOAL of the same spot and goes to the same goal, on a planner
-        no walk has changed since, takes it rather than planning again. Any other walk drops it."""
+        no walk has changed since, takes it rather than planning again. Any other walk drops it.
+        A moving goal is the same goal within REAIM."""
+        moving = goal if callable(goal) else None
+        if moving is not None and fight:
+            raise ValueError("a walk into a fight goes to a fixed point")
         self._fight = tuple(goal) if fight else None
         self._spare = frozenset(spare) if fight else frozenset()
+        self._moving = moving
         self._detour_failed = None
         try:
-            return await self._walk_to(lease, goal, longest)
+            return await self._walk_to(lease, goal, longest, reach)
         finally:
-            self._fight, self._spare = None, frozenset()
+            self._fight, self._spare, self._moving = None, frozenset(), None
 
-    async def _walk_to(self, lease: Lease, goal: Point, longest: float | None) -> WalkResult:
+    async def _walk_to(self, lease: Lease, goal: Goal, longest: float | None, reach: float) -> WalkResult:
         started = time.monotonic()
         position, _ = await self._read()
         zone = await self.client.zone_name()
+        if self._moving is not None:
+            first = await self._moving()
+            if first is None:
+                self._kept = None
+                return self._at_once(WalkResult(WalkEnd.ARRIVED, zone, position, position), "its goal was gone")
+            goal = tuple(first)
         result = WalkResult(WalkEnd.NO_ROUTE, zone, position, tuple(goal))
+        if self._reaching(reach) and flat_distance(position, goal) <= reach:
+            self._kept = None
+            result.end = WalkEnd.ARRIVED
+            return self._at_once(result, f"it stood within {reach:.0f} of its goal")
         await self._first_read(result)
         watch = None
         if self.watch_mobs:
@@ -776,7 +820,7 @@ class RouteWalker:
             watch = _Refresh(self.entities)
         watch.start()
         try:
-            await self._walk(lease, result, watch if self.watch_mobs else None, started, longest)
+            await self._walk(lease, result, watch if self.watch_mobs else None, started, longest, reach)
         except _Ended as ended:
             result.end, result.detail = ended.end, ended.detail
         finally:
@@ -796,6 +840,17 @@ class RouteWalker:
         # A plan too long is the caller's question answered, not a walk gone wrong.
         log = logger.info if result.arrived or result.end is WalkEnd.TOO_LONG else logger.warning
         log("%s: %s", self.label, result.describe())
+        return result
+
+    def _reaching(self, reach: float) -> bool:
+        """Whether this walk measures *reach* every tick: for a goal that moves, or a reach past
+        ARRIVE_GOAL. A fixed point at the default ends on its route's last waypoint, as before."""
+        return self._moving is not None or reach > ARRIVE_GOAL
+
+    def _at_once(self, result: WalkResult, detail: str) -> WalkResult:
+        """*result*, ended where it stood with no key pressed and nothing planned, logged."""
+        result.position, result.detail = result.start, detail
+        logger.info("%s: %s", self.label, result.describe())
         return result
 
     async def _first_read(self, result: WalkResult) -> None:
@@ -861,30 +916,53 @@ class RouteWalker:
         """*route*'s legs, the first starting from *here*."""
         return _from_here(result, await asyncio.to_thread(self.planner.legs, route), here)
 
-    async def _first_legs(self, result: WalkResult, here: Point) -> list[Leg]:
-        """The first plan's legs, as the planner gives them: the plan kept from the walk before,
-        when it fits this one, or else a fresh plan, made while the walk's first lookups are."""
+    async def _first_legs(self, result: WalkResult, here: Point) -> tuple[list[Leg], Point]:
+        """The first plan's legs, as the planner gives them, and the goal they end at: the plan
+        kept from the walk before, when it fits this one, or else a fresh plan, made while the
+        walk's first lookups are."""
         kept, self._kept = self._kept, None
-        if kept is not None and kept.fits(self.planner, here, result.goal, self._fight):
+        if kept is not None and kept.fits(self.planner, here, result.goal, self._fight, self._moving is not None):
             logger.debug("%s: walking the plan kept from the walk before", self.label)
             await self._warm_up()
-            return kept.legs
+            return kept.legs, kept.goal
         route, _ = await asyncio.gather(self._plan(result, here, result.goal), self._warm_up())
         if route is None:
             why = await self._why_not(result, here, result.goal)
             raise _Ended(WalkEnd.NO_ROUTE, why.describe())
-        return await asyncio.to_thread(self.planner.legs, route)
+        return await asyncio.to_thread(self.planner.legs, route), result.goal
+
+    def _join(self, waypoints: Sequence[Point], at: Point) -> int | None:
+        """The furthest of *waypoints* past the first that *at* has a clear straight line to, or
+        None: where a walk joins a route planned from where it stood a moment before."""
+        for k in range(len(waypoints) - 1, 0, -1):
+            if self.planner.straight(at, waypoints[k], self.avoid):
+                return k
+        return None
+
+    async def _straight(self, start: Point, goal: Point) -> bool:
+        """Whether the line from *start* to *goal* is clear to walk (:meth:`ZonePlanner.straight`),
+        asked in a worker thread: it snaps both ends to the floor, as a plan does."""
+        return await asyncio.to_thread(self.planner.straight, start, goal, self.avoid)
 
     async def _walk(  # noqa: C901, PLR0912, PLR0915 - the probe's one loop, kept whole
-        self, lease: Lease, result: WalkResult, watch: MobWatch | None, started: float, longest: float | None = None
+        self,
+        lease: Lease,
+        result: WalkResult,
+        watch: MobWatch | None,
+        started: float,
+        longest: float | None = None,
+        reach: float = ARRIVE_GOAL,
     ) -> None:
         keys = lease.input
-        goal = result.goal
+        moving = self._moving
+        reaching = self._reaching(reach)
         expected = await self._expected_speed()
         jump_speed = max(JUMP_SPEED, 2.0 * expected)
 
         here = result.start
-        planned = await self._first_legs(result, here)
+        # *goal* is where the route being walked ends; *live*, where a moving goal is now.
+        planned, goal = await self._first_legs(result, here)
+        live = result.goal
         legs = _from_here(result, planned, here)
         result.planned, result.speed = walking_seconds(legs, expected), expected
         if longest is not None and result.planned > longest:
@@ -906,9 +984,21 @@ class RouteWalker:
         last_detour = -math.inf
         speeds: list[float] = []
         budget = deadline = 0.0
+        # A moving goal's re-aims: when the last was asked for, the route being planned meanwhile
+        # and where to, and the waypoints of a straight line steered at the goal, while walked.
+        last_reaim = 0.0
+        pending: asyncio.Task | None = None
+        pending_to: Point = goal
+        direct: list[Point] | None = None
 
         def clock() -> float:
             return time.monotonic() - started
+
+        def drop_pending() -> None:
+            nonlocal pending
+            if pending is not None:
+                pending.cancel()  # its plan sees the cancel and stops (plan_in_thread)
+                pending = None
 
         def held_up(now: float) -> float:
             """Seconds stood or backed off for mobs, the one under way included."""
@@ -942,9 +1032,12 @@ class RouteWalker:
                 raise _Ended(WalkEnd.ZONE_CHANGED)
 
         async def replan(at: Point, why: str) -> None:
-            """Plan again from *at*, standing meanwhile."""
-            nonlocal waypoints, link, later, target, last, last_t
+            """Plan again from *at*, standing meanwhile: to where a moving goal is now."""
+            nonlocal waypoints, link, later, target, last, last_t, goal, last_reaim
             await stand()
+            drop_pending()
+            if moving is not None:
+                goal, last_reaim = live, clock()
             again = await self._plan(result, at, goal)
             if again is None:
                 reason = await self._why_not(result, at, goal)
@@ -959,6 +1052,42 @@ class RouteWalker:
             history.clear()
             last, last_t = position, clock()
             give_time(planned)
+
+        async def take_reaim(route: Route | None, at: Point) -> None:
+            """Walk *route*, planned to where the goal had moved while the walk went on, from *at*,
+            where the wizard is now, which it has walked on from where the plan began: straight to
+            the furthest of its first leg's waypoints the line there is clear to, and on from it.
+            With none clear, it plans afresh from *at*, standing."""
+            nonlocal waypoints, link, later, target, goal
+            if route is None:
+                logger.debug("%s: no route to where its goal moved: walking on to where it was", self.label)
+                return
+            legs = await asyncio.to_thread(self.planner.legs, route)
+            first = list(legs[0].waypoints)
+            k = await asyncio.to_thread(self._join, first, at)
+            if k is None:
+                await replan(at, "toward where its goal moved")
+                return
+            result.reaims += 1
+            result.routes.append([p for leg in legs for p in leg.waypoints])
+            waypoints, link, later = [(at[0], at[1], first[k][2]), *first[k:]], legs[0].link, legs[1:]
+            target, goal = 1, pending_to
+            give_time([Leg(waypoints, link), *later])
+
+        async def reaim(now: float, at: Point) -> None:
+            """Turn toward where the goal is now: straight at it when the line there is clear, or
+            else on a route planned while the walk goes on."""
+            nonlocal waypoints, link, later, target, goal, last_reaim, pending, pending_to, direct
+            last_reaim = now
+            if await self._straight(at, live):
+                waypoints, link, later, target, goal = [at, live], None, [], 1, live
+                direct = waypoints
+                result.reaims += 1
+                logger.debug("%s: its goal moved: steering straight at it", self.label)
+                give_time([Leg(waypoints)])
+                return
+            pending_to = live
+            pending = asyncio.create_task(plan_in_thread(self.planner.route, at, live, self.avoid, False))
 
         try:
             while True:
@@ -1036,7 +1165,47 @@ class RouteWalker:
                         await replan(here, why)
                         continue
 
+                # A moving goal: gone, within reach, moved on from where the route ends, or a
+                # route to where it moved planned while the walk went on.
+                if moving is not None:
+                    seen = await moving()
+                    if seen is None:
+                        await stand()
+                        await asyncio.sleep(WALK_SETTLE)
+                        raise _Ended(WalkEnd.ARRIVED, "its goal is gone")
+                    live = result.goal = tuple(seen)
+                if reaching and flat_distance(here, live) <= reach:
+                    await stand()
+                    await asyncio.sleep(WALK_SETTLE)
+                    raise _Ended(WalkEnd.ARRIVED, f"within {reach:.0f} of its goal")
+                if moving is not None:
+                    if pending is not None and pending.done():
+                        task, pending = pending, None
+                        await take_reaim(_planned(task, self.label), here)
+                        continue
+                    if direct is not None and waypoints is direct and flat_distance(live, goal) <= REAIM:
+                        waypoints[-1] = live  # steering at it as it moves, near the line found clear
+                    elif pending is None and flat_distance(live, goal) > REAIM and now - last_reaim >= WALK_REAIM_EVERY:
+                        await reaim(now, here)
+
                 target = _passed(waypoints, target, here)
+                if (
+                    target >= len(waypoints)
+                    and link is None
+                    and moving is not None
+                    and flat_distance(live, goal) > REAIM
+                ):
+                    # At the route's end, and the goal has moved on: turn toward it, standing.
+                    await stand()
+                    if pending is not None:
+                        task, pending = pending, None
+                        await asyncio.wait([task])
+                        await take_reaim(_planned(task, self.label), here)
+                    elif now - last_reaim >= WALK_REAIM_EVERY:
+                        await replan(here, "toward where its goal moved")
+                    else:
+                        await asyncio.sleep(WALK_TICK)
+                    continue
                 if target >= len(waypoints) and link is not None:
                     await stand()
                     if await self._take(keys, link, here):
@@ -1206,6 +1375,7 @@ class RouteWalker:
 
                 await asyncio.sleep(WALK_TICK)
         finally:
+            drop_pending()
             if mode != "go":  # standing or backing off for mobs when it ended
                 result.waited += clock() - mode_since
 
@@ -1333,6 +1503,17 @@ class RouteWalker:
             if t >= WALK_LANDED_FOR and math.dist(recent[0][1], here) < SETTLED_MOVE:
                 return
             await asyncio.sleep(WALK_TICK)
+
+
+def _planned(task: asyncio.Task, label: str) -> Route | None:
+    """The route a re-aim's plan, done, found, or None when it found none or failed: a failed
+    re-aim leaves the walk on the route it had."""
+    if task.cancelled():
+        return None
+    if (error := task.exception()) is not None:
+        logger.warning("%s: planning toward where its goal moved failed: %r", label, error)
+        return None
+    return task.result()
 
 
 def _passed(route: Sequence[Point], target: int, here: Point) -> int:

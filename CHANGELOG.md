@@ -8,6 +8,24 @@ core*, says how a release is cut.
 Versions are SemVer, with Cargo's rule while core is 0.x: a minor bump (0.2.0 to 0.3.0)
 can break a product, and a patch bump (0.2.0 to 0.2.1) breaks nothing.
 
+## 0.15.6
+
+Nothing breaks.
+
+### Added
+
+- **A walk to a goal that moves.** `RouteWalker.walk(lease, goal)` takes a `GoalRead` as well as
+  a point: a coroutine function giving the goal's position now, or None once it is gone. The walk
+  reads it every tick, is arrived within the new *reach* of it (default `ARRIVE_GOAL`) or once it
+  reads None, and re-aims once the goal strays past `REAIM` (150), at most every
+  `timing.WALK_REAIM_EVERY` (1.5 s): straight at it when the line is clear, or on a route planned
+  while it walks on. A walk that starts within reach presses nothing. A kept `TOO_LONG` plan
+  fits a moving goal within `REAIM`. `WalkResult.reaims` counts the re-aims, and `goal` holds a
+  moving goal's last position. A fixed point at the default reach walks exactly as before; a
+  walk into a fight with a moving goal raises `ValueError`. `ZonePlanner.straight(start, goal,
+  avoid)` says whether a straight line between two points is clear to walk. For BartleBot's epic
+  #340 (core #39).
+
 ## 0.15.5
 
 Nothing breaks.
